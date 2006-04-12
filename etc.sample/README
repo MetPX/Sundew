@@ -1,0 +1,29 @@
+
+The global configuration files are here:
+
+
+
+
+
+
+header2client.conf:
+
+header2client.conf is a text file with colon separated fields.  The normal routing entry is like so:
+
+AACN02 CWTO: CMC climate_archive NWS UKMETOFFICE:3:
+
+-- First field (AACN02 CWTO) is an AHL specification (TTAAii CCCC) as, indicating the AHL of messages received to which this routing is to apply.
+-- Second field (CMC climate_archive NWS UKMETOFFICE) is a list of tx clients to which messages with the AHL should be routed.
+-- Third field (3) is a priority to be assigned to an incoming message.  Higher priority messages are transmitted in preference to lower priority ones.  The highest priority is 1, higher numbers indicate lower priority.
+
+
+
+collection_stations.conf:
+
+collection_stations.conf is a text configuration file.  The first word on the line is the concatenated TTAAiiCCCC to be applied to bulletins received which have incomplete headers... ie.. an SA received from CYAZ will have it's header changed to  SACN43 CWAO ...
+
+
+SACN42CWAO   CYAZ    CYBL    CYBV    CYCP CYCQ    CYDB    CYDC    CYEV    CYFO    CYHE    CYIV    CYKY    CYMD    CYPR    CYQD    CYQZ    CYRV    CYUA    CYXC    CYXE    CYXQ    CYXS    CYZP    CYZT
+
+
+

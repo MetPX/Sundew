@@ -1,0 +1,89 @@
+#!/usr/bin/env python
+"""
+MetPX Copyright (C) 2004-2006  Environment Canada
+MetPX comes with ABSOLUTELY NO WARRANTY; 
+For details type see COPYING in the source directory tree.
+
+#############################################################################################
+# Name: pxChecker
+#
+# Author: Daniel Lemay
+#
+# Date: 2005-07-11
+#
+# Description: Check if there is some processes that are supposed to run and are not
+#              running. If it is the case, pxChecker will restart (stop + start)  
+#              the processes that are supposed to run
+# 
+#   Usage:   This program should be called from a crontab. The entry should look like:
+#  
+#             * * * * * if test -x /apps/px/bin/pxChecker; then /apps/px/bin/pxChecker > /dev/null 2>&1;fi
+#
+#############################################################################################
+"""
+
+import os, time, pwd, sys, time, getopt
+sys.path.insert(1, sys.path[0] + '/../lib')
+sys.path.insert(1,sys.path[0] + '/../lib/importedLibs')
+
+import PXPaths
+from Logger import Logger
+from PXManager import PXManager
+
+class PXChecker:
+
+    LOG_LEVEL = "INFO"      # Logging level
+
+    # We want this program to run under pds user
+    #if not os.getuid() ==  pwd.getpwnam('pds')[2]:
+    #    pdsUID = pwd.getpwnam("pds")[2]
+    #    os.setuid(pdsUID)
+
+    def __init__(self):
+
+        PXPaths.normalPaths()
+        self.manager = PXManager()
+        LOG_NAME = self.manager.LOG + 'pxChecker.log'    # Log's name
+        logger = Logger(LOG_NAME, PXChecker.LOG_LEVEL, "Checker")
+
+        self.logger = logger.getLogger()
+        self.manager.setLogger(self.logger)
+
+    def check(self):
+        DEBUG = 0 
+        self.manager.initNames()
+        self.manager.initShouldRunNames()
+        self.manager.initRunningNames()
+
+        if DEBUG:
+            print "*************** All names (.conf) **************"
+            print self.manager.getRxNames()
+            print self.manager.getTxNames()
+            print "*************** Should run names (.conf + .lock) **************"
+            print self.manager.getShouldRunRxNames()
+            print self.manager.getShouldRunTxNames()
+            print "************** Running names (.conf + .lock + ps -p pid) *************"
+            print self.manager.getRunningRxNames()
+            print self.manager.getRunningTxNames()
+            print "************** Should  run but not running names *************"
+            print self.manager.getNotRunningRxNames()
+            print self.manager.getNotRunningTxNames()
+
+        # Restart receivers
+        for name in self.manager.getNotRunningRxNames():
+            self.logger.info("Receiver %s has been restarted by pxChecker" % name)
+            if os.fork() == 0:
+                os.execl(PXPaths.BIN + "pxReceiver" , "pxReceiver", name, "restart")
+
+        # Restart senders
+        for name in self.manager.getNotRunningTxNames():
+            self.logger.info("Sender %s has been restarted by pxChecker" % name)
+            if os.fork() == 0:
+                os.execl(PXPaths.BIN + "pxSender" , "pxSender", name, "restart")
+
+        time.sleep(1)
+
+if __name__ == '__main__':
+
+    checker =  PXChecker()
+    checker.check()

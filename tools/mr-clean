@@ -1,0 +1,43 @@
+#!/usr/bin/python2
+#!/software/pub/python-2.3.3/bin/python
+"""
+MetPX Copyright (C) 2004-2006  Environment Canada
+MetPX comes with ABSOLUTELY NO WARRANTY; For details type see the file
+named COPYING in the root of the source directory tree.
+"""
+
+################################################################
+# Name: mr-clean.py
+#
+# Author: Dominik Douville-Belanger
+#
+# Date: 2005-04-06
+#
+# Description: Removes empty directories from pxSender queues
+#
+################################################################
+
+import os
+import time
+import commands
+
+TXQ = '/apps/px/txq'
+# RXQ = '/apps/px/rxq' # Maybe eventually for FTP receivers
+
+currentTime = time.strftime('%Y%m%d%H')
+
+circuits = os.listdir(TXQ)
+for circuit in circuits:
+    minimalPath = TXQ + '/' + circuit
+    prioDirs = commands.getoutput('ls -1 --ignore=PROBLEM %s' % (minimalPath))
+    prioDirs = prioDirs.splitlines() # Type changed
+    for prio in prioDirs:
+        if len(prio) > 1:
+            continue
+        partialPath = minimalPath + '/' + prio
+        dateDirs = commands.getoutput('ls -1 --ignore=%s %s' % (currentTime, partialPath))
+        dateDirs = dateDirs.splitlines() # Type changed
+        for date in dateDirs:
+            fullPath = partialPath + '/' + date
+            if os.listdir(fullPath) == []:
+                result = commands.getoutput('rmdir %s' % (fullPath))

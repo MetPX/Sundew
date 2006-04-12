@@ -1,0 +1,260 @@
+#! /usr/bin/env python2
+"""
+MetPX Copyright (C) 2004-2006  Environment Canada
+MetPX comes with ABSOLUTELY NO WARRANTY; For details type see the file
+named COPYING in the root of the source directory tree.
+"""
+
+############################################################
+#
+# Par: Louis-Philippe Theriault
+#      Stagiaire, CMC
+#
+############################################################
+
+import commands
+import os
+import sys
+import time
+import string
+import signal
+import copy
+
+sys.path.append(sys.path[0] + '/./toolLib')
+import utils
+import bulletinLib
+import imp
+
+# Chargement du fichier de config
+if len(sys.argv) >= 2:
+	config = utils.loadPythonConfigFile()
+else:
+	print "*** Erreur : Pas d'argument en entrée !!"
+
+# Copie des arguments
+sep = config.separateur
+compareFics = config.compareFics
+nbPref = config.nbPrefixesIdentiques
+workDir1 = utils.normalizePath(config.dir1)
+workDir2 = utils.normalizePath(config.dir2)
+delai = config.delai
+tempDir = utils.normalizePath(config.tempDir)
+ficTmpDir1 = tempDir+'dir1_fichier'
+ficTmpDir2 = tempDir+'dir2_fichier'
+diffFilePath = config.diffResultFile
+incorrectDir = utils.normalizePath(config.incorrectDir)
+incertainDir = utils.normalizePath(config.incertainDir)
+fichierRet = config.fichierRet
+nbComp = 0.0
+moyDelaiArrivee = 0.0
+
+# Init du log
+try:
+        log = utils.initLog(config.primaryLog,config.backupLog)
+	diffFile = utils.initLog(diffFilePath)
+except Exception, inst:
+        print "*** Erreur: Creation du log impossible !\n" + str(inst)
+        sys.exit(-1)
+
+# Test d'existence des arguments
+
+def compareFileName(n1,n2):
+        """Compare les noms de fichiers"""
+        n1s = n1.split(sep)[:nbPref]
+        n2s = n2.split(sep)[:nbPref]
+
+        if n1s == n2s: 
+		if n1.split(sep)[nbPref].isalpha() and n2.split(sep)[nbPref].isalpha():
+			if n1.split(sep)[nbPref] == n2.split(sep)[nbPref]:
+				return 0
+			elif n1.split(sep)[nbPref] > n2.split(sep)[nbPref]:
+				return 1
+			else:
+				return -1
+
+		return 0
+
+        elif n1s > n2s: return 1
+        else: return -1
+
+def getLesDerniersFichiers(dir1,dir2):
+	"""Retourne une liste de tuples de liste de fichiers (!) 
+	qui seraient associés pour la comparaison"""
+	ficDir1 = os.listdir(dir1)
+	ficDir2 = os.listdir(dir2)
+
+	ficDir1.sort()
+	ficDir2.sort()
+
+	lesFichiers = []
+	lDir1 = []
+	lDir2 = []
+
+	fPrecedent = 'A' + sep + 'B' + sep + 'C' + sep + 'D'
+
+	while len(ficDir1) and len(ficDir2):
+		
+		res = compareFileName(ficDir1[0],ficDir2[0])
+
+		if res == 0:
+			f1 = ficDir1.pop(0)
+			f2 = ficDir2.pop(0)
+
+			if not compareFileName(fPrecedent,f1) == 0 and lDir1 != []:
+			# Les nouveau fichiers sont pas les memes
+				lesFichiers.append( (lDir1,lDir2) )
+				lDir1 = list()
+				lDir2 = list()
+
+			lDir1.append(f1)
+			lDir2.append(f2)
+			fPrecedent = f1
+
+		elif res == -1:
+			# Le nombre de fichiers est différent dans les 2 repertoires
+			f = ficDir1.pop(0)
+			if time.time() - os.stat(workDir1 + f).st_mtime >= 60 * 10:
+				os.remove(workDir1 + f)
+				utils.writeLog(log,"Effacement du fichier " + workDir1 + f + ", comparaison impossible")
+		else:
+			f = ficDir2.pop(0)
+			if time.time() - os.stat(workDir2 + f).st_mtime >= 60 * 10:
+				os.remove(workDir2 + f)
+				utils.writeLog(log,"Effacement du fichier " + workDir2 + f + ", comparaison impossible")
+
+	if lDir1 != []:
+		lesFichiers.append( (lDir1,lDir2) )
+
+	return lesFichiers
+			
+def catSortWriteFichiers(dir,listeFics, dest):
+	"""Recoit une liste de fichiers et les cat/sort et l'ecrit dans
+	le repertoire temporaire"""
+	f = ''
+	for fic in listeFics:
+		f = f + dir + fic + ' ' + fichierRet + ' '
+
+	commands.getoutput('cat ' + f + ' | sort > ' + dest)
+
+def multipleCompare(dir1,_list1,dir2,_list2):
+	"""Compare les fichiers ensembles et tente de les "matcher" ensembles
+
+	   Retourne une string vide s'ils sont identiques. Efface les fichiers
+	   identiques"""
+	list1 = copy.deepcopy(_list1)
+	list2 = copy.deepcopy(_list2)
+
+	dir1Diff,dir2Diff, dir1Identiques, dir2Identiques = [],[],[],[]
+
+	for f1 in list1:
+		for f2 in list2:
+			compRes = compareFics(dir1+f1,dir2+f2)
+
+			if compRes == '':
+				dir1Identiques.append(f1)
+				dir2Identiques.append(list2.pop(list2.index(f2)))
+				break
+
+		if not f1 in dir1Identiques:
+		# f1 est matché
+			dir1Diff.append(f1)
+
+	dir2Diff = list2
+
+	return dir1Diff,dir2Diff, dir1Identiques, dir2Identiques
+
+
+
+def printAverage(signum, frame):
+	global moyDelaiArrivee
+
+	print "Moyenne des delais :" + str(moyDelaiArrivee)
+	sys.exit(0)
+
+signal.signal(signal.SIGINT, printAverage)
+signal.signal(signal.SIGTERM, printAverage)
+
+
+while True:
+
+	derniersFichiers = getLesDerniersFichiers(workDir1,workDir2)
+
+	while True:
+		if len(derniersFichiers) == 0:
+			break
+
+		t = derniersFichiers.pop(0)
+
+		if len(t[0]) == 1:
+		# Un seul fichier a comparer
+			compRes = compareFics(workDir1 + t[0][0],workDir2 + t[1][0])
+			fichiers = t[0][0] + ' et ' + t[1][0]
+		else:
+		# Plusieurs fichiers a comparer
+			dir1Diff,dir2Diff, dir1Identiques, dir2Identiques = multipleCompare(workDir1,t[0],workDir2,t[1])
+
+			if len(dir1Diff) == len(dir2Diff) == 0:
+				compRes = ''
+				fichiers = '(' + ','.join(t[0]) + ') et (' + ','.join(t[1]) + ')'
+			else:
+				if len(dir1Identiques) != 0 or len(dir2Identiques) != 0:
+					fichiers = '(' + ','.join(dir1Identiques) + ') et (' + ','.join(dir2Identiques) + ')'
+					utils.writeLog(log,"Effacement des fichiers " + fichiers + ', ils sont identiques ')
+					# Effacement des fichiers identiques
+					for f in dir1Identiques:
+						os.remove(workDir1+f)
+					for f in dir2Identiques:
+						os.remove(workDir2+f)
+
+	                        f1 = catSortWriteFichiers(workDir1, dir1Diff, ficTmpDir1)
+	                        f2 = catSortWriteFichiers(workDir2, dir2Diff, ficTmpDir2)
+	                        compRes = compareFics(ficTmpDir1,ficTmpDir2)
+	                        fichiers = '(' + ','.join(dir1Diff) + ') et (' + ','.join(dir2Diff) + ')'
+
+				t = dir1Diff,dir2Diff
+
+	                        os.remove(ficTmpDir1)
+	                        os.remove(ficTmpDir2)
+
+		for i in range(len(t[0])):
+			delaiArr = (float(os.stat(workDir1 + t[0][i]).st_mtime) - float(os.stat(workDir2 + t[1][i]).st_mtime)) 
+                	moyDelaiArrivee = ( (moyDelaiArrivee*nbComp) + (float(os.stat(workDir1 + t[0][i]).st_mtime) - float(os.stat(workDir2 + t[1][i]).st_mtime)) ) / (nbComp+1.0)
+                        nbComp += 1
+
+		if compRes != '':
+			# Analyse etant donne la difference
+			effacerFichier,message_log = config.analyseSiDiff(t[0],t[1])
+
+			if not effacerFichier:
+				# Une difference dans les fichiers
+				utils.writeLog(diffFile,"Difference entre " + fichiers + '\n' + compRes)
+				utils.writeLog(log,"**** Deplacement des fichiers " + fichiers + ', ils sont differents (delai= '+str(int(delaiArr))+' sec)')
+
+				# Déplacement des fichiers differents
+				for f in t[0]:
+					os.rename(workDir1+f,incorrectDir+f+':'+workDir1.split('/')[-2])
+	                        for f in t[1]:
+	                                os.rename(workDir2+f,incorrectDir+f+':'+workDir2.split('/')[-2])
+			else:
+				# La difference entre les fichiers est "normale" et les fichiers doivent 
+				# êtres effaces...
+				utils.writeLog(log,message_log)
+				utils.writeLog(log,"**** Deplacement des fichiers " + fichiers + ', ils sont incertains (delai= '+str(int(delaiArr))+' sec)')
+
+				# Déplacement des fichiers incertains
+                                for f in t[0]:
+                                        os.rename(workDir1+f,incertainDir+f+':'+workDir1.split('/')[-2])
+                                for f in t[1]:
+                                        os.rename(workDir2+f,incertainDir+f+':'+workDir2.split('/')[-2])
+
+		else:
+			utils.writeLog(log,"Effacement des fichiers " + fichiers + ', ils sont identiques (delai= '+str(int(delaiArr))+' sec)')
+
+			# Effacement des fichiers identiques
+                        for f in t[0]:
+                                os.remove(workDir1+f)
+                        for f in t[1]:
+                                os.remove(workDir2+f)
+
+
+	time.sleep(delai) 

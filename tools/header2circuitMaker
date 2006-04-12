@@ -1,0 +1,144 @@
+#! /usr/bin/env python2
+"""
+MetPX Copyright (C) 2004-2006  Environment Canada
+MetPX comes with ABSOLUTELY NO WARRANTY; For details type see the file
+named COPYING in the root of the source directory tree.
+"""
+
+############################################################
+#
+# Convertit les entrees des fichiers de circuits du tandem
+# en des fichiers de conversion de l'entete au circuit.
+#
+# Par: Louis-Philippe Theriault
+#      Stagiaire, CMC
+#
+############################################################
+
+import commands, re
+import os
+import sys
+import time
+import string
+
+sys.path.append(sys.path[0] + '/./toolLib')
+import utils
+import bulletinLib
+import imp
+
+# Lecture du fichier de configuration du programme
+if len(sys.argv) == 2:
+        pathCfg = sys.argv[1]
+
+        try:
+                fic_cfg = open(pathCfg,'r')
+                config = imp.load_source('config','/dev/null',fic_cfg)
+                fic_cfg.close()
+        except IOError:
+                print "*** Erreur: Fichier de configuration inexistant, erreur fatale!"
+                sys.exit(-1)
+else:
+        print "*** Erreur: Aucun fichier de config en entree, erreur fatale !\n" + \
+              "            Le chemin du fichier doit etre le chemin complet"
+        sys.exit(-1)
+
+config.inputDir = utils.normalizePath(config.inputDir)
+
+def readPriorityFile(path):
+	"""Lecture du fichier de priorité.
+
+	   Retourne une liste, avec comme éléments des listes,
+	   dont [0] = nom de la priorité, [1] = reg_exp du token 1
+	   de l'entête et [2] = reg_exp du token 2
+	"""
+	res = []
+	f = os.open(path,os.O_RDONLY)
+
+	for ligne in os.read(f,os.stat(path).st_size).splitlines():
+		if '#' in ligne or len(ligne) < 5:
+			continue
+		spl = ligne.split()
+
+		res.append([spl[0],re.compile(spl[1]),re.compile(spl[2])])
+
+	res.sort()
+
+	return res
+
+def getPriority(priorityList, header1, header2):
+	"""Retourne la priorité associée à la portion 1 et 2 de l'entête.
+
+	   priorityList est la liste retournée par readPriorityFile(path).
+	"""
+	for pri in priorityList:
+		if pri[1].search(header1) != None and pri[2].search(header2) != None:
+		# Priorité matchée, retourne la priorité associée
+			return pri[0]
+
+	raise Exception('cas de priorites non defini')
+
+
+def main():
+	mapPrincipale = {}
+	lesFichiers = os.listdir(config.inputDir)
+
+	priorityList = readPriorityFile(config.pathPriorites)
+
+	if config.showIgnoredLines:
+		if os.access(config.destFile + '.ignoredLines',os.F_OK):
+			os.remove(config.destFile + '.ignoredLines')
+
+		ignoredLinesFic = os.open(config.destFile + '.ignoredLines', os.O_CREAT | os.O_WRONLY)
+		os.chmod(config.destFile + '.ignoredLines',0644)
+
+	for nomFic in lesFichiers:
+		fileDesc = os.open(config.inputDir + nomFic, os.O_RDONLY)
+		data = os.read(fileDesc,os.stat(config.inputDir + nomFic)[6])
+
+		for ligne in data.splitlines():
+				entete = ligne[:6].replace(' ','') + ' ' + ligne[6:12].strip()
+
+				if len(entete.split()) == 1:
+					entete = entete.replace(' ','')
+
+				if not mapPrincipale.has_key(entete):
+					mapPrincipale[entete] = {}
+					mapPrincipale[entete]['routing_groups'] = []
+
+				if mapPrincipale[entete]['routing_groups'].count(nomFic[0]) == 0:
+					mapPrincipale[entete]['routing_groups'].append(nomFic[0])
+
+				elif config.outputErrs:
+					sys.stderr.write('Plusieurs definitions dans le meme circuit (' + entete + ',fichier ' + nomFic + ')\n')
+
+
+		os.close(fileDesc)
+
+	# Fetch de la priorité pour chaque entêtes
+	for key in mapPrincipale.keys():
+		if len(key.split()) != 1:
+			mapPrincipale[key]['priority'] = getPriority(priorityList,key.split()[0],key.split()[1])
+		else:
+			mapPrincipale[key]['priority'] = getPriority(priorityList,key.split()[0],' ')
+	
+	# Effacement de l'ancien fichier de db (s'il y a lieu)
+	if os.access(config.destFile,os.F_OK):
+		os.remove(config.destFile)
+
+	# Création du nouveau fichier de db
+	fileDesc = os.open(config.destFile, os.O_CREAT | os.O_WRONLY)
+	os.chmod(config.destFile,0644)
+
+	print 'Nombre d\'entrees : ' + str(len(mapPrincipale.keys()))
+
+	# Écriture des champs dans le fichier de db
+	for key in mapPrincipale.keys():
+		os.write(fileDesc,key + ':' + string.join(mapPrincipale[key]['routing_groups'],' ') + ':' + mapPrincipale[key]['priority'] + ':\n')
+
+	os.close(fileDesc)
+
+	if config.showIgnoredLines:
+		os.close(ignoredLinesFic)
+		
+
+main()

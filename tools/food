@@ -1,0 +1,22 @@
+#! /usr/bin/env python2
+"""
+MetPX Copyright (C) 2004-2006  Environment Canada
+MetPX comes with ABSOLUTELY NO WARRANTY; For details type see the file
+named COPYING in the root of the source directory tree.
+"""
+
+""" test data generator.
+Create a whole pile of empty files to be routed, greater
+the variety of names, the better.
+"""
+
+import os
+import os.path
+
+bt=[ "SACN", "SMCN", "FLCN", "FBCN", "WWCN" ]
+os.chdir( "/apps/px/rx/yup" );
+for i in range(1,500):
+  hdr = bt[i%len(bt)] + repr(i)
+  saf = open( hdr, 'w')
+  saf.write( hdr + " lalalala\n\n" )
+  saf.close()

@@ -1,0 +1,74 @@
+
+MetPX Copyright (C) 2004-2006  Environment Canada
+MetPX comes with ABSOLUTELY NO WARRANTY; For details type see the file
+named COPYING in the root of the source directory tree.
+
+
+
+FET - File Exchange Tracker.
+
+initial file hierarchy:
+        FET_DATA= /apps/px
+	FET_DATA/db/<date>/
+	FET_DATA/rx/<source>/[1..5]_<YYYYMMDDHH>
+	FET_DATA/tx/<client>/[1..5]_<YYYYMMDDHH>
+        FET_DATA/log/pxReceiver_<source>
+        FET_DATA/log/pxSender_<source>
+        
+        FET_ETC/
+		header2client.conf
+		collection_stations.conf
+		collection.conf
+	        tx/<client>.conf
+		rx/<reception>.conf
+
+
+Circuits are established relationships with other machines.
+Circuits are unidirectional and can be divided into two types:
+We receive products from 'source' circuits and deliver products
+to 'client' circuits.
+
+The term circuit is used loosely, as in this case it applies
+to file reception and delivery as well as traditional permanent
+connections.
+
+Directions:
+all directions are relative to the entire machine, not any sub-component.
+if files are on their way into the machine, they are rx (reception) files.
+if they are on their way out from the machine, they are tx (transmission) files.
+
+sample confusion to be avoided:
+ie. PDS has 'incoming' as the name of the files which are outgoing from the server,
+because they are 'incoming' to the client.  Such a directory name is very confusing.
+
+Clients:
+     locations to which products are delivered.
+     same terminology as the PDS.
+
+sources 
+     one (or more, depends on priority setting in config.)
+     places where files can be received.
+
+Reception Name:
+     Files are received with a "reception name" in the rxq.
+     once the reception name is adjusted via a ('whattopds') type
+     mapping, then the ingestname is generated from that.
+
+Ingest Name:
+     Ingest name is used to store the file in the DB, as is.
+
+     for patterned routing (see below):
+     ingest name is mapped against patterns to find clients who 
+     will be sent the file.
+
+Destination File Name:
+     destination file name, destfn, is calculated:
+     default is first field of ingest name.
+     add suffixes according to DESTFN parameter setting in pattern.
+
+Direct Routing:
+     routing using a lookup table, tandem style, with direct correspondence
+     between source and client. 
+
+Pattern Routing:
+     traditional PDS routing, via emasks & imasks

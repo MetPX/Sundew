@@ -1,0 +1,93 @@
+Default values for all the options that can be set for a source:
+=========================================================================================
+Option                 Default                           Acceptable values
+=========================================================================================
+type                    None                            <am|wmo|single-file|bulletin-file>
+port                    None                            An integer
+batch                   100                             An integer
+mtime                   0                               An integer
+extension    MISSING:MISSING:MISSING:MISSING:           Five fields separted by four colon :
+AddSMHeader             False                           <True|False>
+arrival                 None                            ex: CA 5 20
+
+Note: The following options are mainly developpers' options. They are not
+used by standard users.
+
+debug                   False                           <True|False>  
+validation              False                           <True|False>
+patternMatching         True                            <True|False>
+clientsPatternMatching  True                            <True|False
+sorter                  None                            <None|StandardSorter|MultiKeysStringSorter>
+
+=========================================================================================
+Standard users' option' descriptions
+=========================================================================================
+type <am|wmo|single-file|bulletin-file>
+    am              - AM protocol socket
+    wmo             - WMO protocol socket
+    single-file     - Receive plain files (like a PDS)
+    single-bulletin - receive bulletins in a file (ingested like from a socket)
+
+port 5012
+    Port to bind for reception, only used on socket protocols.
+
+batch 10000
+    The maximum number of files that will be read from disk in one cycle. 
+    Only used when type is single-file or bulletin-file.
+
+mtime 5
+    Number of seconds a file must not have been modified before we 
+    read it. If set to 0, this is equivalent to not checking the 
+    modification time. This option is useful for files received
+    by rcp, ftp, etc. Only used when type is single-file or bulletin-file.
+
+extension tandem:-CCCC:-TT:-CIRCUIT:Direct
+extension ncp1:CWAO:SA:3:Direct
+    -CCCC       => will be replaced by the origine site
+    -TT         => will be replaced by bulletin type (first 2 letters)
+    -CIRCUIT    => will be replaced by priority found in header2clients.conf
+
+    In general, we choose the extension's fields to be:
+    originSystem:originSite:dataType:priority:dataFormat
+
+    This extension + a timestamp (20051116212028) will be added to the
+    ingested file or bulletin.
+
+arrival CA 5 20
+arrival WO 20 40
+    Mapping of what the valid times to receive a given type of bulletin are.
+    In this example for CA's, -5 or +20 minutes versus the issue time is 
+    the valid interval. Only used when type is am.
+
+AddSMHeader True
+    True if a header is to be inserted at the beginning of a SM or SI bulletins.
+    The header is of the form: "AAXX jjhh4\\n". Only used when type is am.
+
+=========================================================================================
+Developper's option' descriptions
+=========================================================================================
+debug True
+    If we want sections with debug code (and logging informations)
+    to be executed.
+
+validation True
+    Validate if the filename have the following form:
+    SACN43_CWAO_012000_CYOJ_41613:ncp1:CWAO:SA:3.A.I.E::20050201200339
+    The priority field and the timestamp field are checked for validity.
+    In practice, never used for sources.
+    
+patternMatching True
+    Determine if the masks present in the source config. file will be used for 
+    routing files/bulletins.
+
+clientsPatternMatching True
+    For receivers type that use direct routing (am, wmo, bulletin-file), 
+    determine if the masks presents in the clients config. files will be used for 
+    routing bulletins.
+
+sorter MultiKeysStringSorter 
+    Determine which type of sorter will be used. Can be used only with type 
+    single-file and bulletin-file. In practice, never used for sources. 
+
+
+See configuration files examples in /apps/px/etc.sample/rx/

@@ -1,0 +1,292 @@
+#!/usr/bin/env python2
+"""
+MetPX Copyright (C) 2004-2006  Environment Canada
+MetPX comes with ABSOLUTELY NO WARRANTY; For details type see the file 
+named COPYING in the root of the source directory tree.
+
+#############################################################################################
+# Name: papLat
+#
+# Author: Daniel Lemay
+#
+# Date: 2005-09-01
+#
+# Description: Calculate latencies for a product (MPCN for example) sent to a client (wxo-b1 for example)
+#
+#   Usage:   This program can be called from a crontab or from command-line. Crontab entry should look like:
+#
+#             34 18 * * * if test -x /apps/px/bin/paplat; then /apps/px/bin/paplat  > /dev/null 2>&1;fi
+#
+#   For informations about command-line:  pxLat -h | --help
+#############################################################################################
+"""
+import os, pwd, sys, commands, fnmatch
+sys.path.append(sys.path[0] + '/../lib')
+sys.path.append('../lib')
+sys.path.insert(1, sys.path[0] + '/../lib/importedLibs')
+sys.path.insert(1, '../lib/importedLibs')
+
+import PXPaths, dateLib
+from LatMessage import LatMessage
+from PXManager import PXManager
+from Logger import Logger
+from optparse import OptionParser
+from PXLatencies import PXLatencies
+from PDSLatencies import PDSLatencies
+from Plotter import Plotter
+
+from email.MIMEText import MIMEText
+from email.MIMEMultipart import MIMEMultipart
+from email.MIMEBase import MIMEBase
+from email import Utils, Encoders
+import mimetypes, sys
+
+PXPaths.normalPaths()
+
+class PapLat:
+
+    LOG_LEVEL = "INFO"      # Logging level
+    
+    # We want this program to run under pds user
+    if not os.getuid() ==  pwd.getpwnam('pds')[2]:
+        pdsUID = pwd.getpwnam("pds")[2]
+        os.setuid(pdsUID)
+
+    def __init__(self):
+        PXPaths.normalPaths()
+        self.manager = PXManager()
+        LOG_NAME = self.manager.LOG + 'paplat.log'    # Log's name
+        logger = Logger(LOG_NAME, PapLat.LOG_LEVEL, "Latencies")
+        self.logger = logger.getLogger()
+        self.manager.setLogger(self.logger)
+
+        self.latenciers = []
+        self.plotters = []
+        self.message = None
+        self.recipients = []
+
+        usage = """%prog [options]
+
+Notes: - Defaults are set for all options but -p|--patterns, --pdsPatterns and -c|--clients, --pdsClients.
+       - YESTERDAY cannot be used in command line.
+       - With -p|--patterns or --pdsPatterns you can add :x if you want to use xferlogs
+       - With -p|--patterns or --pdsPatterns you can use __ALL__ to indicate that you are not interessed in 
+         a specific product(pattern) but to all products.
+       - With -s|--sources you can use __ALL__ to utilise all sources without naming them (only useful for PX client)
+
+WARNING: Xferlog option (PATTERN:x) is not reliable on PDS when filenames are not unique. Not tested on PX (lack of data)
+
+example 1: %prog -p MPCN -c wxo-b1 (equivalent to: %prog --date YESTERDAY --patterns MPCN --machines pds5,pds6 --sources ncp1,ncp2 --clients wxo-b1)
+example 2: %prog --pdsPatterns ACC --pdsClients wxo-b1-oper-ww (equivalent to: %prog -d YESTERDAY --pdsPatterns ACC -m pds1,pds2,pds3,pds4 -s pdschkprod --pdsClients wxo-b1-oper-ww)
+example 3: %prog --date 20050928 --patterns MPCN --machines pds5,pds6 --sources ncp1,ncp2 --clients wxo-b1
+example 4: %prog -d 20050928 -p 'MPCN*CWAO' -m pds5,pds6 -s ncp1,ncp2 -c wxo-b1 -r daniel.lemay,ambeaubien -g
+example 5: %prog -p MPCN --pdsPatterns ACC -c wxo-b1 -r warnings_latencies
+example 6: %prog -p MPCN,SACN -c wxo-b1 -r warnings_latencies
+example 7: %prog -p MPCN,SACN --pdsPatterns ACC,ACC:x -c amdar --pdsClients condor
+example 8: %prog -r daniel.lemay -p MPCN,__ALL__ --pdsPatterns __ALL__,__ALL__:x --pdsClients wxo-b1-oper-data 
+"""
+
+        self.parser = OptionParser(usage)
+        self.addOptions(self.parser)
+
+        self.start()     
+
+    def start(self):
+        #print sys.argv
+        (options, args) = self.parser.parse_args()
+
+        if not fnmatch.fnmatch(options.date, '20[0-9][5-9][0-1][0-9][0-3][0-9]'):
+            self.parser.error("Date format must be: YYYYMMDD")
+        
+        # PX args 
+        clients = options.clients.replace(' ', '').split(',')
+        patterns = options.patterns.replace(' ', '').split(',')
+        machines = options.machines.replace(' ', '').split(',')
+        sources = options.sources.replace(' ', '').split(',')
+
+        if clients[0] == '':
+            del clients[0]
+        if patterns[0] == '':
+            del patterns[0]
+
+        # PDS args
+        pdsClients = options.pdsClients.replace(' ', '').split(',')
+        pdsPatterns = options.pdsPatterns.replace(' ', '').split(',')
+        pdsMachines = ['pds1', 'pds2', 'pds3', 'pds4']
+        pdsSources = ['pdschkprod']
+
+        if pdsClients[0] == '':
+            del pdsClients[0]
+        if pdsPatterns[0] == '':
+            del pdsPatterns[0]
+
+        # Be sure to have at least 1 client
+        if (len(clients) + len(pdsClients)) == 0:
+            print "You must indicate a client! Default client don't exists"
+            print "If you need help: paplat -h"
+            #self.parser.print_help()
+            sys.exit(1)
+
+        # Be sure to have at least 1 pattern 
+        if (len(patterns) + len(pdsPatterns)) == 0:
+            print "You must indicate a pattern! Default pattern don't exists"
+            print "If you need help: paplat -h"
+            #self.parser.print_help()
+            sys.exit(1)
+
+        # Create PX latenciers
+        for client in clients:
+            for pattern in patterns:
+                parts = pattern.split(':')
+                if len(parts) == 2 and parts[1] == 'x':
+                    latencier = PXLatencies(options.nopull, options.keep, options.date, parts[0], machines, sources, client, True)
+                else:
+                    latencier = PXLatencies(options.nopull, options.keep, options.date, pattern, machines, sources, client)
+                self.latenciers.append(latencier)
+
+        # Create PDS latenciers
+        for client in pdsClients:
+            for pattern in pdsPatterns:
+                print("Pattern: %s" % pattern)
+                parts = pattern.split(':')
+                print("Parts: %s" % parts)
+                if len(parts) == 2 and parts[1] == 'x':
+                    print("xferlog latencier will be created")
+                    latencier = PDSLatencies(options.nopull, options.keep, options.date, parts[0], pdsMachines, pdsSources, client, True)
+                else:
+                    print("normal latencier will be created")
+                    latencier = PDSLatencies(options.nopull, options.keep, options.date, pattern, pdsMachines, pdsSources, client)
+                self.latenciers.append(latencier)
+
+        # Default values for general options
+        if not options.type in ['lines', 'linespoint', 'boxes', 'impulses']:
+            options.type = 'lines'
+
+        if options.graph:
+            if options.individual:
+                i = 0
+                for latencier in self.latenciers:
+                    self.plotters.append(Plotter(options.type, options.interval))
+                    self.plotters[i].addLatencier(latencier)
+                    self.plotters[i].plot()
+                    if options.addText or options.view:
+                        self.message = LatMessage(self.latencier, self.plotters[i].imageName)
+                    i += 1
+            else:
+                self.plotters.append(Plotter(options.type, options.interval))
+                for latencier in self.latenciers:
+                    self.plotters[0].addLatencier(latencier)
+                self.plotters[0].plot()
+                if options.addText or options.view:
+                    self.message = LatMessage(self.latenciers[0], self.plotters[0].imageName)
+        else:
+            if options.addText or options.view:
+                self.message = LatMessage(self.latenciers[0])
+
+        if options.view:
+            self.message.printResults()
+        
+        if options.recipients is not None:
+            self.recipients = options.recipients.replace(' ', '').split(',')
+            self.mailResults(options.graph, options.addText)
+
+        """
+        print patterns
+        print pdsPatterns
+        print machines
+        print sources
+        print client
+        print pdsClient
+        print self.recipients
+        print options.graph
+        print options.interval
+        print options.type
+        """
+
+    def mailResults(self, graph=False, text=False):
+        import smtplib
+        import mailLib
+    
+        msg = MIMEMultipart('related')
+        #msg = MIMEMultipart()
+        msg['To'] = 'warnings_latencies'
+        msg['From'] = 'warnings_latencies <warnings_latencies@ec.gc.ca>'
+        msg['Subject'] = "%s Latencies for %s (%s) : MAX = %i seconds,  MEAN = %4.2f seconds,  MIN = %i seconds" % (self.latenciers[0].pattern, self.latenciers[0].client,
+                          dateLib.getISODateDashed(self.latenciers[0].date), self.latenciers[0].max, self.latenciers[0].mean, self.latenciers[0].min)
+        msg['Date'] = Utils.formatdate(localtime = 1)
+        msg['Message-ID'] = Utils.make_msgid()
+    
+        
+        body = MIMEMultipart('alternative')
+        if text:
+            body.attach(mailLib.genpart(self.message.text, 'text/plain'))
+            body.attach(mailLib.genpart(self.message.html, 'text/html; format=flowed'))
+            #msg.attach(mailLib.genpart(self.html, 'text/html; format=flowed'))
+        else:
+            body.attach(mailLib.genpart('<html><body><img src="cid:%s%s" alt="Latencies Graph"></body></html>' % (PXPaths.LAT_RESULTS, self.plotters[0].imageName), 'text/html; format=flowed'))
+        msg.attach(body)
+    
+        if graph:
+            msg.attach(mailLib.inlineImage(PXPaths.LAT_RESULTS + self.plotters[0].imageName))
+            #msg.attach(mailLib.attachment(PXPaths.LAT_RESULTS + self.plotter.imageName))
+    
+        server = smtplib.SMTP("smtp.cmc.ec.gc.ca")
+        #server.set_debuglevel(1)
+        server.sendmail('warnings_latencies@ec.gc.ca', self.recipients, msg.as_string())
+        server.quit()
+
+    def addOptions(self, parser):
+        #date, pattern, machines, sources, clients
+        parser.add_option("-d", "--date", action="store", type="string", dest="date", default=dateLib.getYesterdayFormatted(), metavar="DATE",
+                          help="Date for which we want stats (ISO Format: YYYYMMDD)")
+
+        parser.add_option("-p", "--patterns", dest="patterns", default="",
+                          help="Pattern we want to catch in the PX logs")
+
+        parser.add_option("--pdsPatterns", dest="pdsPatterns", default="",
+                          help="Pattern we want to catch in the PDS logs. If you want to use xferlogs to"
+                               "calculate waiting time, add :x to the pattern. Ex: --pdsPatterns MPCN:x,ACC,RADAR:x")
+
+        parser.add_option("-m", "--machines", action="store", type="string", dest="machines", default='pds5.cmc.ec.gc.ca, pds6.cmc.ec.gc.ca',
+                          help="Machines where the PX logs are")
+
+        parser.add_option("-s", "--sources", action="store", type="string", dest="sources", default='ncp1,ncp2',
+                          help="PX Sources' names")
+
+        parser.add_option("-c", "--clients", action="store", type="string", dest="clients", default="",
+                          help="PX Clients' names")
+
+        parser.add_option("--pdsClients", action="store", type="string", dest="pdsClients", default="",
+                          help="PDS Clients' names")
+
+        parser.add_option("-g", "--graph", action="store_false", dest="graph", default=True,
+                          help="No graphic")
+
+        parser.add_option("-n", "--nopull", action="store_true", dest="nopull", default=False,
+                          help="Don't work now")
+                          #help="Don't pull any log files")
+
+        parser.add_option("-k", "--keep", action="store_true", dest="keep", default=False,
+                          help="Keep log files you will download")
+
+        parser.add_option("-v", "--view", action="store_true", dest="view", default=False,
+                          help="Print results at the screen (only the first pattern)")
+
+        parser.add_option("-a", "--addText", action="store_true", dest="addText", default=False,
+                          help="Add text results to the email (only the first pattern)")
+
+        parser.add_option("-i", "--interval", type="int", dest="interval", default=1,
+                          help="Interval (in minutes) for which a point will be calculated. Will 'smooth' the graph")
+
+        parser.add_option("-t", "--type", action="store", type="string", dest="type", default='impulses',
+                          help="Graph type: ['lines', 'linespoint', 'boxes', 'impulses']")
+
+        parser.add_option("-r", "--recipients", action="store", type="string", dest="recipients",
+                          help="Mail results to addresses in the list")
+
+        parser.add_option("--individual", action="store_true", dest="individual", default=False,
+                          help="One graph per image")
+
+if __name__ == '__main__':
+    
+    lat = PapLat()

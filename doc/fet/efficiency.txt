@@ -1,0 +1,171 @@
+
+MetPX Copyright (C) 2004-2006  Environment Canada
+MetPX comes with ABSOLUTELY NO WARRANTY; For details type see the file
+named COPYING in the root of the source directory tree.
+
+
+Efficiency Considerations
+
+First Principle: Each message is stored in one file.
+The first application design principle is to use files as an application 
+storage method.  The contention is that storing messages in files 
+provides sufficient performance, and will make the application 
+simpler to implement, and generally applicable to a unification of
+traditionally short messages and larger items as RADAR or satellite data 
+for switching purposes.  
+
+Second Principle: Avoid IPC
+combined with the above principle is to a principle of eliminating 
+other forms of inter-process communications (IPC) relying only on the inherent 
+locking provided by the file system.  If there is a lock in an algorithm, 
+then that indicates where there are race conditions or potential 
+contention.  The application is to be designed such that no such 
+conditions arise, and avoid the need for performance altering synchronization.
+
+for example:  
+   -- a message is received, all messages/files received are to have unique
+      names such that there are no name clashes.
+   -- Since there are no name clashes, all processes can place files
+      into the database and client queues in parallel.  Since there are
+      no queues which need to be explicitly added to by the programs,
+      there is no IPC needed to moderate access to the queues (five
+      sources can simultaneously be adding items to a single client queue)
+   -- serialization of access to file system directories is taken care of by 
+      operating system mechanisms, no code is required to support them.
+      As these mechanisms are already heavily used, their reliability is assumed.   
+
+Third Principle: Minimize file system interactions
+Even if file system performance has been deemed adequate, it has still been as the element which dominates the performance of the application, so optimization of interactions with the file system may provide significant benefits.
+
+examples:
+   -- If we can pack all the routing information in the name, 
+      we are better off. (avoid a stat call per file to route.)
+      example here: better to have an ascii encoded date in the file name
+      than perform a stat call.  (FIXME: TEST THIS!)
+
+   -- Want to minimize the number of times we touch a file
+      initial creation (open), close (commits all writes), link, unlink, chmod.
+
+   -- PDS method of file protection (chmod 000 during xfer) is more
+      expensive than renaming (FIXME: TEST THIS!)
+	   FIXME: wanted test confirming/denying the cost of these calls.
+
+   -- file and directory manipulation time is directly proportional to the
+      lengths of the file names. (FIXME: reference long file name results.)
+      so do not lengthen them beyond what you need.
+
+   -- When there is more than a few tens of thousands  of files in a 
+      single directory, it becomes cumbersome to manage.  Plan out the
+      directory tree to avoid having directories which exceed 100,000
+      entries. (FIXME: figure out the test data to back this up.)
+
+
+Fourth Principle:  No performance coding based on assumptions without experimental proof.
+
+To examine performance, make some guesses.  Then make some small test programs
+to verify the guesses.   Keep the testing hypothesis, and the test
+done to verify it.  If the results make sense, then start looking at
+how to modify things to be in accordance with the hypothesis.
+
+
+have a sample test below:
+test #1: efficiency of date calls. PS
+I was worried calls to format strings of the time would be 
+expensive, because on some systems, they are (stupidly acquire a lock
+to read the time, makes stuff slow.) wrote a loop below to try it out:
+-----------------------------------------------------------------
+import time
+
+t=time.time()
+i=0
+den=100000
+while i < den:
+  tl=time.time()
+  today = time.strftime( "%Y%m%d", time.gmtime(tl) )
+  i=i+1
+
+print tl, t, den, (tl-t)/den
+-------------------------------------------------------------------
+and ran it on my laptop (linux 2.6.10 from kernel.org.) :
+1106969450.64 1106969449.84 100000 8.01682949066e-06
+
+in other words, it takes 8 microseconds per loop iteration.  So if performance is limited to a few hundred or even a few thousand calls per second (as is likely the case), then this call will account for only 0.1 % of execution time.  Not worth optimizing.  Avoids having to wonder when to check if the date changed.  
+
+FIXME: have not looked at system overhead of these calls.
+
+
+tests wanted:
+   For whatever priority schemes we come up with, need to have methods
+   to verify their behaviour in revovery situations...
+       large numbers of files, with lower priorities
+       and small numbers of files with high priorities.
+
+review results for messages per second, and data.
+  -- our normal peak 5/second
+  -- application rate few hundred per second.
+  -- recovery from failure is the performance driver.
+
+
+-------------------------------------------------------------------
+2005-02-09 (DL)
+
+Note: These tests have been done on my personal computer, not a server.
+
+A filename verification function has been added to the directory sorting
+ingestor. The pattern to verify is written as a regex.
+
+The verification is not included directly in the class that extracts the "keys"
+from a filename. It implies that a first pass has to be done to eliminate the
+"bad" files. It's better for the design and the overhead is negligible.
+
+Testing has been done on ingestion of 12000 filenames. Here are the results:
+
+Time to ingest the 12000 filenames: ~16 seconds
+Time to verify the correctness of each filename: ~ 1 second
+Time to sort the good filenames (12000): ~ 1 second
+
+Conclusion: The time spent for name verification is negligible in comparison
+to the time passed to ingest.
+
+=> We choose design over performance on this item.
+-------------------------------------------------------------------
+2005-03-01 (DL)
+
+Tests have been done on pds5.
+
+We were able to create 20000 links in 0.75 second. This observation has
+for consequence that we have let down worklists.
+
+-------------------------------------------------------------------
+2005-03-01 (DL)
+
+Tests have been done on pds5.
+
+The tests consist in reading and validating filenames contained in a
+directory and sorting the filenames (according to priority and timestamp). 
+
+
+Number of files     Time for reading and validating filenames   Sorting time
+---------------     -----------------------------------------   ------------
+20000                         ~ 1 sec                              ~ 1 sec
+40000                         ~ 3 sec                              ~ 1 sec
+200000                        ~ 15 sec                             ~ 8 sec
+
+
+100000                        ~ 29 sec                             ~ 4 sec
+200000                        ~ 60 sec                             ~ 8 sec
+
+100000                        ~ 26 sec                             ~ 4 sec
+200000                        ~ 52 sec                             ~ 8 sec
+
+40000                         ~ 3 sec                              ~ 1 sec
+100000                        ~ 7 sec                              ~ 4 sec
+200000                        ~ 15 sec                             ~ 7 sec
+
+
+Conclusion: Il semble y avoir linearite dans le reading et le sorting. Les
+temps de sorting sont extremement constants (25000 files/second). Les temps
+de reading dependent du load de la machine. Meme si ce load n'est pas vraiment
+perceptible par la commande uptime. Dans tous les cas presentes ci-haut, le load
+(tel que vu dans uptime) etait tres bas (moins de 1). Le taux de reading varie
+entre 3333 files/seconde et 13333 files/seconde.

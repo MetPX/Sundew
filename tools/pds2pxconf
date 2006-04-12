@@ -1,0 +1,145 @@
+#! /usr/bin/env python2
+"""
+MetPX Copyright (C) 2004-2006  Environment Canada
+MetPX comes with ABSOLUTELY NO WARRANTY; For details type see the file
+named COPYING in the root of the source directory tree.
+"""
+
+#
+# convert PDS configs into FET configs
+#
+# -*- coding: iso-8859-1 -*-
+
+import re
+import fnmatch
+import copy
+import string
+import os
+import os.path
+import sys
+
+if len(sys.argv) != 3:
+	print "call it with two directories as arguments, pds conf & px"
+	sys.exit(1)
+
+pdsetc = sys.argv[1] + '/'
+fetetc = sys.argv[2] + '/'
+
+
+
+#
+# config reader
+#
+
+clients = {}
+
+
+def readpdsclientlist():
+  global clients
+  global pdsetc
+
+  # fill in the blanks from above with clientlist config file.
+  print "clientlist read start"
+  clientlistconf = open( pdsetc + 'clientlist', 'r')
+  cli=clientlistconf.readline()
+  while cli:
+    cliline = cli.split()
+    if re.compile('^[ \t]*#').search(cli)  :
+      cli=clientlistconf.readline()
+      continue
+
+    if len(cliline) == 4 :
+      clients[cliline[0]] = cliline[1:] 
+    else:
+      print "error: clientlist config line != 4 fields +", cliline, "+ "
+
+    cli=clientlistconf.readline()
+  clientlistconf.close()
+  print "clientlist read done"
+
+
+def convertclient(one):
+  global clients
+  global pdsetc
+  global fetetc
+
+  print "client: "+one+" start"
+  cliconf = open( pdsetc + one , 'r' )
+  mask=cliconf.readline()
+  destdir=''
+
+  while mask :
+    maskline = mask.split()
+    if ( len(maskline) >= 2 and not re.compile('^[ \t]*#').search(mask) ) :
+      if maskline[0] == 'client_id':
+	clientid=maskline[1]
+	fetcli=open( fetetc + 'tx/' + clientid + '.conf', 'w')
+	fetcli.write( 'active yes' + "\n" )
+	fetcli.write( 'type single-file' + "\n" )
+	fetcli.write( 'host ' + clients[clientid][0] + "\n" )
+	fetcli.write( 'user ' + clients[clientid][1] + "\n" )
+	fetcli.write( 'password ' + clients[clientid][2] + "\n" )
+      elif maskline[0] == 'imask':
+	fetcli.write( 'filename '+ maskline[3] + "\n" )
+	if (len(maskline) > 4 ) and (destdir != maskline[4]):
+	   destdir=maskline[4]
+	   fetcli.write( 'directory '+ destdir + "\n" )
+        fetcli.write( string.join( maskline[0:2], ' ' ) + "\n" )
+      elif maskline[0] == 'log_to' or \
+	   maskline[0] == 'log_roll_over' or \
+           maskline[0] == 'ftp_window' or \
+           maskline[0] == 'queue_window' or \
+           maskline[0] == 'time_window' or \
+           maskline[0] == 'sleep_timer' or \
+           maskline[0] == 'debug_level' or \
+           maskline[0] == 'chmod' :
+	pass # not implemented
+      elif maskline[0] == 'emask' :
+	   fetcli.write(mask)
+    mask=cliconf.readline()
+
+  cliconf.close()
+  fetcli.close()
+  print "client: "+one+" end"
+
+
+def convertpdsswitch():
+  """  
+  Read the configuration file hierarchy, extract the patterns and parameters needed for
+  filename matching.
+
+  """
+  global clients
+
+  global pdsetc
+  global fetetc
+
+
+  # Pass through the pdsswitch.conf hierarchy of config files.
+  #
+
+  print "switch: start"
+  switchconf = open( pdsetc + 'pdsswitch.conf' , 'r' )
+  cli=switchconf.readline() 
+  while cli:
+    cliline = cli.split()
+    if ( ( len(cliline) >= 2 ) and not re.compile('^[ \t]*#').search(cli) ) :
+       if cliline[0] == 'client':
+	 convertclient(cliline[3])
+       elif cliline[0] == 'thread':
+         pass
+       else:
+    	 pass
+    cli=switchconf.readline()
+  switchconf.close()
+  print "switch: end"
+
+  
+if not os.path.exists(fetetc):
+  os.mkdir(fetetc)
+  if not os.path.exists(fetetc + 'tx'):
+     os.mkdir(fetetc + 'tx')
+
+
+readpdsclientlist()
+convertpdsswitch()

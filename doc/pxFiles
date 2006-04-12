@@ -1,0 +1,141 @@
+
+MetPX Copyright (C) 2004-2006  Environment Canada
+MetPX comes with ABSOLUTELY NO WARRANTY; For details type see the file 
+named COPYING in the root of the source directory tree.
+
+Files repartition:
+
+*******************************************************************************
+/apps/px/bin/
+*******************************************************************************
+All the runnable scripts
+
+px          : Send a command (start, stop, reload, status) to all receivers and senders
+pxReceiver  : Send a command (start, stop, reload, status) to a particular receiver
+pxSender    : Send a command (start, stop, reload, status) to a particular sender
+
+paplat      : Used to make latencies stats
+pxChecker   : Restart a sender/receiver that should be running (cron each minute)
+pxDBCleaner : Keep a certain amount of days in DB (cron each day)
+
+*******************************************************************************
+/apps/px/etc/
+*******************************************************************************
+Configuration files for senders and receivers are
+put there
+
+/apps/px/etc/rx/titi.conf  (example for a receiver)
+/apps/px/etc/tx/toto.conf  (example for a sender)
+header2client.conf (direct routing file)
+
+*******************************************************************************
+/apps/px/[r,t]xq/
+*******************************************************************************
+Reception queues:     apps/px/rxq/titi/  (example for a source titi)
+Transmission queues:  apps/px/txq/toto/3/2005110815/ (example for a client toto)
+
+*******************************************************************************
+/apps/px/db/
+*******************************************************************************
+The database.
+
+The file SAUY_SUMU_280100_00005:nws-alph:SUMU:SA:5:Direct:20051107210952
+will be put in /apps/px/db/20051107/SA/nws-alph/SUMU/
+
+*******************************************************************************
+/apps/px/log/
+*******************************************************************************
+Log files.
+
+Log of source titi: /apps/px/log/rx_titi.log
+Log of client toto: /apps/px/log/tx_toto.log
+
+*******************************************************************************
+/apps/px/lib/
+*******************************************************************************
+======================================================
+Bulletin Treatment:
+======================================================
+bulletin.py
+bulletinPlain.py
+bulletinAm.py
+bulletinWmo.py
+bulletinManager.py
+bulletinManagerAm.py
+bulletinManagerWmo.py
+
+======================================================
+Socket Management:
+======================================================
+socketManager.py
+socketManagerAm.py
+socketManagerWmo.py
+
+======================================================
+General utilities:
+======================================================
+PDSPaths.py         : Useful paths for PDS   
+PXPaths.py          : Useful paths for PX
+SystemManager.py   
+PDSManager.py
+PXManager.py
+CacheManager.py
+Logger.py
+mailLib.py
+dateLib.py
+
+======================================================
+Start, stop, restart, reload
+======================================================
+Igniter.py
+PXIgniter.py
+
+======================================================
+Receivers and Senders
+======================================================
+gateway.py
+receiverAm.py
+receiverWmo.py
+senderAm.py
+senderWmo.py
+senderAMIS.py
+SenderFTP.py
+
+======================================================
+Configuration file parsing and ingestion
+======================================================
+Client.py
+Source.py
+Ingestor.py
+URLParser.py
+
+======================================================
+Reading and Sorting
+======================================================
+DiskReader.py
+SortableString.py
+StandardSorter.py
+MultiKeysStringSorter.py
+
+======================================================
+Switchover Procedure
+======================================================
+SwitchoverCopier.py
+SwitchoverDeleter.py
+
+======================================================
+paplat
+======================================================
+LatMessage.py
+Latencies.py
+PXLatencies.py
+PDSLatencies.py
+Plotter.py
+
+======================================================
+AFTN
+======================================================
+MessageAFTN.py
+MessageManager.py
+TransceiverAFTN.py
+TextSplitter.py
