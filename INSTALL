@@ -1,0 +1,35 @@
+
+INSTALL
+
+sundew is the switching component of MetPX. 
+
+We've only installed this internally, fully flexible packaging is
+on the TODO list.  for now, this is the procedure:
+
+requirements:
+	-- kernel 2.6
+	-- works best with ext3 and dir_index option enabled on file system.
+	-- requires python >= 2.3  
+
+0.   create a user & group named px
+
+1.   create a directory with a path /apps/px
+     chown it to px
+
+2.   copy the source tree there.
+
+3.   mkdir /apps/px/etc /apps/px/etc/tx /apps/px/etc/rx 
+     mkdir /apps/px/db /apps/px/tx /apps/px/rx
+     chgrp px /apps/px/db /apps/px/tx /apps/px/rx /apps/px/log
+     chown px /apps/px/db /apps/px/tx /apps/px/rx /apps/px/log
+
+     Read through the etc.sample directory to create appropriate configuration 
+
+4.   
+     su - px
+     /apps/px/bin/px start.
+    
+5.   look at what is going on in /apps/px/log
+
+
+

@@ -1,0 +1,58 @@
+
+
+MetPX Copyright (C) 2004-2006  Environment Canada
+MetPX comes with ABSOLUTELY NO WARRANTY; For details type see 
+the file named COPYING in the root of the source directory tree.
+
+
+Feel free to add what they did in here.  Peter made a first pass 
+to get the file started, but doesn´t really know who did what.
+
+
+Daniel.Lemay ampersand ec.gc.ca  -- lead developer/maintainer.
+generalized priorities to senders.  Second pass at file exchanger:
+moved from imperative to oo style.  Second pass at the socket senders.  
+many bug-fixes on all areas.  Revision control master.
+
+
+Michel.Grenier ampersand ec.gc.ca --  Developer/User.
+added station name extraction in bulletin headers for certain 
+bulletin types.  added directory tree builder to ftp sender.
+Added segmenting of messages on reception.
+
+
+Louis-Phillippe.Theriault  ampersand ec.gc.ca -- Early Developer
+First pass at design, all the early proofs of concept.  First receiver, 
+He who chose Python over C.  First sender, and all the complex data 
+transformations necesary on receipt of messages.  First pass at Bulletin Collection.  
+After the first pass, and some review, implemented a second pass design 
+with more OO methodologies.
+
+Kaveh.Asfar & Travis Tiegs  ampersand ec.gc.ca -- Developer.
+Team in Downsview worked on second pass at bulletin collection.
+
+Pierre.Michaud ampersand ec.gc.ca -- Early Designer/Developer
+Worked with Louis-Phillippe of the second pass design.  Developer of the first 
+pass socket senders for AM, WMO, & AMIS.
+
+
+Anne-Marie.Beaubien ampersand ec.gc.ca  -- Project lead
+Responsible for testing, lead QA, general bulwark 
+against unreliability.  head of specification team.  Most of the specs.
+lead on precursor project to develop ¨Requirements for an NMMHS¨ 
+
+  
+Peter.Silva ampersand ec.gc.ca -- Project Manager.
+Some requirements, first pass at the file exchange 
+tracking module to allow for priorities & direct routing, and provide
+an overall view of all circuits, as opposed to individual ones.
+
+
+
+Alfred.Gagne ampersand ec.gc.ca -- He who knows the data.  
+WMO messaging standards expert.  participated in specification effort, 
+also testing.
+  
+Lambros.Stamadianos, Dave.Spiegl  ampersand ec.gc.ca 
+  participated in specs for the precursor of this project.
+
