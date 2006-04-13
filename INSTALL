@@ -10,16 +10,19 @@ requirements:
 	-- kernel 2.6
 	-- works best with ext3 and dir_index option enabled on file system.
 	-- requires python >= 2.3  
+	-- to receive files via FTP, need an ftp server, such as vsftpd
+           set it up to deliver into /apps/px/rx/<channel>
 
 0.   create a user & group named px
 
 1.   create a directory with a path /apps/px
      chown it to px
 
-2.   copy the source tree there.
+2.   copy tree to the right place.
+       cp -rp=mode bin lib tools /apps/px
 
 3.   mkdir /apps/px/etc /apps/px/etc/tx /apps/px/etc/rx 
-     mkdir /apps/px/db /apps/px/tx /apps/px/rx
+     mkdir /apps/px/db /apps/px/tx /apps/px/rx /apps/px/log
      chgrp px /apps/px/db /apps/px/tx /apps/px/rx /apps/px/log
      chown px /apps/px/db /apps/px/tx /apps/px/rx /apps/px/log
 
@@ -30,6 +33,5 @@ requirements:
      /apps/px/bin/px start.
     
 5.   look at what is going on in /apps/px/log
-
 
 
