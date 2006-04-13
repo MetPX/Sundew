@@ -13,5 +13,7 @@ For some example of how to configure sources and clients, go to
 TODO:       Evident
 pxFiles:    Short description of the directories and files composing px.
 fet:        Contains specifications. WARNING: Part of this stuff is outdated.
+terminology.txt  A sort of glossary of how terms ought to be used in documentation.
+                 provides some history to explain some acronyms that will pop up.
 
 

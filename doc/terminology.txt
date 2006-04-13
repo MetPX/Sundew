@@ -1,0 +1,121 @@
+
+MetPX Copyright (C) 2004-2006  Environment Canada
+MetPX comes with ABSOLUTELY NO WARRANTY; For details type see the file
+named COPYING in the root of the source directory tree.
+
+Terminology/Glossary:
+
+
+Historical notes:
+
+The documentation is spotty, and often makes reference to older systems within Environment Canada.
+The historical notes give some clue as to what the heck we are talking about.
+
+NCS -- National Communications System  (And National Central Communications System) aka APPS
+    -- a predecessor of MetPX.  
+    -- applications written in a proprietary language for a proprietary OS, non-portable.
+    -- for bulletin switching.
+    -- excellent features for intended purpose, but decades old and now obsolete.
+
+PDS -- Product Distribution System.
+   -- a predecessor of MetPX.  Still in heavy use within Environment Canada.
+   -- only intended for file transfers, not bulletins.
+   -- application in C, no plans to release it.
+   -- metpx has lower switching latency, higher delivery performance, and lower overhead.
+   -- was the design point from which metpx arose.
+
+Originally, MetPX-Sundew was called pds-nccs, with the idea being to create small modules
+that would permit a standard PDS to send and receive over sockets.  At this point, the
+receivers and senders were called NCSamReceiver, or NCSWmoReceiver as they were to bolt
+onto a PDS.  This was brought into a full-scale mockup configuration, and it failed 
+miserably.  The latency and performance of the PDS was not upto the task.  At that point,
+a trial project was initiated to re-implement a minimal subset of the PDS to support the 
+PDS-NCCS project.  The tiny (500 line) prototype was the File Exchange Tracker (FET).  
+Those trials were successful (order(s) of magnitude improvements in latency and performance.)
+It lived only a month or two as an independent module.
+
+The separate individual configuration of many, many individual components was cumbersome
+and fraught with chances for error by administrators.  In order to make the package easier
+to configure, a standardized file tree was designed, and FET and pds-nccs were thus merged 
+with a common, simpler configuration.   The result of that was the original product exchanger 
+(PX.)
+
+Columbo -
+An operator interface for the PDS, called Columbo, had been created.  This interface
+was extended to support both PDS and PX.  
+
+Eventually, the interface was subsumed as part of the overall MetPX project, so the switching
+component was renamed from px to Sundew.
+
+PX -- Product Exchanger
+
+
+
+Useful stuff:
+
+
+initial file hierarchy:
+        PX_ROOT= /apps/px
+	PX_ROOT/db/<date>/
+	PX_ROOT/rx/<source>/[1..5]_<YYYYMMDDHH>
+	PX_ROOT/tx/<client>/[1..5]_<YYYYMMDDHH>
+        PX_ROOT/log/pxReceiver_<source>
+        PX_ROOT/log/pxSender_<source>
+        
+        PX_ROOT/etc/
+		header2client.conf
+		collection_stations.conf
+		collection.conf
+	        tx/<client>.conf
+		rx/<reception>.conf
+
+
+Circuits are established relationships with other machines.
+Circuits are unidirectional and can be divided into two types:
+We receive products from 'source' circuits and deliver products
+to 'client' circuits.
+
+The term circuit is used loosely, as in this case it applies
+to file reception and delivery as well as traditional permanent
+connections.
+
+Directions:
+all directions are relative to the entire machine, not any sub-component.
+if files are on their way into the machine, they are rx (reception) files.
+if they are on their way out from the machine, they are tx (transmission) files.
+
+sample confusion to be avoided:
+ie. PDS has 'incoming' as the name of the files which are outgoing from the server,
+because they are 'incoming' to the client.  Such a directory name is very confusing.
+
+Clients:
+     locations to which products are delivered.
+     same terminology as the PDS.
+
+sources 
+     one (or more, depends on priority setting in config.)
+     places where files can be received.
+
+Reception Name:
+     Files are received with a "reception name" in the rxq.
+     once the reception name is adjusted via a ('whattopds') type
+     mapping, then the ingestname is generated from that.
+
+Ingest Name:
+     Ingest name is used to store the file in the DB, as is.
+
+     for patterned routing (see below):
+     ingest name is mapped against patterns to find clients who 
+     will be sent the file.
+
+Destination File Name:
+     destination file name, destfn, is calculated:
+     default is first field of ingest name.
+     add suffixes according to DESTFN parameter setting in pattern.
+
+Direct Routing:
+     routing using a lookup table, tandem style, with direct correspondence
+     between source and client. 
+
+Pattern Routing:
+     traditional PDS routing, via emasks & imasks
