@@ -17,6 +17,11 @@ requirements:
 
 1.   create a directory with a path /apps/px
      chown it to px
+     for best performance, /apps/px should be on an ext3 file system created with the dir_index option activated.
+     sample creation command:    mke2fs -j -O dir_index /dev/hda9
+     In normal operation, the difference is not going to be too obvious.  Dir_index can make the switch much
+     faster in cases of extensive backlog (when queueing directories get large.)  It is normal to see a few 
+     thousand files per directory.  Application is functioning as designed for those cases.
 
 2.   copy tree to the right place.
        cp -rp=mode bin lib tools /apps/px
