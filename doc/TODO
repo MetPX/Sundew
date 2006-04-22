@@ -43,9 +43,6 @@ named COPYING in the root of the source directory tree.
 
   -- more options on receiver? (tune directory sleep timer or...)
 
-  -- replace peter's directory reader, it is a pain to maintain two...
-     otoh... useful for trials of simple things.  DONE!
-
   -- move status out from .conf files, into q directories.
      ie.   txq/<client>/.status -> active enabled
      or just put it inside .lock?, no want to persist across restarts.

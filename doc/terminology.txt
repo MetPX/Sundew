@@ -28,11 +28,12 @@ Originally, MetPX-Sundew was called pds-nccs, with the idea being to create smal
 that would permit a standard PDS to send and receive over sockets.  At this point, the
 receivers and senders were called NCSamReceiver, or NCSWmoReceiver as they were to bolt
 onto a PDS.  This was brought into a full-scale mockup configuration, and it failed 
-miserably.  The latency and performance of the PDS was not upto the task.  At that point,
-a trial project was initiated to re-implement a minimal subset of the PDS to support the 
-PDS-NCCS project.  The tiny (500 line) prototype was the File Exchange Tracker (FET).  
-Those trials were successful (order(s) of magnitude improvements in latency and performance.)
-It lived only a month or two as an independent module.
+miserably.  The socket drivers worked well but the latency and performance of the PDS 
+was not upto the task.  At that point, a trial project was initiated to re-implement 
+a minimal subset of the PDS to support the PDS-NCCS project.  The tiny (500 line) 
+prototype was the File Exchange Tracker (FET).  Those trials were successful (order(s) 
+of magnitude improvements in latency and performance.) It lived only a month or 
+two as an independent module.
 
 The separate individual configuration of many, many individual components was cumbersome
 and fraught with chances for error by administrators.  In order to make the package easier
