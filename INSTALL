@@ -13,28 +13,26 @@ requirements:
 	-- to receive files via FTP, need an ftp server, such as vsftpd
            set it up to deliver into /apps/px/rx/<channel>
 
-0.   create a user & group named px
+0.   as root in the current directory, run ./tools/pxInit
+     this script does:
+             0.1   create a user & group named px
+             0.2   create a directory with a path /apps/px, chown it to px
+             0.3   copy tree to the right place.
+                   cp -rp=mode bin lib tools /apps/px
+             0.4
+                   mkdir /apps/px/etc /apps/px/etc/tx /apps/px/etc/rx 
+                   mkdir /apps/px/db /apps/px/tx /apps/px/rx /apps/px/log
+                   chgrp px /apps/px/db /apps/px/tx /apps/px/rx /apps/px/log
+                   chown px /apps/px/db /apps/px/tx /apps/px/rx /apps/px/log
 
-1.   create a directory with a path /apps/px
-     chown it to px
+1.   Read through the etc.sample directory to create appropriate configuration 
      for best performance, /apps/px should be on an ext3 file system created with the dir_index option activated.
      sample creation command:    mke2fs -j -O dir_index /dev/hda9
      In normal operation, the difference is not going to be too obvious.  Dir_index can make the switch much
      faster in cases of extensive backlog (when queueing directories get large.)  It is normal to see a few 
      thousand files per directory.  Application is functioning as designed for those cases.
 
-2.   copy tree to the right place.
-       cp -rp=mode bin lib tools /apps/px
-
-3.   mkdir /apps/px/etc /apps/px/etc/tx /apps/px/etc/rx 
-     mkdir /apps/px/db /apps/px/tx /apps/px/rx /apps/px/log
-     chgrp px /apps/px/db /apps/px/tx /apps/px/rx /apps/px/log
-     chown px /apps/px/db /apps/px/tx /apps/px/rx /apps/px/log
-
-     Read through the etc.sample directory to create appropriate configuration 
-
-4.   
-     su - px
+2.  start sundew. 
      /apps/px/bin/px start.
     
 5.   look at what is going on in /apps/px/log

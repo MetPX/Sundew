@@ -58,8 +58,8 @@ Useful stuff:
 initial file hierarchy:
         PX_ROOT= /apps/px
 	PX_ROOT/db/<date>/
-	PX_ROOT/rx/<source>/[1..5]_<YYYYMMDDHH>
-	PX_ROOT/tx/<client>/[1..5]_<YYYYMMDDHH>
+	PX_ROOT/rxq/<source>/[1..5]_<YYYYMMDDHH>
+	PX_ROOT/txq/<client>/[1..5]_<YYYYMMDDHH>
         PX_ROOT/log/pxReceiver_<source>
         PX_ROOT/log/pxSender_<source>
         

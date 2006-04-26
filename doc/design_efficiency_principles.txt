@@ -6,7 +6,9 @@ named COPYING in the root of the source directory tree.
 
 Efficiency Considerations
 
+
 First Principle: Each message is stored in one file.
+
 The first application design principle is to use files as an application 
 storage method.  The contention is that storing messages in files 
 provides sufficient performance, and will make the application 
@@ -14,7 +16,9 @@ simpler to implement, and generally applicable to a unification of
 traditionally short messages and larger items as RADAR or satellite data 
 for switching purposes.  
 
+
 Second Principle: Avoid IPC
+
 combined with the above principle is to a principle of eliminating 
 other forms of inter-process communications (IPC) relying only on the inherent 
 locking provided by the file system.  If there is a lock in an algorithm, 
@@ -34,8 +38,12 @@ for example:
       operating system mechanisms, no code is required to support them.
       As these mechanisms are already heavily used, their reliability is assumed.   
 
+
 Third Principle: Minimize file system interactions
-Even if file system performance has been deemed adequate, it has still been as the element which dominates the performance of the application, so optimization of interactions with the file system may provide significant benefits.
+
+Even if file system performance has been deemed adequate, it has still been as 
+the element which dominates the performance of the application, so optimization 
+of interactions with the file system may provide significant benefits.
 
 examples:
    -- If we can pack all the routing information in the name, 
@@ -68,6 +76,7 @@ done to verify it.  If the results make sense, then start looking at
 how to modify things to be in accordance with the hypothesis.
 
 
+
 have a sample test below:
 test #1: efficiency of date calls. PS
 I was worried calls to format strings of the time would be 
@@ -89,7 +98,10 @@ print tl, t, den, (tl-t)/den
 and ran it on my laptop (linux 2.6.10 from kernel.org.) :
 1106969450.64 1106969449.84 100000 8.01682949066e-06
 
-in other words, it takes 8 microseconds per loop iteration.  So if performance is limited to a few hundred or even a few thousand calls per second (as is likely the case), then this call will account for only 0.1 % of execution time.  Not worth optimizing.  Avoids having to wonder when to check if the date changed.  
+in other words, it takes 8 microseconds per loop iteration.  So if performance 
+is limited to a few hundred or even a few thousand calls per second (as is 
+likely the case), then this call will account for only 0.1 % of execution time.  
+Not worth optimizing.  Avoids having to wonder when to check if the date changed.  
 
 FIXME: have not looked at system overhead of these calls.
 
