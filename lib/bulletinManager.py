@@ -615,22 +615,6 @@ class bulletinManager:
                 raise bulletinManagerException('Les champs ne concordent pas dans le fichier header2circuit',ligne)
         self.logger.info("From header2client.conf we learn that we can route bulletins to: %s" % routable)
 
-    def getMapCircuits(self):
-        """getMapCircuits() -> mapCircuits
-
-           À utiliser pour que plusieurs instances utilisant la même
-           map.
-        """
-        return self.mapCircuits
-
-    def setMapCircuits(self,mapCircuits):
-        """setMapCircuits(mapCircuits)
-
-           À utiliser pour que plusieurs instances utilisant la même
-           map.
-        """
-        self.mapCircuits = mapCircuits
-
     def getCircuitList(self,bulletin):
         """circuitRename(bulletin) -> Circuits
 
