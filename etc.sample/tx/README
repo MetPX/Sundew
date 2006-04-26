@@ -50,8 +50,12 @@ mtime                   0                               An integer
 host                    localhost                       Any valid hostname (name or ip address)
 user                    None                            String
 passwd                  None                            String
-chmod                   0                               Any acceptable chmod value( ex: 755)
 ftp_mode                passive                         <active|passive>
+
+chmod                   666                             the permission of the file once delivered
+lock                    .tmp                            the file locking type (possible value umask or .extension)
+timeout_send            0                               nb of secs before one file sending is considered timed out...
+                                                        ( 0 means inactive no timeout considered )
 
 dir_mkdir               False                           <True|False>
 dir_pattern             False                           <True|False>
