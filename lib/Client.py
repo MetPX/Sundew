@@ -139,7 +139,7 @@ class Client(object):
                     elif words[0] == 'batch': self.batch = int(words[1])
                     elif words[0] == 'debug' and isTrue(words[1]): self.debug = True
                     elif words[0] == 'timeout': self.timeout = int(words[1])
-                    elif words[0] == 'chmod': self.chmod = stringToOctal(words[1])
+                    elif words[0] == 'chmod': self.chmod = int(words[1])
                     elif words[0] == 'timeout_send': self.timeout_send = int(words[1])
                     elif words[0] == 'lock': self.lock = words[1]
                     elif words[0] == 'ftp_mode': self.ftp_mode = words[1]
