@@ -49,9 +49,10 @@ class Client(object):
         self.host = 'localhost'                   # Remote host address (or ip) where to send files
         self.type = 'single-file'                 # Must be in ['single-file', 'bulletin-file', 'file', 'am', 'wmo', 'amis']
         self.protocol = None                      # First thing in the url: ftp, file, am, wmo, amis
-        self.maxLength = 0                        # Maximum Length of a bulletin
         self.batch = 100                          # Number of files that will be read in each pass
         self.timeout = 10                         # Time we wait between each tentative to connect
+        self.maxLength = 0                        # max Length of a message... limit use for segmentation, 0 means unused
+
         self.validation = True                    # Validation of the filename (prio + date)
         self.patternMatching = True               # Verification of the emask and imask of the client before sending a file
         self.cache = True                         # Check if the file has already been sent (md5sum present in the cache)
@@ -69,13 +70,18 @@ class Client(object):
         # Files Attributes
         self.user = None                    # User name used to connect
         self.passwd = None                  # Password 
-        self.chmod = 0                      # If set to a value different than 0, umask 777 followed by a chmod of the value will be done
         self.ftp_mode = 'passive'           # Default is 'passive', can be set to 'active'
         self.dir_mkdir = False              # Verification and creation of directory inside ftp...
         self.dir_pattern = False            # Verification of patterns in destination directory
 
+        self.chmod = 666                    # when the file is delevered chmod it to this value
+        self.timeout_send = 0               # Timeout in sec. to consider a send to hang ( 0 means inactive )
+        self.lock = '.tmp'                  # file send with extension .tmp for lock
+                                            # if lock == "umask" than use umask 777 to put files
+
+
         self.readConfig()
-        self.printInfos(self)
+        #self.printInfos(self)
 
     def readConfig(self):
         
@@ -134,6 +140,8 @@ class Client(object):
                     elif words[0] == 'debug' and isTrue(words[1]): self.debug = True
                     elif words[0] == 'timeout': self.timeout = int(words[1])
                     elif words[0] == 'chmod': self.chmod = stringToOctal(words[1])
+                    elif words[0] == 'timeout_send': self.timeout_send = int(words[1])
+                    elif words[0] == 'lock': self.lock = words[1]
                     elif words[0] == 'ftp_mode': self.ftp_mode = words[1]
                     elif words[0] == 'dir_pattern': self.dir_pattern =  isTrue(words[1])
                     elif words[0] == 'dir_mkdir': self.dir_mkdir =  isTrue(words[1])
@@ -210,6 +218,8 @@ class Client(object):
         print("User: %s" % client.user)
         print("Passwd: %s" % client.passwd)
         print("Chmod: %s" % client.chmod)
+        print("Timeout_send: %i" % client.timeout_send)
+        print("Lock: %s" % client.lock)
         print("FTP Mode: %s" % client.ftp_mode)
         print("DIR Pattern: %s" % client.dir_pattern)
         print("DIR Mkdir  : %s" % client.dir_mkdir)

@@ -21,7 +21,8 @@ named COPYING in the root of the source directory tree.
 
 """
 import sys, os, os.path, time, stat
-import PXPaths
+import PXPaths, signal, socket
+from AlarmFTP  import AlarmFTP
 from URLParser import URLParser
 from Logger import Logger
 import ftplib
@@ -44,7 +45,6 @@ class SenderFTP(object):
 
         if self.client.protocol == 'ftp':
             self.ftp = self.ftpConnect()
-
 
     def dirPattern(self,file,basename,destDir,destName) :
         """
@@ -143,6 +143,21 @@ class SenderFTP(object):
         self.logger.critical("We exit SenderFTP after %i unsuccessful try" % maxCount)
         sys.exit(2) 
 
+    # some system doesn't support chmod... so pass exception on that
+    def perm(self, path):
+        try    :
+                 self.ftp.voidcmd('SITE CHMOD ' + str(self.client.chmod) + ' ' + path)
+        except :
+                 pass
+
+    # some system doesn't permit deletion... so pass exception on that
+    def rm(self, path):
+        try    :
+                 self.perm(path)
+                 self.ftp.delete(path)
+        except :
+                 pass
+
     def send(self, files):
         currentFTPDir = ''
         for file in files:
@@ -201,25 +216,51 @@ class SenderFTP(object):
                                continue
 
                     # Do the chmod or .tmp thing
+                    tempName = destName
                     try:
-                        if self.client.chmod == 0:
+                        if self.client.timeout_send > 0 : timex = AlarmFTP('FTP timeout')
+
+                        # Do the .tmp thing
+                        if self.client.lock[0] == '.':
+                            tempName = destName + self.client.lock
                             fileObject = open(file, 'r')
-                            tempName = destName + ".tmp"
-                            self.ftp.storbinary("STOR " + tempName, fileObject)
+                            if self.client.timeout_send > 0 :
+                               timex.alarm(self.client.timeout_send)
+                               self.ftp.storbinary("STOR " + tempName, fileObject)
+                               timex.cancel()
+                             else :
+                               self.ftp.storbinary("STOR " + tempName, fileObject)
                             fileObject.close()
                             self.ftp.rename(tempName, destName)
+
+                        # Do the chmod thing
                         else:
-                            fileObject = open(file, 'r' )
                             self.ftp.voidcmd('SITE UMASK 777')
-                            self.ftp.storbinary('STOR ' + destName, fileObject)
+                            fileObject = open(file, 'r' )
+                            if self.client.timeout_send > 0 :
+                               timex.alarm(self.client.timeout_send)
+                               self.ftp.storbinary('STOR ' + destName, fileObject)
+                               timex.cancel()
+                            else :
+                               self.ftp.storbinary('STOR ' + destName, fileObject)
                             fileObject.close()
-                            self.ftp.voidcmd('SITE CHMOD ' + str(oct(self.client.chmod)) + ' ' + destName)
+
+                        self.perm(destName)
                         os.unlink(file)
                         self.logger.info("(%i Bytes) File %s delivered to %s://%s@%s%s%s" % (nbBytes, file, self.client.protocol, self.client.user, self.client.host, destDirString, destName))
+
+                    except socket.error:
+                        self.logger.info("SEND TIMEOUT (%i Bytes) File %s going to %s://%s@%s%s%s" % (nbBytes, file, self.client.protocol, self.client.user, self.client.host, destDirString, destName))
+                        return
+
                     except:
                         (type, value, tb) = sys.exc_info()
                         self.logger.error("Unable to deliver to %s://%s@%s%s%s, Type: %s, Value: %s" % 
                                                     (self.client.protocol, self.client.user, self.client.host, destDirString, destName, type, value))
+                        if self.client.lock[0] == '.':
+                           self.rm(tempName)
+                        self.rm(destName)
+
                         time.sleep(1)
                         
                         # FIXME: Faire des cas particuliers selon les exceptions recues

@@ -1,14 +1,10 @@
 # -*- coding: UTF-8 -*-
-"""
-MetPX Copyright (C) 2004-2006  Environment Canada
-MetPX comes with ABSOLUTELY NO WARRANTY; For details type see the file
-named COPYING in the root of the source directory tree.
-"""
-
 """Définition de la classe principale pour les bulletins."""
 
 import time
 import string, traceback, sys
+from   Bufr import Bufr
+from   Grib import Grib
 
 __version__ = '2.0'
 
@@ -131,7 +127,11 @@ class bulletin:
             if estBinaire:
                 if stringBulletin.find('GRIB') != -1:
                 # Type de bulletin GRIB, découpage spécifique
-                    b = stringBulletin[:stringBulletin.find('GRIB')].split(self.lineSeparator)
+                # TODO check if grib is valid  grib.valid  and if not react 
+
+                    grib = Grib(stringBulletin)
+
+                    b = stringBulletin[:grib.begin].split(self.lineSeparator)
 
                     # Si le dernier token est un '', c'est qu'il y avait
                     # un \n à la fin, et on enlève puisque entre 2 éléments de la liste,
@@ -139,13 +139,17 @@ class bulletin:
                     if b[-1] == '':
                         b.pop(-1)
 
-                    b = b + [stringBulletin[stringBulletin.find('GRIB'):stringBulletin.find('7777')+len('7777')]] + ['']
+                    b = b + [stringBulletin[grib.begin:grib.last]] + ['']
 
                     return b
 
                 elif stringBulletin.find('BUFR') != -1:
                 # Type de bulletin BUFR, découpage spécifique
-                    b = stringBulletin[:stringBulletin.find('BUFR')].split(self.lineSeparator)
+                # TODO check if bufr is valid  bufr.valid  and if not react 
+
+                    bufr = Bufr(stringBulletin)
+
+                    b = stringBulletin[:bufr.begin].split(self.lineSeparator)
 
                     # Si le dernier token est un '', c'est qu'il y avait
                     # un \n à la fin, et on enlève puisque entre 2 éléments de la liste,
@@ -153,7 +157,7 @@ class bulletin:
                     if b[-1] == '':
                         b.pop(-1)
 
-                    b = b + [stringBulletin[stringBulletin.find('BUFR'):stringBulletin.find('7777')+len('7777')]] + ['']
+                    b = b + [stringBulletin[bufr.begin:bufr.last]] + ['']
 
                     return b
             else:
@@ -307,7 +311,7 @@ class bulletin:
                    else :
                       station = None
 
-            elif bulletin[0][0:6] in "SRCN40":
+            elif bulletin[0][0:6] in ["SRCN40","SXCN40","SRMT60"]:
                 station = premiereLignePleine.split()[0]
 
             elif bulletin[0][0:2] in ["FC","FT"]:
