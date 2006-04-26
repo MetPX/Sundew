@@ -228,7 +228,7 @@ class SenderFTP(object):
                                timex.alarm(self.client.timeout_send)
                                self.ftp.storbinary("STOR " + tempName, fileObject)
                                timex.cancel()
-                             else :
+                            else:
                                self.ftp.storbinary("STOR " + tempName, fileObject)
                             fileObject.close()
                             self.ftp.rename(tempName, destName)
