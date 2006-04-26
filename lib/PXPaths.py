@@ -49,7 +49,7 @@ def normalPaths():
            COLLECTION_DB, COLLECTION_CONTROL
 
     try:
-        envVar = os.path.normpath(os.environ['PXROOT'])
+        envVar = os.path.normpath(os.environ['PXROOT']) + '/'
     except KeyError:
         envVar = '/apps/px/'
 
