@@ -51,9 +51,9 @@ def normalPaths():
     try:
         envVar = os.path.normpath(os.environ['PXROOT'])
     except KeyError:
-        envVar = '/apps'
+        envVar = '/apps/px/'
 
-    ROOT = envVar + '/px/'
+    ROOT = envVar 
     BIN = ROOT + 'bin/'
     LIB = ROOT + 'lib/'
     LOG = ROOT + 'log/'
