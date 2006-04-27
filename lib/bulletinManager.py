@@ -25,6 +25,7 @@ named COPYING in the root of the source directory tree.
 import math, re, string, os, bulletinPlain, traceback, sys, time
 import PXPaths
 
+from DirectRoutingParser import DirectRoutingParser
 from CollectionManager import CollectionManager
 import bulletinAm
 import bulletinWmo
@@ -113,7 +114,11 @@ class bulletinManager:
         self.mapBulletinsBruts = {}
 
         # Init du map des circuits
-        self.initMapCircuit(pathFichierCircuit)
+        if pathFichierCircuit:
+            self.drp = DirectRoutingParser(PXPaths.ETC + 'header2client.conf', self.source.ingestor.clientNames, logger)
+            #self.drp.logInfos()
+        else:
+            self.drp = None
 
         # Collection regex
         self.regex = re.compile(r'SACN|SICN|SMCN')
@@ -217,8 +222,8 @@ class bulletinManager:
                         self.source.ingestor.ingest()
                 """
 
-            if self.mapCircuits.has_key(entete):
-                clist = self.mapCircuits[entete]['routing_groups']
+            if self.drp.routingInfos.has_key(entete):
+                clist = self.drp.getHeaderClients(entete)
             else:
                 clist = []
 
@@ -316,8 +321,8 @@ class bulletinManager:
                         self.source.ingestor.ingest()
                 """
 
-            if self.mapCircuits.has_key(entete):
-                clist = self.mapCircuits[entete]['routing_groups']
+            if self.drp.routingInfos.has_key(entete):
+                clist = self.drp.getHeaderClients(entete)
             else:
                 clist = []
 
@@ -488,7 +493,7 @@ class bulletinManager:
             newExtension = newExtension.replace('-TT',bulletin.getType())\
                                        .replace('-CCCC',bulletin.getOrigin())
 
-            if self.mapCircuits != None:
+            if self.drp != None:
             # Si les circuits sont activés
             # NB: Lève une exception si l'entête est introuvable
                 newExtension = newExtension.replace('-CIRCUIT',self.getCircuitList(bulletin))
@@ -525,96 +530,6 @@ class bulletinManager:
         else:
             raise IOError
 
-    def reloadMapCircuit(self,pathHeader2circuit):
-        """reloadMapCircuit(pathHeader2circuit)
-
-           pathHeader2circuit:  String
-                                - Chemin d'accès vers le fichier de circuits
-
-
-           Recharge le fichier de mapCircuits.
-
-           Utilisation:
-
-                Rechargement lors d'un SIGHUP.
-        """
-        oldMapCircuits = self.mapCircuits
-
-        try:
-
-            self.initMapCircuit(pathHeader2circuit)
-
-            self.logger.info("Succès du rechargement du fichier de Circuits")
-
-        except Exception, e:
-
-            self.mapCircuits = oldMapCircuits
-
-            self.logger.warning("bulletinManager.reloadMapCircuit(): Échec du rechargement du fichier de Circuits")
-
-            raise
-
-
-    def initMapCircuit(self,pathHeader2circuit):
-        """initMapCircuit(pathHeader2circuit)
-
-           pathHeader2circuit:  String
-                                - Chemin d'accès vers le fichier de circuits
-
-           Charge le fichier de header2circuit et assigne un map avec comme cle
-           champs:
-                'routing_groups' -- list of clients to which the messages 
-'                priority'       -- priority to assign to the message.
-
-           FIXME: Peter a fixé le chemin a /apps/px/etc/header2circuit.conf
-                donc le parametre choisi simplement si on s´en sert ou pas.
-        """
-        if pathHeader2circuit == None:
-        # Si l'option est à OFF
-            self.mapCircuits = None
-            return
-
-        self.mapCircuits = {}
-
-        # Test d'existence du fichier
-        try:
-            pathHeader2circuit = PXPaths.ETC + 'header2client.conf'
-
-            fic = os.open( pathHeader2circuit, os.O_RDONLY )
-        except Exception:
-            raise bulletinManagerException('Impossible d\'ouvrir le fichier d\'entetes ' + pathHeader2circuit + ' (fichier inaccessible)' )
-
-        lignes = os.read(fic,os.stat(pathHeader2circuit)[6])
-
-        #self.logger.info("Validating header2client.conf, clients:" + string.join(self.source.ingestor.clientNames))
-        bogus=[]
-        routable=[] # sub group of the clients, only ones for which we can route bulletins
-        for ligne in lignes.splitlines():
-            uneLigneSplitee = ligne.split(':')
-            ahl = uneLigneSplitee[0]
-            self.mapCircuits[uneLigneSplitee[0]] = {}
-            try:
-                self.mapCircuits[ahl] = {}
-                self.mapCircuits[ahl]['entete'] = ahl
-                self.mapCircuits[ahl]['routing_groups'] = ahl
-                self.mapCircuits[ahl]['priority'] = uneLigneSplitee[2]
-                gs=[]
-                for g in uneLigneSplitee[1].split() :
-                    #if g in fet.clients.keys():
-                    if g in self.source.ingestor.clientNames:
-                        gs = gs + [ g ]
-                        if g not in routable: routable.append(g)
-                    else:
-                        if g not in bogus:
-                            bogus = bogus + [ g ]
-                            #self.logger.warning("client (%s) invalide, ignorée ", g )
-                            self.logger.warning("Client '%s' is in header2client.conf but inexistant in px", g )
-                self.mapCircuits[ahl]['routing_groups'] =  gs
-                
-            except IndexError:
-                raise bulletinManagerException('Les champs ne concordent pas dans le fichier header2circuit',ligne)
-        self.logger.info("From header2client.conf we learn that we can route bulletins to: %s" % routable)
-
     def getCircuitList(self,bulletin):
         """circuitRename(bulletin) -> Circuits
 
@@ -630,23 +545,16 @@ class bulletinManager:
                    bulletinManagerException:       Si l'entête ne peut être trouvée dans le
                                                    fichier de circuits
         """
-        if self.mapCircuits == None:
-            raise bulletinManagerException("Le mapCircuit n'est pas chargé")
+        if self.drp == None:
+            raise bulletinManagerException("The Direct Routing Parser is not loaded")
 
         entete = ' '.join(bulletin.getHeader().split()[:2])
 
-        if not self.mapCircuits.has_key(entete):
+        if not self.drp.routingInfos.has_key(entete):
             bulletin.setError('Entete +' +entete+ ' non trouvée dans fichier de circuits')
             raise bulletinManagerException('Entete non trouvée dans fichier de circuits')
 
-        # Check ici, si ce n'est pas une liste, en faire une liste
-        if not type(self.mapCircuits[entete]['routing_groups']) == list:
-            self.mapCircuits[entete]['routing_groups'] = [ self.mapCircuits[entete]['routing_groups'] ]
-
-        if self.use_pds:
-            return self.mapCircuits[entete]['priority'] + '.' + '.'.join(self.mapCircuits[entete]['routing_groups']) + '.'
-        else:
-            return self.mapCircuits[entete]['priority']
+        return self.drp.getHeaderPriority(entete)
 
     def getFinalPath(self,bulletin):
         """getFinalPath(bulletin) -> path
@@ -672,14 +580,14 @@ class bulletinManager:
             self.logger.error("Entête non standard, priorité impossible à déterminer(%s)",bulletin.getHeader())
             return self.pathDest.replace('-PRIORITY','PROBLEM')
 
-        if self.mapCircuits != None:
+        if self.drp != None:
             # Si le circuitage est activé
-            if not self.mapCircuits.has_key(entete):
+            if not self.drp.routingInfos.has_key(entete):
                     # Entête est introuvable
                 self.logger.error("Entête introuvable, priorité impossible à déterminer")
                 return self.pathDest.replace('-PRIORITY','PROBLEM')
 
-            return self.pathDest.replace('-PRIORITY',self.mapCircuits[entete]['priority'])
+            return self.pathDest.replace('-PRIORITY', self.drp.getHeaderPriority())
         else:
             return self.pathDest.replace('-PRIORITY','NONIMPLANTE')
 

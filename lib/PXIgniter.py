@@ -134,7 +134,7 @@ class PXIgniter(Igniter):
                #print self.flow
                #print "ext: %s" % (self.flow.extension)
                #print "addSM: %s" % (self.flow.addSMHeader)
-               self.gateway.unBulletinManager.reloadMapCircuit('/dev/null')
+               self.gateway.unBulletinManager.drp.reparse()
                self.gateway.unBulletinManager.reloadMapEntetes(self.gateway.pathFichierStations)
                self.logger.info("%s has been reloaded" % self.direction.capitalize())
             if self.type == 'wmo':
@@ -144,7 +144,7 @@ class PXIgniter(Igniter):
                self.flow.__init__(self.flow.name, self.flow.logger)
 
                self.gateway.unBulletinManager.extension = self.flow.extension
-               self.gateway.unBulletinManager.reloadMapCircuit('/dev/null')
+               self.gateway.unBulletinManager.drp.reparse()
                self.logger.info("%s has been reloaded" % self.direction.capitalize())
 
             if self.type == 'single-file' or self.type == 'bulletin-file':

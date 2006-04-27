@@ -2,11 +2,12 @@
 #############################################################################################
 # Name: DirectRoutingParser.py
 #
-# Author: Daniel Lemay
+# Author: Louis-Philippe Theriault (original)
+#         Daniel Lemay (as a class with duplicates removal, alias and subclients directives)
 #
 # Date: 2006-04-21
 #
-# Description:
+# Description: Use to parse the direct routing file (header2client.conf)
 #
 #############################################################################################
 """
@@ -16,20 +17,27 @@ from Logger import *
 
 class DirectRoutingParser:
 
-    def __init__(self, filename, logger=None):
-        self.filename = filename  # Routing filename ("/apps/px/etc/header2clients.conf")
-        self.logger = logger      # Logger object
-        self.routingInfos = {}    # Addressed by header name: self.routingInfos[header]['clients']
-                                  #                           self.routingInfos[header]['subclients']
-                                  #                           self.routingInfos[header]['priority']
+    def __init__(self, filename, pxLinkables=[], logger=None):
+        self.filename = filename        # Routing filename ("/apps/px/etc/header2clients.conf")
+        self.logger = logger            # Logger object
+        self.routingInfos = {}          # Addressed by header name: self.routingInfos[header]['clients']
+                                        #                           self.routingInfos[header]['subclients']
+                                        #                           self.routingInfos[header]['priority']
 
-        self.subClients = {}      # Addressed by client name
-        self.aliasedClients = {}  # Addressed by alias
-        self.goodClients = {}     # Sub group of clients that are in header2clients.conf and are px linkable.
-        self.badClients = {}      # Sub group of clients that are in header2clients.conf and are not px linkable.
-        self.clientsToLink= []    # Not used for now.
+        self.subClients = {}            # Addressed by client name
+        self.aliasedClients = {}        # Addressed by alias
+        self.goodClients = {}           # Sub group of clients that are in header2clients.conf and are px linkable.
+        self.badClients = {}            # Sub group of clients that are in header2clients.conf and are not px linkable.
+        self.pxLinkables = pxLinkables  # All clients to which px can link (independant of header2clients.conf)
 
-        self.parseIt(['cmc', 'aftn', 'satnet-ice'])
+        self.parse()
+
+    def clearInfos(self):
+        self.routingInfos = {}
+        self.subClients = {}      
+        self.aliasedClients = {}  
+        self.goodClients = {}    
+        self.badClients = {}    
 
     def getHeaderPriority(self, header):
         return self.routingInfos[header]['priority']
@@ -52,9 +60,6 @@ class DirectRoutingParser:
     def getBadClients(self):
         return self.badClients.keys()
 
-    def setClientsToLink(self, clients):
-        self.clientsToLink = clients
-
     def _makeClientsGroups(self, clients, linkableClients):
         goodClientsForOneHeader = {}
         for client in clients:
@@ -72,12 +77,29 @@ class DirectRoutingParser:
             set[item] = 1
         return set.keys()
 
-    def parseIt(self, linkableClients):
+    def reparse(self):
+        routingInfosOld = self.routingInfos.copy()
+        subClientsOld = self.subClients.copy()
+        #goodClientsOld = self.goodClients.copy()
+        #badClientsOld = self.badClients.copy()
+        
+        try:
+            self.parse()
+            self.logger.info("Reparse has been done successfully")
+        except:
+            self.routingInfos = routingInfosOld 
+            self.subClients = subClientsOld
+            #self.goodClients = goodClientsOld
+            #self.badClients = badClientsOld
+            self.logger.warning("DirectRoutingParser.reparse() has failed")
+            
+    def parse(self):
+        self. clearInfos()
         try:
             file = open(self.filename, 'r')
         except:
             (type, value, tb) = sys.exc_info()
-            print("Type: %s, Value: %s" % (type, value))
+            self.logger.error("Type: %s, Value: %s" % (type, value))
             sys.exit()
 
         for line in file.readlines():
@@ -125,33 +147,34 @@ class DirectRoutingParser:
                                             clients.remove(client)
                                         else:
                                             clients.remove(client)
-                                            print("Subclient %s of client %s is present more than once for header %s" % (clientParts[1], clientParts[0], words[0]))
+                                            self.logger.warning("Subclient %s of client %s is present more than once for header %s" % (clientParts[1], clientParts[0], words[0]))
                                     else:
                                         # When subclient (ex: BIRDZQZZ) is not defined in the subclient directive for the client (ex: aftn)
-                                        print("Subclient %s is not acceptable for client %s (See header %s)" % (clientParts[1], clientParts[0], words[0]))
+                                        self.logger.warning("Subclient %s is not acceptable for client %s (See header %s)" % (clientParts[1], clientParts[0], words[0]))
                                         clients.remove(client)
                                 else:
                                     # Subclient is not defined
-                                    print("Client(%s) is not defined with subclient directive" % (clientParts[0]))
+                                    self.logger.warning("Client(%s) is not defined with subclient directive" % (clientParts[0]))
                                     clients.remove(client)
                         # Up to here: 1.6 s of execution time
 
                         # Assure us that each client is present only once for each header.
                         # Also select only clients that are linkable.
                         # This is accomplished in O(n). Costs ~ 0.5 seconds to execute.
-                        goodClientsForOneHeader = self._makeClientsGroups(clients, linkableClients)
+                        goodClientsForOneHeader = self._makeClientsGroups(clients, self.pxLinkables)
                         self.routingInfos[words[0]]['clients'] = goodClientsForOneHeader
                         # Up to here: 2.1 s of execution time
 
                 except:
                     (type, value, tb) = sys.exc_info()
-                    print("Type: %s, Value: %s" % (type, value))
-                    print("Problem with this line (%s) in the direct routing file (%s)" % (words, self.filename))
+                    self.logger.error("Type: %s, Value: %s" % (type, value))
+                    self.logger.error("Problem with this line (%s) in the direct routing file (%s)" % (words, self.filename))
         file.close()
         # Up to here: 2.3 s of execution time
 
 
-    def parseIt1(self):
+    def parse1(self):
+        self. clearInfos()
         try:
             file = open(self.filename, 'r')
         except:
@@ -257,14 +280,29 @@ class DirectRoutingParser:
         print("Good clients (%i): %s" % (len(self.goodClients), self.goodClients.keys()))
         print("Bad clients (%i): %s" % (len(self.badClients), self.badClients.keys()))
 
+    def logInfos(self):
+        self.logger.info("#---------------------------------------------------------------#")
+        for header in self.routingInfos:
+            self.logger.info("%s(%s): %s, sub: %s" % (header, self.routingInfos[header]['priority'], self.routingInfos[header]['clients'], self.routingInfos[header]['subclients']))
+        self.logger.info("#---------------------------------------------------------------#")
+        for client in self.subClients:
+            self.logger.info("%s: %s" % (client, self.subClients[client]))
+        self.logger.info("#---------------------------------------------------------------#")
+        for alias in self.aliasedClients:
+            self.logger.info("%s: %s" % (alias, self.aliasedClients[alias]))
+        self.logger.info("#---------------------------------------------------------------#")
+        self.logger.info("Good clients (%i): %s" % (len(self.goodClients), self.goodClients.keys()))
+        self.logger.info("Bad clients (%i): %s" % (len(self.badClients), self.badClients.keys()))
+
 
 if __name__ == '__main__':
 
     logger = Logger('/apps/px/aftn/log/parsing.log', 'DEBUG', 'Sub')
     logger = logger.getLogger()
 
-    parser = DirectRoutingParser('/apps/px/aftn/etc/header2client.conf', logger)
-    #parser = DirectRoutingParser('/apps/px/aftn/etc/header2client.conf.test', logger)
+    pxLinkables = ['cmc', 'aftn', 'satnet-ice']
+    parser = DirectRoutingParser('/apps/px/aftn/etc/header2client.conf', pxLinkables, logger)
+    #parser = DirectRoutingParser('/apps/px/aftn/etc/header2client.conf.test', pxLinkables, logger)
  
     #parser.printInfos()
     print("Good clients (%i): %s" % (len(parser.goodClients), parser.goodClients.keys()))

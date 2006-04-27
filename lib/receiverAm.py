@@ -168,7 +168,7 @@ class receiverAm(gateway.gateway):
 
             # Reload du fichier de circuits
             # -----------------------------
-            self.unBulletinManager.reloadMapCircuit(ficCircuits)
+            self.unBulletinManager.drp.reparse()
 
             self.config.ficCircuits = ficCircuits
 
