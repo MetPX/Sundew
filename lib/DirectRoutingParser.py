@@ -17,16 +17,60 @@ from Logger import *
 class DirectRoutingParser:
 
     def __init__(self, filename, logger=None):
-        self.filename = filename
-        self.logger = logger
-        self.routingInfos = {}    # Addressed by header name 
+        self.filename = filename  # Routing filename ("/apps/px/etc/header2clients.conf")
+        self.logger = logger      # Logger object
+        self.routingInfos = {}    # Addressed by header name: self.routingInfos[header]['clients']
+                                  #                           self.routingInfos[header]['subclients']
+                                  #                           self.routingInfos[header]['priority']
+
         self.subClients = {}      # Addressed by client name
-        self.clientAliases = {}   # Addressed by alias
-        self.goodClients = {}
-        self.badClients = {}
-        self.clientsToLink= []
+        self.aliasedClients = {}  # Addressed by alias
+        self.goodClients = {}     # Sub group of clients that are in header2clients.conf and are px linkable.
+        self.badClients = {}      # Sub group of clients that are in header2clients.conf and are not px linkable.
+        self.clientsToLink= []    # Not used for now.
 
         self.parseIt(['cmc', 'aftn', 'satnet-ice'])
+
+    def getHeaderPriority(self, header):
+        return self.routingInfos[header]['priority']
+
+    def getHeaderClients(self, header):
+        return self.routingInfos[header]['clients']
+
+    def getHeaderSubClients(self, header):
+        return self.routingInfos[header]['subclients']
+
+    def getClientSubClients(self, client):
+        return self.subclients[client]
+
+    def getAliasClients(self, alias):
+        return self.aliasedClients[alias]
+
+    def getGoodClients(self):
+        return self.goodClients.keys()
+
+    def getBadClients(self):
+        return self.badClients.keys()
+
+    def setClientsToLink(self, clients):
+        self.clientsToLink = clients
+
+    def _makeClientsGroups(self, clients, linkableClients):
+        goodClientsForOneHeader = {}
+        for client in clients:
+            if client in linkableClients:
+                self.goodClients[client] = 1
+                goodClientsForOneHeader[client] = 1
+            else:
+                self.badClients[client] = 1
+
+        return goodClientsForOneHeader.keys()
+
+    def _removeDuplicate(self, list):
+        set = {}
+        for item in list:
+            set[item] = 1
+        return set.keys()
 
     def parseIt(self, linkableClients):
         try:
@@ -34,7 +78,7 @@ class DirectRoutingParser:
         except:
             (type, value, tb) = sys.exc_info()
             print("Type: %s, Value: %s" % (type, value))
-            return
+            sys.exit()
 
         for line in file.readlines():
             line = line.strip().strip(':')
@@ -47,7 +91,7 @@ class DirectRoutingParser:
                     if words[0] == 'subclient':
                         self.subClients[words[1]] = words[2].split()
                     elif words[0] == 'clientAlias':
-                        self.clientAliases[words[1]] = self._removeDuplicate(words[2].split())
+                        self.aliasedClients[words[1]] = self._removeDuplicate(words[2].split())
                     elif len(words[0].split()) == 2: # If replace by a simple "else" do nothing for execution time
                         # Here we have a "header line"
                         self.routingInfos[words[0]] = {}
@@ -59,9 +103,9 @@ class DirectRoutingParser:
                         # The following "for" block costs ~ 0.5 s
                         clients = words[1].split()
                         for client in clients[:]:
-                            if self.clientAliases.has_key(client):
+                            if self.aliasedClients.has_key(client):
                                 clients.remove(client)
-                                clients.extend(self.clientAliases[client])
+                                clients.extend(self.aliasedClients[client])
                         # Up to here: 1.1 s of execution time
 
                         # Costs ~ 0.5 seconds to execute this block
@@ -126,7 +170,7 @@ class DirectRoutingParser:
                     if words[0] == 'subclient':
                         self.subClients[words[1]] = words[2].split()
                     elif words[0] == 'clientAlias': 
-                        self.clientAliases[words[1]] = self._removeDuplicate(words[2].split())
+                        self.aliasedClients[words[1]] = self._removeDuplicate(words[2].split())
 
                     elif len(words[0].split()) == 2: # If replace by a simple "else" do nothing for execution time
                         # Here we have a "header line"
@@ -156,9 +200,9 @@ class DirectRoutingParser:
                         # The following "for" block costs ~ 0.4 s
                         clients = self.routingInfos[words[0]]['clients'][:]
                         for client in clients:
-                            if self.clientAliases.has_key(client):
+                            if self.aliasedClients.has_key(client):
                                 self.routingInfos[words[0]]['clients'].remove(client)
-                                self.routingInfos[words[0]]['clients'].extend(self.clientAliases[client])
+                                self.routingInfos[words[0]]['clients'].extend(self.aliasedClients[client])
                         # Up to here: 1.8 s of execution time
                         
 
@@ -199,26 +243,6 @@ class DirectRoutingParser:
         file.close()
         # Up to here: 2.3 s of execution time
 
-    def setClientsToLink(self, clients):
-        self.clientsToLink = clients
-
-    def _makeClientsGroups(self, clients, linkableClients):
-        goodClientsForOneHeader = {}
-        for client in clients:
-            if client in linkableClients:
-                self.goodClients[client] = 1
-                goodClientsForOneHeader[client] = 1
-            else:
-                self.badClients[client] = 1
-
-        return goodClientsForOneHeader.keys()
-
-    def _removeDuplicate(self, list):
-        set = {}
-        for item in list:
-            set[item] = 1
-        return set.keys()
-        
     def printInfos(self):
         print "#---------------------------------------------------------------#"
         for header in self.routingInfos:
@@ -227,23 +251,11 @@ class DirectRoutingParser:
         for client in self.subClients:
             print("%s: %s" % (client, self.subClients[client]))
         print "#---------------------------------------------------------------#"
-        for alias in self.clientAliases:
-            print("%s: %s" % (alias, self.clientAliases[alias]))
+        for alias in self.aliasedClients:
+            print("%s: %s" % (alias, self.aliasedClients[alias]))
         print "#---------------------------------------------------------------#"
         print("Good clients (%i): %s" % (len(self.goodClients), self.goodClients.keys()))
         print("Bad clients (%i): %s" % (len(self.badClients), self.badClients.keys()))
-
-    def getClientsDict(self):
-        return self.clients
-
-    def getSubClientsDict(self):
-        return self.subclients
-
-    def getClientsForHeader(self, header):
-        return self.clients[header]
-
-    def getSubclientsForClient(self, client):
-        return self.subclients[client]
 
 
 if __name__ == '__main__':
