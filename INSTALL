@@ -35,3 +35,7 @@ requirements:
 5.   look at what is going on in /apps/px/log
 
 
+P.S.  If, as a developer, you don't want to run as root, then you can:
+export PXROOT=<root directory of sundew>, then run pxInit... It will 
+bomb on the user creation.  You can comment that out.
+
