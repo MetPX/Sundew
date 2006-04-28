@@ -12,8 +12,7 @@
 #############################################################################################
 """
 
-import os, sys, re, __builtin__
-from Logger import *
+import os, sys, re
 
 class DirectRoutingParser:
 
@@ -173,7 +172,7 @@ class DirectRoutingParser:
         # Up to here: 2.3 s of execution time
 
 
-    def parse1(self):
+    def parseAndShowErrors(self):
         self. clearInfos()
         try:
             file = open(self.filename, 'r')
@@ -287,7 +286,6 @@ class DirectRoutingParser:
         self.logger.info("#---------------------------------------------------------------#")
         for client in self.subClients:
             self.logger.info("%s: %s" % (client, self.subClients[client]))
-        self.logger.info("#---------------------------------------------------------------#")
         for alias in self.aliasedClients:
             self.logger.info("%s: %s" % (alias, self.aliasedClients[alias]))
         self.logger.info("#---------------------------------------------------------------#")
@@ -296,15 +294,18 @@ class DirectRoutingParser:
 
 
 if __name__ == '__main__':
+    import sys
+    sys.path.insert(1,sys.path[0] + '/../lib/importedLibs')
+    from Logger import *
 
     logger = Logger('/apps/px/aftn/log/parsing.log', 'DEBUG', 'Sub')
     logger = logger.getLogger()
 
     pxLinkables = ['cmc', 'aftn', 'satnet-ice']
-    parser = DirectRoutingParser('/apps/px/aftn/etc/header2client.conf', pxLinkables, logger)
-    #parser = DirectRoutingParser('/apps/px/aftn/etc/header2client.conf.test', pxLinkables, logger)
+    #parser = DirectRoutingParser('/apps/px/aftn/etc/header2client.conf', pxLinkables, logger)
+    parser = DirectRoutingParser('/apps/px/aftn/etc/header2client.conf.test', pxLinkables, logger)
  
-    #parser.printInfos()
-    print("Good clients (%i): %s" % (len(parser.goodClients), parser.goodClients.keys()))
-    print("Bad clients (%i): %s" % (len(parser.badClients), parser.badClients.keys()))
+    parser.printInfos()
+    #print("Good clients (%i): %s" % (len(parser.goodClients), parser.goodClients.keys()))
+    #print("Bad clients (%i): %s" % (len(parser.badClients), parser.badClients.keys()))
 
