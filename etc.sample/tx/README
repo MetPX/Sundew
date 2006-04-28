@@ -29,7 +29,7 @@ directory <dir>
     directory //absolute/directory
     directory /relative/directory
 
-filenamae <destfn>
+filename <destfn>
     filename WHATFN     (Destination name will be first part of original filename)
     filename HEADFN     (Destination name will be HEADER part of original filename)
     filename NONE       (Use the entire filename)

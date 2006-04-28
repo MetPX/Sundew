@@ -1,0 +1,61 @@
+
+
+-- install it. (see INSTALL)
+   -- there should now be a /apps/px tree, and a user named px.
+   -- set the password for the px account, and su - px
+   -- add /apps/px/bin to your path e.g. export PATH="${PATH}:/apps/px/bin"
+
+-- create two receivers:
+
+/apps/px/etc/rx/file.conf
+--
+type bulletin-file
+extension file:-CCCC:-TT:-CIRCUIT:Direct
+--
+
+/apps/px/etc/rx/wmo.conf
+--
+type wmo
+port 5002
+extension pxatx:-CCCC:-TT:-CIRCUIT:Direct
+--
+
+and a transmitter:
+
+/apps/px/etc/tx/wmo.conf
+--
+type wmo
+destination wmo://localhost:5002
+imask *:*:*:*:*:*:*
+--
+
+/apps/px/etc/header2client.conf
+--
+SACN37 CWAO:wmo:3
+SACN31 CWAO:wmo:3
+SICN25 CWAO:wmo:3
+SANT31 CWAO:wmo:3
+SMCN37 CWAO:wmo:3
+--
+
+px start
+
+look at /apps/px/log
+
+there should be three log files, and they should indicate normal startup.
+
+In the distribution, there is a testSuite directory:
+
+cd /apps/px/rxq/file/
+cp <wherever>/testSuite/01TwelveHoursOld/input/* .
+
+That will copy a selection of bulletins into the file receivers input queue.
+they will be ingested (look at rx_file.log) and queued for transmission via the
+wmo client.   
+The wmo sender client is connected to the wmo reception client at localhost.  
+The sender will send the bulletins.  
+The receiver will receive the bulletins, and route them to the sender (a loopig configuration, normally a bad thing)
+The sender will notice that it has sent the messages recently and drop the bulletins.
+
+So from this you can see a very simple installation configuration self-test.
+
