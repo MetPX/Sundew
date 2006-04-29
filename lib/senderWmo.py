@@ -122,7 +122,7 @@ class senderWmo(gateway.gateway):
                 else :
 
                    # if in cache than it was already sent... nothing to do
-                   if self.in_cache( data[index], True, self.reader.sortedFiles[index] ) :
+                   if self.client.nodups and self.in_cache( data[index], True, self.reader.sortedFiles[index] ) :
                       self.unlink_file( self.reader.sortedFiles[index] )
                       continue
                    succes, nbBytesSent = self.write_data( data[index] )
@@ -228,19 +228,19 @@ class senderWmo(gateway.gateway):
         header  = data[:pos]
         lheader = len(header) + 1
 
-        # SHOULD SEGMENT BUT : At the moment BUFR are not segmented but discarted
+        # SHOULD SEGMENT BUT : At the moment BUFR are not segmented but discarded
         if data[lheader:lheader+4] == "BUFR" :
            self.logger.error("Unable to segment and send %s ! Reason : type %s, Size: %s" % (path, "BUFR", len(data) ))
            self.unlink_file(path)
            return ( False, 0 )
 
-        # SHOULD SEGMENT BUT : At the moment GRIB are not segmented but discarted
+        # SHOULD SEGMENT BUT : At the moment GRIB are not segmented but discarded
         if data[lheader:lheader+4] == "GRIB" :
            self.logger.error("Unable to segment and send %s ! Reason : type %s, Size: %s" % (path, "GRIB", len(data) ))
            self.unlink_file(path)
            return ( False, 0 )
 
-        # SHOULD SEGMENT BUT : the bulletin already have a BBB group -> not segmented but discarted
+        # SHOULD SEGMENT BUT : the bulletin already have a BBB group -> not segmented but discarded
         # FIXME should validate that the 4th token is realy a BBB (AAa-z CCa-z RRa-z Pa-za-z AMD COR RTM)
         tokn = header.split()
         if len(tokn) == 4 :
@@ -271,7 +271,7 @@ class senderWmo(gateway.gateway):
             rawSegment = rawSegment.replace("\r\r\n", "\n" )
             i = i + 1
 
-            if self.in_cache( rawSegment, False, None ) :
+            if self.client.nodups and self.in_cache( rawSegment, False, None ) :
                continue
 
             succes, nbBytesSent = self.write_data(rawSegment)

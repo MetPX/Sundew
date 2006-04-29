@@ -13,7 +13,7 @@ type bulletin-file
 extension file:-CCCC:-TT:-CIRCUIT:Direct
 --
 
-/apps/px/etc/rx/wmo.conf
+/apps/px/etc/rx/loop.conf
 --
 type wmo
 port 5002
@@ -22,7 +22,7 @@ extension pxatx:-CCCC:-TT:-CIRCUIT:Direct
 
 and a transmitter:
 
-/apps/px/etc/tx/wmo.conf
+/apps/px/etc/tx/loop.conf
 --
 type wmo
 destination wmo://localhost:5002
@@ -31,11 +31,11 @@ imask *:*:*:*:*:*:*
 
 /apps/px/etc/header2client.conf
 --
-SACN37 CWAO:wmo:3
-SACN31 CWAO:wmo:3
-SICN25 CWAO:wmo:3
-SANT31 CWAO:wmo:3
-SMCN37 CWAO:wmo:3
+SACN37 CWAO:loop:3
+SACN31 CWAO:loop:3
+SICN25 CWAO:loop:3
+SANT31 CWAO:loop:3
+SMCN37 CWAO:loop:3
 --
 
 px start
@@ -52,10 +52,18 @@ cp <wherever>/testSuite/01TwelveHoursOld/input/* .
 That will copy a selection of bulletins into the file receivers input queue.
 they will be ingested (look at rx_file.log) and queued for transmission via the
 wmo client.   
-The wmo sender client is connected to the wmo reception client at localhost.  
+The loop sender client is connected to the loop reception client at localhost.  
 The sender will send the bulletins.  
-The receiver will receive the bulletins, and route them to the sender (a loopig configuration, normally a bad thing)
+The receiver will receive the bulletins, and route them to the sender (a looping configuration, normally a bad thing)
 The sender will notice that it has sent the messages recently and drop the bulletins.
 
 So from this you can see a very simple installation configuration self-test.
 
+To make run a little longer, You can turn off duplicate message detection
+in the wmo sender by adding
+
+noduplicates false
+
+to /apps/px/etc/tx/loop.conf
+
+then it will circulate the data forever.

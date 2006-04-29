@@ -64,6 +64,7 @@ Note: The following options are mainly developpers' options. They are not
 used by standard users.
 
 debug                   False                           <True|False>
+noduplicates		True				<True|False>
 validation              True                            <True|False>
 patternMatching         True                            <True|False>
 sorter                  MultiKeysStringSorter           <None|StandardSorter|MultiKeysStringSorter>
@@ -116,7 +117,7 @@ dir_pattern
     Maybe used only if type is single-file.
 
 =========================================================================================
-Developper's option' descriptions
+Developers' option descriptions
 =========================================================================================
 debug True
     If we want sections with debug code (and logging informations)
@@ -130,6 +131,11 @@ validation True
 patternMatching True
     Determine if the masks present in the client config. file will be used for
     routing the files present in the client's queue. 
+
+noduplicates True
+    Senders compute checksums for bulletins sent, and place them in a send
+    cache.  If the same message shows up again, it will be found in the cache.
+    when noduplicates is true, senders will not send bulletins found.
 
 sorter MultiKeysStringSorter
     Determine which type of sorter will be used. Can be used with all client's types.

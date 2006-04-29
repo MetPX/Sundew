@@ -55,7 +55,7 @@ class Client(object):
 
         self.validation = True                    # Validation of the filename (prio + date)
         self.patternMatching = True               # Verification of the emask and imask of the client before sending a file
-        self.cache = True                         # Check if the file has already been sent (md5sum present in the cache)
+        self.nodups = True                         # Check if the file has already been sent (md5sum present in the cache)
         self.mtime = 0                            # Integer indicating the number of seconds a file must not have
                                                   # been touched before being picked
 
@@ -126,7 +126,7 @@ class Client(object):
                         if len(words) > 2:
                             currentFileOption = words[2]
                     elif words[0] == 'validation': self.validation =  isTrue(words[1])
-                    elif words[0] == 'cache': self.cache =  isTrue(words[1])
+                    elif words[0] == 'noduplicates': self.nodups =  isTrue(words[1])
                     elif words[0] == 'patternMatching': self.patternMatching =  isTrue(words[1])
                     elif words[0] == 'mtime': self.mtime = int(words[1])
                     elif words[0] == 'sorter': self.sorter = words[1]

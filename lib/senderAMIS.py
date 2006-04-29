@@ -124,7 +124,7 @@ class senderAMIS:
                    continue
              else:
                 # if in cache than it was already sent... nothing to do
-                if self.in_cache( data[index], True, self.reader.sortedFiles[index] ) :
+                if self.client.nodups and self.in_cache( data[index], True, self.reader.sortedFiles[index] ) :
                    self.unlink_file( self.reader.sortedFiles[index] )
                    continue
                 dataAmis = self.encapsulate(data[index])
@@ -321,7 +321,7 @@ class senderAMIS:
            rawSegment += self.endOfMessage
            i = i + 1
 
-           if self.in_cache( rawSegment, False, None ) :
+           if self.client.nodups and self.in_cache( rawSegment, False, None ) :
               continue
 
            succes, nbBytesSent = self.write_data(rawSegment)
