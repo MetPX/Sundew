@@ -1,19 +1,20 @@
 
 General:
- -- Configuration files must end in .conf, all other files are ignored by px.
-    For example, to disable a client, rename the configuration file 
-    and restart px.
+Senders read products a directory from a transmission queue (/apps/px/tx/<client>/*)
+They send products out using a selected protocol.  Configuration files must end in 
+.conf, all other files are ignored by px.  For example, to disable a client, the
+convention is to stop the sender, rename the configuration file to .off and restart px.
+
  -- See examples in etc.sample/tx/
 
 Client Directives (common to all types):
 
-# 		can be used to start comment lines.
+# 		Hash is used to start comment lines.
 
-type <am|wmo|amis|single-file|bulletin-file>  (keyword, default: single-file)
+type <am|wmo|amis|single-file>  (keyword, default: single-file)
     am              - AM protocol socket
     wmo             - WMO protocol socket
-    single-file     - Receive plain files (like a PDS)
-    single-bulletin - receive bulletins in a file (ingested like from a socket)
+    single-file     - Send plain files (like a PDS)
 
 batch 10000   (integer, default: 100)
     The maximum number of files that will be read from disk between checks to the queuing 
@@ -27,28 +28,21 @@ imask <mask>    (include files matching this mask)
     the header2client.conf routing table chooses which products are queued for which clients.
     clients can override the routing table to suppress transmission by applying exclusion patterns. 
     
-
-For socket types (am, wmo, amis):
-
 destination <URL> 
     Uniform Resource Locator to designate where a sender should connect to.
-    Only ONE destination directive by client.
+    Only ONE destination directive by client.  indicates protocol to send.
     
     Examples:
         destination wmo://tandem.cmc.ec.gc.ca:5012
         destination am://localhost:5012
         destination amis://123.138.212.130:5012
-
-
-For FTP type (single-file):
-
-destination <URL> <DESTFN>
-
-    Examples:
         destination ftp://user:passwd@hostname//absolute/directory WHATFN
         destination ftp://user:passwd@hostname/relative/directory WHATFN
 
-    There are also synonyms for subsets of 'destination'
+
+Options which apply only to single-file (FTP) senders:
+
+    There are synonyms for subsets of 'destination'
     'protocol', 'host', 'user', 'password', 'directory', 'filename'
 
 directory <dir>
@@ -62,22 +56,14 @@ filename <destfn>
     filename TIME       (Timestamp appended)
     filename WHATFN:TIME
 
-
-mtime 5  (number, default: 0)
-    Number of seconds a file must not have been modified before we
-    read it. If set to 0, this is equivalent to not checking the
-    modification time. This option is useful for files received
-    by rcp, ftp, etc. Normally not used for clients because the files in 
-    their queues have been put there by a source in an "atomic" operation.
-
 host atlas.cmc.ec.gc.ca  (hostname, default: localhost)
-    Host with a ftp server. May be used only if type is single-file.
+    Host with a ftp server. 
 
 user toto  (string, default: None)
-    User name on the ftp server of 'host'. Maybe used only if type is single-file.
+    User name on the ftp server of 'host'. 
 
 passwd titi  (string, default: None)
-    Password of the user titi on 'host'. Maybe used only if type is single-file.
+    Password of the user titi on 'host'. 
 
 chmod 755    (octal mode,  default: 666)
     If set to a value different than 0, umask 777 followed by a chmod of the
@@ -85,20 +71,16 @@ chmod 755    (octal mode,  default: 666)
     able to ingest the file before the transfert is finished. When 0 or not present,
     the file will be sent with a .tmp and renamed (without the .tmp) at the end of
     the transfert.
-    Used only with type single-file. 
 
 ftp_mode active (keyword,  default: passive)
-    Used only with type single-file. 
 
 dir_mkdir
-    Maybe used only if type is single-file.
 
 dir_pattern
-    Maybe used only if type is single-file.
 
 =========================================================================================
 
-Developer Options (not for use by mere mortals):
+Developer Options (not of much use to mere mortals):
 
 debug (boolean, Default: False)
     If we want sections with debug code (and logging informations)
@@ -122,3 +104,10 @@ sorter (keyword, default: MultiKeysStringSorter, others: None,StandardSorter)
     Determine which type of sorter will be used. Can be used with all client's types.
     MultiKeysStringSorter ensures delivery by priority and time.
     
+mtime 5  (number, default: 0)
+    Number of seconds a file must not have been modified before we
+    read it. If set to 0, this is equivalent to not checking the
+    modification time. This option is useful for files received
+    by rcp, ftp, etc. Normally not used for clients because the files in 
+    their queues have been put there by a source in an "atomic" operation.
+
