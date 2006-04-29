@@ -116,6 +116,7 @@ class bulletinManager:
         # Init du map des circuits
         if pathFichierCircuit:
             self.drp = DirectRoutingParser(PXPaths.ETC + 'header2client.conf', self.source.ingestor.clientNames, logger)
+            self.drp.parse()
             #self.drp.logInfos()
         else:
             self.drp = None
