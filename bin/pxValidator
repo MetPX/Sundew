@@ -1,0 +1,85 @@
+#!/usr/bin/env python
+"""
+MetPX Copyright (C) 2004-2006  Environment Canada
+MetPX comes with ABSOLUTELY NO WARRANTY; For details type see the file 
+named COPYING in the root of the source directory tree.
+
+#############################################################################################
+# Name: pxValidator
+#
+# Author: Daniel Lemay
+#
+# Date: 2006-04-28
+#
+# Description: This program is used to validate the direct routing configuration file. 
+# 
+#############################################################################################
+"""
+
+import os, sys, getopt
+sys.path.insert(1, sys.path[0] + '/../lib')
+sys.path.insert(1,sys.path[0] + '/../lib/importedLibs')
+
+import PXPaths
+from Logger import Logger
+from PXManager import PXManager
+from DirectRoutingParser import DirectRoutingParser
+
+def usage():
+    print "\nUsage: pxValidator [-f filename] where filename is the name of the direct routing file"
+    print "ex 1: pxValidator  (default filename is PXPaths.ETC/header2client.conf)"
+    print "ex 2: pxValidator -f header2client.conf (defaut path is PXPaths.ETC)"
+    print "ex 3: pxValidator -f /toto/tutu/head.conf\n"
+
+class PXValidator:
+    LOG_LEVEL = "INFO"      # Logging level
+    filename = None
+
+    def __init__(self):
+
+        PXPaths.normalPaths()
+        self.manager = PXManager()
+        LOG_NAME = self.manager.LOG + 'pxValidator.log'    # Log's name
+        logger = Logger(LOG_NAME, PXValidator.LOG_LEVEL, "Validator")
+
+        self.getOptionsParser()
+        self.logger = logger.getLogger()
+        self.manager.setLogger(self.logger)
+
+    def validate(self):
+        drp = DirectRoutingParser(PXValidator.filename)
+        drp.parseAndShowErrors()
+
+    def getOptionsParser(self):
+        filename = False
+
+        try:
+            opts, args = getopt.getopt(sys.argv[1:], 'f:h', ['help', 'filename='])
+            #print "Options:%s" % opts
+            #print "Args:%s" % args
+            if args:
+                usage()
+                sys.exit(2)
+        except getopt.GetoptError:
+            # print help information and exit:
+            usage()
+            sys.exit(2)
+
+        for option, value in opts:
+            if option in ('-h', '--help'):
+                usage()
+                sys.exit()
+            if option in ('-f', '--filename'):
+                filename = True
+                if os.path.dirname(value):
+                    PXValidator.filename = value
+                else:
+                    PXValidator.filename = PXPaths.ETC + value
+
+        if filename  is False:
+            PXValidator.filename = PXPaths.ETC + 'header2client.conf'
+
+if __name__ == '__main__':
+
+    validator =  PXValidator()
+    validator.validate()
