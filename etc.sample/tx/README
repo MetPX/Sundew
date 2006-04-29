@@ -1,7 +1,32 @@
-Directives acceptable for a client:
+
+General:
+ -- Configuration files must end in .conf, all other files are ignored by px.
+    For example, to disable a client, rename the configuration file 
+    and restart px.
+ -- See examples in etc.sample/tx/
+
+Client Directives (common to all types):
+
+# 		can be used to start comment lines.
+
+type <am|wmo|amis|single-file|bulletin-file>  (keyword, default: single-file)
+    am              - AM protocol socket
+    wmo             - WMO protocol socket
+    single-file     - Receive plain files (like a PDS)
+    single-bulletin - receive bulletins in a file (ingested like from a socket)
+
+batch 10000   (integer, default: 100)
+    The maximum number of files that will be read from disk between checks to the queuing 
+    directories. Used with all type of clients.
 
 emask <mask>    (exclude files matching this mask)
+    the header2client.conf routing table chooses which products are queued for which clients.
+    clients can override the routing table to suppress transmission by applying exclusion patterns. 
+
 imask <mask>    (include files matching this mask)
+    the header2client.conf routing table chooses which products are queued for which clients.
+    clients can override the routing table to suppress transmission by applying exclusion patterns. 
+    
 
 For socket types (am, wmo, amis):
 
@@ -13,6 +38,7 @@ destination <URL>
         destination wmo://tandem.cmc.ec.gc.ca:5012
         destination am://localhost:5012
         destination amis://123.138.212.130:5012
+
 
 For FTP type (single-file):
 
@@ -36,69 +62,24 @@ filename <destfn>
     filename TIME       (Timestamp appended)
     filename WHATFN:TIME
 
-See configuration files examples in /apps/px/etc.sample/tx/
-   
 
-Default values for all the options that can be set for a client:
-=========================================================================================
-Option                 Default                           Acceptable values
-=========================================================================================
-type                    single-file                     <am|wmo|amis|single-file>
-batch                   100                             An integer
-mtime                   0                               An integer
-
-host                    localhost                       Any valid hostname (name or ip address)
-user                    None                            String
-passwd                  None                            String
-ftp_mode                passive                         <active|passive>
-
-chmod                   666                             the permission of the file once delivered
-lock                    .tmp                            the file locking type (possible value umask or .extension)
-timeout_send            0                               nb of secs before one file sending is considered timed out...
-                                                        ( 0 means inactive no timeout considered )
-
-dir_mkdir               False                           <True|False>
-dir_pattern             False                           <True|False>
-
-Note: The following options are mainly developpers' options. They are not
-used by standard users.
-
-debug                   False                           <True|False>
-noduplicates		True				<True|False>
-validation              True                            <True|False>
-patternMatching         True                            <True|False>
-sorter                  MultiKeysStringSorter           <None|StandardSorter|MultiKeysStringSorter>
-
-=========================================================================================
-Standard users' option' descriptions
-=========================================================================================
-type <am|wmo|amis|single-file|bulletin-file>
-    am              - AM protocol socket
-    wmo             - WMO protocol socket
-    single-file     - Receive plain files (like a PDS)
-    single-bulletin - receive bulletins in a file (ingested like from a socket)
-
-batch 10000
-    The maximum number of files that will be read from disk between checks to the queuing 
-    directories. Used with all type of clients.
-
-mtime 5
+mtime 5  (number, default: 0)
     Number of seconds a file must not have been modified before we
     read it. If set to 0, this is equivalent to not checking the
     modification time. This option is useful for files received
     by rcp, ftp, etc. Normally not used for clients because the files in 
     their queues have been put there by a source in an "atomic" operation.
 
-host atlas.cmc.ec.gc.ca
-    Host with a ftp server. Maybe used only if type is single-file.
+host atlas.cmc.ec.gc.ca  (hostname, default: localhost)
+    Host with a ftp server. May be used only if type is single-file.
 
-user toto
+user toto  (string, default: None)
     User name on the ftp server of 'host'. Maybe used only if type is single-file.
 
-passwd titi
+passwd titi  (string, default: None)
     Password of the user titi on 'host'. Maybe used only if type is single-file.
 
-chmod 755
+chmod 755    (octal mode,  default: 666)
     If set to a value different than 0, umask 777 followed by a chmod of the
     value will be done. Ensure that the a process at the reception end won't be
     able to ingest the file before the transfert is finished. When 0 or not present,
@@ -106,8 +87,7 @@ chmod 755
     the transfert.
     Used only with type single-file. 
 
-ftp_mode active
-    Default is passive.
+ftp_mode active (keyword,  default: passive)
     Used only with type single-file. 
 
 dir_mkdir
@@ -117,27 +97,28 @@ dir_pattern
     Maybe used only if type is single-file.
 
 =========================================================================================
-Developers' option descriptions
-=========================================================================================
-debug True
+
+Developer Options (not for use by mere mortals):
+
+debug (boolean, Default: False)
     If we want sections with debug code (and logging informations)
     to be executed.
 
-validation True
+validation (boolean, Default: True)
     Validate if the filename have the following form:
     SACN43_CWAO_012000_CYOJ_41613:ncp1:CWAO:SA:3.A.I.E::20050201200339
     The priority field and the timestamp field are checked for validity.
 
-patternMatching True
+patternMatching (boolean, Default: True)
     Determine if the masks present in the client config. file will be used for
     routing the files present in the client's queue. 
 
-noduplicates True
+noduplicates (boolean, default: True)   (applies to: socket senders)
     Senders compute checksums for bulletins sent, and place them in a send
     cache.  If the same message shows up again, it will be found in the cache.
     when noduplicates is true, senders will not send bulletins found.
 
-sorter MultiKeysStringSorter
+sorter (keyword, default: MultiKeysStringSorter, others: None,StandardSorter)
     Determine which type of sorter will be used. Can be used with all client's types.
     MultiKeysStringSorter ensures delivery by priority and time.
     
