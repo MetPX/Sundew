@@ -48,6 +48,8 @@ class PXManager(SystemManager):
 
         self.setRxNames()           
         self.setTxNames()
+        self.setTRxNames()
+
         self.setRxPaths()
         self.setTxPaths()
         #self.rxPaths = ['/apps/px/toto/', '/apps/px/titi/', '/apps/px/tata/']
@@ -59,6 +61,7 @@ class PXManager(SystemManager):
         self.createDir(PXPaths.LOG)
         self.createDir(PXPaths.RX_CONF)
         self.createDir(PXPaths.TX_CONF)
+        self.createDir(PXPaths.TRX_CONF)
         self.createDir(PXPaths.RXQ)
         self.createDir(PXPaths.TXQ)
         self.createDir(PXPaths.DB)
@@ -72,6 +75,7 @@ class PXManager(SystemManager):
 
         self.setRxNames()           
         self.setTxNames()
+        self.setTRxNames()
 
     def initShouldRunNames(self):
         if not os.path.isdir(PXPaths.ROOT):
@@ -80,6 +84,7 @@ class PXManager(SystemManager):
 
         self.setShouldRunRxNames()           
         self.setShouldRunTxNames()
+        self.setShouldRunTRxNames()
 
     def initRunningNames(self):
         if not os.path.isdir(PXPaths.ROOT):
@@ -88,12 +93,16 @@ class PXManager(SystemManager):
 
         self.setRunningRxNames()
         self.setRunningTxNames()
+        self.setRunningTRxNames()
 
     def getNotRunningRxNames(self):
         return self.notRunningRxNames
 
     def getNotRunningTxNames(self):
         return self.notRunningTxNames
+
+    def getNotRunningTRxNames(self):
+        return self.notRunningTRxNames
         
     ##########################################################################################################
     # Running Names (sources and clients):
@@ -111,7 +120,7 @@ class PXManager(SystemManager):
         shouldRunRxNames = self.getShouldRunRxNames()
         for name in shouldRunRxNames:
             try:
-                pid = open(PXPaths.RXQ + name + '/' + '.lock', 'r').read()
+                pid = open(PXPaths.RXQ + name + '/' + '.lock', 'r').read().strip()
                 if not commands.getstatusoutput('ps -p ' + pid)[0]:
                     # Process is running
                     runningRxNames.append(name)
@@ -134,7 +143,7 @@ class PXManager(SystemManager):
         shouldRunTxNames = self.getShouldRunTxNames()
         for name in shouldRunTxNames:
             try:
-                pid = open(PXPaths.TXQ + name + '/' + '.lock', 'r').read()
+                pid = open(PXPaths.TXQ + name + '/' + '.lock', 'r').read().strip()
                 if not commands.getstatusoutput('ps -p ' + pid)[0]:
                     # Process is running
                     runningTxNames.append(name)
@@ -146,6 +155,31 @@ class PXManager(SystemManager):
 
         self.runningTxNames = runningTxNames
         self.notRunningTxNames = notRunningTxNames
+
+    def setRunningTRxNames(self):
+        """
+        Set a list of transceivers' name. We choose transceivers that have a .conf file in TRX_CONF 
+        and we verify that these transceivers have a .lock and a process associated to them.
+        """
+        runningTRxNames = []
+        notRunningTRxNames = []
+        shouldRunTRxNames = self.getShouldRunTRxNames()
+        for name in shouldRunTRxNames:
+            try:
+                #We read the pid from the RXQ (we could have used TXQ)
+                pid = open(PXPaths.RXQ + name + '/' + '.lock', 'r').read().strip()
+                if not commands.getstatusoutput('ps -p ' + pid)[0]:
+                    # Process is running
+                    runningTRxNames.append(name)
+                else:
+                    notRunningTRxNames.append(name)
+            except:
+                #FIXME 
+                pass
+
+        self.runningTRxNames = runningTRxNames
+        self.notRunningTRxNames = notRunningTRxNames
+
 
     ##########################################################################################################
     # Should be running names (sources and clients):
@@ -175,6 +209,18 @@ class PXManager(SystemManager):
             if os.path.isfile(PXPaths.TXQ + name + '/' + '.lock'):
                 shouldRunTxNames.append(name)
         self.shouldRunTxNames = shouldRunTxNames
+
+    def setShouldRunTRxNames(self):
+        """
+        Set a list of transceivers' name. We choose transceivers that have a .conf file in TRX_CONF 
+        and we verify that these transceivers have a .lock associated to them.
+        """
+        shouldRunTRxNames = []
+        trxNames =  self.getTRxNames()
+        for name in trxNames:
+            if os.path.isfile(PXPaths.RXQ + name + '/' + '.lock'):
+                shouldRunTRxNames.append(name)
+        self.shouldRunTRxNames = shouldRunTRxNames
 
     ##########################################################################################################
     # Names and paths (sources and clients):
@@ -206,6 +252,19 @@ class PXManager(SystemManager):
                 txNames.append(file[:-5])
         self.txNames = txNames
 
+    def setTRxNames(self):
+        """
+        Set a list of receivers' name. We choose receivers that have a .conf file in TX_CONF.
+        We don't verify if these senders have a process associated to them.
+        """
+        trxNames = []
+        for file in os.listdir(PXPaths.TRX_CONF):
+            if file[-5:] != '.conf':
+                continue
+            else:
+                trxNames.append(file[:-5])
+        self.trxNames = trxNames
+
     def setRxPaths(self):
         """
         Set a list of receivers' path. We choose receivers that have a .conf file in RX_CONF.
@@ -214,6 +273,9 @@ class PXManager(SystemManager):
         rxPaths = []
         for name in self.rxNames:
             rxPaths.append(PXPaths.RXQ + name + '/')
+        for name in self.trxNames:
+            rxPaths.append(PXPaths.RXQ + name + '/')
+
         self.rxPaths = rxPaths
 
     def setTxPaths(self):
@@ -227,6 +289,8 @@ class PXManager(SystemManager):
         priorities = [str(x) for x in range(1,10)]
 
         for name in self.txNames:
+            txPaths.append(PXPaths.TXQ + name + '/')
+        for name in self.trxNames:
             txPaths.append(PXPaths.TXQ + name + '/')
 
         for path in txPaths:
@@ -259,17 +323,27 @@ if __name__ == '__main__':
     #print manager.getRxPaths()
     #print manager.getTxPaths()
 
+    manager.initPXPaths()
     manager.initNames()
     manager.initShouldRunNames()
     manager.initRunningNames()
 
-    print manager.getRxNames()
-    print manager.getTxNames()
-    print manager.getShouldRunRxNames()
-    print manager.getShouldRunTxNames()
-    print "**************Running names*************"
+    print
+    print "**************************************************************"
+    print("RX Names: %s" % manager.getRxNames())
+    print("TX Names: %s" % manager.getTxNames())
+    print("TRX Names: %s" % manager.getTRxNames())
+    print "********************* Should run names ***********************"
+    print("RX that should run: %s" % manager.getShouldRunRxNames())
+    print("TX that should run: %s" % manager.getShouldRunTxNames())
+    print("TRX that should run: %s" % manager.getShouldRunTRxNames())
+    print "********************** Running names *************************"
     print manager.getRunningRxNames()
     print manager.getRunningTxNames()
-    print "**************Not Running names*************"
+    print manager.getRunningTRxNames()
+    print "************* Not Running names (that should run) ************"
     print manager.getNotRunningRxNames()
     print manager.getNotRunningTxNames()
+    print manager.getNotRunningTRxNames()
+    print "**************************************************************"
+    print

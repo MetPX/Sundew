@@ -29,10 +29,13 @@ class SystemManager:
         self.logger = None                     # self.setLogger will be used by the application using a Manager 
         self.rxNames = []                      # Names are based on filenames found in RX_CONF
         self.txNames = []                      # Names are based on filenames found in TX_CONF
-        self.shouldRunRxNames = []             # Names are based on filenames found in RX_CONF and the presence of a .lock
-        self.shouldRunTxNames = []             # Names are based on filenames found in TX_CONF and the presence of a .lock
+        self.trxNames = []                     # Names are based on filenames found in TRX_CONF
+        self.shouldRunRxNames = []             # Names are based on filenames found in RX_CONF and the presence of a .lock in RXQ
+        self.shouldRunTxNames = []             # Names are based on filenames found in TX_CONF and the presence of a .lock in TXQ
+        self.shouldRunTRxNames = []            # Names are based on filenames found in TRX_CONF and the presence of a .lock in RXQ
         self.runningRxNames = []               # We only keep the Rx for which we can find a PID
         self.runningTxNames = []               # We only keep the Tx for which we can find a PID 
+        self.runningTRxNames = []              # We only keep the TRx for which we can find a PID 
         self.rxPaths = []                      # Receivers (input directories in PDS parlance) paths
         self.txPaths = []                      # Transmitters (clients in PDS parlance, senders in PX parlance) paths
 
@@ -40,7 +43,7 @@ class SystemManager:
         self.logger = logger
 
     ##########################################################################################################
-    # Should be running Names (sources and clients): 
+    # Should be running Names (sources, clients and transceivers): 
     ##########################################################################################################
     def getShouldRunRxNames(self):
         return self.shouldRunRxNames
@@ -62,8 +65,17 @@ class SystemManager:
         """
         raise SystemManagerException('Abstract method: not implemented in SystemManager Class')
 
+    def getShouldRunTRxNames(self):
+        return self.shouldRunTRxNames
+
+    def setShouldRunTRxNames(self):
+        """
+        Set a list of transceivers' name. We choose transceivers that have a .conf file in TRX_CONF 
+        and we verify that these transceivers have a .lock associated to them.
+        """
+
     ##########################################################################################################
-    # Running Names (sources and clients): 
+    # Running Names (sources, clients and transceivers): 
     ##########################################################################################################
     def getRunningRxNames(self):
         return self.runningRxNames
@@ -85,6 +97,16 @@ class SystemManager:
         """
         raise SystemManagerException('Abstract method: not implemented in SystemManager Class')
 
+    def getRunningTRxNames(self):
+        return self.runningTRxNames
+
+    def setRunningTRxNames(self):
+        """
+        Set a list of transceivers' name. We choose transceivers that have a .conf file in TRX_CONF 
+        and we verify that these transceivers have a .lock and a process associated to them.
+        """
+        raise SystemManagerException('Abstract method: not implemented in SystemManager Class')
+
     ##########################################################################################################
     # Names (sources and clients)
     ##########################################################################################################
@@ -98,6 +120,12 @@ class SystemManager:
         return self.txNames
 
     def setTxNames(self):
+        raise SystemManagerException('Abstract method: not implemented in SystemManager Class')
+
+    def getTRxNames(self):
+        return self.trxNames
+
+    def setTRxNames(self):
         raise SystemManagerException('Abstract method: not implemented in SystemManager Class')
 
     def getRxPaths(self):
