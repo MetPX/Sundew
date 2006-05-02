@@ -45,7 +45,7 @@ def readConfig():
 
 def normalPaths():
 
-    global ROOT, BIN, LIB, LOG, ETC, RXQ, TXQ, DB, RX_CONF, TX_CONF, LAT, LAT_RESULTS, LAT_TMP, \
+    global ROOT, BIN, LIB, LOG, ETC, RXQ, TXQ, DB, RX_CONF, TX_CONF, TRX_CONF, LAT, LAT_RESULTS, LAT_TMP, \
            COLLECTION_DB, COLLECTION_CONTROL
 
     try:
@@ -63,6 +63,7 @@ def normalPaths():
     DB = ROOT + 'db/'
     RX_CONF = ETC + 'rx/'
     TX_CONF = ETC + 'tx/'
+    TRX_CONF = ETC + 'trx/'
     COLLECTION_DB = ROOT + 'collection/'
     COLLECTION_CONTROL = COLLECTION_DB + 'control/'
 
@@ -74,7 +75,7 @@ def normalPaths():
 
 def drbdPaths(rootPath):
 
-    global ROOT, BIN, LIB, LOG, ETC, RXQ, TXQ, DB, RX_CONF, TX_CONF, LAT, LAT_RESULTS, LAT_TMP, \
+    global ROOT, BIN, LIB, LOG, ETC, RXQ, TXQ, DB, RX_CONF, TX_CONF, TRX_CONF, LAT, LAT_RESULTS, LAT_TMP, \
            COLLECTION_DB, COLLECTION_CONTROL
 
     ROOT = os.path.normpath(rootPath) + '/'
@@ -87,6 +88,7 @@ def drbdPaths(rootPath):
     DB = ROOT + 'db/'
     RX_CONF = ETC + 'rx/'
     TX_CONF = ETC + 'tx/'
+    TRX_CONF = ETC + 'trx/'
     COLLECTION_DB = ROOT + 'collection'
     COLLECTION_CONTROL = COLLECTION_DB + 'control/'
 
