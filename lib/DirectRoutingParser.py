@@ -109,7 +109,7 @@ class DirectRoutingParser:
             self.logger.error("Type: %s, Value: %s" % (type, value))
             sys.exit()
 
-        for line in file.readlines():
+        for line in file:
             line = line.strip().strip(':')
             words = line.split(':')
             # Up to here: 0.2 s of execution time
@@ -193,7 +193,7 @@ class DirectRoutingParser:
         uniqueHeaders = {}
         duplicateHeaders = {}
 
-        for line in file.readlines(): 
+        for line in file: 
             line = line.strip().strip(':')
             words = line.split(':')
             # Up to here: 0.2 s of execution time
