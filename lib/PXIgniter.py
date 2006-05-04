@@ -158,6 +158,8 @@ class PXIgniter(Igniter):
             if self.flow.collection:
                self.gateway.unBulletinManager.reloadCollectionManager()
                
+         elif self.direction == 'transceiver':
+            pass
       
    def reload(self):
       """
