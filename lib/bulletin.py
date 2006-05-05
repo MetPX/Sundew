@@ -1,4 +1,4 @@
-# -*- coding: UTF-8 -*-
+# -*- coding: iso-8859-1 -*-
 """Définition de la classe principale pour les bulletins."""
 
 import time

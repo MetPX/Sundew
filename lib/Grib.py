@@ -1,4 +1,4 @@
-# -*- coding: UTF-8 -*-
+# -*- coding: iso-8859-1 -*-
 """A class to process GRIB messages."""
 
 import array, time

@@ -1,4 +1,4 @@
-# -*- coding: UTF-8 -*-
+# -*- coding: iso-8859-1 -*-
 """
 MetPX Copyright (C) 2004-2006  Environment Canada
 MetPX comes with ABSOLUTELY NO WARRANTY; For details type see the file
@@ -224,19 +224,19 @@ class senderAm(gateway.gateway):
         header  = unBulletinAm.getHeader()
         lheader = len(header) + 1
 
-        # SHOULD SEGMENT BUT : At the moment BUFR are not segmented but discarted
+        # SHOULD SEGMENT BUT : At the moment BUFR are not segmented but discarded
         if data[lheader:lheader+4] == "BUFR" :
            self.logger.error("Unable to segment and send %s ! Reason : type %s, Size: %s" % (path, "BUFR", len(data) ))
            self.unlink_file(path)
            return ( False, 0 )
 
-        # SHOULD SEGMENT BUT : At the moment GRIB are not segmented but discarted
+        # SHOULD SEGMENT BUT : At the moment GRIB are not segmented but discarded
         if data[lheader:lheader+4] == "GRIB" :
            self.logger.error("Unable to segment and send %s ! Reason : type %s, Size: %s" % (path, "GRIB", len(data) ))
            self.unlink_file(path)
            return ( False, 0 )
 
-        # SHOULD SEGMENT BUT : the bulletin already have a BBB group -> not segmented but discarted
+        # SHOULD SEGMENT BUT : the bulletin already have a BBB group -> not segmented but discarded
         # FIXME should validate that the 4th token is realy a BBB (AAa-z CCa-z RRa-z Pa-za-z AMD COR RTM)
         tokn = header.split()
         if len(tokn) == 4 :
