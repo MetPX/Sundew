@@ -1,0 +1,110 @@
+#! /usr/bin/env python
+
+"""
+MetPX Copyright (C) 2004-2006  Environment Canada
+MetPX comes with ABSOLUTELY NO WARRANTY; For details type see the file
+named COPYING in the root of the source directory tree.
+
+#############################################################################################
+# Name: pxTransceiver
+#
+# Authors: Louis-Philippe Theriault
+#          Peter Silva 
+#          Daniel Lemay
+#
+# Date: October 2004
+#
+# Description:
+#
+#############################################################################################
+"""
+import sys, os, pwd, time
+
+sys.path.insert(1,sys.path[0] + '/../lib')
+sys.path.insert(1,sys.path[0] + '/../etc')
+sys.path.insert(1,sys.path[0] + '/../lib/importedLibs')
+
+import PXPaths
+from optparse import OptionParser
+from PXManager import PXManager
+from Logger import Logger
+from Sourlient import Sourlient
+from PXIgniter import PXIgniter
+
+# Initialize PX Paths
+PXPaths.normalPaths()
+
+if __name__ == '__main__':
+
+    # Only if run as root, we will try to change the user
+    # id to pds user. It's because at reboot time init try
+    # to start px as root
+    if os.getuid() == 0:
+        try:
+            pdsUID = pwd.getpwnam("pds")[2]
+            os.setuid(pdsUID)
+        except:
+            print "No pds user on this machine. Don't start as root!"
+            sys.exit(2)
+    
+    usage =  """%prog [sourlient] (start|stop|restart|reload|status)\n
+example 1: %prog aftn start   => will start aftn transceiver
+example 2: %prog start       => will start all transceivers
+             """
+
+    parser = OptionParser(usage)
+
+    # We can set the logLevel to ['DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL']
+    parser.add_option("-l", "--logLevel",
+                      action="store", type="string", dest="logLevel", default="INFO",
+                      metavar="LOGLEVEL", help="Set the logging level [default: %default]")
+
+    options, args = parser.parse_args()
+
+    manager = PXManager()
+    manager.initPXPaths()
+    manager.initNames()
+    sourlientNames = manager.getTRxNames()
+    #print sourlientNames
+
+    # The command will be applied to a particular sourlient 
+    if len(args) == 2:
+        if args[1] in ['start', 'stop', 'status', 'restart', 'reload']:
+            command = args[1]
+        else:
+            parser.error("Wrong command name")
+
+        if args[0] in sourlientNames:
+            sourlientName = args[0]
+        else:
+            parser.error("Wrong sourlient name")
+
+    elif len(args) == 1:
+            parser.error("Sourlient or command missing")
+    elif len(args) == 0:
+        parser.error("Sourlient and command missing")
+    elif len(args) > 2:
+        parser.error("Too many arguments")
+
+    # Maybe 2 lognames (tx and rx) ???
+    logName = PXPaths.LOG + "trx_%s.log" % sourlientName
+    lockPath = PXPaths.RXQ + sourlientName 
+
+    logger = Logger(logName, options.logLevel, 'TRX' + sourlientName)
+    logger = logger.getLogger()
+
+    igniter = PXIgniter('transceiver', sourlientName, command, lockPath, logger)
+
+    sourlient = Sourlient(sourlientName, logger)
+    igniter.setFlow(sourlient)
+    
+    # Selection by protocol type
+    if sourlient.type == 'aftn':
+        import TransceiverAFTN
+        gateway = TransceiverAFTN.TransceiverAFTN(sourlient)
+        gateway.setIgniter(igniter)
+        igniter.setGateway(gateway)
+    else:
+        raise Exception('Unknown type') 
+
+    gateway.run()

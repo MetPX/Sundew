@@ -44,6 +44,8 @@ def start(cmd):
     startThem(PXPaths.ETC + 'rx/', 'pxReceiver', cmd)
     time.sleep(0.6) # sleep B
     startThem(PXPaths.ETC + 'tx/', 'pxSender', cmd)
+    time.sleep(0.1)   # sleep C
+    startThem(PXPaths.ETC + 'trx/', 'pxTransceiver', cmd)
     time.sleep(2)   # sleep C
 
 # Only if run as root, we will try to change the user
