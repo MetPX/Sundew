@@ -68,13 +68,15 @@ initial file hierarchy:
 		collection_stations.conf
 		collection.conf
 	        tx/<client>.conf
+	        trx/<sourlient>.conf
 		rx/<reception>.conf
 
 
 Circuits are established relationships with other machines.
 Circuits are unidirectional and can be divided into two types:
 We receive products from 'source' circuits and deliver products
-to 'client' circuits.
+to 'client' circuits.   For bi-directional connections, the trx
+configuration directory includes 'sourlient' circuit definitions.
 
 The term circuit is used loosely, as in this case it applies
 to file reception and delivery as well as traditional permanent
@@ -100,7 +102,7 @@ sources
 Reception Name:
      Files are received with a "reception name" in the rxq.
      once the reception name is adjusted via a ('whattopds') type
-     mapping, then the ingestname is generated from that.
+     mapping, the ingestname is generated from that.
 
 Ingest Name:
      Ingest name is used to store the file in the DB, as is.
