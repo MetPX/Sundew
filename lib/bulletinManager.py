@@ -529,6 +529,7 @@ class bulletinManager:
             f.close
             return lignes
         else:
+            self.logger.error("Unable to access:" + pathFic )
             raise IOError
 
     def getCircuitList(self,bulletin):

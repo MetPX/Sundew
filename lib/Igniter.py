@@ -155,7 +155,12 @@ class Igniter:
    def isLocked(self):
       if os.path.exists(self.lock):
          lockFile = open(self.lock, 'r')
-         self.lockpid = int(lockFile.read())
+         try: 
+            self.lockpid = int(lockFile.read())
+         except:
+	    self.printComment('lockfile corrupt, removing')
+            os.unlink(self.lock)
+	    self.lockpid = False
          lockFile.close()
          return self.lockpid
       else:
