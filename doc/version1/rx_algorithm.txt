@@ -9,7 +9,34 @@ transformations performed on the input before ingest, for data normalization, an
 to create derived products.
 
 This should not change any of the processing done by the sockets  It should be the same
-work being done, just the order of and method of routine calls might be a bit different.
+work being done now, just the order of and method of routine calls might be a bit different.
+For files, it will be considerably different (but Better :-)
+
+Why:
+    Do we need to get PDS routing merged with bulletin routing?
+     -- Even if we just use file receivers and client patterns, the fact that client patterns
+	are used differently by different receivers will be extremely confusing in practice.
+	It is only manageable now because the two contexts:  MetPX, and PDS are still separate.
+	If we put both concepts within the same configuration, folks will get lost quickly.
+	(as in: Hey, how come I am sending RADAR Volume scans over AMIS now?)
+
+	Need for both groups to use the same words, concepts, and methods.  
+        Broader number of people with same skills makes 24x7 coverage easier.
+
+     -- MetPX routing latency is lower than PDS because we don't use the PDS algorithm.
+        using the PDS algorithms will bring the latency back up, want 0 latency for files with
+	hundreds of clients & thousands of patterns.
+
+     -- The PDS people have been making their patterns more and more specific over time, converging
+	on what the bulletin people already prefer.  Makes sense to move towards static routes and
+        away from general patterns.
+ 
+     -- Have many cases where the same client exists in both PDS and MetPX. Can have a single
+	client configuration to encompass all the data we need to deliver to them.
+
+     -- Why have two when you can have one! (clients & algorithms)
+
+
 
 
 The following is science fiction at the moment... 
@@ -25,10 +52,10 @@ Product is received from source S:
 0. Apply pre_ingest_filters
 
    apply any:
-   pre_ingest_filter <pattern> <string> 
+   pre_ingest_filter <string> 
    ?reception_filter -- alternate name
 
-	-- pre_ingest_filters change the data.
+	-- pre_ingest_filters change data received, returns modified version.
 
    directives.  sample pre_ingest_filters:
    clean_WMO_bulletins( <data> )
@@ -37,6 +64,18 @@ Product is received from source S:
 
    after applying pre_ingest_filters to the data.
 
+   Why:
+	Do we need this?
+	   -- not sure, on all sockets there is this sort of processing.
+	      maybe will make the individual receivers smaller with less
+	      duplicated code, if we can abstract out the processing.
+	      maybe not needed.
+
+        Do we not write to a file? 
+		-- We do not know the name to write to.
+
+
+
 1. Determine Ingest name (except priority)
    ingest_namer <string>
    only one instance of this directive is permitted per source.  
@@ -44,7 +83,7 @@ Product is received from source S:
 	-- the value of ingest_namer is the name of a routine to create the ingest_name of the product.
 	   ingest_namer is called with:
 		-- name of file (nil if there isn'y any, as is the case with bulletins)
-		-- patterns applicable (nil if there aren't any)
+		-- patterns applicable (imask/emask entris in /etc/rx/S.conf, nil if there aren't any)
 		-- 'extension' value  from etc/rx/S.conf
 		the ingest_namer routine returns the name under which the file is to be ingested.
 		if it returns an empty string, the data is to be dropped without being ingested.
@@ -56,7 +95,7 @@ Product is received from source S:
 	-- will create a file name as a function of the bulletin header and extension.
            same as socket receivers today.  return file name.
 
-  ambulletin_ingest_namer( filename, patterns, extension )
+   ambulletin_ingest_namer( filename, patterns, extension )
 	-- will use collection_stations and other AM specific stuff to determine the correct name.
 
    file_ingest_namer( filename, patterns, extension )
@@ -65,8 +104,16 @@ Product is received from source S:
         -- 'imask' and 'emask' directives from  etc/rx/S.conf are applied against ingest name.
 	   if it is excluded, then empty string is returned by routine.
 
+   Why:
+       Don't we create a file now? -- Because we do not know the priority, need routing lookup.	
+       Why do we need 'namers'? -- To have similar routines for all data types, and not distinct
+		routing algorithms for files vs. bulletins.  We don't know how to determine the
+                name of an arbitrary product received, from receivers of types: AFTN, wmo, am, 
+                bulletin-file,  single-file.  Assume they would all use the same algorithm
+		with different namer routines.
 
-   once the ingest name is determined to be non-null, proceed to...
+   Once the ingest name is determined to be non-null, proceed to...
+
 
 
 
@@ -109,6 +156,50 @@ Product is received from source S:
 	The receiver then adds the evaluated entry to it's static routing table, effectively caching
         the routing information, for the next reception.
 
+     Why:
+	Don't we just use the imasks in all the clients?
+	   -- because then we have two different routing methods, one for bulletins, one for files.
+              want a single method for folks to learn and understand deeply.
+
+	   -- Each of C clients can have Cm routing masks.  To route a single message will cost
+			C * Cm  imask evaluations.
+	      -- cost will increase quickly with the number of clients, and the number of masks. 
+	      -- this will produce higher latency.
+
+	      the algorithm we want is the bulletin one, where routing with the table is a 
+              lookup after the first one, so cost is:
+			O(log(R)) 
+		   R is the number of static entries in the routing table.
+		   log R assumes the associative arrays in python are implemented efficiently.
+
+	Do we need a routing namer?
+		-- because with file data, there is all sorts of crud to ignore, like unique id's
+		   date stamps, and the like.  need to extract a name so that it does not vary over time
+                   in order to lookup for routing.  
+		-- if someone can figure out a generic way to extract a routing name, then we don't
+                   need a routine. 
+
+	Don't we just put all the products statically in routing file (header2client.conf)? 
+		-- because when we have file data, there are many, many different types. hard to know,
+                   routing table will grow without bound, might work...
+
+	Do we need patterns in the routing table?
+		-- because CMC bulletin people like specifying every header on the main switch, 
+                   but for many other purposes, it is a bad fit:
+		      -- non-main switching function... such as an rcp.
+		      -- other country NMC's who knows what their taste is like.
+		      -- for PDS, easier to use patterns.
+   
+        Do we need to take the result of the pattern and add it to the static routing table?
+		-- Because that way, you only pay for matching the masks the first time
+		   you receive a particular routing name.  Afterwards, your are good for O(log(R)) 
+	
+	Don't we do the same with the client patterns, and forget about global naming?
+		-- because then we end up with two algorithms again.
+		-- because we have to go through C routing tables, instead of just one, 
+		   still more expensive than a single routing table:
+		   O(log(Rc))*C
+		
 
 
 3. Ingest data into DB, and Route it.
@@ -149,5 +240,35 @@ Product is received from source S:
 
 	for each derived product
 	   Call step 1.  (recursive?)
+
+	Why:
+	   Do we need derived products, aka 'transformations' aka. post_ingest_filters ?
+		there are many cases where the receipt of a product should generate trivially derived products.
+		examples of possible applications: 
+		     upper-case bulletins could be produced when mixed case ones are received.
+		     imagery in one format can be transformed into another.
+		     bulletins should be examined on receipt for inclusion in collective ones.
+	
+	 	want to replace PDS + FileHandlingSystem which uses local clients and repeated passes through
+	        the switch to accomplish essentially the same process in a much less obvious way.
+		otherwise, retiring PDS will mean bringing over the same mechanisms (blech.)
+
+	   Don't we create a separate mechanism that does processing independently of reception?
+	     -- don't need extra concepts/flows/processes.
+	     -- transformations are expected to be short and sweet. delays minimal.
+             -- for files (where transformations might be more involved), reception is done by 
+                other servers anyways. data is already queued in the reception directory.
+	
+	   Do we ingest the initial product before working on transformed ones?
+	     -- every time a product is ready it is ingested ASAP, this is consistent regardless
+		of whether it is an received product or the result of transformation.
+		conceptual alternative would be to hold all products until all derivatives produced.
+                that would delay transmission of original products.  Don't see why that is a good thing.
+	
+
+Other notes:
+	
+Once we get rid of pattern routing, we can reverse the meaning of the emask/imasks in clients (to default accept)
+and thus make it's meaning consistent with their use elsewhere, and make them un-necessary in most cases.
 
 
