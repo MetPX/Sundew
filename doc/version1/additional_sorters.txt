@@ -1,0 +1,52 @@
+Additional useful sorters...
+
+We need to know that priority varies over time.  Inlude purging as a documented standard function
+maybe change the name of the sorters.   Maybe change their name to 'triage_method' to better 
+describe what they do ( choose order for sending, but also discard (the ultimate prioritization!))
+
+Vocabulary note:
+French speakers probably see 'triage' as the same as sorting.  The English meaning is quite different.
+I believe it arrived from French medical practice, where it involved deciding who to treat first (or not at all) 
+in battlefield hospitals during the Napoleonic wars.  The English apparently only noticed the term during WWI,
+and in English it refers only to the medical meaning.  As an analogy, it is vividly descriptive of this case,
+(discarding messages being a close analogy to leaving people for dead.)
+ 
+
+Sorters should be named for their intended purpose from a user perspective, rather than implementation
+
+
+The current MultiKeyStringSorter should be something renamed to something like ByPriorityAndDate
+probably become parent class of all the algorithms below.
+   Purpose:  send strictly according to product priority and time of receipt.
+   -- looks at Priority first, secondary index is date. 
+   -- Send all of highest priority first.
+
+
+RealTimeOnly3hrWindow
+   Purpose:  for real-time weather, old data is noise, suppress it.
+   ie. auto-purging for AMIS queueing ?
+
+   -- Looks at the date, if it is more than 4 hours old, data is discarded.
+   -- otherwise same as ByPriorityAndDate
+
+
+RealTimeOnly18hrWindow
+   -- threshold is 18 hours
+   -- otherwise same as RealTimeOnly3hrWindow
+
+
+RealTimePurgeLowPriority
+   Purpose: for real-time weather, purge if too much low priority data is queued.
+   ie. auto-purging for AMIS queueing ?
+  
+   -- Look at priorities, purge data priority 4 and 5 that is 18 hours old.
+   -- otherwise same as ByPriorityAndDate
+
+
+RealTimeWeatherPlusCatchup
+  Purpose:  real-time weather data is most important, would like to catch up on older data, but not as important.
+  Use cases: commercial VAM clients,  multiple use clients (real-time and analytical)
+
+  -- Looks at the date, for every 6 hours of age, add one to lower the priority.
+  -- otherwise same as ByPriorityAndDate
+
