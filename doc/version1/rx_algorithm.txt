@@ -1,0 +1,153 @@
+
+Currently routing is a mix of direct routing for bulletins, and patterned routing for files.
+There is weird processing for the various data types just because we needed it to work
+and thought they were special.  Taking a step back, we can see now how the processing
+is general.
+
+Before version 1, the two methods need to be converged.  Both types of data need to have
+transformations performed on the input before ingest, for data normalization, and after
+to create derived products.
+
+This should not change any of the processing done by the sockets  It should be the same
+work being done, just the order of and method of routine calls might be a bit different.
+
+
+The following is science fiction at the moment... 
+
+
+
+How It Ought to Work:
+
+
+Product is received from source S:
+
+
+0. Apply pre_ingest_filters
+
+   apply any:
+   pre_ingest_filter <pattern> <string> 
+   ?reception_filter -- alternate name
+
+	-- pre_ingest_filters change the data.
+
+   directives.  sample pre_ingest_filters:
+   clean_WMO_bulletins( <data> )
+	-- given actual file data, return cleaned stream.
+	-- remove control characters, conver CR/NL to just NL, etc...   
+
+   after applying pre_ingest_filters to the data.
+
+1. Determine Ingest name (except priority)
+   ingest_namer <string>
+   only one instance of this directive is permitted per source.  
+   Based on 'ingest_namer' from etc/rx/S.conf 
+	-- the value of ingest_namer is the name of a routine to create the ingest_name of the product.
+	   ingest_namer is called with:
+		-- name of file (nil if there isn'y any, as is the case with bulletins)
+		-- patterns applicable (nil if there aren't any)
+		-- 'extension' value  from etc/rx/S.conf
+		the ingest_namer routine returns the name under which the file is to be ingested.
+		if it returns an empty string, the data is to be dropped without being ingested.
+		-- the one field not determined by the ingest namer is the priority.
+	    
+   sample values:
+
+   bulletin_ingest_namer( filename, patterns, extension )
+	-- will create a file name as a function of the bulletin header and extension.
+           same as socket receivers today.  return file name.
+
+  ambulletin_ingest_namer( filename, patterns, extension )
+	-- will use collection_stations and other AM specific stuff to determine the correct name.
+
+   file_ingest_namer( filename, patterns, extension )
+	-- will create a file name as a function of ... whatever (depends on the application)
+           returns the name. 
+        -- 'imask' and 'emask' directives from  etc/rx/S.conf are applied against ingest name.
+	   if it is excluded, then empty string is returned by routine.
+
+
+   once the ingest name is determined to be non-null, proceed to...
+
+
+
+2. Find Routing Information (and Priority)
+   The routing_namer is then called, with ingest name as the argument. 
+
+   'routing_namer' from etc/rx/S.conf
+	-- derives a routing name from the ingest name, and returns it.
+
+   
+        bulletin_routing_namer( ingest_filename ) 
+	    will return: 'TTAAii CCCC' for a bulletin ... 
+
+
+   the routing name is then looked up in the routing (aka... header2client) table:
+        
+
+	AACN01 CWAO:  Aviation Hydrology:3
+
+	The priority is determined (3) and the ingest name is thus completed.
+	and the client list determined also.
+
+	if the routing name has no entry in the routing table, then apply:
+
+	emask:<mask>
+	imask:<mask>:<clients>:<priority>
+
+	combinations from etc/header2client.conf
+
+        ie.
+
+	imask:AACN01 *:Aviation:3
+	imask:* CWAO:Archives:4
+
+   		-- select the highest priority among the matches, and catenate
+		   the clients together.... result is equivalent to:
+
+	AACN01 CWAO:Aviation Archives:3 
+
+	The receiver then adds the evaluated entry to it's static routing table, effectively caching
+        the routing information, for the next reception.
+
+
+
+3. Ingest data into DB, and Route it.
+
+	using the ingest_name, and the priority, link (or just write) the file in the rxq into the DB.
+
+	for each C in the list of clients to be routed to:
+
+	        look at imask and emask entries in etc/tx/C.conf
+		if it passes the masks, then queue it in the appropriate txq directory.
+
+
+
+4. Create Derived Products ( aka. apply reception post_ingest_filters. )
+	- from etc/rx/S.conf
+
+	  post_ingest_filter <pattern> <filter>
+          post_filter ?
+
+	  -- call <filter> when ingest_name matches <pattern>
+	  -- a filter routine accepts the ingest_named file as an input, and performs a derivation
+          operation.  
+          -- Filters are not allowed to alter their input files.
+	  -- returns a list of derived temporary files.
+
+	-- sample filter:
+
+	bulletin2uppercase(ingest_name)
+	   -- creates a derived bulletin which is the same as the original, but in all uppercase.
+	      returns the name of the uppercase bulletin in the DB.
+
+        collective(ingest_name)
+	   -- figures out if a bulletin is the subject of collection, triggers requisite processing.
+
+	gif2imv6(ingest_name)
+	   -- creates a derived imv6 format image file from the given gif in the rxq.
+	   -- return the name of the derived files.
+
+	for each derived product
+	   Call step 1.  (recursive?)
+
+
