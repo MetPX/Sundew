@@ -206,11 +206,26 @@ Product is received from source S:
 
 	using the ingest_name, and the priority, link (or just write) the file in the rxq into the DB.
 
-	for each C in the list of clients to be routed to:
+        Routing table, when initially read by receivers should have a ClientPatternsApplied flag for each entry.
+        If this flag is True, then one has already applied to Clients' imask and emask entries, and removed 
+	any destinations which were suppressed.
+
+        if ClientPatternsApplied:
+		send to the exising list of clients in the routing table.
+        else:
+	   for each C in the list of clients to be routed to:
 
 	        look at imask and emask entries in etc/tx/C.conf
 		if it passes the masks, then queue it in the appropriate txq directory.
+                if it does not, then remove it from the routing table entry.
+	   ClientPatternsApplied=True
+	
+	Why:
+	   The new ClientPatternsApplied flag?
+	   -- Faster... This way we cache results of applying client patterns.  
+              Routing algorithm, after the first pass is O(log(n)) same as if there were no patterns.
 
+	
 
 
 4. Create Derived Products ( aka. apply reception post_ingest_filters. )
