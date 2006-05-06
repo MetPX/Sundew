@@ -14,6 +14,7 @@ named COPYING in the root of the source directory tree.
   -- develop basic self-test suite.
 
   -- revamp coding standard.
+        -- doc/StyleGuide.txt should be created.
         -- move 'authorship' to start of file, alone. not every routine.
            If a file has more than one author major, list all at top (once)
         -- scope (public vs. private) of a routine is revealed by it's name
@@ -35,7 +36,6 @@ named COPYING in the root of the source directory tree.
      to the head end (on receipt) rather than the tail (AMIS.)
 
   -- AFTN support -- DL
-	-- need a contingency if we move the Tandem.
 
   -- end to end performance testing.
 

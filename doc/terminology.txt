@@ -60,8 +60,9 @@ initial file hierarchy:
 	PX_ROOT/db/<date>/
 	PX_ROOT/rxq/<source>/[1..5]_<YYYYMMDDHH>
 	PX_ROOT/txq/<client>/[1..5]_<YYYYMMDDHH>
-        PX_ROOT/log/pxReceiver_<source>
-        PX_ROOT/log/pxSender_<source>
+        PX_ROOT/log/rx_<source>
+        PX_ROOT/log/tx_<client>
+        PX_ROOT/log/trx_<sourlient>
         
         PX_ROOT/etc/
 		header2client.conf
@@ -99,15 +100,18 @@ sources
      one (or more, depends on priority setting in config.)
      places where files can be received.
 
+Sourlient:
+     Combined source & client... Tranceiver type channels.  Bi-directional.
+
 Reception Name:
      Files are received with a "reception name" in the rxq.
-     once the reception name is adjusted via a ('whattopds') type
-     mapping, the ingestname is generated from that.
+     To the reception name, receivers typically add an extension, to create
+     the ingest name.
 
 Ingest Name:
      Ingest name is used to store the file in the DB, as is.
 
-     for patterned routing (see below):
+     for soon to be deprecated patterned routing (see below):
      ingest name is mapped against patterns to find clients who 
      will be sent the file.
 
@@ -116,9 +120,22 @@ Destination File Name:
      default is first field of ingest name.
      add suffixes according to DESTFN parameter setting in pattern.
 
+Version1 Routing:
+     combines Direct Routing with patterns and caching...
+     coming soon (version1/rx_algorithm.txt)
+
 Direct Routing:
      routing using a lookup table, tandem style, with direct correspondence
-     between source and client. 
+     between source and client.  Used by almost all receivers.
 
 Pattern Routing:
      traditional PDS routing, via emasks & imasks
+     Single-file receiver accurately reproduces PDS routing.
+     just looks at imasks/emasks in clients.  Expect latencies to grow 
+     longer as more clients and patterns are added to a configuration.
+     This method is to be deprecated in favour of the, as yet only in
+     discussion phase, version1/rx_algorithm.txt
+
+Derived Products, Transformations, post_ingest_processing:
+     once a product has been received, create another one based on it. 
+
