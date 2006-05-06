@@ -31,6 +31,13 @@ extension ncp1:CWAO:SA:3:Direct
     This extension + a timestamp (20051116212028) will be added to the
     ingested file or bulletin.
 
+emask <pattern>
+imask <pattern>
+	After determining the ingest_name, it is matched
+against the emask and imask patterns.  The default is for the
+bulletin to be accepted.  emask (exclusion) can be used to suppress
+reception of bulletins with a certain pattern.   
+messages suppressed are not ingested into the DB.
 
 Socket Protocol options:
 

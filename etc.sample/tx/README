@@ -49,12 +49,29 @@ directory <dir>
     directory //absolute/directory
     directory /relative/directory
 
+    if dir_pattern is set (see below), then the following substitutions are
+    done (see WMO manual on the GTS for meanings) ${<field>}, where field is:
+	T1, T2, A1, A2, ii, CCCC, YY, GG, Gg, BBB, RYYYY,
+        RMM, RDD, RHH, RMN, RSS
+ 
+example:
+
+directory pub/bulletins/${RYYYY}${RMM}${RDD}/${T1}${T2}/${CCCC}/${RHH}
+
+
+----------------------------------------
 filename <destfn>
     filename WHATFN     (Destination name will be first part of original filename)
     filename HEADFN     (Destination name will be HEADER part of original filename)
     filename NONE       (Use the entire filename)
     filename TIME       (Timestamp appended)
     filename WHATFN:TIME
+
+dir_mkdir (boolean, default: False)
+	whether to make missing directories in a destination path.
+
+dir_pattern (boolean, default: False)
+	whether the destination specification is a pattern.
 
 host atlas.cmc.ec.gc.ca  (hostname, default: localhost)
     Host with a ftp server. 
@@ -74,9 +91,7 @@ chmod 755    (octal mode,  default: 666)
 
 ftp_mode active (keyword,  default: passive)
 
-dir_mkdir
-
-dir_pattern
+        
 
 =========================================================================================
 

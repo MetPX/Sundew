@@ -101,8 +101,8 @@ class SenderFTP(object):
     def dirMkdir(self,destDir) :
         """
         MG 20051101
-        No error check intentionnal... if we were not succesfull than
-        the error will be detected when we will STOR
+        No error check intentional... if we were not succesful then
+        the error will be detected when we STOR
         """
         self.ftp.cwd(self.originalDir)
 
@@ -150,7 +150,7 @@ class SenderFTP(object):
         except :
                  pass
 
-    # some system doesn't permit deletion... so pass exception on that
+    # some systems do not permit deletion... so pass exception on that
     def rm(self, path):
         try    :
                  self.perm(path)
