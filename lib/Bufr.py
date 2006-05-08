@@ -1,4 +1,4 @@
-# -*- coding: iso-8859-1 -*-
+# -*- coding: UTF-8 -*-
 """A class to process BUFR messages."""
 
 import array, time
@@ -33,11 +33,27 @@ class Bufr:
 
         self.validate()
 
+    def len3(self,str):
+        """return the length of the GRIB message when the format is on 3 bytes...
+        """
+
+        a = array.array('B',str)
+
+        i = 1
+        p = long(a[0])
+        while i<3 : 
+              l = p * 256 + long(a[i])
+              p = l
+              i = i + 1
+
+        return l
+
+
     def end(self):
         """check that the end is ok and return its position
         """
 
-        e = self.begin + self.len - 1;
+        e = self.begin + self.len;
 
         if self.bulletin[e-4:e] != "7777" :
            self.valid = False
@@ -56,12 +72,7 @@ class Bufr:
 
         b = self.begin
 
-        a = array.array('B',self.bulletin[b+4:b+7])
-
-        l  = 0;
-        l += l * 256 + int(a[0])
-        l += l * 256 + int(a[1])
-        l += l * 256 + int(a[2])
+        l = self.len3(self.bulletin[b+4:])
 
         if l > len(self.bulletin[b:]) :
            self.valid = False
@@ -96,4 +107,10 @@ class Bufr:
 import sys, os, os.path, time, stat
 
 if __name__=="__main__":
-   pass
+      pass 
+
+      #fd = open("bbb", 'rb')
+      #str = fd.read()
+      #bufr = Bufr(str)
+      #print bufr.valid
+      #fd.close()
