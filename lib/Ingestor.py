@@ -47,12 +47,13 @@ class Ingestor(object):
         self.pxManager.setLogger(self.logger)     # Give the logger to the the manager
         self.pxManager.initNames()                # Set rx and tx names
         self.clientNames = self.pxManager.getTxNames() # Obtains the list of client's names (the ones to wich we can link files)
-        self.clients = {}   # All the Client objects
+        self.soulientNames = self.pxManager.getTRxNames() # Obtains the list of sourlient's names (the ones to wich we can link files)
+        self.clients = {}   # All the Client/Sourlient objects
         self.dbDirsCache = CacheManager(maxEntries=200000, timeout=25*3600)      # Directories created in the DB
         self.clientDirsCache = CacheManager(maxEntries=100000, timeout=2*3600)   # Directories created in TXQ
         self.collector = None  # Access to collector configuration options
         if source is not None:
-            self.logger.info("Ingestor (source %s) can link files to clients: %s" % (source.name, self.clientNames))
+            self.logger.info("Ingestor (source %s) can link files to clients: %s" % (source.name, self.clientNames + self.soulientNames))
 
     def setCollector(self, name):
         from Source import Source
@@ -73,6 +74,8 @@ class Ingestor(object):
         """
         for name in self.clientNames:
             self.clients[name] = Client(name, self.logger)
+        for name in self.soulientNames:
+            self.clients[name] = Soulient(name, self.logger)
             #self.clients[name].readConfig()
             #print self.clients[name].masks
 

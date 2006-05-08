@@ -51,8 +51,8 @@ class Sourlient(object):
         self.timeout = 10                         # Time we wait between each tentative to connect
         self.maxLength = 0                        # Max. length of a message... limit use for segmentation, 0 means unused
 
-        self.validation = True                    # Validation of the filename (prio + date)
-        self.patternMatching = True               # Verification of the emask and imask of the client before sending a file
+        self.validation = False                   # Validation of the filename (prio + date)
+        self.patternMatching = False              # Verification of the emask and imask of the client before sending a file
         self.nodups = True                        # Check if the file has already been sent (md5sum present in the cache)
         self.mtime = 0                            # Integer indicating the number of seconds a file must not have
                                                   # been touched before being picked
@@ -65,6 +65,15 @@ class Sourlient(object):
         self.port = None 
 
         self.readConfig()
+
+        if hasattr(self, 'ingestor'):
+            # Will happen only when a reload occurs
+            self.ingestor.__init__(self)
+        else:
+            self.ingestor = Ingestor(self)
+
+        self.ingestor.setClients()
+
         self.printInfos(self)
 
     def readConfig(self):
@@ -118,7 +127,6 @@ class Sourlient(object):
 
         config.close()
     
-        #self.logger.debug("Configuration file of client %s has been read" % (self.name))
 
     def _getMatchingMask(self, filename): 
         for mask in self.masks:

@@ -25,6 +25,7 @@ class DirectRoutingParser:
 
         self.subClients = {}            # Addressed by client name
         self.aliasedClients = {}        # Addressed by alias
+        self.aftnMap = {}               # Addressed by AFTN address. aftnMap['DEFAULT'] give the default
         self.goodClients = {}           # Sub group of clients that are in header2clients.conf and are px linkable.
         self.badClients = {}            # Sub group of clients that are in header2clients.conf and are not px linkable.
         self.pxLinkables = pxLinkables  # All clients to which px can link (independant of header2clients.conf)
@@ -119,6 +120,8 @@ class DirectRoutingParser:
                 try:
                     if words[0] == 'subclient':
                         self.subClients[words[1]] = self._removeDuplicate(words[2].split())
+                    elif words[0] == 'aftnMap':
+                        self.aftnMap[words[1]] = words[2]
                     elif words[0] == 'clientAlias':
                         self.aliasedClients[words[1]] = self._removeDuplicate(words[2].split())
                     elif len(words[0].split()) == 2: # If replace by a simple "else" do nothing for execution time
@@ -207,6 +210,9 @@ class DirectRoutingParser:
                         duplicateForSubclient = self._identifyDuplicate(subclients)
                         if duplicateForSubclient:
                             print("Subclient %s has duplicate(s): %s" % (words[1], duplicateForSubclient))
+
+                    elif words[0] == 'aftnMap':
+                        self.aftnMap[words[1]] = words[2]
 
                     elif words[0] == 'clientAlias': 
                         clients = words[2].split()
@@ -329,6 +335,7 @@ if __name__ == '__main__':
     #parser = DirectRoutingParser('/apps/px/aftn/etc/header2client.conf', pxLinkables, logger)
     parser = DirectRoutingParser('/apps/px/aftn/etc/header2client.conf.test', pxLinkables, logger)
     parser.parseAndShowErrors()
+    print parser.aftnMap
     #parser.parse()
  
     #parser.printInfos()
