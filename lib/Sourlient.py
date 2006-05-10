@@ -23,14 +23,15 @@ import sys, os, re, time, fnmatch
 sys.path.insert(1,sys.path[0] + '/../lib/importedLibs')
 
 import PXPaths
-from URLParser import URLParser
 from Logger import Logger
+from Ingestor import Ingestor
+from URLParser import URLParser
 
 PXPaths.normalPaths()              # Access to PX paths
 
 class Sourlient(object):
 
-    def __init__(self, name='toto', logger=None) :
+    def __init__(self, name='toto', logger=None, ingestion=True) :
 
         # General Attributes
         self.name = name                          # Sourlient's name
@@ -41,12 +42,21 @@ class Sourlient(object):
             self.logger = logger
         self.logger.info("Initialisation of sourlient %s" % self.name)
 
+        self.ingestion = ingestion                # Determine if the Sourlient will have an Ingestor
         self.debug = False                        # If we want sections with debug code to be executed
         self.subscriber = True                    # False if it is a provider
+
         self.type = 'aftn'                        # Must be in ['aftn']
         self.host = 'localhost'                   # Remote host name (or ip) where to send files
         self.portR = 56550                        # Receiving port
         self.portS = 5160                         # Sending port
+
+        self.stationID = 'SUB'                    # Three letter ID of this process
+        self.otherStationID = 'MHS'               # Three letter ID of the other party
+        self.address = 'CYHQUSER'                 # AFTN address of this process 
+        self.otherAddress = 'CYHQMHSN'            # AFTN address of the other party
+        self.digits = 4                           # Number of digits used in the CSN
+
         self.batch = 100                          # Number of files that will be read in each pass
         self.timeout = 10                         # Time we wait between each tentative to connect
         self.maxLength = 0                        # Max. length of a message... limit use for segmentation, 0 means unused
@@ -65,16 +75,16 @@ class Sourlient(object):
         self.port = None 
 
         self.readConfig()
+        
+        if self.ingestion:
+            if hasattr(self, 'ingestor'):
+                # Will happen only when a reload occurs
+                self.ingestor.__init__(self)
+            else:
+                self.ingestor = Ingestor(self)
+                self.printInfos(self)
+            self.ingestor.setClients()
 
-        if hasattr(self, 'ingestor'):
-            # Will happen only when a reload occurs
-            self.ingestor.__init__(self)
-        else:
-            self.ingestor = Ingestor(self)
-
-        self.ingestor.setClients()
-
-        self.printInfos(self)
 
     def readConfig(self):
         
@@ -115,6 +125,13 @@ class Sourlient(object):
                     elif words[0] == 'host': self.host = words[1]
                     elif words[0] == 'portR': self.portR = int(words[1])
                     elif words[0] == 'portS': self.portS = int(words[1])
+
+                    elif words[0] == 'stationID': self.stationID = words[1]
+                    elif words[0] == 'otherStationID': self.otherStationID = words[1]
+                    elif words[0] == 'address': self.address = words[1]
+                    elif words[0] == 'otherAddress': self.otherAddress = words[1]
+                    elif words[0] == 'digits': self.digits = int(words[1])
+                    
                     elif words[0] == 'batch': self.batch = int(words[1])
                     elif words[0] == 'debug' and isTrue(words[1]): self.debug = True
                     elif words[0] == 'timeout': self.timeout = int(words[1])
@@ -146,6 +163,11 @@ class Sourlient(object):
         print("Host: %s" % client.host)
         print("PortR: %s" % client.portR)
         print("PortS: %s" % client.portS)
+        print("Station ID: %s" % client.stationID)
+        print("Other Station ID: %s" % client.otherStationID)
+        print("Address: %s" % client.address)
+        print("Other Address: %s" % client.otherAddress)
+        print("Digits: %i" % client.digits)
         print("Batch: %s" %  client.batch)
         print("Max length: %i" % client.maxLength)
         print("Mtime: %i" % client.mtime)

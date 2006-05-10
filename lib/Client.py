@@ -225,7 +225,7 @@ class Client(object):
         print("DIR Mkdir  : %s" % client.dir_mkdir)
         print("Validation: %s" % client.validation)
         print("Pattern Matching: %s" % client.patternMatching)
-        print("Cache used: %s" % client.cache)
+        print("No duplicates: %s" % client.nodups)
 
         print("******************************************")
         print("*       Client Masks                     *")
