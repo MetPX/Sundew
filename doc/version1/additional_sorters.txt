@@ -1,7 +1,7 @@
 Additional useful sorters...
 
-We need to know that priority varies over time.  Inlude purging as a documented standard function
-maybe change the name of the sorters.   Maybe change their name to 'triage_method' to better 
+We need to know that priority varies over time.  Include purging as a documented standard function
+maybe change the name of the sorters.   Maybe change their name to 'triage' to better 
 describe what they do ( choose order for sending, but also discard (the ultimate prioritization!))
 
 Vocabulary note:

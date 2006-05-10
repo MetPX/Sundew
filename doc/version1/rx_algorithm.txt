@@ -12,6 +12,11 @@ This should not change any of the processing done by the sockets  It should be t
 work being done now, just the order of and method of routine calls might be a bit different.
 For files, it will be considerably different (but Better :-)
 
+complexity of dictionary lookups in python is denoted as "A()" we have not investigated
+what the algorithm for dictionary lookups is is it Log(n) or some constant factor (based
+on a hashing algorithm... We know it is very good, but not the exact complexity.
+
+
 Whys:
     Why Do we need to get PDS routing merged with bulletin routing?
      -- Even if we just use file receivers and client patterns, the fact that client patterns
@@ -163,12 +168,12 @@ Product is received from source S:
 			C * Cm  imask evaluations.
 	      -- cost will increase quickly with the number of clients, and the number of masks. 
 	      -- this will produce higher latency.
-	          -- hmm... does caching results change this?... still O(log(Cm))*C... hmm...
+	          -- hmm... does caching results change this?... still O(A(Cm))*C... hmm...
                      more smaller tables... hmm... means short-circuiting 
 
 	      the algorithm we want is the very close to the bulletin one, where routing with 
               the table is a lookup after the first one, so cost is:
-			O(log(R)) 
+			O(A(R)) 
 		   R is the number of static entries in the routing table.
 		   log R assumes the associative arrays in python are implemented efficiently.
 
@@ -192,13 +197,13 @@ Product is received from source S:
    
         Why do we need to take the result of the pattern and add it to the static routing table?
 		-- Because that way, you only pay for matching the masks the first time
-		   you receive a particular routing name.  Afterwards, your are good for O(log(R)) 
+		   you receive a particular routing name.  Afterwards, your are good for O(A(R)) 
 	
 	Why don't we do the same with the client patterns, and forget about global naming?
 		-- because then we end up with two algorithms again.
 		-- because we have to go through C routing tables, instead of just one, 
 		   still more expensive than a single routing table:
-		   O(log(Rc))*C
+		   O(A(Rc))*C
 		
 
 
@@ -223,7 +228,7 @@ Product is received from source S:
 	Why:
 	   Why the new ClientPatternsApplied flag?
 	   -- Faster... This way we cache results of applying client patterns.  
-              Routing algorithm, after the first pass is O(log(n)) same as if there were no patterns.
+              Routing algorithm, after the first pass is O(A(n)) same as if there were no patterns.
 
 	
 
