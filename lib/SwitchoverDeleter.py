@@ -101,7 +101,7 @@ class SwitchoverDeleter:
 
         try:
             ftp = ftplib.FTP(SwitchoverDeleter.MACHINE)
-            ftp.login('pds', 'Lred7ans')
+            ftp.login('user', 'password')
             ftp.cwd(SwitchoverDeleter.SWITCH_DIR)
             # Equivalent to ftp.dir()
             ftp.retrlines('LIST', extractFilename)
