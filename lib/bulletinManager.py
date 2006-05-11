@@ -93,7 +93,6 @@ class bulletinManager:
             extension=':',
             pathFichierCircuit=None,
             mapEnteteDelai=None,
-            use_pds=0,
             source=None):
 
         self.logger = logger
@@ -102,7 +101,6 @@ class bulletinManager:
         self.pathTemp = self.__normalizePath(pathTemp)
         self.maxCompteur = maxCompteur
         # FIXME: this should be read from a config file, haven't understood enough yet.
-        self.use_pds = use_pds
         self.compteur = 0
         self.extension = extension
         self.lineSeparator = lineSeparator
@@ -175,8 +173,7 @@ class bulletinManager:
 
         # Génération du nom du fichier
         nomFichier = self.getFileName(unBulletin,compteur=compteur)
-        if not self.use_pds:
-            nomFichier = nomFichier + ':' + time.strftime( "%Y%m%d%H%M%S", time.gmtime(time.time()) )
+        nomFichier = nomFichier + ':' + time.strftime( "%Y%m%d%H%M%S", time.gmtime(time.time()) )
 
         tempNom = self.pathTemp + nomFichier
         try:
@@ -196,65 +193,56 @@ class bulletinManager:
         os.close( unFichier )
         os.chmod(tempNom,0644)
 
-        if self.use_pds:
-            pathDest = self.getFinalPath(unBulletin)
+        entete = ' '.join(unBulletin.getHeader().split()[:2])
 
-            if not os.access(pathDest,os.F_OK):
-                os.mkdir(pathDest, 0755)
+        # MG use filename for Pattern File Matching from source ...  (As Proposed by DL )
+        if self.source.patternMatching:
+            if not self.source.fileMatchMask(nomFichier) :
+                self.logger.warning("Bulletin file rejected because of RX mask: " + nomFichier)
+                os.unlink(tempNom)
+                return
 
-            os.rename( tempNom , pathDest + nomFichier )
-            self.logger.info("Ecriture du fichier <%s>",pathDest + nomFichier)
+            """
+            transfo = self.source.getTransformation(nomFichier)
+            if transfo:
+                newNames = Transformations.transfo(tempNom)
+
+                for name in newNames:
+                    self.source.ingestor.ingest()
+            """
+
+        if self.drp.routingInfos.has_key(entete):
+            clist = self.drp.getHeaderClients(entete)
         else:
-            entete = ' '.join(unBulletin.getHeader().split()[:2])
+            clist = []
 
-            # MG use filename for Pattern File Matching from source ...  (As Proposed by DL )
-            if self.source.patternMatching:
-                if not self.source.fileMatchMask(nomFichier) :
-                    self.logger.warning("Bulletin file rejected because of RX mask: " + nomFichier)
-                    os.unlink(tempNom)
-                    return
+        if self.source.clientsPatternMatching:
+            clist = self.source.ingestor.getMatchingClientNamesFromMasks(nomFichier, clist)
 
-                """
-                transfo = self.source.getTransformation(nomFichier)
-                if transfo:
-                    newNames = Transformations.transfo(tempNom)
+        #fet.directIngest( nomFichier, clist, tempNom, self.logger )
+        self.source.ingestor.ingest(tempNom, nomFichier, clist)
 
-                    for name in newNames:
-                        self.source.ingestor.ingest()
-                """
-
-            if self.drp.routingInfos.has_key(entete):
-                clist = self.drp.getHeaderClients(entete)
-            else:
-                clist = []
-
-            if self.source.clientsPatternMatching:
-                clist = self.source.ingestor.getMatchingClientNamesFromMasks(nomFichier, clist)
-
-            #fet.directIngest( nomFichier, clist, tempNom, self.logger )
-            self.source.ingestor.ingest(tempNom, nomFichier, clist)
-
-            #-----------------------------------------------------------------------------------------
-            # Collecting the report if collection is turned on and transmitting the collection 
-            # bulletin if necessary.  Note that the collectReport(tempNom) function returns an
-            # object of the class BulletinCollection and from it we extract the raw bulletin
-            #-----------------------------------------------------------------------------------------
-            if self.source.collection and self.regex.search(nomFichier):
-                collectionBulletin = self.collectionManager.collectReport(tempNom)
-                if collectionBulletin:
-                    rawBull = collectionBulletin.bulletinAsString()
-                    originalExtension = self.extension
-                    self.extension = self.extension.replace('Direct', 'Collected')
-                    self._writeBulletinToDisk(rawBull) 
-                    self.extension = originalExtension
-                    #-----------------------------------------------------------------------------------------
-                    # At this point the collection bulletin has been ingested and queued for transmission
-                    # within the _writeBulletinToDisk method above.
-                    # From the viewpoint of the collection module, the collection bulletin has been sent
-                    # and we now need to mark it as such in the ../collection/ temporary db.
-                    #-----------------------------------------------------------------------------------------
-                    self.collectionManager.markCollectionAsSent(collectionBulletin)
-            os.unlink(tempNom)
+        #-----------------------------------------------------------------------------------------
+        # Collecting the report if collection is turned on and transmitting the collection 
+        # bulletin if necessary.  Note that the collectReport(tempNom) function returns an
+        # object of the class BulletinCollection and from it we extract the raw bulletin
+        #-----------------------------------------------------------------------------------------
+        if self.source.collection and self.regex.search(nomFichier):
+            collectionBulletin = self.collectionManager.collectReport(tempNom)
+            if collectionBulletin:
+                rawBull = collectionBulletin.bulletinAsString()
+                originalExtension = self.extension
+                self.extension = self.extension.replace('Direct', 'Collected')
+                self._writeBulletinToDisk(rawBull) 
+                self.extension = originalExtension
+                #-----------------------------------------------------------------------------------------
+                # At this point the collection bulletin has been ingested and queued for transmission
+                # within the _writeBulletinToDisk method above.
+                # From the viewpoint of the collection module, the collection bulletin has been sent
+                # and we now need to mark it as such in the ../collection/ temporary db.
+                #-----------------------------------------------------------------------------------------
+                self.collectionManager.markCollectionAsSent(collectionBulletin)
+        os.unlink(tempNom)
 
     def _writeBulletinToDisk(self,unRawBulletin,compteur=True,includeError=True):
         
@@ -274,8 +262,7 @@ class bulletinManager:
 
         # Génération du nom du fichier
         nomFichier = self.getFileName(unBulletin,compteur=compteur)
-        if not self.use_pds:
-            nomFichier = nomFichier + ':' + time.strftime( "%Y%m%d%H%M%S", time.gmtime(time.time()) )
+        nomFichier = nomFichier + ':' + time.strftime( "%Y%m%d%H%M%S", time.gmtime(time.time()) )
 
         tempNom = self.pathTemp + nomFichier
         try:
@@ -295,45 +282,36 @@ class bulletinManager:
         os.close( unFichier )
         os.chmod(tempNom,0644)
 
-        if self.use_pds:
-            pathDest = self.getFinalPath(unBulletin)
+        entete = ' '.join(unBulletin.getHeader().split()[:2])
 
-            if not os.access(pathDest,os.F_OK):
-                os.mkdir(pathDest, 0755)
+        # MG use filename for Pattern File Matching from source ...  (As Proposed by DL )
+        if self.source.patternMatching:
+            if not self.source.fileMatchMask(nomFichier) :
+                self.logger.warning("Bulletin file rejected because of RX mask: " + nomFichier)
+                os.unlink(tempNom)
+                return
 
-            os.rename( tempNom , pathDest + nomFichier )
-            self.logger.info("Ecriture du fichier <%s>",pathDest + nomFichier)
+            """
+            transfo = self.source.getTransformation(nomFichier)
+            if transfo:
+                newNames = Transformations.transfo(tempNom)
+
+                for name in newNames:
+                    self.source.ingestor.ingest()
+            """
+
+        if self.drp.routingInfos.has_key(entete):
+            clist = self.drp.getHeaderClients(entete)
         else:
-            entete = ' '.join(unBulletin.getHeader().split()[:2])
+            clist = []
 
-            # MG use filename for Pattern File Matching from source ...  (As Proposed by DL )
-            if self.source.patternMatching:
-                if not self.source.fileMatchMask(nomFichier) :
-                    self.logger.warning("Bulletin file rejected because of RX mask: " + nomFichier)
-                    os.unlink(tempNom)
-                    return
+        if self.source.clientsPatternMatching:
+            clist = self.source.ingestor.getMatchingClientNamesFromMasks(nomFichier, clist)
 
-                """
-                transfo = self.source.getTransformation(nomFichier)
-                if transfo:
-                    newNames = Transformations.transfo(tempNom)
+        #fet.directIngest( nomFichier, clist, tempNom, self.logger )
+        self.source.ingestor.ingest(tempNom, nomFichier, clist)
 
-                    for name in newNames:
-                        self.source.ingestor.ingest()
-                """
-
-            if self.drp.routingInfos.has_key(entete):
-                clist = self.drp.getHeaderClients(entete)
-            else:
-                clist = []
-
-            if self.source.clientsPatternMatching:
-                clist = self.source.ingestor.getMatchingClientNamesFromMasks(nomFichier, clist)
-
-            #fet.directIngest( nomFichier, clist, tempNom, self.logger )
-            self.source.ingestor.ingest(tempNom, nomFichier, clist)
-
-            os.unlink(tempNom)
+        os.unlink(tempNom)
 
     def __generateBulletin(self,rawBulletin):
         """__generateBulletin(rawBulletin) -> objetBulletin

@@ -49,7 +49,6 @@ class receiverAm(gateway.gateway):
                 pathFichierStations = self.pathFichierStations, \
                 extension = source.extension, \
                 mapEnteteDelai = source.mapEnteteDelai,
-                use_pds = source.use_pds,
                 source= source)
 
 

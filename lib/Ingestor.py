@@ -254,7 +254,6 @@ class Ingestor(object):
                     self.source.extension,
                     PXPaths.ETC + 'header2client.conf',
                     self.source.mapEnteteDelai,
-                    self.source.use_pds,
                     self.source)
 
         reader = DiskReader(bullManager.pathSource, self.source.batch, self.source.validation, self.source.patternMatching,
@@ -275,7 +274,6 @@ class Ingestor(object):
                                self.source.extension,
                                PXPaths.ETC + 'header2client.conf',
                                self.source.mapEnteteDelai,
-                               self.source.use_pds,
                                self.source)
                 reader = DiskReader(bullManager.pathSource, self.source.batch, self.source.validation, self.source.patternMatching,
                                     self.source.mtime, False, self.source.logger, self.source.sorter)

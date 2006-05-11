@@ -57,7 +57,6 @@ class Source(object):
         self.port = None                                       # Port number if type is in ['am', 'wmo']
         self.mapEnteteDelai = None                             #
         self.addSMHeader = False                               #
-        self.use_pds = False                                   #
         self.validation = False                                # Validate the filename (ex: prio an timestamp)
         self.patternMatching = True                            # No pattern matching
         self.clientsPatternMatching = True                     # No clients pattern matching

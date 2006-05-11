@@ -44,7 +44,6 @@ class receiverWmo(gateway.gateway):
                      pathFichierCircuit = '/dev/null', \
                      extension = source.extension, \
                      mapEnteteDelai = source.mapEnteteDelai,
-                     use_pds = source.use_pds,
                      source = source)
 
     def shutdown(self):

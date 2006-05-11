@@ -100,7 +100,6 @@ class CollectionScheduler(threading.Thread,gateway.gateway):
                      pathFichierCircuit = '/dev/null', \
                      extension = collectionConfig.source.extension, \
                      mapEnteteDelai = collectionConfig.source.mapEnteteDelai,
-                     use_pds = collectionConfig.source.use_pds,
                      source = collectionConfig.source)
 
         #-----------------------------------------------------------------------------------------
