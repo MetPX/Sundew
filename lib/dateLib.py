@@ -26,6 +26,9 @@ MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 
 
 now = time.mktime
 
+def getYYGGgg():
+    return time.strftime("%d%H%M", time.gmtime())
+
 def getISODateParts(date):
     # year, month, day
     return (date[0:4], date[4:6], date[6:])
@@ -120,3 +123,4 @@ if __name__ == '__main__':
     print getISODateDashed('20051207')
     print getSecondsSinceEpoch('1970-01-01 00:00:00')
     print getSecondsSinceEpoch('1970-01-01 00:00:05')
+    print getYYGGgg()

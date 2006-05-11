@@ -251,7 +251,7 @@ class Ingestor(object):
                     9999,
                     '\n',
                     self.source.extension,
-                    PXPaths.ETC + 'header2client.conf',
+                    PXPaths.ROUTING_TABLE,
                     self.source.mapEnteteDelai,
                     self.source)
 
@@ -270,7 +270,7 @@ class Ingestor(object):
                                9999,
                                '\n',
                                self.source.extension,
-                               PXPaths.ETC + 'header2client.conf',
+                               PXPaths.ROUTING_TABLE,
                                self.source.mapEnteteDelai,
                                self.source)
                 reader = DiskReader(bullManager.pathSource, self.source.batch, self.source.validation, self.source.patternMatching,

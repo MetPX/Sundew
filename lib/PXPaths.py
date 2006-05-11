@@ -46,7 +46,7 @@ def readConfig():
 def normalPaths():
 
     global ROOT, BIN, LIB, LOG, ETC, RXQ, TXQ, DB, RX_CONF, TX_CONF, TRX_CONF, LAT, LAT_RESULTS, LAT_TMP, \
-           COLLECTION_DB, COLLECTION_CONTROL
+           COLLECTION_DB, COLLECTION_CONTROL, ROUTING_TABLE
 
     try:
         envVar = os.path.normpath(os.environ['PXROOT']) + '/'
@@ -66,6 +66,7 @@ def normalPaths():
     TRX_CONF = ETC + 'trx/'
     COLLECTION_DB = ROOT + 'collection/'
     COLLECTION_CONTROL = COLLECTION_DB + 'control/'
+    ROUTING_TABLE = ETC + 'header2client.conf'
 
     #Paths for pxLatencies
     LAT = ROOT + 'latencies/'

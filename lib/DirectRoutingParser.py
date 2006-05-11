@@ -49,7 +49,7 @@ class DirectRoutingParser:
         return self.routingInfos[header]['subclients']
 
     def getClientSubClients(self, client):
-        return self.subclients[client]
+        return self.subClients[client]
 
     def getAliasClients(self, alias):
         return self.aliasedClients[alias]
@@ -337,7 +337,11 @@ if __name__ == '__main__':
     parser.parseAndShowErrors()
     print parser.aftnMap
     #parser.parse()
- 
+    print parser.getHeaderPriority('AACN02 CWAO13')
+    print parser.getHeaderClients('AACN02 CWAO13')
+    print parser.getHeaderSubClients('AACN02 CWAO13')
+    print parser.getHeaderSubClients('AACN02 CWAO13').get('aftn', [])
+    print parser.getClientSubClients('aftn')
     #parser.printInfos()
     #print("Good clients (%i): %s" % (len(parser.goodClients), parser.goodClients.keys()))
     #print("Bad clients (%i): %s" % (len(parser.badClients), parser.badClients.keys()))
