@@ -43,14 +43,10 @@ class bulletinManager:
        to disk.
 
        pathTemp             path
-           - Required, must be on the same file system as pathSource/pathDest.
+           - Required, must be on the same file system as pathSource.
 
        pathSource           path
            - Directory from which bulletins are read (if necessary.)
-
-       pathDest             path
-           - Directory to which bulletins are written.
-             (only needed if use_pds=true)
 
        mapEnteteDelai       map
 
@@ -87,7 +83,6 @@ class bulletinManager:
             pathTemp,
             logger,
             pathSource=None,
-            pathDest=None,
             maxCompteur=99999, \
             lineSeparator='\n',
             extension=':',
@@ -97,7 +92,6 @@ class bulletinManager:
 
         self.logger = logger
         self.pathSource = self.__normalizePath(pathSource)
-        self.pathDest = self.__normalizePath(pathDest)
         self.pathTemp = self.__normalizePath(pathTemp)
         self.maxCompteur = maxCompteur
         # FIXME: this should be read from a config file, haven't understood enough yet.
@@ -157,9 +151,6 @@ class bulletinManager:
 
         """
         
-        if self.pathDest == None:
-            raise bulletinManagerException("opération impossible, pathDest n'est pas fourni")
-
         if self.compteur > self.maxCompteur:
             self.compteur = 0
 
@@ -246,9 +237,6 @@ class bulletinManager:
 
     def _writeBulletinToDisk(self,unRawBulletin,compteur=True,includeError=True):
         
-        if self.pathDest == None:
-            raise bulletinManagerException("opération impossible, pathDest n'est pas fourni")
-
         if self.compteur > self.maxCompteur:
             self.compteur = 0
 
@@ -535,41 +523,6 @@ class bulletinManager:
             raise bulletinManagerException('Entete non trouvée dans fichier de circuits')
 
         return self.drp.getHeaderPriority(entete)
-
-    def getFinalPath(self,bulletin):
-        """getFinalPath(bulletin) -> path
-
-           path         String
-                        - Répertoire où le fichier sera écrit
-
-           bulletin     objet bulletin
-                        - Pour aller chercher l'entête du bulletin
-
-           Utilisation:
-
-                Pour générer le path final où le bulletin sera écrit. Génère
-                le répertoire incluant la priorité.
-        """
-        # Si le bulletin est erronné
-        if bulletin.getError() != None:
-            return self.pathDest.replace('-PRIORITY','PROBLEM')
-
-        try:
-            entete = ' '.join(bulletin.getHeader().split()[:2])
-        except Exception:
-            self.logger.error("Entête non standard, priorité impossible à déterminer(%s)",bulletin.getHeader())
-            return self.pathDest.replace('-PRIORITY','PROBLEM')
-
-        if self.drp != None:
-            # Si le circuitage est activé
-            if not self.drp.routingInfos.has_key(entete):
-                    # Entête est introuvable
-                self.logger.error("Entête introuvable, priorité impossible à déterminer")
-                return self.pathDest.replace('-PRIORITY','PROBLEM')
-
-            return self.pathDest.replace('-PRIORITY', self.drp.getHeaderPriority())
-        else:
-            return self.pathDest.replace('-PRIORITY','NONIMPLANTE')
 
     def getPathSource(self):
         """getPathSource() -> Path_source

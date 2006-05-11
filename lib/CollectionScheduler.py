@@ -96,7 +96,6 @@ class CollectionScheduler(threading.Thread,gateway.gateway):
         #-----------------------------------------------------------------------------------------
         self.unBulletinManager = bulletinManager.bulletinManager( 
                      PXPaths.RXQ + collectionConfig.source.name, self.logger, \
-                     pathDest = '/apps/pds/RAW/-PRIORITY', \
                      pathFichierCircuit = '/dev/null', \
                      extension = collectionConfig.source.extension, \
                      mapEnteteDelai = collectionConfig.source.mapEnteteDelai,

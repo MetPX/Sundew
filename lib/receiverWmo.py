@@ -40,7 +40,6 @@ class receiverWmo(gateway.gateway):
         self.unBulletinManager = \
                   bulletinManagerWmo.bulletinManagerWmo(
                      PXPaths.RXQ + source.name, logger, \
-                     pathDest = '/apps/pds/RAW/-PRIORITY', \
                      pathFichierCircuit = '/dev/null', \
                      extension = source.extension, \
                      mapEnteteDelai = source.mapEnteteDelai,

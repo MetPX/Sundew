@@ -43,7 +43,6 @@ class receiverAm(gateway.gateway):
         self.unBulletinManager = \
             bulletinManagerAm.bulletinManagerAm(
                 PXPaths.RXQ + source.name, logger, \
-                pathDest = '/apps/pds/RAW/-PRIORITY', \
                 pathFichierCircuit = '/dev/null', \
                 SMHeaderFormat = source.addSMHeader, \
                 pathFichierStations = self.pathFichierStations, \
