@@ -123,7 +123,8 @@ class senderWmo(gateway.gateway):
 
                    # if in cache than it was already sent... nothing to do
                    if self.client.nodups and self.in_cache( data[index], True, self.reader.sortedFiles[index] ) :
-                      self.unlink_file( self.reader.sortedFiles[index] )
+                      #PS... same extra unlink as in AM sender call above is true, should it be false?
+                      #self.unlink_file( self.reader.sortedFiles[index] )
                       continue
                    succes, nbBytesSent = self.write_data( data[index] )
 
@@ -161,10 +162,10 @@ class senderWmo(gateway.gateway):
             if unlink_it :
                try:
                     os.unlink(path)
-                    self.logger.info("%s has been erased (was cached)", os.path.basename(path))
+                    self.logger.info("suppressed duplicate send %s", os.path.basename(path))
                except OSError, e:
                     (type, value, tb) = sys.exc_info()
-                    self.logger.info("Unable to unlink %s ! Type: %s, Value: %s"
+                    self.logger.info("in_cache unable to unlink %s ! Type: %s, Value: %s"
                                     % (path, type, value))
 
         return already_in

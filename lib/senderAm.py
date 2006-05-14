@@ -130,7 +130,8 @@ class senderAm(gateway.gateway):
 
                    # if in cache than it was already sent... nothing to do
                    if self.client.nodups and self.in_cache( data[index], True, self.reader.sortedFiles[index] ) :
-                      self.unlink_file( self.reader.sortedFiles[index] )
+                      # PEter... in_cache already deletes the file, no need for second call.
+                      #self.unlink_file( self.reader.sortedFiles[index] )
                       continue
                    succes, nbBytesSent = self.write_data( data[index] )
 
@@ -168,10 +169,10 @@ class senderAm(gateway.gateway):
            if unlink_it :
               try:
                    os.unlink(path)
-                   self.logger.info("%s has been erased (was cached)", os.path.basename(path))
+                   self.logger.info("suppressed duplicate send %s", os.path.basename(path))
               except OSError, e:
                    (type, value, tb) = sys.exc_info()
-                   self.logger.info("Unable to unlink %s ! Type: %s, Value: %s"
+                   self.logger.info("In_cache unable to unlink %s ! Type: %s, Value: %s"
                                    % (path, type, value))
 
         return already_in
@@ -214,7 +215,7 @@ class senderAm(gateway.gateway):
                self.logger.debug("%s has been erased", os.path.basename(path))
         except OSError, e:
                (type, value, tb) = sys.exc_info()
-               self.logger.error("Unable to unlink %s ! Type: %s, Value: %s" % (path, type, value))
+               self.logger.error("unlink_file failed %s ! Type: %s, Value: %s" % (path, type, value))
 
     # MG  segmenting and writing data if possible
     def write_segmented_data(self,data,path):
