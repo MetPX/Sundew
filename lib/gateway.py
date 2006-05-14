@@ -64,6 +64,13 @@ class gateway:
         self.igniter = None
         self.reader = None
 
+        # statistics.
+        self.totBytes = 0
+        self.initialTime = time.time()
+        self.finalTime = None
+
+
+
     def resetReader(self):
         self.reader = DiskReader(PXPaths.TXQ + self.flow.name,
                                  self.flow.batch,            # Number of files we read each time
@@ -216,3 +223,15 @@ class gateway:
            Date:        Décembre 2004
         """
         self.logger.info('Demande de rechargement de configuration... non implanté!')
+
+    def printSpeed(self):
+        elapsedTime = time.time() - self.initialTime
+        speed = self.totBytes/elapsedTime
+        self.totBytes = 0
+        self.initialTime = time.time()
+        return "Speed = %i" % int(speed)
+
+    def tallyBytes(self,bytecount):
+        self.totBytes += bytecount
+
+    

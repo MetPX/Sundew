@@ -51,23 +51,14 @@ class senderWmo(gateway.gateway):
                                  eval(self.client.sorter),
                                  self.client)
 
-        # Mechanism to eliminate multiple copies of a bulletin
-        self.totBytes = 0
-        self.initialTime = time.time()
-        self.finalTime = None
 
         # WMO's maximum bulletin size is 500 000 bytes
         if self.client.maxLength == 0 :
            self.client.maxLength = 500000
 
+        # Mechanism to eliminate multiple copies of a bulletin
         self.cacheManager = CacheManager(maxEntries=120000, timeout=8*3600)
 
-    def printSpeed(self):
-        elapsedTime = time.time() - self.initialTime
-        speed = self.totBytes/elapsedTime
-        self.totBytes = 0
-        self.initialTime = time.time()
-        return "Speed = %i" % int(speed)
 
     def shutdown(self):
         gateway.gateway.shutdown(self)

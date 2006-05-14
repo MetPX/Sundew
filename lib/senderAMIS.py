@@ -155,13 +155,6 @@ class senderAMIS:
          #result.write(self.printSpeed())
          #sys.exit()
 
-   def printSpeed(self):
-      elapsedTime = time.time() - self.initialTime
-      speed = self.totBytes/elapsedTime
-      self.totBytes = 0
-      self.initialTime = time.time()
-      return "Speed = %i" % int(speed)
-
    def encapsulate(self, data ):
 
        dataAmis = data.strip().replace("\n", self.endOfLineSep)
@@ -251,7 +244,7 @@ class senderAMIS:
                 nbBytesSent = self.socketAMIS.send(bullAMIS)
                 bullAMIS = bullAMIS[nbBytesSent:]
                 nbBytesToSend = len(bullAMIS)
-                self.totBytes += nbBytesSent
+                tallyBytes(nbBytesSent)
 
        return(succes, nbBytes )
 
@@ -327,7 +320,7 @@ class senderAMIS:
 
            succes, nbBytesSent = self.write_data(rawSegment)
            if succes :
-              totSent += nbBytesSent
+              tallyBytes(nbBytesSent)
               self.logger.info("(%i Bytes) Bulletin Segment number %d sent" % (nbBytesSent,i))
            else :
               return (False, totSent)

@@ -52,9 +52,6 @@ class senderAm(gateway.gateway):
                                  self.client)
 
         # Mechanism to eliminate multiple copies of a bulletin
-        self.totBytes = 0
-        self.initialTime = time.time()
-        self.finalTime = None
 
         self.cacheManager = CacheManager(maxEntries=120000, timeout=8*3600)
 
@@ -63,12 +60,6 @@ class senderAm(gateway.gateway):
         if self.client.maxLength == 0 :
            self.client.maxLength = 32 * 1024
 
-    def printSpeed(self):
-        elapsedTime = time.time() - self.initialTime
-        speed = self.totBytes/elapsedTime
-        self.totBytes = 0
-        self.initialTime = time.time()
-        return "Speed = %i" % int(speed)
 
     def shutdown(self):
         gateway.gateway.shutdown(self)
@@ -204,7 +195,7 @@ class senderAm(gateway.gateway):
 
         #si le bulletin a ete envoye correctement, le fichier est efface
         if succes:
-           self.totBytes += nbBytesSent
+           self.tallyBytes(nbBytesSent)
 
         return (succes, nbBytesSent)
 
@@ -267,7 +258,7 @@ class senderAm(gateway.gateway):
 
             succes, nbBytesSent = self.write_data(rawSegment)
             if succes :
-               totSent += nbBytesSent
+               tallyBytes(nbBytesSent)
                self.logger.info("(%i Bytes) Bulletin Segment number %d sent" % (nbBytesSent,i))
             else :
                return (False, totSent)
