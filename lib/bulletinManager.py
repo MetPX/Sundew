@@ -106,12 +106,9 @@ class bulletinManager:
         self.mapBulletinsBruts = {}
 
         # Init du map des circuits
-        if pathFichierCircuit:
-            self.drp = DirectRoutingParser(PXPaths.ROUTING_TABLE, self.source.ingestor.clientNames, logger)
-            self.drp.parse()
-            #self.drp.logInfos()
-        else:
-            self.drp = None
+        self.drp = DirectRoutingParser(PXPaths.ROUTING_TABLE, self.source.ingestor.clientNames, logger)
+        self.drp.parse()
+        #self.drp.logInfos()
 
         # Collection regex
         self.regex = re.compile(r'SACN|SICN|SMCN')
