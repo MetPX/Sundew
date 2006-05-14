@@ -43,10 +43,6 @@ class senderAMIS:
                                self.client.validation, self.client.patternMatching,
                                self.client.mtime, True, self.logger, eval(self.client.sorter), self.client)
 
-      self.totBytes = 0
-      self.initialTime = time.time()
-      self.finalTime = None
-
       self.preamble     = chr(curses.ascii.SOH) + "\r\n"
       self.endOfLineSep = "\r\r\n"
       self.endOfMessage = self.endOfLineSep + chr(curses.ascii.ETX) + "\r\n\n" + chr(curses.ascii.EOT)
