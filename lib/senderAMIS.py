@@ -19,7 +19,6 @@ named COPYING in the root of the source directory tree.
 
 """
 import os, sys, time, socket, curses.ascii, string
-from gateway import gateway
 from DiskReader import DiskReader
 from MultiKeysStringSorter import MultiKeysStringSorter
 from CacheManager import CacheManager
@@ -29,7 +28,7 @@ import PXPaths
 
 PXPaths.normalPaths()
 
-class senderAMIS(gateway): 
+class senderAMIS: 
    
    def __init__(self, client, logger):
       self.client = client                            # Client object (give access to all configuration options)
@@ -56,8 +55,22 @@ class senderAMIS(gateway):
       if self.client.maxLength == 0 :
          self.client.maxLength = 14000
 
+      # statistics.
+      self.totBytes = 0
+      self.initialTime = time.time()
+      self.finalTime = None
+
+
       self._connect()
       #self.run()
+
+   def printSpeed(self):
+      elapsedTime = time.time() - self.initialTime
+      speed = self.totBytes/elapsedTime
+      self.totBytes = 0
+      self.initialTime = time.time()
+      return "Speed = %i" % int(speed)
+
 
    def setIgniter(self, igniter):
       self.igniter = igniter 
@@ -146,11 +159,6 @@ class senderAMIS(gateway):
          else:
             percentage = "No entries in the cache"
          self.logger.info("Caching stats: %s => %s" % (str(stats), percentage))
-         #self.logger.info("Cache: %s " % str(self.cacheManager.cache))
-
-         #result = open('/apps/px/result', 'w')
-         #result.write(self.printSpeed())
-         #sys.exit()
 
    def encapsulate(self, data ):
 
@@ -241,7 +249,7 @@ class senderAMIS(gateway):
                 nbBytesSent = self.socketAMIS.send(bullAMIS)
                 bullAMIS = bullAMIS[nbBytesSent:]
                 nbBytesToSend = len(bullAMIS)
-                tallyBytes(nbBytesSent)
+                self.totBytes += nbBytesSent
 
        return(succes, nbBytes )
 
@@ -317,7 +325,7 @@ class senderAMIS(gateway):
 
            succes, nbBytesSent = self.write_data(rawSegment)
            if succes :
-              tallyBytes(nbBytesSent)
+              self.totBytes += nbBytesSent
               self.logger.info("(%i Bytes) Bulletin Segment number %d sent" % (nbBytesSent,i))
            else :
               return (False, totSent)
