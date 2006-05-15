@@ -19,6 +19,7 @@ named COPYING in the root of the source directory tree.
 
 """
 import os, sys, time, socket, curses.ascii, string
+from gateway import gateway
 from DiskReader import DiskReader
 from MultiKeysStringSorter import MultiKeysStringSorter
 from CacheManager import CacheManager
@@ -28,7 +29,7 @@ import PXPaths
 
 PXPaths.normalPaths()
 
-class senderAMIS: 
+class senderAMIS(gateway): 
    
    def __init__(self, client, logger):
       self.client = client                            # Client object (give access to all configuration options)
