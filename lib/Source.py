@@ -200,7 +200,8 @@ class Source(object):
         print("Arrival: %s" % source.mapEnteteDelai)
         print("addSMHeader: %s" % source.addSMHeader)
         print("Validation: %s" % source.validation)
-        print("patternMatching: %s" % source.patternMatching)
+        print("Source Pattern Matching: %s" % source.patternMatching)
+        print("Clients Pattern Matching: %s" % source.clientsPatternMatching)
         print("mtime: %s" % source.mtime)
         print("Sorter: %s" % source.sorter)
         
