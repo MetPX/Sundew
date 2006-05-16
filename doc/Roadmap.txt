@@ -1,0 +1,32 @@
+
+
+updated 2006/05/15...
+   Current plans wrt roadmap for future releases.
+
+
+
+-- Target June 2006... 0.2.0  the WorksForUS  release
+   will have all required features to permit removal of existing system.  
+      -- collections on AM protocol
+      -- AFTN support integrated (perhaps not included... debate still going on about that.)
+      -- fixed resend interface for Columbo??!! 
+
+ 
+-- Target September 2006... 0.2.1  WorksForSuperHumans release
+    might be of some use to others.  Get the routing algorithm change out of the way.
+    Includes any other features necessary for us to start the PDS transition.
+
+      -- Sender re-factoring to include inheritance (eliminate duplication.)
+      -- Document integration with DWD WMO monitoring package.
+      -- refactored & simplified collections for any sort of circuit, not just AM.
+      -- version 1 routing protocol
+      -- file transformation support.
+
+
+-- Target December 2006... 0.3   WorksForOthers release
+      -- Debian packaging & FHS compliance. -- make it play nice.
+      -- General Pull support
+      -- wmo file cracking read & write WMO archive file formats.
+      -- input monitoring?
+      -- transfer rate limiting ??
+
