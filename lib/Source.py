@@ -96,7 +96,7 @@ class Source(object):
         if self.collection:
             self.ingestor.setCollector(self.collection)
 
-        self.printInfos(self)
+        #self.printInfos(self)
 
     def readConfig(self):
 
