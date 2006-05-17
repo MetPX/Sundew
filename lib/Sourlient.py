@@ -60,9 +60,12 @@ class Sourlient(object):
         self.batch = 100                          # Number of files that will be read in each pass
         self.timeout = 10                         # Time we wait between each tentative to connect
         self.maxLength = 0                        # Max. length of a message... limit use for segmentation, 0 means unused
+        self.extension = ':MISSING:MISSING:MISSING:MISSING:'  # Extension to be added to the ingest name
 
         self.validation = False                   # Validation of the filename (prio + date)
-        self.patternMatching = False              # Verification of the emask and imask of the client before sending a file
+        self.patternMatching = False              # Verification of the emask and imask of the sourlient before sending a file
+        self.clientsPatternMatching = False       # Verification of the emask and imask of the clients before sending a file
+
         self.nodups = True                        # Check if the file has already been sent (md5sum present in the cache)
         self.mtime = 0                            # Integer indicating the number of seconds a file must not have
                                                   # been touched before being picked
@@ -112,12 +115,18 @@ class Sourlient(object):
             words = line.split()
             if (len(words) >= 2 and not re.compile('^[ \t]*#').search(line)):
                 try:
+                    if words[0] == 'extension':
+                        if len(words[1].split(':')) != 5:
+                            self.logger.error("Extension (%s) for source %s has wrong number of fields" % (words[1], self.name))
+                        else:
+                            self.extension = ':' + words[1]
                     if words[0] == 'imask': self.masks.append((words[1], currentDir, currentFileOption))  
                     elif words[0] == 'emask': self.masks.append((words[1],))
                     elif words[0] == 'subscriber': self.subscriber =  isTrue(words[1])
                     elif words[0] == 'validation': self.validation =  isTrue(words[1])
                     elif words[0] == 'noduplicates': self.nodups =  isTrue(words[1])
                     elif words[0] == 'patternMatching': self.patternMatching =  isTrue(words[1])
+                    elif words[0] == 'clientsPatternMatching': self.clientsPatternMatching =  isTrue(words[1])
                     elif words[0] == 'mtime': self.mtime = int(words[1])
                     elif words[0] == 'sorter': self.sorter = words[1]
                     elif words[0] == 'type': self.type = words[1]
@@ -168,13 +177,15 @@ class Sourlient(object):
         print("Address: %s" % client.address)
         print("Other Address: %s" % client.otherAddress)
         print("Digits: %i" % client.digits)
+        print("Extension: %s" % client.extension)
         print("Batch: %s" %  client.batch)
         print("Max length: %i" % client.maxLength)
         print("Mtime: %i" % client.mtime)
         print("Timeout: %s" % client.timeout)
         print("Sorter: %s" % client.sorter)
         print("Validation: %s" % client.validation)
-        print("Pattern Matching: %s" % client.patternMatching)
+        print("Sourlient Pattern Matching: %s" % client.patternMatching)
+        print("Clients Pattern Matching: %s" % client.clientsPatternMatching)
 
         print("******************************************")
         print("*       Sourlient Masks                  *")
