@@ -52,13 +52,15 @@ class FileStatsEntry:
             is to set sourceFile and statsType. The class contains other methods to set the other values
             properly.  
         """
+        self.startTime     = startTime  #
+        self.endTime       = endTime    #                       
         self.values        = values     # List of values from all the types. 
         self.minimums      = minimums   # List of the minimums of all types.
         self.maximums      = maximums   # Maximum of all types.   
         self.means         = means      # Means for all the values of all the files.
         self.medians       = medians    # Medians for all the values of all the files.
         self.totals        = totals     # Total for all values of each files.                
-
+        
 
 
 class FileStatsCollector:
@@ -103,6 +105,58 @@ class FileStatsCollector:
     
     getSecondsSinceEpoch = staticmethod( getSecondsSinceEpoch )
             
+    
+
+    def getnumericMonthFromString( month ) :
+        """
+            this method takes a month in the string format and returns the month
+            
+        """    
+        value = '00'
+        
+        if month == 'Jan'   : 
+            value = '01'    
+        elif month == 'Feb' :
+            value = '02'
+        elif month == 'Mar' :
+            value = '03'
+        elif month == 'Apr' :
+            value = '04'
+        elif month == 'May' :
+            value = '05'
+        elif month == 'Jun' :
+            value = '06'
+        elif month == 'Jul' :
+            value = '07'
+        elif month == 'Aug' :
+            value = '08'
+        elif month == 'Sep' :
+            value = '09'
+        elif month == 'Oct' :
+            value = '10'
+        elif month == 'Nov' :
+            value = '11'
+        elif month == 'Dec' :
+            value = '12'
+        
+        return value   
+    
+        
+        
+    def getOriginalDate( seconds ):
+        """
+            Take a number of seconds built from getSecondsSinceEpoch
+            and returns a date in the format of '2005-08-30 20:06:59'
+            Thu May 18 13:00:00 2006     
+        """
+        
+        timeString = time.ctime( seconds )
+        splitTimeString = timeString.split( " " )
+        
+        originalDate = splitTimeString[4] + '-' + getIntMonthFromString ( splitTimeString[1] ) + '-' + splitTimeString[2] + '' + splitTimeString[3]   
+        
+        return originalDate
+    
     
     
     def getSeparators( width=DAY, interval = 20*MINUTE ):
