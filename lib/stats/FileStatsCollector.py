@@ -2,7 +2,6 @@
 MetPX Copyright (C) 2004-2006  Environment Canada
 MetPX comes with ABSOLUTELY NO WARRANTY; For details type see the file
 named COPYING in the root of the source directory tree.
-added comment for test
 """
 #######################################################################################
 ##
@@ -18,20 +17,22 @@ added comment for test
 ##          For performance puposes, users of this class can get stats from as many
 ##          datatypes as desired. For exemple , if they choose ['latency','bytecount'] 
 ##          all the entries will have the following values
-##          means =[latencyMean, bytecountMean ]
-##          max   =[maxLatency, max bytecount ] etc...  
+##          means = [latencyMean, bytecountMean ]
+##          max   = [maxLatency, max bytecount ] etc...  
 ##          
 ##          
 #######################################################################################
 
 
 
-import time,sys,os #important files 
+import array,time,sys,os #important files 
+from array import *
 
-#Constants can be removed once we add getSeparatorsWithStartTime to the datelibrary 
+
+#Constants can be removed once we add methods to the datelibrary and include it 
 MINUTE = 60
-HOUR = 60 * MINUTE
-DAY = 24 * HOUR
+HOUR   = 60 * MINUTE
+DAY    = 24 * HOUR
 
    
 class Matrix:
@@ -40,32 +41,32 @@ class Matrix:
     """
     
     def __init__( self, columns =0, rows=0 ):
-       """ Constructor.
+        """ Constructor.
            By default builds a 0*0 matrix.
            Matrix is always empty, values need to be added after creation.  
-       """
-       self.columns = columns       #number of columns of the matrix 
-       self.rows = rows             #number of rows 
-       self.matrix =  [[0 for column in range(columns)] for row in range(rows)] #matrix containing values
-
+        """
+        
+        self.columns = columns       #number of columns of the matrix 
+        self.rows = rows             #number of rows 
+        self.matrix =  [[0 for column in range(columns)] for row in range(rows)] #matrix containing values
+         
 
 
 class FileStatsEntry:
+    """
+        This class is used to contain all the info on a particular file entry.     
+    """
     
-    def __init__( self, values = Matrix() , means = [] , medians = [], totals =[], minimums =[], maximums = []  ):
-        """ 
-            Constructor. All values can be set from the constructor by the user but recommend usage
-            is to set sourceFile and statsType. The class contains other methods to set the other values
-            properly.  
-        """
-        self.startTime     = startTime  #
-        self.endTime       = endTime    #                       
-        self.values        = values     # List of values from all the types. 
-        self.minimums      = minimums   # List of the minimums of all types.
-        self.maximums      = maximums   # Maximum of all types.   
-        self.means         = means      # Means for all the values of all the files.
-        self.medians       = medians    # Medians for all the values of all the files.
-        self.totals        = totals     # Total for all values of each files.                
+    def __init__( self, values = Matrix() , means = None , medians = None, totals = None, minimums =None, maximums = None, startTime = '2005-08-30 20:06:59', endTime ='2005-08-30 20:06:59'  ):
+        
+        self.startTime = startTime       # Start time on an entry.
+        self.endTime   = endTime         # End time of an entry.                      
+        self.values    = values          # List of values from all the types. 
+        self.minimums  = minimums or []  # List of the minimums of all types.
+        self.maximums  = maximums or []  # Maximum of all types.   
+        self.means     = means    or []  # Means for all the values of all the files.
+        self.medians   = medians  or []  # Medians for all the values of all the files.
+        self.totals    = totals   or []  # Total for all values of each files.                
         
 
 
@@ -75,23 +76,25 @@ class FileStatsCollector:
        a certain file.
     """
     
-    def __init__(self, sourceFile= "" , statsTypes = [], startTime = '2005-08-30 20:06:59', width = DAY, interval=20*MINUTE   ):
+    def __init__(self, files = None , statsTypes = None, startTime = '2005-08-30 20:06:59', width = DAY, interval=20*MINUTE   ):
         """ 
             Constructor. All values can be set from the constructor by the user but recommend usage
             is to set sourceFile and statsType. The class contains other methods to set the other values
             properly.  
+            
+            Precondition : Interval should be smaller than width !
         """    
         
         startTime = FileStatsCollector.getSecondsSinceEpoch( startTime )
         
-        self.sourceFile     = sourceFile # Sources file we will use. 
-        self.statsTypes     = statsTypes # List of types we need to manage.
-        self.fileEntries    = []         # list of all entries wich are parsed using time seperators.
-        self.nbEntries      = 0          # number of entries within a file 
-        self.startTime      = startTime  # Beginning of the timespan used to collect stats.
-        self.width          = width      # Width of said timespan.
-        self.interval       = interval   # Interval at wich we separate stats entries 
-        self.timeSeperators = FileStatsCollector.getSeparatorsWithStartTime( self.startTime, self.width, self.interval )                  # Time separators used to parse the log file  
+        self.files          = files or []     # Source files we will use. 
+        self.statsTypes     = statsTypes or []# List of types we need to manage.
+        self.fileEntries    = []              # list of all entries wich are parsed using time seperators.
+        self.nbEntries      = 0               # number of entries within a file 
+        self.startTime      = startTime       # Beginning of the timespan used to collect stats.
+        self.width          = width           # Width of said timespan.
+        self.interval       = interval        # Interval at wich we separate stats entries 
+        self.timeSeperators = FileStatsCollector.getSeparatorsWithStartTime( self.startTime, self.width, self.interval )                     # Time separators used to parse the log file  
         
         
         
@@ -113,11 +116,12 @@ class FileStatsCollector:
             
     
 
-    def getnumericMonthFromString( month ) :
+    def getNumericMonthFromString( month ) :
         """
-            this method takes a month in the string format and returns the month
-            
+            This method takes a month in the string format and returns the month.
+            Returns 00 if month is unknown.
         """    
+        
         value = '00'
         
         if month == 'Jan'   : 
@@ -147,11 +151,13 @@ class FileStatsCollector:
         
         return value   
     
+    getNumericMonthFromString = staticmethod( getNumericMonthFromString )
         
-        
+    
+    
     def getOriginalDate( seconds ):
         """
-            Take a number of seconds built from getSecondsSinceEpoch
+            Take a number of seconds built with getSecondsSinceEpoch
             and returns a date in the format of '2005-08-30 20:06:59'
             Thu May 18 13:00:00 2006     
         """
@@ -159,9 +165,11 @@ class FileStatsCollector:
         timeString = time.ctime( seconds )
         splitTimeString = timeString.split( " " )
         
-        originalDate = splitTimeString[4] + '-' + getIntMonthFromString ( splitTimeString[1] ) + '-' + splitTimeString[2] + '' + splitTimeString[3]   
+        originalDate = splitTimeString[4] + '-' + FileStatsCollector.getNumericMonthFromString ( splitTimeString[1] ) + '-' + splitTimeString[2] + ' ' + splitTimeString[3]   
         
         return originalDate
+    
+    getOriginalDate = staticmethod ( getOriginalDate )
     
     
     
@@ -191,7 +199,7 @@ class FileStatsCollector:
     getSeparatorsWithStartTime = staticmethod( getSeparatorsWithStartTime )
     
     """ 
-        End of section that need to be in date library 
+        End of section that needs to be in date library 
     """
 
 
@@ -207,16 +215,15 @@ class FileStatsCollector:
         """
         
         total = 0
-        #print "nb Entries %s" %self.nbEntries 
         
-        for i in range ( self.nbEntries +1 ): #for all entries 
+        
+        for i in range ( self.nbEntries ): #for all entries 
+            
             self.fileEntries[i].means = []
             #print "i : %s" %i
             
             for j in range( len( self.statsTypes ) ) :# for all datatypes        
-            #print "j : %s" %j
-            #print "rows : %s" %self.fileEntries[i].values.rows
-                
+           
                 for line in range( self.fileEntries[i].values.rows  ) : 
                     total = total + self.fileEntries[i].values.matrix[line][j]
                 
@@ -227,11 +234,11 @@ class FileStatsCollector:
                     total = 0         
                 
                 self.fileEntries[i].means.append( mean )    
-                self.fileEntries[i].totals.append( total )
+                self.fileEntries[i].totals.append( int(total) )
                 total = 0 #resets values 
                 mean  = 0        
             
-            #print  self.fileEntries[i].means
+            
             
     
     def setMinMaxMedians( self ):
@@ -241,6 +248,7 @@ class FileStatsCollector:
             we will store the medians in the same order :[ latencyMedian, bytecountMedian ] 
             
             precondition : Values matrix should have been built and filled prior to using this method.
+        
         """
         
         minimum = 0  # Minimum of a certain field from an entry.  
@@ -248,7 +256,7 @@ class FileStatsCollector:
         median  = 0  # Median of a certain field from a entry.
         values  = [] # Used to sort value to find median. 
         
-        for i in range( self.nbEntries + 1 ): #for each file entries 
+        for i in range( self.nbEntries  ): #for each file entries 
             self.fileEntries[i].medians  = []
             self.fileEntries[i].minimums = []
             self.fileEntries[i].maximums = []
@@ -262,15 +270,15 @@ class FileStatsCollector:
                     values.sort()   
                     minimum = values[0]
                     maximum = values[ self.fileEntries[i].values.rows - 1 ]  
-                    median = values[ int( int(self.fileEntries[i].values.rows) / 2 ) ]    
+                    median  = values[ int( int(self.fileEntries[i].values.rows) / 2 ) ]    
                 else: #this entry has no values 
-                    minimum =0
-                    median  =0
-                    maximum =0
+                    minimum = 0
+                    median  = 0
+                    maximum = 0
                 
                     
                 self.fileEntries[i].medians.append( median )    # appending values to a list    
-                self.fileEntries[i].minimums.append( minimum )  # permit user to use this class to collect
+                self.fileEntries[i].minimums.append( minimum )  # permits user to use this class to collect
                 self.fileEntries[i].maximums.append( maximum )  # as many datatypes as he wishes
                 values = []
     
@@ -278,11 +286,12 @@ class FileStatsCollector:
     def findValue( statsType, line = "" ):
         """
             This method is used to find a particular entry within a line. 
-            Line format should be :      timeofarrival;timeofdeparture;bytecount
+            Line format should be : timeofarrival;timeofdeparture;bytecount
             
             This method will return the value according to the type received as a parameter. 
             
             If type is unknown, method will return "". 
+        
         """
         
         value = "" #in case of an unknows type
@@ -307,54 +316,78 @@ class FileStatsCollector:
     
     def setValues(self):
         """
-            This method opens a file reads a file, takes the values needed and closes the file.
+            This method opens a file and finds sets all the values found in the file in the appropriate entry's value matrix.
+            -Values searched depend on the datatypes asked for by the user.
+            -Number of entries is based on the time separators wich are found with the startTime, width and interval.  -Only entries with arrival time comprised between startTime and startTime + width will be saved in matrixes
+            -Entries wich have no values will have 0 as value for means, minimum maximum and median     
+            
+            
         """
         
-        values = []
-        self.nbEntries = 0 
+        value = []
+        entryCount = 0
         
-        try:
-            file = open( self.sourceFile , 'r' )
         
-            #we fill up the values matrix 
-            lines = file.readlines()
-            
-            self.fileEntries.append( FileStatsEntry() )    
-            self.values = Matrix( len( self.statsTypes), len(lines) )
-            
-            nbLines = 0
-            
-            #find the first line entry wich is within the timespan we want
-            while nbLines < len(lines) and FileStatsCollector.findValue( "arrival" , lines[nbLines] )  < self.startTime : 
-                nbLines = nbLines + 1
-                
-            # read lines until eof and while we're within range
-            while  nbLines < len(lines) and FileStatsCollector.findValue( "arrival" , lines[nbLines] ) < self.startTime + self.width : 
-                
-                #print "arrival : %s" %FileStatsCollector.findValue( "arrival" , lines[nbLines] )
-                #print "current separator : %s "  %self.timeSeperators[self.nbEntries] 
-                
-                #go to next time separator until we find the right one. 
-                while FileStatsCollector.findValue( "arrival" , lines[nbLines] ) > self.timeSeperators[self.nbEntries]:
-                    self.nbEntries =  self.nbEntries + 1             # to browse all the entries
-                    self.fileEntries.append( FileStatsEntry() )      # add new entry 
-                    self.fileEntries[ self.nbEntries ].values = Matrix( len( self.statsTypes ), 0 ) 
-                
-                for i in range( len( self.statsTypes ) ) :##fin values to append                   
-                    values.append( FileStatsCollector.findValue(self.statsTypes[i] , lines[nbLines] ) )
-                
-                # add values at the right place     
-                self.fileEntries[ self.nbEntries ].values.matrix.append( values )
-                self.fileEntries[ self.nbEntries ].values.rows = self.fileEntries[ self.nbEntries ].values.rows + 1
-                nbLines = nbLines + 1
-                values = []      
+        #we fill up fileEntries with empty entries with proper time labels 
+        for i in range( len ( self.timeSeperators ) ):
         
+            self.fileEntries.append( FileStatsEntry() )       
+            
+            if i == 0 :
+                self.fileEntries[0].startTime = FileStatsCollector.getOriginalDate( self.startTime )
+            else:
+                self.fileEntries[i].startTime = FileStatsCollector.getOriginalDate( self.timeSeperators[i-1] )
+            
+            self.fileEntries[i].endTime = FileStatsCollector.getOriginalDate( self.timeSeperators[i] )
+            self.fileEntries[i].values  = Matrix( len( self.statsTypes ), 0 )
+            
+        
+        try:#read everyfile and append data found to matrixes 
+            
+            for file in range( len( self.files ) ) :
+                
+                fileHandle = open( self.files[file] , 'r' )
+            
+                lines = []
+                lines = fileHandle.readlines() #read all lines from the file 
+                
+                # At this point lines should be sorted, if file is not allready sorted  
+                # apply sorting method on lines here.
+                
+                nbLines = 0
+                entryCount = 0
+                
+                #find the first line entry in the file wich is within the timespan we want
+                while nbLines < len(lines) and FileStatsCollector.findValue( "arrival" , lines[nbLines] )  < self.startTime : 
+                    nbLines = nbLines + 1
+                    
+                # read lines untill eof or untill we're out of range
+                while  nbLines < len(lines) and FileStatsCollector.findValue( "arrival" , lines[nbLines] ) < self.startTime + self.width : 
+                    
+        
+                    #go to next time separator until we find the right one. 
+                    while FileStatsCollector.findValue( "arrival" , lines[nbLines] ) > self.timeSeperators[entryCount]:
+                        entryCount = entryCount + 1 
+                    
+                    #find values to append 
+                    for j in range( len( self.statsTypes ) ) :                  
+                        value.append( FileStatsCollector.findValue( self.statsTypes[j] , lines[nbLines] ) )
+                    
+                    # add values at the right place  
+                    self.fileEntries[ entryCount ].values.matrix.append( value )
+                    self.fileEntries[ entryCount ].values.rows = self.fileEntries[ entryCount ].values.rows + 1
+                    
+                    nbLines = nbLines + 1
+                    value = []      
+                    
         except:
-            
-            print "Error. There was an error reading source file named %s" %( self.sourceFile )
+            print "Error. There was an error reading source file named %s" %( self.files )
             print "Program terminated."
             sys.exit()                     
             
+        self.nbEntries =  len ( self.timeSeperators )
+    
+    
     
     def collectStats( self ):
         """
@@ -377,18 +410,17 @@ if __name__ == "__main__":
     types = [ 'latency', 'bytecount']
     filename = '/users/dor/aspy/lem/metpx/sundew/lib/stats/files/test1'
     
-    stats = FileStatsCollector( sourceFile = filename, statsTypes = types , startTime = '2006-05-18 13:00:00' , width = 8*HOUR, interval = HOUR  )
+    stats = FileStatsCollector( files = [filename], statsTypes = types , startTime = '2006-05-18 13:38:00', width = 1*DAY, interval = 4*HOUR  )
     
     stats.collectStats()
     
-    print stats.nbEntries 
-    
-    for i in range (stats.nbEntries + 1) :
-        print "Entry %s" %i
-        print stats.fileEntries[i].values.matrix
-        print "means :%s " %stats.fileEntries[i].means
-        print "medians : %s" %stats.fileEntries[i].medians    
-        
-        
+    print "\nNb entries : %s" %stats.nbEntries 
+    for i in range ( stats.nbEntries ) :
+        print "\nStart time : %s    end time : %s" %( stats.fileEntries[i].startTime, stats.fileEntries[i].endTime ) 
+        print "Values : %s"   %stats.fileEntries[i].values.matrix
+        print "means :%s "    %stats.fileEntries[i].means
+        print "medians : %s"  %stats.fileEntries[i].medians    
+        print "minimums : %s" %stats.fileEntries[i].minimums
+        print "maximums : %s" %stats.fileEntries[i].maximums
         
         

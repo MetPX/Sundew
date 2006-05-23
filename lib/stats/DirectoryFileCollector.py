@@ -1,3 +1,8 @@
+"""
+MetPX Copyright (C) 2004-2006  Environment Canada
+MetPX comes with ABSOLUTELY NO WARRANTY; For details type see the file
+named COPYING in the root of the source directory tree.
+"""
 ##########################################################################
 ##
 ## Name   : directoryFileCollector.py 
@@ -13,12 +18,12 @@
 #############################################################################
 
 
-import os,sys 
+import os,sys #important files 
 
 
 
 class DirectoryFileCollector: 
-    """ This class use is to find all the files within a certain directory. 
+    """ This class' goal is to find all the files within a certain directory. 
         It offers a date structure wich contains the directory name and all it's 
         entries. 
     """
@@ -32,13 +37,21 @@ class DirectoryFileCollector:
        
     
     def collectEntries(self):
-        """ If the directory is valid, this method will add all 
-            the directories entries to the DirectoryFileCollector's entries field. 
+        """ If the directory is valid, this method will add all the valid  
+            directorie entries to the DirectoryFileCollector's entries field. 
         """
         
+        entries = []
+        
         try:
-            if os.path.isdir( self.directory ) :
-                self.entries = os.listdir( self.directory )
+            if os.path.isdir( self.directory ):
+                entries = os.listdir( self.directory )
+                for i in range( len(entries ) ): # for everyfiles
+                    fileName = ( str( self.directory ) + str( entries[i] ) )
+                    if not os.path.isdir( fileName ) and str( entries[i] ).startswith( '.' ) == False:
+                        self.entries.append( fileName )
+                
+            
         except:
             print "Error. %s is not a valid directory" %self.directory
             print "Program terminated"
