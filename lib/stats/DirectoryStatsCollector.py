@@ -11,7 +11,7 @@ named COPYING in the root of the source directory tree.
 ##
 ## Date   : May 19th 2006
 ##
-## Goal   : This file is used to collect stats from all the files from a directory.
+## Goal   : This class is used to collect stats from all the files from a directory.
 ##            
 ##          It needs the file DirectoryFileCollector.py to collect all the file entries. 
 ##          
@@ -49,7 +49,7 @@ class DirectoryStatsCollector:
         
         
         
-    def collectStats( self, types, startTime = 0, width=DAY, interval = 60*MINUTE  ):
+    def collectStats( self, types, startTime = '2006-05-18 00:00:00', width=DAY, interval = 60*MINUTE  ):
         """
             This method collects the stats for all the files found in the directory. 
         """
@@ -88,12 +88,13 @@ class DirectoryStatsCollector:
             
                     
 if __name__ == "__main__":
-    """small test case. Tests if everything works plus gives an idea on proper usage.
+    """
+        small test case. Tests if everything works plus gives an idea on proper usage.
     """
     
     types = [ 'latency', 'bytecount' ]
     ds = DirectoryStatsCollector( directory = "/users/dor/aspy/lem/metpx/sundew/lib/stats/files/" )
     ds.fileCollection.collectEntries
-    ds.collectStats( types, startTime = '2006-05-18 00:00:00', width = 24*HOUR, interval = 2*HOUR )
+    ds.collectStats( types, startTime = '2006-05-18 21:45:30', width = 30, interval = 2 )
     ds.printStats()        
             

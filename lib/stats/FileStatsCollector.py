@@ -15,7 +15,7 @@ named COPYING in the root of the source directory tree.
 ##          regarding latencies text files.   
 ##          
 ##          For performance puposes, users of this class can get stats from as many
-##          datatypes as desired. For exemple , if they choose ['latency','bytecount'] 
+##          datatypes as desired. For exemple, if they choose ['latency','bytecount'] 
 ##          all the entries will have the following values
 ##          means = [latencyMean, bytecountMean ]
 ##          max   = [maxLatency, max bytecount ] etc...  
@@ -220,7 +220,7 @@ class FileStatsCollector:
         for i in range ( self.nbEntries ): #for all entries 
             
             self.fileEntries[i].means = []
-            #print "i : %s" %i
+            
             
             for j in range( len( self.statsTypes ) ) :# for all datatypes        
            
@@ -234,7 +234,7 @@ class FileStatsCollector:
                     total = 0         
                 
                 self.fileEntries[i].means.append( mean )    
-                self.fileEntries[i].totals.append( int(total) )
+                self.fileEntries[i].totals.append( float(total) )
                 total = 0 #resets values 
                 mean  = 0        
             
@@ -264,7 +264,7 @@ class FileStatsCollector:
             for j in range( len( self.statsTypes ) ) :#for each datatype        
                 
                 for line in range( self.fileEntries[i].values.rows ) : # for each line in the entry 
-                    values.append( self.fileEntries[i].values.matrix[line][j] )
+                    values.append( self.fileEntries[i].values.matrix[line][j] )#add to new array
             
                 if self.fileEntries[i].values.rows != 0:
                     values.sort()   
@@ -294,7 +294,7 @@ class FileStatsCollector:
         
         """
         
-        value = "" #in case of an unknows type
+        value = "" #in case of an unknown type
         parsedLine = line.split( ";" )
        
         
@@ -320,8 +320,6 @@ class FileStatsCollector:
             -Values searched depend on the datatypes asked for by the user.
             -Number of entries is based on the time separators wich are found with the startTime, width and interval.  -Only entries with arrival time comprised between startTime and startTime + width will be saved in matrixes
             -Entries wich have no values will have 0 as value for means, minimum maximum and median     
-            
-            
         """
         
         value = []
@@ -351,8 +349,8 @@ class FileStatsCollector:
                 lines = []
                 lines = fileHandle.readlines() #read all lines from the file 
                 
-                # At this point lines should be sorted, if file is not allready sorted  
-                # apply sorting method on lines here.
+                # At this point lines should be sorted.  
+                # If file is not allready sorted, apply some sort of sorting method HERE.
                 
                 nbLines = 0
                 entryCount = 0
@@ -393,8 +391,10 @@ class FileStatsCollector:
         """
             This is the main method to use with a FileStatsCollector. 
             It will collect the values from the file and set them in a matrix.
-            It will use that matrix to find the means of each data types wanted. 
-            It will also use that matrix to find the means of each data types wanted. 
+            It will use that matrix to find the totals and means of each data types wanted. 
+            It will also use that matrix to find the minimum max andmedians of 
+            each data types wanted. 
+               
         """
         
         self.setValues()        #fill matrix with values
@@ -404,7 +404,8 @@ class FileStatsCollector:
                          
 
 if __name__ == "__main__":
-    """small test case. Tests if everything works plus gives an idea on proper usage.
+    """
+        small test case. Tests if everything works plus gives an idea on proper usage.
     """
     
     types = [ 'latency', 'bytecount']
