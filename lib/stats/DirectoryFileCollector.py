@@ -5,7 +5,7 @@ named COPYING in the root of the source directory tree.
 """
 ##########################################################################
 ##
-## Name   : directoryFileCollector.py 
+## Name   : DirectoryFileCollector.py 
 ##  
 ## Author : Nicholas Lemay  
 ##
@@ -59,6 +59,8 @@ class DirectoryFileCollector:
                 
             
         except:
+            (type, value, tb) = sys.exc_info()
+            print("Type: %s, Value: %s" % (type, value))
             print "Error. %s is not a valid directory" %self.directory
             print "Program terminated"
             sys.exit() 

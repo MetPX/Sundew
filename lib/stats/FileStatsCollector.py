@@ -35,7 +35,7 @@ HOUR   = 60 * MINUTE
 DAY    = 24 * HOUR
 
    
-class Matrix:
+class _Matrix:
     """
         This class is usefull to deal with two dimensional arrays. 
     """
@@ -52,12 +52,12 @@ class Matrix:
          
 
 
-class FileStatsEntry:
+class _FileStatsEntry:
     """
         This class is used to contain all the info on a particular file entry.     
     """
     
-    def __init__( self, values = Matrix() , means = None , medians = None, totals = None, minimums =None, maximums = None, startTime = '2005-08-30 20:06:59', endTime ='2005-08-30 20:06:59'  ):
+    def __init__( self, values = _Matrix() , means = None , medians = None, totals = None, minimums =None, maximums = None, startTime = '2005-08-30 20:06:59', endTime ='2005-08-30 20:06:59'  ):
         
         self.startTime = startTime       # Start time on an entry.
         self.endTime   = endTime         # End time of an entry.                      
@@ -329,7 +329,7 @@ class FileStatsCollector:
         #we fill up fileEntries with empty entries with proper time labels 
         for i in range( len ( self.timeSeperators ) ):
         
-            self.fileEntries.append( FileStatsEntry() )       
+            self.fileEntries.append( _FileStatsEntry() )       
             
             if i == 0 :
                 self.fileEntries[0].startTime = FileStatsCollector.getOriginalDate( self.startTime )
@@ -337,7 +337,7 @@ class FileStatsCollector:
                 self.fileEntries[i].startTime = FileStatsCollector.getOriginalDate( self.timeSeperators[i-1] )
             
             self.fileEntries[i].endTime = FileStatsCollector.getOriginalDate( self.timeSeperators[i] )
-            self.fileEntries[i].values  = Matrix( len( self.statsTypes ), 0 )
+            self.fileEntries[i].values  = _Matrix( len( self.statsTypes ), 0 )
             
         
         try:#read everyfile and append data found to matrixes 

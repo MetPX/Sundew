@@ -67,9 +67,11 @@ class DirectoryStatsCollector:
             Mostly usefull for debugging. 
         """    
      
-        print "\n\nFiles used : %s\n" %self.fileCollection.entries
-        
-        
+        print "\n\nFiles used : %s" %self.fileCollection.entries
+        print "Starting date: %s" % FileStatsCollector.getOriginalDate(self.statsCollection.startTime)
+        print "Interval: %s" %self.statsCollection.interval
+        print "Time Width: %s" %self.statsCollection.width
+
         for j in range( self.statsCollection.nbEntries ):
             print "\nEntry's interval : %s - %s " %( self.statsCollection.fileEntries[j].startTime,self.statsCollection.fileEntries[j].endTime )
             print "Values :"
@@ -93,8 +95,8 @@ if __name__ == "__main__":
     """
     
     types = [ 'latency', 'bytecount' ]
-    ds = DirectoryStatsCollector( directory = "/users/dor/aspy/lem/metpx/sundew/lib/stats/files/" )
+    ds = DirectoryStatsCollector( directory = "/users/dor/aspy/dan/metpxNic/sundew/lib/stats/files/" )
     ds.fileCollection.collectEntries
-    ds.collectStats( types, startTime = '2006-05-18 21:45:30', width = 30, interval = 2 )
+    ds.collectStats( types, startTime = '2006-05-18 21:45:30', width = 50000, interval = 3000 )
     ds.printStats()        
             
