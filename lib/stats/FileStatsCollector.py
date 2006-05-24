@@ -191,9 +191,13 @@ class FileStatsCollector:
             the separators
         """    
         separators = []
-        for value in range( int(interval+startTime), int( width+interval+startTime ), int( interval ) ):
-            separators.append(value)
-        
+        if interval <= width :
+            for value in range( int(interval+startTime), int( width+interval+startTime ), int( interval ) ):
+                separators.append(value)
+            
+            if separators[ len(separators)-1 ] > width+startTime :
+                separators[ len(separators)-1 ] = width+startTime    
+            
         return separators 
         
     getSeparatorsWithStartTime = staticmethod( getSeparatorsWithStartTime )
@@ -411,7 +415,7 @@ if __name__ == "__main__":
     types = [ 'latency', 'bytecount']
     filename = '/users/dor/aspy/lem/metpx/sundew/lib/stats/files/test1'
     
-    stats = FileStatsCollector( files = [filename], statsTypes = types , startTime = '2006-05-18 13:38:00', width = 1*DAY, interval = 4*HOUR  )
+    stats = FileStatsCollector( files = [filename], statsTypes = types , startTime = '2006-05-18 00:00:00', width = 1*HOUR, interval = 22*MINUTE  )
     
     stats.collectStats()
     
