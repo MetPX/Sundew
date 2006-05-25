@@ -21,6 +21,7 @@ named COPYING in the root of the source directory tree.
 import sys, os, pwd, time
 
 sys.path.insert(1,sys.path[0] + '/../lib')
+sys.path.insert(1,sys.path[0] + '/../aftn/lib')
 sys.path.insert(1,sys.path[0] + '/../etc')
 sys.path.insert(1,sys.path[0] + '/../lib/importedLibs')
 
