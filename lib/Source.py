@@ -19,6 +19,7 @@ named COPYING in the root of the source directory tree.
 #
 # Revision History: 
 #               2005-12-15 Added parsing of collection conf file
+#               2006-05-15 MG   Modification  of collection conf 
 #############################################################################################
 
 """
@@ -61,19 +62,19 @@ class Source(object):
         self.patternMatching = True                            # No pattern matching
         self.clientsPatternMatching = True                     # No clients pattern matching
         self.sorter = None                                     # No sorting on the filnames
-        self.collection = None                                 # None for no collection, else the name of the collector
+        self.collections = []                                  # collections to feed...
         self.mtime = 0                                         # Integer indicating the number of seconds a file must not have 
                                                                # been touched before being picked
         #-----------------------------------------------------------------------------------------
         # Setting up default collection configuration values
         #-----------------------------------------------------------------------------------------
-        self.sentCollectionToken = ''     #Dir name token used to identify collections which have been transmitted.
-        self.busyCollectionToken = ''     #Dir name token used to identify that a collection is currently being generated.
-        self.headersToCollect = []        #Title for report in the form TT from (TTAAii)
-        self.headersValidTime = []        #The amount of time in minutes past the hour for which the report is considered on time.
-        self.headersLateCycle = []        #Specified in minutes.  After the valid time period, we will check this often for late arrivals.
-        self.headersTimeToLive = []       #The amount of time in hours for which the reports will be kept in the collection db.
-        self.futureDatedReportWindow = [] #The amount of time in minutes a report may be in the futere and still acceptable.
+
+        self.headers       = []   # Title for report in the form TT from (TTAAii)
+        self.issue_hours   = []   # list of emission hours to collect
+        self.issue_primary = []   # amount of minutes past emission hours for the primary collection (report on time)
+        self.issue_cycle   = []   # amount of minutes for cycling after the primary collection for more reports
+        self.history       = 25   # time in hours to consider a valid report even if "history" hours late.
+        self.future        = 40   # time in minutes to consider a valid report even if "future" minutes too soon
 
         #-----------------------------------------------------------------------------------------
         # Parse the configuration file
@@ -83,7 +84,8 @@ class Source(object):
         #-----------------------------------------------------------------------------------------
         # Make sure the collection params are valid
         #-----------------------------------------------------------------------------------------
-        self.validateCollectionParams()
+        if self.type == 'collector' :
+           self.validateCollectionParams()
 
         if hasattr(self, 'ingestor'):
             # Will happen only when a reload occurs
@@ -93,10 +95,10 @@ class Source(object):
 
         self.ingestor.setClients()
 
-        if self.collection:
-            self.ingestor.setCollector(self.collection)
+        if len(self.collections) > 0 :
+           self.ingestor.setCollections(self.collections)
 
-        #self.printInfos(self)
+        self.printInfos(self)
 
     def readConfig(self):
 
@@ -144,18 +146,28 @@ class Source(object):
                     elif words[0] == 'patternMatching': self.patternMatching =  isTrue(words[1])
                     elif words[0] == 'clientsPatternMatching': self.clientsPatternMatching =  isTrue(words[1])
                     elif words[0] == 'validation' and isTrue(words[1]): self.validation = True
-                    elif words[0] == 'collection': self.collection = words[1] 
                     elif words[0] == 'debug' and isTrue(words[1]): self.debug = True
                     elif words[0] == 'mtime': self.mtime = int(words[1])
                     elif words[0] == 'sorter': self.sorter = words[1]
                     elif words[0] == 'arrival': self.mapEnteteDelai = {words[1]:(int(words[2]), int(words[3]))}
-                    elif words[0] == 'sentCollectionToken': self.sentCollectionToken = string.strip(words[1],'\'')
-                    elif words[0] == 'busyCollectionToken': self.busyCollectionToken = string.strip(words[1],'\'')
-                    elif words[0] == 'header': self.headersToCollect.append(words[1])
-                    elif words[0] == 'headerValidTime': self.headersValidTime.append(words[1])
-                    elif words[0] == 'headerLateCycle': self.headersLateCycle.append(words[1])
-                    elif words[0] == 'headerTimeToLive': self.headersTimeToLive.append(words[1])
-                    elif words[0] == 'futureDatedReportWindow': self.futureDatedReportWindow.append(words[1])
+                    elif words[0] == 'header': self.headers.append(words[1])
+                    elif words[0] == 'hours': self.issue_hours.append(words[1])
+                    elif words[0] == 'primary': self.issue_primary.append(words[1])
+                    elif words[0] == 'cycle': self.issue_cycle.append(words[1])
+
+                    if   self.type != 'collector' :
+                         if   words[0] == 'collection': self.collections.append(words[1])
+
+                    if   self.type == 'collector' :
+                         if   words[0] == 'history': self.history = int(words[1])
+                         elif words[0] == 'future' : self.future = int(words[1])
+                         elif words[0] == 'issue'  : 
+                                                     if words[1] == 'all' :
+                                                        self.issue_hours.append('all')
+                                                     else :
+                                                        self.issue_hours.append(words[1].split(","))
+                                                     self.issue_primary.append(  int(words[2])       )
+                                                     self.issue_cycle.append(    int(words[3])       )
 
                 except:
                     self.logger.error("Problem with this line (%s) in configuration file of source %s" % (words, self.name))
@@ -223,21 +235,32 @@ class Source(object):
 
         print("==========================================================================")
 
-        print("******************************************")
-        print("*       Collection Params                *")
-        print("******************************************")        
+        if self.type != 'collector' :
+           print("******************************************")
+           print("*       Collector to feed                *")
+           print("******************************************")
 
-        print("Sent Collection Identifier: %s" % self.sentCollectionToken)
-        print("Busy Collection Identifier: %s" % self.busyCollectionToken)
+           for collection in self.collections:
+               print collection
 
-        
-        print ("\nHeader  Valid Time  Late Cycle  Time To Live  Future-Dated Time Window")
-        for position, header in enumerate(self.headersToCollect):
-            print ("%s %7s %11s %12s %13s" % (header,  self.headersValidTime[position], \
-            self.headersLateCycle[position], self.headersTimeToLive[position], \
-            self.futureDatedReportWindow[position]))
-        
-        print("==========================================================================")
+           print("==========================================================================")
+
+        if self.type == 'collector' :
+           print("******************************************")
+           print("*       Collection Params                *")
+           print("******************************************")
+
+           for position, header in enumerate(self.headers):
+               print "\nHeader %s" % header
+               lst = self.issue_hours[position]
+               print "issue hours         %s" % lst
+               print "issue primary       %s" % self.issue_primary[position]
+               print "issue cycle         %s" % self.issue_cycle[position]
+
+           print "history             %s" % self.history
+           print "future              %s" % self.future
+
+           print("==========================================================================")
 
 
     def validateCollectionParams(self):
@@ -247,65 +270,53 @@ class Source(object):
         are valid.
         """
         if self.type == 'collector':
-            #-----------------------------------------------------------------------------------------
-            # Check sent collection identifier
-            #-----------------------------------------------------------------------------------------
-            if self.sentCollectionToken == '':
-                self.logger.error("Error: No value given for the 'sentCollectionToken' parameter in configuration file: %s" % (self.name))
-                self.terminateWithError()
-
-            #-----------------------------------------------------------------------------------------
-            # Check busy collection identifier
-            #-----------------------------------------------------------------------------------------
-            if self.busyCollectionToken == '':
-                self.logger.error("Error: No value given for the 'busyCollectionToken' parameter in configuration file: %s" % (self.name))
-                self.terminateWithError()
 
             #-----------------------------------------------------------------------------------------
             # Check other collection parameters.  All lists below should have the same size
             #-----------------------------------------------------------------------------------------
-            if not (len(self.headersToCollect) == len(self.headersValidTime) \
-                    == len(self.headersLateCycle) == len(self.headersTimeToLive) \
-                    == len(self.futureDatedReportWindow)):
+            if not (len(self.headers)== len(self.issue_hours)== len(self.issue_primary) == len(self.issue_cycle)):
                     self.logger.error("Error: There should be the same number of parameters given for EACH header in Configuration file: %s" % (self.name))
                     self.terminateWithError()
 
             #-----------------------------------------------------------------------------------------
-            # Make sure that headerValidTime is valid
+            # Make sure that issue_hours is valid
             #-----------------------------------------------------------------------------------------
-            for item in self.headersValidTime:
-                if (int(item) < 0) or (int(item) > 60):
-                    self.logger.error("Error: The given 'headerValidTime' parameter in Configuration file: %s must be between 0 and 60" % (self.name))
+            for item in self.issue_hours:
+                if len(item) == 1 and item == 'all' : continue
+                for i in item :
+                    if (int(i) < 0) or (int(item) > 23):
+                       self.logger.error("Error: The given 'issue hours' parameter in Configuration file: %s must be between 0 and 23 or all" % (self.name))
+                       self.terminateWithError()
+
+            #-----------------------------------------------------------------------------------------
+            # Make sure that issue_primary is valid
+            #-----------------------------------------------------------------------------------------
+            for item in self.issue_primary:
+                if (int(item) < 1) or (int(item) > 60):
+                    self.logger.error("Error: The given 'primary' parameter in Configuration file: %s must be positive" % (self.name))
                     self.terminateWithError()
             
             #-----------------------------------------------------------------------------------------
-            # Make sure that headerLateCycle is valid
+            # Make sure that issue_cycle is valid
             #-----------------------------------------------------------------------------------------
-            for item in self.headersLateCycle:
+            for item in self.issue_cycle:
                 if (int(item) < 0):
-                    self.logger.error("Error: The given 'headerLateCycle' parameter in Configuration file: %s must be positive" % (self.name))
+                    self.logger.error("Error: The given 'cycle' parameter in Configuration file: %s must be positive" % (self.name))
                     self.terminateWithError()
 
             #-----------------------------------------------------------------------------------------
-            # Make sure that futureDatedReportWindow is valid
+            # Make sure that history is valid
             #-----------------------------------------------------------------------------------------
-            for item in self.futureDatedReportWindow:
-                if (int(item) < 0):
-                    self.logger.error("Error: The 'futureDatedReportWindow' parameter is given an invalid value in Configuration file: %s" % (self.name))
-                    self.terminateWithError()
+            if self.history <= 0 :
+               self.logger.error("Error: The 'history' parameter is given an invalid value in Configuration file: %s" % (self.name))
+               self.terminateWithError()
 
             #-----------------------------------------------------------------------------------------
-            # The headerTimeToLive determines how long (in minutes) collection bulletins will be
-            # kept in the ../collection/.. temp db before being cleaned.  This value must be greater 
-            # than 24 hours. This is because the temp db is used to keep track of the state of the 
-            # collection application and deleting collections younger or equal to 24 hours could
-            # jeopardize the validity of the collection's BBB value
+            # Make sure that future is valid
             #-----------------------------------------------------------------------------------------
-            for item in self.headersTimeToLive:
-                if (int(item) <= 24):
-                    self.logger.error("Error: The 'headerTimeToLive' parameter must be set to a value greater than 24 in Configuration file: %s" % (self.name))
-                    self.terminateWithError()
-
+            if self.future < 0 :
+               self.logger.error("Error: The 'future' parameter is given an invalid value in Configuration file: %s" % (self.name))
+               self.terminateWithError()
 
     def terminateWithError (self):
         """ terminateWithError(self)

@@ -16,6 +16,8 @@ named COPYING in the root of the source directory tree.
 #
 # Description:
 #
+# Revision :  2006-05-14 (ingestCollection by MG)
+#
 #############################################################################################
 
 """
@@ -51,13 +53,16 @@ class Ingestor(object):
         self.clients = {}   # All the Client/Sourlient objects
         self.dbDirsCache = CacheManager(maxEntries=200000, timeout=25*3600)      # Directories created in the DB
         self.clientDirsCache = CacheManager(maxEntries=100000, timeout=2*3600)   # Directories created in TXQ
-        self.collector = None  # Access to collector configuration options
+        self.collectors = []  # Access to collectors configuration options
         if source is not None:
             self.logger.info("Ingestor (source %s) can link files to clients: %s" % (source.name, self.clientNames + self.sourlientNames))
 
-    def setCollector(self, name):
+    def setCollections(self, collections):
         from Source import Source
-        self.collector = Source(name, self.logger)
+        sources = self.pxManager.getRxNames()
+        for name in Collections :
+            if name in sources  :
+               self.clients[name] = Source(name, self.logger)
 
     def createDir(self, dir, cacheManager):
         if cacheManager.find(dir) == None:
@@ -241,6 +246,67 @@ class Ingestor(object):
                 time.sleep(1)
 
     def ingestBulletinFile(self, igniter):
+        from DiskReader import DiskReader
+        import bulletinManager
+
+        bullManager = bulletinManager.bulletinManager(
+                    PXPaths.RXQ + self.source.name,
+                    self.logger,
+                    PXPaths.RXQ + self.source.name,
+                    9999,
+                    '\n',
+                    self.source.extension,
+                    PXPaths.ROUTING_TABLE,
+                    self.source.mapEnteteDelai,
+                    self.source)
+
+        reader = DiskReader(bullManager.pathSource, self.source.batch, self.source.validation, self.source.patternMatching,
+                            self.source.mtime, False, self.source.logger, self.source.sorter)
+        while True:
+            # If a SIGHUP signal is received ...
+            if igniter.reloadMode == True:
+                # We assign the defaults, reread configuration file for the source
+                # and reread all configuration file for the clients (all this in __init__)
+                self.source.__init__(self.source.name, self.source.logger)
+                bullManager = bulletinManager.bulletinManager(
+                               PXPaths.RXQ + self.source.name,
+                               self.logger,
+                               PXPaths.RXQ + self.source.name,
+                               9999,
+                               '\n',
+                               self.source.extension,
+                               PXPaths.ROUTING_TABLE,
+                               self.source.mapEnteteDelai,
+                               self.source)
+                reader = DiskReader(bullManager.pathSource, self.source.batch, self.source.validation, self.source.patternMatching,
+                                    self.source.mtime, False, self.source.logger, self.source.sorter)
+
+                self.logger.info("Receiver has been reloaded")
+                igniter.reloadMode = False
+
+            reader.read()
+            data = reader.getFilesContent(reader.batch)
+
+            if len(data) == 0:
+                time.sleep(1)
+                continue
+            else:
+                self.logger.info("%d bulletins will be ingested", len(data))
+
+            # Write (and name correctly) the bulletins to disk, erase them after
+            for index in range(len(data)):
+                #nb_bytes = len(data[index])
+                #self.logger.info("Lecture de %s: %d bytes" % (reader.sortedFiles[index], nb_bytes))
+                bullManager.writeBulletinToDisk(data[index], True, True)
+                try:
+                    os.unlink(reader.sortedFiles[index])
+                    self.logger.debug("%s has been erased", os.path.basename(reader.sortedFiles[index]))
+                except OSError, e:
+                    (type, value, tb) = sys.exc_info()
+                    self.logger.error("Unable to unlink %s ! Type: %s, Value: %s" % (reader.sortedFiles[index], type, value))
+
+
+    def ingestCollection(self, igniter):
         from DiskReader import DiskReader
         import bulletinManager
 
