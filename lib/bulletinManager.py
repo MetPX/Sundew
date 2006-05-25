@@ -26,7 +26,6 @@ import math, re, string, os, bulletinPlain, traceback, sys, time
 import PXPaths
 
 from DirectRoutingParser import DirectRoutingParser
-from CollectionManager import CollectionManager
 import bulletinAm
 import bulletinWmo
 
@@ -112,12 +111,6 @@ class bulletinManager:
 
         # Collection regex
         self.regex = re.compile(r'SACN|SICN|SMCN')
-
-        #-----------------------------------------------------------------------------------------
-        # Create a collection manager if collections are enabled.
-        #-----------------------------------------------------------------------------------------
-        if self.source.collection:
-            self.collectionManager = CollectionManager(self.source.ingestor.collector, self.logger)
 
     def effacerFichier(self,nomFichier):
         try:
@@ -210,26 +203,6 @@ class bulletinManager:
         #fet.directIngest( nomFichier, clist, tempNom, self.logger )
         self.source.ingestor.ingest(tempNom, nomFichier, clist)
 
-        #-----------------------------------------------------------------------------------------
-        # Collecting the report if collection is turned on and transmitting the collection 
-        # bulletin if necessary.  Note that the collectReport(tempNom) function returns an
-        # object of the class BulletinCollection and from it we extract the raw bulletin
-        #-----------------------------------------------------------------------------------------
-        if self.source.collection and self.regex.search(nomFichier):
-            collectionBulletin = self.collectionManager.collectReport(tempNom)
-            if collectionBulletin:
-                rawBull = collectionBulletin.bulletinAsString()
-                originalExtension = self.extension
-                self.extension = self.extension.replace('Direct', 'Collected')
-                self._writeBulletinToDisk(rawBull) 
-                self.extension = originalExtension
-                #-----------------------------------------------------------------------------------------
-                # At this point the collection bulletin has been ingested and queued for transmission
-                # within the _writeBulletinToDisk method above.
-                # From the viewpoint of the collection module, the collection bulletin has been sent
-                # and we now need to mark it as such in the ../collection/ temporary db.
-                #-----------------------------------------------------------------------------------------
-                self.collectionManager.markCollectionAsSent(collectionBulletin)
         os.unlink(tempNom)
 
     def _writeBulletinToDisk(self,unRawBulletin,compteur=True,includeError=True):
@@ -589,15 +562,3 @@ class bulletinManager:
             # La différence se situe en dehors de l'intervale de validité
             self.logger.warning("Délai en dehors des limites permises bulletin: "+unBulletin.getHeader()+', heure présente '+now)
             unBulletin.setError('Bulletin en dehors du delai permis')
-
-
-    def reloadCollectionManager(self):
-        """ reloadCollectionManager()
-
-            The purposed of this method is to carry out a reload of the collectionManager 
-            used to create immediate collections in the case where a 'reload' command
-            is issued.
-        """
-        self.collectionManager.__init__(self.source.ingestor.collector, self.logger)
-
-        
