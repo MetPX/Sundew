@@ -73,6 +73,7 @@ class Sourlient(object):
         self.sorter = 'MultiKeysStringSorter'     # Class (or object) used to sort
         self.masks = []                           # All the masks (imask and emask)
         self.collection = None                    # Sourlient do not participate in the collection effort
+        self.slow = False                         # Sleeps are added when we want to be able to decrypt log entries
 
         # Socket Attributes
         self.port = None 
@@ -125,6 +126,7 @@ class Sourlient(object):
                     elif words[0] == 'subscriber': self.subscriber =  isTrue(words[1])
                     elif words[0] == 'validation': self.validation =  isTrue(words[1])
                     elif words[0] == 'noduplicates': self.nodups =  isTrue(words[1])
+                    elif words[0] == 'slow': self.slow =  isTrue(words[1])
                     elif words[0] == 'patternMatching': self.patternMatching =  isTrue(words[1])
                     elif words[0] == 'clientsPatternMatching': self.clientsPatternMatching =  isTrue(words[1])
                     elif words[0] == 'mtime': self.mtime = int(words[1])
@@ -178,6 +180,7 @@ class Sourlient(object):
         print("Other Address: %s" % client.otherAddress)
         print("Digits: %i" % client.digits)
         print("Extension: %s" % client.extension)
+        print("Slow: %s" % client.slow)
         print("Batch: %s" %  client.batch)
         print("Max length: %i" % client.maxLength)
         print("Mtime: %i" % client.mtime)
