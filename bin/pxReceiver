@@ -18,6 +18,7 @@ named COPYING in the root of the source directory tree.
 #
 # Revision History: 
 #   2005-12-14  NSD         Adding new collection type.
+#   2006-05-14  MG          Redesign   collection type.
 #############################################################################################
 """
 import sys, os, pwd
@@ -119,9 +120,7 @@ example 2: %prog start       => will start all sources
         source.ingestor.ingestBulletinFile(igniter)
     elif source.type == 'collector':
         igniter.setGateway('DUMMY')
-        import CollectionSchedulerIgniter
-        collectionScheduler = CollectionSchedulerIgniter.CollectionSchedulerIgniter(source, logger)
-        collectionScheduler.run()
+        source.ingestor.ingestCollection(igniter)
     else:
         raise Exception('Unknown type') 
 
