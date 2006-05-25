@@ -60,7 +60,7 @@ class Ingestor(object):
     def setCollections(self, collections):
         from Source import Source
         sources = self.pxManager.getRxNames()
-        for name in Collections :
+        for name in collections :
             if name in sources  :
                self.clients[name] = Source(name, self.logger)
 
@@ -304,7 +304,6 @@ class Ingestor(object):
                 except OSError, e:
                     (type, value, tb) = sys.exc_info()
                     self.logger.error("Unable to unlink %s ! Type: %s, Value: %s" % (reader.sortedFiles[index], type, value))
-
 
     def ingestCollection(self, igniter):
         from DiskReader import DiskReader

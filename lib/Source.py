@@ -93,12 +93,12 @@ class Source(object):
         else:
             self.ingestor = Ingestor(self)
 
-        self.ingestor.setClients()
-
         if len(self.collections) > 0 :
            self.ingestor.setCollections(self.collections)
 
-        self.printInfos(self)
+        self.ingestor.setClients()
+
+        #self.printInfos(self)
 
     def readConfig(self):
 
@@ -163,9 +163,12 @@ class Source(object):
                          elif words[0] == 'future' : self.future = int(words[1])
                          elif words[0] == 'issue'  : 
                                                      if words[1] == 'all' :
-                                                        self.issue_hours.append('all')
+                                                        lst = []
+                                                        lst.append(words[1])
+                                                        self.issue_hours.append(lst)
                                                      else :
-                                                        self.issue_hours.append(words[1].split(","))
+                                                        lst = words[1].split(",")
+                                                        self.issue_hours.append( lst )
                                                      self.issue_primary.append(  int(words[2])       )
                                                      self.issue_cycle.append(    int(words[3])       )
 
@@ -282,10 +285,10 @@ class Source(object):
             # Make sure that issue_hours is valid
             #-----------------------------------------------------------------------------------------
             for item in self.issue_hours:
-                if len(item) == 1 and item == 'all' : continue
+                if len(item) == 1 and item[0] == "all" : continue
                 for i in item :
-                    if (int(i) < 0) or (int(item) > 23):
-                       self.logger.error("Error: The given 'issue hours' parameter in Configuration file: %s must be between 0 and 23 or all" % (self.name))
+                    if int(i) < 0 or int(i) > 23:
+                       self.logger.error("Error: The given 'headerHours' parameter in Configuration file: %s must be between 0 and 23 or all" % (self.name))
                        self.terminateWithError()
 
             #-----------------------------------------------------------------------------------------
