@@ -99,6 +99,7 @@ class bulletin:
         self.verifyHeader()
 
         self.logger.veryverbose("newBulletin: %s" % stringBulletin)
+
     def compute_Age(self, ep_now=None ):
         """compute_Age() -
 
@@ -198,6 +199,7 @@ class bulletin:
 
            Return None if BBB not present or in error.
            Otherwise return the bulletin's BBB
+           Remove testing since it is done in verifyHeader
 
            Visitilité:  Publique
            Auteur:      Michel Grenier
@@ -208,18 +210,6 @@ class bulletin:
         if len(header) != 4 : return None
 
         BBB = header[3]
-
-        if len(BBB) != 3 :
-           self.setError('Entete non conforme BBB incorrect')
-           return None
-
-        if BBB[0] != 'A' and BBB[0] != 'C' and BBB[0] != 'R' :
-           self.setError('Entete non conforme BBB incorrect')
-           return None
-
-        if BBB[1] < 'A' or BBB[1] > 'Z' or BBB[2] < 'A' or BBB[2] > 'Z' :
-           self.setError('Entete non conforme BBB incorrect')
-           return None
 
         return BBB
 
