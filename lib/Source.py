@@ -63,7 +63,7 @@ class Source(object):
         self.patternMatching = True                            # No pattern matching
         self.clientsPatternMatching = True                     # No clients pattern matching
         self.sorter = None                                     # No sorting on the filnames
-        self.feeds = []                                        # more clients/source to feed directly
+        self.feeds = []                                        # more source to feed directly
         self.mtime = 0                                         # Integer indicating the number of seconds a file must not have 
                                                                # been touched before being picked
         #-----------------------------------------------------------------------------------------
