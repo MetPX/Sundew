@@ -36,7 +36,7 @@ PXPaths.normalPaths()              # Access to PX paths
 
 class Source(object):
 
-    def __init__(self, name='toto', logger=None) :
+    def __init__(self, name='toto', logger=None, ingestion=True ) :
         
         # General Attributes
         self.name = name                          # Source's name
@@ -49,6 +49,7 @@ class Source(object):
 
         # Attributes coming from the configuration file of the source
         #self.extension = 'nws-grib:-CCCC:-TT:-CIRCUIT:Direct'  # Extension to be added to the ingest name
+        self.ingestion = ingestion                # do we want to start the ingestion...
         self.debug = False                        # If we want sections with debug code to be executed
         self.batch = 100                          # Number of files that will be read in each pass
         self.masks = []                           # All the masks (imask and emask)
@@ -62,7 +63,7 @@ class Source(object):
         self.patternMatching = True                            # No pattern matching
         self.clientsPatternMatching = True                     # No clients pattern matching
         self.sorter = None                                     # No sorting on the filnames
-        self.collections = []                                  # collections to feed...
+        self.feeds = []                                        # more clients/source to feed directly
         self.mtime = 0                                         # Integer indicating the number of seconds a file must not have 
                                                                # been touched before being picked
         #-----------------------------------------------------------------------------------------
@@ -87,16 +88,22 @@ class Source(object):
         if self.type == 'collector' :
            self.validateCollectionParams()
 
-        if hasattr(self, 'ingestor'):
-            # Will happen only when a reload occurs
-            self.ingestor.__init__(self)
-        else:
-            self.ingestor = Ingestor(self)
+        #-----------------------------------------------------------------------------------------
+        # If we do want to start the ingestor...
+        #-----------------------------------------------------------------------------------------
 
-        if len(self.collections) > 0 :
-           self.ingestor.setCollections(self.collections)
+        if self.ingestion :
 
-        self.ingestor.setClients()
+           if hasattr(self, 'ingestor'):
+               # Will happen only when a reload occurs
+               self.ingestor.__init__(self)
+           else:
+               self.ingestor = Ingestor(self)
+
+           if len(self.feeds) > 0 :
+              self.ingestor.setFeeds(self.feeds)
+
+           self.ingestor.setClients()
 
         #self.printInfos(self)
 
@@ -154,9 +161,7 @@ class Source(object):
                     elif words[0] == 'hours': self.issue_hours.append(words[1])
                     elif words[0] == 'primary': self.issue_primary.append(words[1])
                     elif words[0] == 'cycle': self.issue_cycle.append(words[1])
-
-                    if   self.type != 'collector' :
-                         if   words[0] == 'collection': self.collections.append(words[1])
+                    elif words[0] == 'feed': self.feeds.append(words[1])
 
                     if   self.type == 'collector' :
                          if   words[0] == 'history': self.history = int(words[1])
@@ -238,15 +243,14 @@ class Source(object):
 
         print("==========================================================================")
 
-        if self.type != 'collector' :
-           print("******************************************")
-           print("*       Collector to feed                *")
-           print("******************************************")
+        print("******************************************")
+        print("*       sources to feed (collections...) *")
+        print("******************************************")
 
-           for collection in self.collections:
-               print collection
+        for feed in self.feeds:
+            print feed
 
-           print("==========================================================================")
+        print("==========================================================================")
 
         if self.type == 'collector' :
            print("******************************************")

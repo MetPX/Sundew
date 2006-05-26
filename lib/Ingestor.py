@@ -53,16 +53,19 @@ class Ingestor(object):
         self.clients = {}   # All the Client/Sourlient objects
         self.dbDirsCache = CacheManager(maxEntries=200000, timeout=25*3600)      # Directories created in the DB
         self.clientDirsCache = CacheManager(maxEntries=100000, timeout=2*3600)   # Directories created in TXQ
-        self.collectors = []  # Access to collectors configuration options
+        self.feedNames = []  # source to feed
+        self.feeds = {}  # source to feed
         if source is not None:
             self.logger.info("Ingestor (source %s) can link files to clients: %s" % (source.name, self.clientNames + self.sourlientNames))
 
-    def setCollections(self, collections):
+    def setFeeds(self, feedNames ):
         from Source import Source
         sources = self.pxManager.getRxNames()
-        for name in collections :
-            if name in sources  :
-               self.clients[name] = Source(name, self.logger)
+        for name in feedNames :
+            if name in sources :
+               self.feedNames.append(name)
+               self.feeds[name] = Source(name, self.logger, False)
+        self.logger.info("Ingestor (source %s) can link files to receiver: %s" % (self.source.name, self.feedNames))
 
     def createDir(self, dir, cacheManager):
         if cacheManager.find(dir) == None:
@@ -153,7 +156,17 @@ class Ingestor(object):
                 pass
         return matchingClientNames
 
-    def ingest(self, receptionName, ingestName, clientNames):
+    def getMatchingFeedNamesFromMasks(self, ingestName, potentialFeedNames):
+        matchingFeedNames = []
+        for name in potentialFeedNames:
+            try:
+                if self.feeds[name].fileMatchMask(ingestName):
+                   matchingFeedNames.append(name)
+            except KeyError:
+                pass
+        return matchingFeedNames
+
+    def ingest(self, receptionName, ingestName, clientNames ):
         self.logger.debug("Reception Name: %s" % receptionName)
         dbName = self.getDBName(ingestName)
 
@@ -207,7 +220,19 @@ class Ingestor(object):
             #    self.logger.error("Unable to link %s %s, Type: %s, Value: %s" % (dbName, clientQueueName, type, value))
             os.link(dbName, clientQueueName)
 
-        self.logger.info("Queued for: %s" % string.join(clientNames))
+
+        feedNames = []
+        if len(self.feedNames) > 0 :
+           feedNames = self.getMatchingFeedNamesFromMasks(ingestName, self.feedNames )
+           self.logger.debug("Matching (from patterns) feed names: %s" % feedNames )
+
+        for name in feedNames:
+            if name in clientNames : continue
+            sourceQueueName = PXPaths.RXQ + name + '/' + ingestName
+            self.createDir(os.path.dirname(sourceQueueName), self.clientDirsCache)
+            os.link(dbName, sourceQueueName)
+
+        self.logger.info("Queued for: %s" % string.join(clientNames) + ' ' + string.join(feedNames) )
         return 1
     
     def run(self):
@@ -215,6 +240,8 @@ class Ingestor(object):
             self.ingestSingleFile()
         elif self.source.type == 'bulletin-file':
             self.ingestBulletinFile()
+        elif self.source.type == 'collector':
+            self.ingestCollection()
 
     def ingestSingleFile(self, igniter):
         from DiskReader import DiskReader
@@ -240,7 +267,7 @@ class Ingestor(object):
                     ingestName = self.getIngestName(os.path.basename(file)) 
                     matchingClients = self.getMatchingClientNamesFromMasks(ingestName, self.clientNames)
                     self.logger.debug("Matching (from patterns) client names: %s" % matchingClients)
-                    self.ingest(file, ingestName, matchingClients)
+                    self.ingest(file, ingestName, matchingClients )
                     os.unlink(file)
             else:
                 time.sleep(1)
@@ -308,6 +335,7 @@ class Ingestor(object):
     def ingestCollection(self, igniter):
         from DiskReader import DiskReader
         import bulletinManager
+        import CollectionManager
 
         bullManager = bulletinManager.bulletinManager(
                     PXPaths.RXQ + self.source.name,
@@ -322,6 +350,9 @@ class Ingestor(object):
 
         reader = DiskReader(bullManager.pathSource, self.source.batch, self.source.validation, self.source.patternMatching,
                             self.source.mtime, False, self.source.logger, self.source.sorter)
+
+        collect = CollectionManager.CollectionManager( self, bullManager, reader )
+
         while True:
             # If a SIGHUP signal is received ...
             if igniter.reloadMode == True:
@@ -340,30 +371,14 @@ class Ingestor(object):
                                self.source)
                 reader = DiskReader(bullManager.pathSource, self.source.batch, self.source.validation, self.source.patternMatching,
                                     self.source.mtime, False, self.source.logger, self.source.sorter)
+                collect = CollectionManager.CollectionManager( self, bullManager, reader )
 
                 self.logger.info("Receiver has been reloaded")
                 igniter.reloadMode = False
 
-            reader.read()
-            data = reader.getFilesContent(reader.batch)
+            collect.process()
 
-            if len(data) == 0:
-                time.sleep(1)
-                continue
-            else:
-                self.logger.info("%d bulletins will be ingested", len(data))
-
-            # Write (and name correctly) the bulletins to disk, erase them after
-            for index in range(len(data)):
-                #nb_bytes = len(data[index])
-                #self.logger.info("Lecture de %s: %d bytes" % (reader.sortedFiles[index], nb_bytes))
-                bullManager.writeBulletinToDisk(data[index], True, True)
-                try:
-                    os.unlink(reader.sortedFiles[index])
-                    self.logger.debug("%s has been erased", os.path.basename(reader.sortedFiles[index]))
-                except OSError, e:
-                    (type, value, tb) = sys.exc_info()
-                    self.logger.error("Unable to unlink %s ! Type: %s, Value: %s" % (reader.sortedFiles[index], type, value))
+            time.sleep(1)
 
     
 if __name__ == '__main__':

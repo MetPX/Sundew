@@ -70,6 +70,7 @@ class bulletin:
     Auteur: Louis-Philippe Thériault
     Date:   Octobre 2004
     Modifications: Decembre 2004, Louis-Philippe et Pierre
+    Modifications: May      2006, Michel Grenier... time tools + modules in alpha order
     """
 
     def __init__(self,stringBulletin,logger,lineSeparator='\n',finalLineSeparator='\n'):
@@ -80,6 +81,15 @@ class bulletin:
         self.bulletin = self.splitlinesBulletin(stringBulletin.lstrip(lineSeparator))
         self.dataType = None
 
+        # time stuff
+        self.arrival     = None
+        self.emission    = None
+        self.delay       = None
+        self.age         = None
+
+        self.ep_arrival  = -1
+        self.ep_emission = -1
+
         # Normalization du header ici (enlever les espaces au début et a la fin)
         self.setHeader(self.getHeader().strip())
 
@@ -89,105 +99,129 @@ class bulletin:
         self.verifyHeader()
 
         self.logger.veryverbose("newBulletin: %s" % stringBulletin)
+    def compute_Age(self, ep_now=None ):
+        """compute_Age() -
 
-    def splitlinesBulletin(self,stringBulletin):
-        """splitlinesBulletin(stringBulletin) -> listeLignes
+           Compute the age of the bulletin
+           the age is given by  age = now-emission 
+           were age, now and emission are integer, epocal in second
 
-           stringBulletin       : String
-           listeLignes          : Liste
+           Visibility:  Publique
+           Author:      Michel Grenier
+           Date:        May 2006
+        """
 
-           Retourne la liste de lignes des bulletins. Ne pas utiliser .splitlines()
-           (de string) car il y a possibilité d'un bulletin en binaire.
+        if ep_now == None : ep_now = time.mktime(time.gmtime())
+        self.age = ep_now - self.ep_emission
 
-           Les bulletins binaires (jusqu'à présent) commencent par GRIB/BUFR et
-           se terminent par 7777 (la portion binaire).
+    def compute_Delay(self):
+        """compute_Delay() -
+
+           Compute attribut delay which corresponds to  arrival-emission
+           delay is an integer in seconds
+
+           Visibility:  Private
+           Author:      Michel Grenier
+           Date:        May 2006
+        """
+
+        self.delay = self.ep_arrival - self.ep_emission
+
+    def compute_Emission(self):
+        """compute_Emission() -
+
+           compute emission of bulletin
+           emission is a character string of the form YYYYMMDDhhmmss
+           ep_emission is its epocal correspondant
+
+           Visibility:  Private
+           Author:      Michel Grenier
+           Date:        May 2006
+        """
+
+        if self.arrival == None : return
+
+        arrival          = self.arrival
+        header           = self.getHeader().split()
+        YYGGGg           = header[2]
+        self.emission    = arrival[0:6] + YYGGGg + "00"
+        timeStruct       = time.strptime(self.emission, '%Y%m%d%H%M%S')
+        self.ep_emission = time.mktime(timeStruct)
+
+        # if the arrival day is the same as the one in header... we are done
+        # if not go backward in time until the emission day is reached
+
+        if YYGGGg[:2] == arrival[6:8] : return
+
+        day    = arrival[6:8]
+        ep_day = self.ep_arrival
+
+        while day != YYGGGg[:2] :
+              ep_day     = ep_day - 24 * 60 * 60
+              day        = time.strftime('%d',time.gmtime(ep_day))
+
+        self.ep_emission = ep_day
+        self.emission    = time.strftime('%Y%m%d%H%M%S',time.gmtime(ep_day))
+
+    def doSpecificProcessing(self):
+        """doSpecificProcessing()
+
+           Modifie le bulletin s'il y a lieu, selon le traîtement désiré.
 
            Utilisation:
 
-                Pour découpage initial du bulletin, ou si l'on insère un self.linseparator
-                dans le bulletin, pour le redécouper (faire un getBulletin() puis le redécouper).
+                Inclure les modifications à effectuer sur le bulletin, qui
+                sont propres au type de bulletin en question.
 
-           Nb.: Les bulletins GRIB/BUFR sont normalisés en enlevant tout data après le '7777'
-                (délimiteur de fin de portion de data) en en ajoutant un lineSeparator.
-
-           Visibilité:  Privée
+           Statut:      Abstraite
+           Visibilité:  Publique
            Auteur:      Louis-Philippe Thériault
-           Date:        Novembre 2004
+           Date:        Octobre 2004
         """
-        try:
-            estBinaire = False
+        raise bulletinException('Méthode non implantée (méthode abstraite doSpecificProcessing)')
 
-            # On détermine si le bulletin est binaire
-            for ligne in stringBulletin.splitlines():
-                if ligne.lstrip()[:4] == 'BUFR' or ligne.lstrip()[:4] == 'GRIB':
-                    # Il faut que le BUFR/GRIB soit au début d'une ligne
-                    estBinaire = True
-                    break
+    def getAge(self, ep_now=None ):
+        """getAge() -> (TypeErreur)
 
-            if estBinaire:
-                if stringBulletin.find('GRIB') != -1:
-                # Type de bulletin GRIB, découpage spécifique
-                # TODO check if grib is valid  grib.valid  and if not react 
+           Return the age of the bulletin
 
-                    grib = Grib(stringBulletin)
-
-                    b = stringBulletin[:grib.begin].split(self.lineSeparator)
-
-                    # Si le dernier token est un '', c'est qu'il y avait
-                    # un \n à la fin, et on enlève puisque entre 2 éléments de la liste,
-                    # on insère un \n
-                    if b[-1] == '':
-                        b.pop(-1)
-
-                    b = b + [stringBulletin[grib.begin:grib.last]] + ['']
-
-                    return b
-
-                elif stringBulletin.find('BUFR') != -1:
-                # Type de bulletin BUFR, découpage spécifique
-                # TODO check if bufr is valid  bufr.valid  and if not react 
-
-                    bufr = Bufr(stringBulletin)
-
-                    b = stringBulletin[:bufr.begin].split(self.lineSeparator)
-
-                    # Si le dernier token est un '', c'est qu'il y avait
-                    # un \n à la fin, et on enlève puisque entre 2 éléments de la liste,
-                    # on insère un \n
-                    if b[-1] == '':
-                        b.pop(-1)
-
-                    b = b + [stringBulletin[bufr.begin:bufr.last]] + ['']
-
-                    return b
-            else:
-                # Le bulletin n'est pas binaire
-                return stringBulletin.split(self.lineSeparator)
-        except Exception, e:
-            self.logger.exception('Erreur lors du decoupage du bulletin:\n'+''.join(traceback.format_exception(Exception,e,sys.exc_traceback)))
-            self.setError('Erreur lors du découpage de lignes')
-            return stringBulletin.split(self.lineSeparator)
-
-    def replaceChar(self,oldchars,newchars):
-        """replaceChar(oldchars,newchars)
-
-           oldchars,newchars    : String
-
-           Remplace oldchars par newchars dans le bulletin. Ne touche pas à la portion Data
-           des GRIB/BUFR
-
-           Utilisation:
-
-                Pour des remplacements dans doSpecifiProcessing.
-
-           Visibilité:  Privée
-           Auteur:      Louis-Philippe Thériault
-           Date:        Novembre 2004
+           Visitility:  Publique
+           Author:      Michel Grenier
+           Date:        May 2006
         """
-        for i in range(len(self.bulletin)):
-            if self.bulletin[i].lstrip()[:4] != 'GRIB' and self.bulletin[i].lstrip()[:4] != 'BUFR':
 
-                self.bulletin[i] = self.bulletin[i].replace(oldchars,newchars)
+        self.computeAge(ep_now)
+        return self.age
+
+    def getBBB(self):
+        """getBBB() -> (TypeErreur)
+
+           Return None if BBB not present or in error.
+           Otherwise return the bulletin's BBB
+
+           Visitilité:  Publique
+           Auteur:      Michel Grenier
+           Date:        May 2006
+        """
+
+        header = self.getHeader().split()
+        if len(header) != 4 : return None
+
+        BBB = header[3]
+
+        if len(BBB) != 3 :
+           self.setError('Entete non conforme BBB incorrect')
+           return None
+
+        if BBB[0] != 'A' and BBB[0] != 'C' and BBB[0] != 'R' :
+           self.setError('Entete non conforme BBB incorrect')
+           return None
+
+        if BBB[1] < 'A' or BBB[1] > 'Z' or BBB[2] < 'A' or BBB[2] > 'Z' :
+           self.setError('Entete non conforme BBB incorrect')
+           return None
+
+        return BBB
 
     def getBulletin(self,includeError=False,useFinalLineSeparator=True):
         """getBulletin([includeError]) -> bulletin
@@ -220,18 +254,42 @@ class bulletin:
             else:
                 return string.join(self.bulletin,marqueur)
 
-    def getLength(self):
-        """getLength() -> longueur
+    def getDataType(self):
+        """getDataType() -> dataType
 
-           longueur     : int
+           dataType:    String élément de ('BI','AN')
+                        - Type de la portion de données du bulletin
 
-           Retourne la longueur du bulletin avec le lineSeparator
-
-           Visibilité:  Publique
+           Visitilité:  Publique
            Auteur:      Louis-Philippe Thériault
            Date:        Octobre 2004
         """
-        return len(self.getBulletin())
+        if self.dataType != None:
+            return self.dataType
+
+        for ligne in self.bulletin:
+            if ligne.lstrip()[:4] == 'BUFR' or ligne.lstrip()[:4] == 'GRIB':
+                # Il faut que le BUFR/GRIB soit au début d'une ligne
+                self.dataType = 'BI'
+                break
+
+        # Si le bulletin n'est pas binaire, il est alphanumérique
+        if self.dataType == None: self.dataType = 'AN'
+
+        return self.dataType
+
+    def getError(self):
+        """getError() -> (TypeErreur)
+
+           Retourne None si aucune erreur détectée dans le bulletin,
+           sinon un tuple avec comme premier élément la description
+           de l'erreur. Les autres champs sont laissés libres
+
+           Visitilité:  Publique
+           Auteur:      Louis-Philippe Thériault
+           Date:        Octobre 2004
+        """
+        return self.errorBulletin
 
     def getHeader(self):
         """getHeader() -> header
@@ -246,20 +304,42 @@ class bulletin:
         """
         return self.bulletin[0]
 
-    def setHeader(self,header):
-        """setHeader(header)
+    def getLength(self):
+        """getLength() -> longueur
 
-           header       : String
+           longueur     : int
 
-           Assigne l'entête du bulletin
+           Retourne la longueur du bulletin avec le lineSeparator
 
            Visibilité:  Publique
            Auteur:      Louis-Philippe Thériault
            Date:        Octobre 2004
         """
-        self.bulletin[0] = header
+        return len(self.getBulletin())
 
-        self.logger.debug("Nouvelle entête du bulletin: %s",header)
+    def getLogger(self):
+        """getLogger() -> objet_logger
+
+           Retourne l'attribut logger du bulletin
+
+           Visibilité:  Publique
+           Auteur:      Louis-Philippe Thériault
+           Date:        Novembre 2004
+        """
+        return self.logger
+
+    def getOrigin(self):
+        """getOrigin() -> origine
+
+           origine      : String
+
+           Retourne l'origine (2e champ de l'entête) du bulletin (CWAO,etc...)
+
+           Visibilité:  Publique
+           Auteur:      Louis-Philippe Thériault
+           Date:        Octobre 2004
+        """
+        return self.getHeader().split(' ')[1]
 
     def getStation(self):
         """getStation() -> station
@@ -355,48 +435,62 @@ class bulletin:
         """
         return self.getHeader()[:2]
 
-    def getOrigin(self):
-        """getOrigin() -> origine
+    def replaceChar(self,oldchars,newchars):
+        """replaceChar(oldchars,newchars)
 
-           origine      : String
+           oldchars,newchars    : String
 
-           Retourne l'origine (2e champ de l'entête) du bulletin (CWAO,etc...)
-
-           Visibilité:  Publique
-           Auteur:      Louis-Philippe Thériault
-           Date:        Octobre 2004
-        """
-        return self.getHeader().split(' ')[1]
-
-    def doSpecificProcessing(self):
-        """doSpecificProcessing()
-
-           Modifie le bulletin s'il y a lieu, selon le traîtement désiré.
+           Remplace oldchars par newchars dans le bulletin. Ne touche pas à la portion Data
+           des GRIB/BUFR
 
            Utilisation:
 
-                Inclure les modifications à effectuer sur le bulletin, qui
-                sont propres au type de bulletin en question.
+                Pour des remplacements dans doSpecifiProcessing.
 
-           Statut:      Abstraite
-           Visibilité:  Publique
+           Visibilité:  Privée
            Auteur:      Louis-Philippe Thériault
-           Date:        Octobre 2004
+           Date:        Novembre 2004
         """
-        raise bulletinException('Méthode non implantée (méthode abstraite doSpecificProcessing)')
+        for i in range(len(self.bulletin)):
+            if self.bulletin[i].lstrip()[:4] != 'GRIB' and self.bulletin[i].lstrip()[:4] != 'BUFR':
+               self.bulletin[i] = self.bulletin[i].replace(oldchars,newchars)
 
-    def getError(self):
-        """getError() -> (TypeErreur)
+    def setArrivalEp(self,ep_arrival):
+        """setArrivalEp(ep_arrival)
 
-           Retourne None si aucune erreur détectée dans le bulletin,
-           sinon un tuple avec comme premier élément la description
-           de l'erreur. Les autres champs sont laissés libres
+           Assign arrival attribut of bulletin
+           ep_arrival is an integer expressing time in epocal seconds
 
-           Visitilité:  Publique
-           Auteur:      Louis-Philippe Thériault
-           Date:        Octobre 2004
+           Visibility:  Public
+           Author:      Michel Grenier
+           Date:        Mai 2006
+        """ 
+
+        self.ep_arrival = ep_arrival
+        self.arrival    = time.strftime('%Y%m%d%H%M%S',time.gmtime(ep_arrival))
+
+        self.compute_Emission()
+        self.compute_Delay()
+        self.compute_Age()
+
+    def setArrivalStr(self,arrivalStr):
+        """setArrivalStr(arrivalStr)
+
+           Assign arrival attribut of bulletin
+           arrivalStr is a character string of the form YYYYMMDDhhmmss
+
+           Visibility:  Public
+           Author:      Michel Grenier
+           Date:        Mai 2006
         """
-        return self.errorBulletin
+
+        self.arrival    = arrivalStr
+        timeStruct      = time.strptime(arrivalStr[:14], '%Y%m%d%H%M%S')
+        self.ep_arrival = time.mktime(timeStruct)
+
+        self.compute_Emission()
+        self.compute_Delay()
+        self.compute_Age()
 
     def setError(self,msg):
         """setError(msg)
@@ -414,41 +508,20 @@ class bulletin:
         if self.errorBulletin == None:
             self.errorBulletin = [msg]
 
+    def setHeader(self,header):
+        """setHeader(header)
 
-    def getDataType(self):
-        """getDataType() -> dataType
+           header       : String
 
-           dataType:    String élément de ('BI','AN')
-                        - Type de la portion de données du bulletin
-
-           Visitilité:  Publique
-           Auteur:      Louis-Philippe Thériault
-           Date:        Octobre 2004
-        """
-        if self.dataType != None:
-            return self.dataType
-
-        for ligne in self.bulletin:
-            if ligne.lstrip()[:4] == 'BUFR' or ligne.lstrip()[:4] == 'GRIB':
-                # Il faut que le BUFR/GRIB soit au début d'une ligne
-                self.dataType = 'BI'
-                break
-
-        # Si le bulletin n'est pas binaire, il est alphanumérique
-        if self.dataType == None: self.dataType = 'AN'
-
-        return self.dataType
-
-    def getLogger(self):
-        """getLogger() -> objet_logger
-
-           Retourne l'attribut logger du bulletin
+           Assigne l'entête du bulletin
 
            Visibilité:  Publique
            Auteur:      Louis-Philippe Thériault
-           Date:        Novembre 2004
+           Date:        Octobre 2004
         """
-        return self.logger
+        self.bulletin[0] = header
+
+        self.logger.debug("Nouvelle entête du bulletin: %s",header)
 
     def setLogger(self,logger):
         """setLogger(logger)
@@ -460,6 +533,84 @@ class bulletin:
            Date:        Novembre 2004
         """
         self.logger = logger
+
+    def splitlinesBulletin(self,stringBulletin):
+        """splitlinesBulletin(stringBulletin) -> listeLignes
+
+           stringBulletin       : String
+           listeLignes          : Liste
+
+           Retourne la liste de lignes des bulletins. Ne pas utiliser .splitlines()
+           (de string) car il y a possibilité d'un bulletin en binaire.
+
+           Les bulletins binaires (jusqu'à présent) commencent par GRIB/BUFR et
+           se terminent par 7777 (la portion binaire).
+
+           Utilisation:
+
+                Pour découpage initial du bulletin, ou si l'on insère un self.linseparator
+                dans le bulletin, pour le redécouper (faire un getBulletin() puis le redécouper).
+
+           Nb.: Les bulletins GRIB/BUFR sont normalisés en enlevant tout data après le '7777'
+                (délimiteur de fin de portion de data) en en ajoutant un lineSeparator.
+
+           Visibilité:  Privée
+           Auteur:      Louis-Philippe Thériault
+           Date:        Novembre 2004
+        """
+        try:
+            estBinaire = False
+
+            # On détermine si le bulletin est binaire
+            for ligne in stringBulletin.splitlines():
+                if ligne.lstrip()[:4] == 'BUFR' or ligne.lstrip()[:4] == 'GRIB':
+                    # Il faut que le BUFR/GRIB soit au début d'une ligne
+                    estBinaire = True
+                    break
+
+            if estBinaire:
+                if stringBulletin.find('GRIB') != -1:
+                # Type de bulletin GRIB, découpage spécifique
+                # TODO check if grib is valid  grib.valid  and if not react 
+
+                    grib = Grib(stringBulletin)
+
+                    b = stringBulletin[:grib.begin].split(self.lineSeparator)
+
+                    # Si le dernier token est un '', c'est qu'il y avait
+                    # un \n à la fin, et on enlève puisque entre 2 éléments de la liste,
+                    # on insère un \n
+                    if b[-1] == '':
+                        b.pop(-1)
+
+                    b = b + [stringBulletin[grib.begin:grib.last]] + ['']
+
+                    return b
+
+                elif stringBulletin.find('BUFR') != -1:
+                # Type de bulletin BUFR, découpage spécifique
+                # TODO check if bufr is valid  bufr.valid  and if not react 
+
+                    bufr = Bufr(stringBulletin)
+
+                    b = stringBulletin[:bufr.begin].split(self.lineSeparator)
+
+                    # Si le dernier token est un '', c'est qu'il y avait
+                    # un \n à la fin, et on enlève puisque entre 2 éléments de la liste,
+                    # on insère un \n
+                    if b[-1] == '':
+                        b.pop(-1)
+
+                    b = b + [stringBulletin[bufr.begin:bufr.last]] + ['']
+
+                    return b
+            else:
+                # Le bulletin n'est pas binaire
+                return stringBulletin.split(self.lineSeparator)
+        except Exception, e:
+            self.logger.exception('Erreur lors du decoupage du bulletin:\n'+''.join(traceback.format_exception(Exception,e,sys.exc_traceback)))
+            self.setError('Erreur lors du découpage de lignes')
+            return stringBulletin.split(self.lineSeparator)
 
     def verifyHeader(self):
         """verifyHeader()
