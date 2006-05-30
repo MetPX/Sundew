@@ -48,15 +48,16 @@ class Ingestor(object):
         self.pxManager = PXManager()              # Create a manager
         self.pxManager.setLogger(self.logger)     # Give the logger to the the manager
         self.pxManager.initNames()                # Set rx and tx names
-        self.clientNames = self.pxManager.getTxNames() # Obtains the list of client's names (the ones to wich we can link files)
-        self.sourlientNames = self.pxManager.getTRxNames() # Obtains the list of sourlient's names (the ones to wich we can link files)
+        self.clientNames = self.pxManager.getTxNames()         # Obtains the list of client's names (the ones to wich we can link files)
+        self.sourlientNames = self.pxManager.getTRxNames()     # Obtains the list of sourlient's names (the ones to wich we can link files)
+        self.allNames = self.clientNames + self.sourlientNames # Clients + Sourlients names
         self.clients = {}   # All the Client/Sourlient objects
         self.dbDirsCache = CacheManager(maxEntries=200000, timeout=25*3600)      # Directories created in the DB
         self.clientDirsCache = CacheManager(maxEntries=100000, timeout=2*3600)   # Directories created in TXQ
         self.feedNames = []  # source to feed
         self.feeds = {}  # source to feed
         if source is not None:
-            self.logger.info("Ingestor (source %s) can link files to clients: %s" % (source.name, self.clientNames + self.sourlientNames))
+            self.logger.info("Ingestor (source %s) can link files to clients: %s" % (source.name, self.allNames))
 
     def setFeeds(self, feedNames ):
         from Source import Source

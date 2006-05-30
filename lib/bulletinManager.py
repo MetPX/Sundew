@@ -105,7 +105,7 @@ class bulletinManager:
         self.mapBulletinsBruts = {}
 
         # Init du map des circuits
-        self.drp = DirectRoutingParser(PXPaths.ROUTING_TABLE, self.source.ingestor.clientNames, logger)
+        self.drp = DirectRoutingParser(PXPaths.ROUTING_TABLE, self.source.ingestor.allNames, logger)
         self.drp.parse()
         #self.drp.logInfos()
 
