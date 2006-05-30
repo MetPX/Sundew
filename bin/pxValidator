@@ -11,7 +11,7 @@ named COPYING in the root of the source directory tree.
 #
 # Date: 2006-04-28
 #
-# Description: This program is used to validate the direct routing configuration file. 
+# Description: This program is used to validate the routing table and the station table. 
 # 
 #############################################################################################
 """
@@ -23,6 +23,7 @@ sys.path.insert(1,sys.path[0] + '/../lib/importedLibs')
 import PXPaths
 from Logger import Logger
 from PXManager import PXManager
+from StationParser import StationParser
 from DirectRoutingParser import DirectRoutingParser
 
 def usage():
@@ -46,9 +47,80 @@ class PXValidator:
         self.logger = logger.getLogger()
         self.manager.setLogger(self.logger)
 
+        self.drp = DirectRoutingParser(PXValidator.filename)
+        self.sp = StationParser(PXPaths.STATION_TABLE)
+
+    def printMenu(self):
+        print
+        print("1-Clients indexed by header")
+        print("2-Headers indexed by station")
+        print("3-Stations indexed by header")
+        print("4-AFTN addresses indexed by header")
+        print("m-Reprint this menu")
+        print("q-Quit")
+        print
+
+    def interrogate(self):
+        self.printMenu()
+        mustChoose = True
+        selector = {'1': 'header', 
+                    '2': 'station',
+                    '3': 'header',
+                    '4': 'header',
+                   }
+
+        while True:
+            if mustChoose:
+                mode = raw_input("Your choice: ")
+                if mode in ['1', '2', '3', '4']:
+                    pass
+                elif mode == 'm' or mode == 'M':
+                    self.printMenu()
+                    continue
+                elif mode == 'q' or mode == 'Q': sys.exit()
+                else:
+                    print "Bad choice!"
+                    self.printMenu()
+                    continue
+                mustChoose = False
+
+            print
+            answer = raw_input("Enter a %s:  " % selector[mode]).upper()
+            if answer == 'Q' or answer == '': sys.exit()
+            elif answer == 'M':
+                self.printMenu()
+                mustChoose = True
+                continue
+
+            if mode == '1':
+                if self.drp.routingInfos.get(answer, None) is None:
+                    print("%s is not in the table" % answer)
+                else:
+                    print self.drp.routingInfos[answer]['clients']
+            elif mode == '2':
+                print self.sp.headers.get(answer, "%s is not in the table" % answer)
+            elif mode == '3':
+                print self.sp.stations.get(answer, "%s is not in the table" % answer)
+            elif mode == '4':
+                if self.drp.routingInfos.get(answer, None) is None:
+                    print("%s is not in the table" % answer)
+                elif self.drp.routingInfos[answer]['subclients'].get('aftn', None) is None:
+                    print("aftn client is not in the table for this header")
+                else:
+                    print self.drp.routingInfos[answer]['subclients']['aftn']
+        
     def validate(self):
-        drp = DirectRoutingParser(PXValidator.filename)
-        drp.parseAndShowErrors()
+        print "################################################################"
+        print "#                       Routing Table Errors                   #"
+        print "################################################################"
+        self.drp.parseAndShowErrors()
+        print "################################################################"
+        print "#                       Station Table Errors                   #"
+        print "################################################################"
+        self.sp.printErrors = True
+        self.sp.parse()
+        #self.sp.printInfos()
+        print "##########################END###################################"
 
     def getOptionsParser(self):
         filename = False
@@ -83,4 +155,5 @@ if __name__ == '__main__':
 
     validator =  PXValidator()
     validator.validate()
-    print "The program successfully ended"
+    validator.interrogate()
+    #print "The program successfully ended"
