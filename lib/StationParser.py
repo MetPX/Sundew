@@ -1,4 +1,8 @@
 """
+MetPX Copyright (C) 2004-2006  Environment Canada
+MetPX comes with ABSOLUTELY NO WARRANTY; For details type see the file
+named COPYING in the root of the source directory tree.
+
 #############################################################################################
 # Name: StationParser.py
 #
@@ -6,45 +10,52 @@
 #
 # Date: 2006-05-21
 #
-# Description: Use to parse the stations file (collection_stations.conf)
+# Description: Use to parse the stations file (stations.conf)
 #
 #############################################################################################
 """
-import sys
+import sys, time
+from FileParser import FileParser
 
-class StationParser:
+class StationParser(FileParser):
     
     def __init__(self, filename, logger=None):
-        self.filename = filename # 
+        FileParser.__init__(self, filename) # Stations filename ("/apps/px/etc/stations.conf")
         self.logger = logger     # Logger Object
         self.headers = {}        # Indexed by station
         self.stations = {}       # Indexed by header
+        self.stationsColl = {}   # Indexed by header (only the ones that have to be collected)
         self.printErrors = True  #
 
+    def getStationsColl(self):
+        return self.stationsColl
+
     def parse(self):
-        try:
-            file = open(self.filename, 'r')
-        except:
-            (type, value, tb) = sys.exc_info()
-            #self.logger.error("Type: %s, Value: %s" % (type, value))
-            print ("Type: %s, Value: %s" % (type, value))
-            sys.exit()
+        file = self.openFile(self.filename)
 
         uniqueHeaders = {}
         duplicateHeaders = {}
 
         for line in file:
             line = line.strip()
-            words = line.split()
+            words = line.split(':')
             header = words[0]
-            stations = words[1:]
+            coll = words[1]
+            stations = words[2].split()
 
             # Find duplicate station for a given header
             uniqueStations = self._removeDuplicate(stations)
             duplicateForHeader = self._identifyDuplicate(stations)
             
+            # Sort the stations
+            uniqueStations.sort()
+
             # Populate stations dictionary
             self.stations[header] = uniqueStations
+
+            # Populate stationsColl dictionary
+            if coll:
+                self.stationsColl[header] = uniqueStations
 
             # Find duplicate headers
             if uniqueHeaders.has_key(header):
@@ -64,25 +75,12 @@ class StationParser:
             else:
                 print("No duplicated header")
         
-    def _removeDuplicate(self, list):
-        set = {}
-        for item in list:
-            set[item] = 1
-        return set.keys()
-
-    def _identifyDuplicate(self, list):
-        duplicate = {}
-        list.sort()
-        for index in range(len(list)-1):
-            if list[index] == list[index+1]:
-                duplicate[list[index]]=1
-        return duplicate.keys()
-
     def printMenu(self):
         print
         print("1-Headers indexed by station")
         print("2-Stations indexed by header")
         print("3-Reprint this menu")
+        print("q-Quit")
         print
 
     def printInfos(self):
@@ -108,10 +106,12 @@ class StationParser:
 
 if __name__ == '__main__':
     import sys
-    sp = StationParser('/apps/px/etc/collection_stations.conf')
+    #sp = StationParser('/apps/px/etc/collection_stations.conf')
+    sp = StationParser('/apps/px/etc/stations.conf')
     sp.printErrors = True
     sp.parse()
     sp.printInfos()
+    print sp.getStationsColl()
     sp.printMenu()
     mustChoose = True
     while True:
@@ -138,6 +138,5 @@ if __name__ == '__main__':
         if mode == '1':
             print sp.headers.get(answer, "%s is not in the table" % answer)
         elif mode == '2':
-            print sp.stations.get(answer, "%s is not in the table" % answer)
-
-
+            print sp.stations.get(answer, "%s is not in the table" % answer),
+            

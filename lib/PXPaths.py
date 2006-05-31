@@ -67,8 +67,9 @@ def normalPaths():
     COLLECTION_DB = ROOT + 'collection/'
     COLLECTION_CONTROL = COLLECTION_DB + 'control/'
     ROUTING_TABLE = ETC + 'header2client.conf'
+    #ROUTING_TABLE = ETC + 'pxroute.conf'
     #ROUTING_TABLE = '/apps/px/aftn/etc/header2client.conf.test'
-    STATION_TABLE = ETC + 'collection_stations.conf'
+    STATION_TABLE = ETC + 'stations.conf'
 
     #Paths for pxLatencies
     LAT = ROOT + 'latencies/'

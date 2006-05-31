@@ -13,11 +13,12 @@
 """
 
 import os, sys, re
+from FileParser import FileParser
 
-class DirectRoutingParser:
+class DirectRoutingParser(FileParser):
 
     def __init__(self, filename, pxLinkables=[], logger=None):
-        self.filename = filename        # Routing filename ("/apps/px/etc/header2clients.conf")
+        FileParser.__init__(self, filename) # Routing filename ("/apps/px/etc/pxroute.conf")
         self.logger = logger            # Logger object
         self.routingInfos = {}          # Addressed by header name: self.routingInfos[header]['clients']
                                         #                           self.routingInfos[header]['subclients']
@@ -71,20 +72,6 @@ class DirectRoutingParser:
 
         return goodClientsForOneHeader.keys()
 
-    def _removeDuplicate(self, list):
-        set = {}
-        for item in list:
-            set[item] = 1
-        return set.keys()
-
-    def _identifyDuplicate(self, list):
-        duplicate = {}
-        list.sort()
-        for index in range(len(list)-1):
-            if list[index] == list[index+1]:
-                duplicate[list[index]]=1
-        return duplicate.keys()
-            
     def reparse(self):
         routingInfosOld = self.routingInfos.copy()
         subClientsOld = self.subClients.copy()
@@ -102,13 +89,8 @@ class DirectRoutingParser:
             self.logger.warning("DirectRoutingParser.reparse() has failed")
             
     def parse(self):
-        self. clearInfos()
-        try:
-            file = open(self.filename, 'r')
-        except:
-            (type, value, tb) = sys.exc_info()
-            self.logger.error("Type: %s, Value: %s" % (type, value))
-            sys.exit()
+        self.clearInfos()
+        file = self.openFile(self.filename)
 
         for line in file:
             line = line.strip().strip(':')
@@ -181,17 +163,18 @@ class DirectRoutingParser:
                     (type, value, tb) = sys.exc_info()
                     self.logger.error("Type: %s, Value: %s" % (type, value))
                     self.logger.error("Problem with this line (%s) in the direct routing file (%s)" % (words, self.filename))
+                    try:
+                        del self.routingInfos[words[0]]
+                        self.logger.error("%s won't be included in the routing table" % words[0])
+                    except:
+                        self.logger.error("Problem seems to be with a special directive line (not a header line)")
+
         file.close()
         # Up to here: 2.3 s of execution time
 
     def parseAndShowErrors(self):
-        self. clearInfos()
-        try:
-            file = open(self.filename, 'r')
-        except:
-            (type, value, tb) = sys.exc_info()
-            print("Type: %s, Value: %s" % (type, value))
-            return 
+        self.clearInfos()
+        file = self.openFile(self.filename)
 
         uniqueHeaders = {}
         duplicateHeaders = {}
