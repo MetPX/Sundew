@@ -28,7 +28,7 @@ from DirectRoutingParser import DirectRoutingParser
 
 def usage():
     print "\nUsage: pxValidator [-f filename] where filename is the name of the direct routing file"
-    print "ex 1: pxValidator  (default filename is PXPaths.ETC/header2client.conf)"
+    print "ex 1: pxValidator  (default filename is PXPaths.ROUTING_TABLE)"
     print "ex 2: pxValidator -f header2client.conf (defaut path is PXPaths.ETC)"
     print "ex 3: pxValidator -f /toto/tutu/head.conf\n"
 
@@ -55,8 +55,9 @@ class PXValidator:
         print("1-Clients indexed by header")
         print("2-Headers indexed by station")
         print("3-Stations indexed by header")
-        print("4-AFTN addresses indexed by header")
-        print("m-Reprint this menu")
+        print("4-Stations indexed by collected header")
+        print("5-AFTN addresses indexed by header")
+        print("m-Reprint this menu (to make another choice)")
         print("q-Quit")
         print
 
@@ -66,13 +67,14 @@ class PXValidator:
         selector = {'1': 'header', 
                     '2': 'station',
                     '3': 'header',
-                    '4': 'header',
+                    '4': 'collected header',
+                    '5': 'header',
                    }
 
         while True:
             if mustChoose:
                 mode = raw_input("Your choice: ")
-                if mode in ['1', '2', '3', '4']:
+                if mode in ['1', '2', '3', '4', '5']:
                     pass
                 elif mode == 'm' or mode == 'M':
                     self.printMenu()
@@ -102,6 +104,8 @@ class PXValidator:
             elif mode == '3':
                 print self.sp.stations.get(answer, "%s is not in the table" % answer)
             elif mode == '4':
+                print self.sp.stationsColl.get(answer, "%s is not collected (or not in the table)" % answer)
+            elif mode == '5':
                 if self.drp.routingInfos.get(answer, None) is None:
                     print("%s is not in the table" % answer)
                 elif self.drp.routingInfos[answer]['subclients'].get('aftn', None) is None:
@@ -149,7 +153,7 @@ class PXValidator:
                     PXValidator.filename = PXPaths.ETC + value
 
         if filename  is False:
-            PXValidator.filename = PXPaths.ETC + 'header2client.conf'
+            PXValidator.filename = PXPaths.ROUTING_TABLE
 
 if __name__ == '__main__':
 
