@@ -85,8 +85,16 @@ class bulletinWmo(bulletin.bulletin):
         if self.bulletin[0][:2] in ['US']:
             self.replaceChar('\x18','')
 
-        if self.bulletin[0][:4] in ['SXUS','SXCN']:
+        if self.bulletin[0][:4] in ['SXUS','SXCN','SRCN']:
             self.replaceChar('\x7f','?')
+            
+        if self.bulletin[0][:4] in ['SRCN']:
+            self.replaceChar('\x0e','')
+            self.replaceChar('\x11','')
+            self.replaceChar('\x16','')
+            self.replaceChar('\x19','')
+            self.replaceChar('\x1d','')
+            self.replaceChar('\x1f','')
 
         if self.bulletin[0][:4] in ['SXVX','SRUS','SRMT']:
             self.replaceChar('\x7f','')
