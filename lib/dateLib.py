@@ -57,6 +57,9 @@ def getSecondsSinceEpoch(date='2005-08-30 20:06:59'):
 def getYesterdayInSeconds():
     return now(time.gmtime()) - DAY
 
+def getTodayFormatted(format='%Y%m%d'):
+    return time.strftime(format, time.gmtime())
+
 def getYesterdayFormatted(format='%Y%m%d'):
     return time.strftime(format, time.gmtime(getYesterdayInSeconds()))
 
