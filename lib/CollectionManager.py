@@ -24,6 +24,8 @@ import os,string,sys,time
 import PXPaths
 import CollectionBuilder
 import CollectionEntry
+import CollectionState
+import StationParser
 
 PXPaths.normalPaths()              # Access to PX paths
 
@@ -42,30 +44,29 @@ class CollectionManager(object):
 
         self.bullManager   = bullManager
         self.ingestor      = ingestor
-        self.reader        = reader
-
-        self.source        = ingestor.source
         self.logger        = ingestor.logger
+        self.reader        = reader
+        self.source        = ingestor.source
 
         self.bulletins     = []
         self.files         = []
         self.data          = []
         self.entry         = None
 
-        self.now           = time.mktime(time.gmtime())
+        self.now           = time.mktime(time.localtime())
 
-        # reading the collection dictionnary... similar to code in bulletinManagerAm.py
+        # reading the collection station config file...
 
-        self.lstCollectionHeader   = []
-        self.mapCollectionStation  = {}
-        self.pathCollectionStation = PXPaths.ETC + 'collection_stations.conf'
-        self.loadCollectionStation()
+        self.pathCollectionStation = PXPaths.ETC + 'stations.conf'
+        sp = StationParser.StationParser(self.pathCollectionStation)
+        sp.parse()
+        self.mapCollectionStation = sp.getStationsColl()
 
-        # reading/building the collection state...
+        # instantiate the collection state class
 
         self.mapCollectionState = {}
-        self.pathCollectionState = PXPaths.RXQ + self.source.name + ".state"
-        self.loadCollectionState()
+        self.collectionState    = CollectionState.CollectionState( self )
+        self.mapCollectionState = self.collectionState.getCollectionState()
 
         # instantiate the collection builder class
 
@@ -82,9 +83,9 @@ class CollectionManager(object):
         # check if header found in the dictionnary
 
         header = bulltin.getHeader().split()
-        key    = header[0] + header[1]
+        key    = header[0] + ' ' + header[1]
 
-        if not key in self.lstCollectionHeader :
+        if not key in self.mapCollectionStation :
            self.ignore(index,"File %s ignored : (%s) not defined in collection_station dictionnary" % \
                       (self.files[index],key) )
            return False
@@ -118,7 +119,7 @@ class CollectionManager(object):
 
         bulltin = self.bulletins[index]
 
-        # get bulletin type and check if configured collectable
+        # get bulletin type and check if configured collectable, if not ignore
 
         pos     = -1
         type    = bulltin.getType()
@@ -129,6 +130,7 @@ class CollectionManager(object):
                   return False
 
         # get the bulletin emission and check if time ok
+        # specs says : if time not collectable or minute != 00  ingest NOW
 
         hour   = bulltin.emission[ 8:10]
         if self.source.issue_hours[pos][0] != 'all' and not hour in self.source.issue_hours[pos] :
@@ -151,7 +153,7 @@ class CollectionManager(object):
            return False
 
         # if bulletin is primary but it is not the time to collect ...
-        # do nothing but say False for unusable for now
+        # do nothing but say False because it is unusable for now
 
         primary = 60 * int(self.source.issue_primary[pos])
         cycle   = 60 * int(self.source.issue_cycle[pos])
@@ -161,12 +163,14 @@ class CollectionManager(object):
            if bulltin.age < primary : return False
 
         # we are into a cycle period for collection but it is not the time to transmit ...
+        # do nothing but say False because it is unusable for now
 
         else :
           period  = int((bulltin.delay - primary ) / cycle + 1)
           timeforcycle = primary + period * cycle
           if bulltin.age < timeforcycle : return False
 
+        # still collectable...
         # put info in bulletinCollection entry
 
         self.entry.period  = period
@@ -184,7 +188,7 @@ class CollectionManager(object):
         path = self.files[index]
 
         try:
-               #os.unlink(path)
+               os.unlink(path)
                self.logger.debug("%s has been ignored (erased)", os.path.basename(path))
         except OSError, e:
                (type, value, tb) = sys.exc_info()
@@ -204,102 +208,11 @@ class CollectionManager(object):
         self.bullManager.writeBulletinToDisk(data, True, True)
 
         try:
-                #os.unlink(path)
+                os.unlink(path)
                 self.logger.debug("%s has been erased", os.path.basename(path))
         except OSError, e:
                 (type, value, tb) = sys.exc_info()
                 self.logger.error("Unable to unlink %s ! Type: %s, Value: %s" % (path, type, value))
-
-    #-----------------------------------------------------------------------------------------
-    # load the collection state file 
-    #-----------------------------------------------------------------------------------------
-
-    def loadCollectionState(self):
-
-        self.mapCollectionState = {}
-
-        # read collection state file
-        try   :
-                f = open( self.pathCollectionState ,'r')
-                lignes = f.readlines()
-                f.close()
-        except: 
-                # build from dbase...
-                return
-                 
-        # process all lines into map info
-
-        for ligne in lignes :
-            parse  = ligne.split()
-            self.mapCollectionState[ parse[0] ] = [ parse[1], parse[2], parse[3], parse[4], [], [] ]
-
-        # debug
-        #for key in self.mapCollectionState:
-        #    print(" %s = %s " % (key,self.mapCollectionState[key]) )
-
-    #-----------------------------------------------------------------------------------------
-    # load the collection station file 
-    # produce sorted header list and a map containing sorted stations
-    #-----------------------------------------------------------------------------------------
-
-    def loadCollectionStation(self):
-
-        self.lstCollectionHeader  = []
-        self.mapCollectionStation = {}
-
-        # read collection station config
-        try   :
-                f = open( self.pathCollectionStation ,'r')
-                lignes = f.readlines()
-                f.close()
-        except:
-                self.logger.error("File %s : could not open or read " % self.pathCollectionStation )
-                exit
-                 
-        # process all lines into temporary info
-
-        for ligne in lignes :
-            parse  = ligne.split()
-            header = parse[0]
-
-            # skip comments
-            if header[0] == '#' : continue
-
-            # skip undesired headers
-            try    : indx = self.source.headers.index(header[0:2])
-            except : continue
-
-            # check that the header has no duplicate
-            if header in self.mapCollectionStation :
-               self.logger.error("File %s : duplicated header %s skipped " % (self.pathCollectionStation,header) )
-               continue
-
-            # sort station list
-            slist = parse[1:]
-            slist.sort()
-            if len(slist) == 0 :
-               self.logger.error("File %s : header %s contains no station skipped " % \
-                                (self.pathCollectionStation,header) )
-               continue
-
-            # make sure stations are unique
-            smap  = {}
-            for s in slist :
-                if s in smap :
-                   self.logger.warning("File %s : header %s has duplicated station %s skipped " % \
-                                      (self.pathCollectionStation,header,s) )
-                   continue
-
-            # add new entry
-            self.lstCollectionHeader.append(header)
-            self.mapCollectionStation[header] = slist
-
-        # sort list of header
-        self.lstCollectionHeader.sort()
-
-        # debug
-        #for header in self.lstCollectionHeader:
-        #   print(" %s = %s " % (header,self.mapCollectionStation[header]) )
 
     #-----------------------------------------------------------------------------------------
     # collection process
@@ -308,16 +221,24 @@ class CollectionManager(object):
     def process( self ):
 
         # setting current time
+        # it is very important to set this only once for the duration of the process
 
         self.now = time.mktime(time.gmtime())
 
-        # read it all
+        # setting the collection state map
+
+        self.mapCollectionState = self.collectionState.getCollectionState()
+
+        # read it all 
+        # NOTE : it is important not to restrict the reading 
+        #        so these lines don't use the batch option from config
 
         self.reader.read()
         if len(self.reader.sortedFiles) <= 0 : return
 
-        self.data  = self.reader.getFilesContent()
-        self.files = self.reader.sortedFiles
+        self.bulletins = []
+        self.data      = self.reader.getFilesContent()
+        self.files     = self.reader.sortedFiles
 
         # loop on all files
 
@@ -328,6 +249,8 @@ class CollectionManager(object):
             self.entry = CollectionEntry.CollectionEntry()
 
             # generate bulletin, set its arrival, its age ... save it into a list
+            # TODO... if we have to set its arrival from clock than the file should
+            #         be renamed with a few ":" and the arrival string date at the end
 
             bulltin = bulletin.bulletin(self.data[index],self.logger)
 
@@ -357,12 +280,15 @@ class CollectionManager(object):
 
             self.addToCollectionState( index )
 
-            # debug
-            self.entry.print_debug()
+        # all files are classified... build collections if needed
 
         self.collectionBuilder.process()
 
-        sys.exit(1)
+        # saving the collection state map
+
+        self.collectionState.mapCollectionState = self.mapCollectionState
+        self.collectionState.saveCollectionState()
+
 
     #-----------------------------------------------------------------------------------------
     # add the bulletin to the collection state map
@@ -375,6 +301,7 @@ class CollectionManager(object):
         BBB     = bulltin.getBBB()
         key     = header[0] + '_' + header[1] + '_' + header[2]
 
+        self.entry.BBB      = BBB
         self.entry.statekey = key
 
         # if first bulletin for that state just create and add MapCollectionState value
@@ -402,20 +329,19 @@ class CollectionManager(object):
                        self.files[index] )
            return False
 
-        # ALFRED something more with cycle checking ?
-
-        # add it
+        # the bulletin is not in the primary period ... put it in Cycle
 
         if self.entry.period >  0 :
-           print(" *****CYCLE 1******** ")
            Cycle.append(self.entry)
+
+        # the bulletin is in Primary period :
+        # normal and repeated       are place in Primary
+        # amendement and correction are place in Cycle
+
         else :
-           print(" ****************** BBB = %s " % BBB)
            if    BBB    == None : Primary.append(self.entry)
-	   elif  BBB[0] == 'R'  : Primary.append(self.entry)
-	   else                 :
-                                  print(" *****CYCLE 2******** ")
-                                  Cycle.append(self.entry)
+           elif  BBB[0] == 'R'  : Primary.append(self.entry)
+           else                 : Cycle.append(self.entry)
 
         return True
 

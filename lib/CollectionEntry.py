@@ -19,6 +19,7 @@ class CollectionEntry:
         self.index    = -1
 
         self.header   = None
+        self.BBB      = None
         self.station  = None
         self.dictkey  = None
 
@@ -28,12 +29,14 @@ class CollectionEntry:
 
     def print_debug(self):
 
+        print(" \n CollectionEntry \n "         )
         print(" path     = %s " % self.path     )
         print(" data     = %s " % self.data     )
         print(" bulletin = %s " % self.bulletin )
         print(" index    = %d " % self.index    )
 
         print(" header   = %s " % self.header   )
+        print(" BBB      = %s " % self.BBB      )
         print(" station  = %s " % self.station  )
         print(" dictkey  = %s " % self.dictkey  )
 

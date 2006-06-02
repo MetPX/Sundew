@@ -65,7 +65,7 @@ class Ingestor(object):
         for name in feedNames :
             if not name in sources : continue
             instant = Source(name, self.logger, False)
-	    if instant.type == 'am' or instant.type == 'wmo' :
+            if instant.type == 'am' or instant.type == 'wmo' :
                self.logger.warning("Feed (source %s) will be ignored  (type %s)" % (name, instant.type) )
                continue
             self.feedNames.append(name)
