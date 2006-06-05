@@ -112,7 +112,7 @@ class bulletin:
            Date:        May 2006
         """
 
-        if ep_now == None : ep_now = time.mktime(time.gmtime())
+        if ep_now == None : ep_now = time.mktime(time.localtime())
         self.age = ep_now - self.ep_emission
 
     def compute_Delay(self):
@@ -150,20 +150,33 @@ class bulletin:
         self.ep_emission = time.mktime(timeStruct)
 
         # if the arrival day is the same as the one in header... we are done
-        # if not go backward in time until the emission day is reached
 
         if YYGGGg[:2] == arrival[6:8] : return
 
+        # try to go foreward 1 day... 
+
+        ep_day = self.ep_arrival + 24 * 60 * 60
+        day    = time.strftime('%d',time.localtime(ep_day))
+
+        if day == YYGGGg[:2] :
+           self.emission    = time.strftime('%Y%m%d',time.localtime(ep_day))
+           self.emission   += YYGGGg[2:] + "00"
+           timeStruct       = time.strptime(self.emission, '%Y%m%d%H%M%S')
+           self.ep_emission = time.mktime(timeStruct)
+	   return
+
+        # if not go backward in time until the emission day is reached
+
         day    = arrival[6:8]
         ep_day = self.ep_arrival
-
         while day != YYGGGg[:2] :
               ep_day     = ep_day - 24 * 60 * 60
-              day        = time.strftime('%d',time.gmtime(ep_day))
+              day        = time.strftime('%d',time.localtime(ep_day))
 
-        self.ep_emission = ep_day
-        self.emission    = time.strftime('%Y%m%d',time.gmtime(ep_day))
+        self.emission    = time.strftime('%Y%m%d',time.localtime(ep_day))
         self.emission   += YYGGGg[2:] + "00"
+        timeStruct       = time.strptime(self.emission, '%Y%m%d%H%M%S')
+        self.ep_emission = time.mktime(timeStruct)
 
     def doSpecificProcessing(self):
         """doSpecificProcessing()
@@ -458,7 +471,7 @@ class bulletin:
         """ 
 
         self.ep_arrival = ep_arrival
-        self.arrival    = time.strftime('%Y%m%d%H%M%S',time.gmtime(ep_arrival))
+        self.arrival    = time.strftime('%Y%m%d%H%M%S',time.localtime(ep_arrival))
 
         self.compute_Emission()
         self.compute_Delay()
