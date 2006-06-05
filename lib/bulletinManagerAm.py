@@ -7,7 +7,7 @@ named COPYING in the root of the source directory tree.
 
 """Gestion des bulletins "AM" """
 
-import bulletinManager, bulletinAm, os, string
+import bulletinManager, bulletinAm, PXPaths, StationParser, os, string, sys
 
 __version__ = '2.0'
 
@@ -186,9 +186,18 @@ class bulletinManagerAm(bulletinManager.bulletinManager):
            Auteur:      Louis-Philippe Thériault
            Date:        Octobre 2004
         """
+
         if pathFichierStations == None:
             self.mapEntetes = None
             return
+
+        # read in the collection station file...with the new parser from DL
+
+        sp = StationParser.StationParser(self.pathCollectionStation)
+        sp.parse()
+        self.mapCollectionStation = sp.getStationsColl()
+
+        # proceed with the same processing except use the map instead of the file lines
 
         uneEntete = ""
         uneCle = ""
@@ -198,17 +207,16 @@ class bulletinManagerAm(bulletinManager.bulletinManager):
         self.mapEntetes2mapStations = {}
 
         # Construction des 2 map en même temps
-        for ligne in self.lireFicTexte(pathFichierStations):
-            uneLigneParsee = ligne.split()
+        for key in self.mapCollectionStation :
 
-            unPrefixe = uneLigneParsee[0][0:2]
-            uneEntete = uneLigneParsee[0][2:6] + ' ' + uneLigneParsee[0][6:] + ' '
+            unPrefixe = key[:2]
+            uneEntete = key[2:]
 
             # Ajout d'un map vide pour l'entête courante
             if unPrefixe + uneEntete[:-1] not in self.mapEntetes2mapStations:
                 self.mapEntetes2mapStations[unPrefixe + uneEntete[:-1]] = {}
 
-            for station in uneLigneParsee[1:]:
+            for station in self.mapCollectionStation[key] :
                 uneCle = unPrefixe + station
 
                 self.mapEntetes[uneCle] = uneEntete
