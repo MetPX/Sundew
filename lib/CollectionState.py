@@ -86,8 +86,9 @@ class CollectionState(object):
 
         # loop on all the keys of the map
 
-        map  = {}
-        keys = self.mapCollectionState.keys()
+        count = 0
+        map   = {}
+        keys  = self.mapCollectionState.keys()
         keys.sort()
 
         for key in keys :
@@ -136,44 +137,48 @@ class CollectionState(object):
                   Dir += time.strftime("%Y%m%d",time.gmtime(t)) + "/"
                   Dir += specific
 
-                  if not os.path.isdir(Dir) : continue
-
                   # read and scan DB directory
 
-                  files = os.listdir(Dir)
-                  for f in files :
+                  if os.path.isdir(Dir) :
+                     files = os.listdir(Dir)
 
-                      # get map key from filename
+                     for f in files :
 
-                      parse = f.split('_')
-                      key = parse[0] + '_' + parse[1] + '_' + parse[2]
-                      if not key in self.mapCollectionState : continue
+                         # get map key from filename
 
-                      # we found entry so certainly primary was done... 
+                         parse = f.split('_')
+                         key = parse[0] + '_' + parse[1] + '_' + parse[2]
+                         if not key in self.mapCollectionState : continue
 
-                      ( period, amendement, correction, retard, Primary, Cycle ) = self.mapCollectionState[key]
+                         # we found entry so certainly primary was done... 
 
-                      period = 0
-                      BBB    = parse[3]
+                         ( period, amendement, correction, retard, Primary, Cycle ) = self.mapCollectionState[key]
 
-                      if BBB == '' : continue
+                         period = 0
+                         BBB    = parse[3]
 
-                      # problem cases ...
+                         if BBB == '' : continue
 
-                      if len(BBB) != 3 or BBB[2] < 'A' or BBB[2] > 'Z' : continue
+                         # problem cases ...
 
-                      # Amendement or Correction or Retard
+                         if len(BBB) != 3 or BBB[2] < 'A' or BBB[2] > 'Z' : continue
 
-                      value = self.alpha.index(BBB[2])
+                         # Amendement or Correction or Retard
 
-                      if BBB[0] == 'A' and amendement < value : amendement = value
-                      if BBB[0] == 'C' and correction < value : correction = value
-                      if BBB[0] == 'R' and retard     < value : retard     = value
+                         value = self.alpha.index(BBB[2])
 
-                      self.mapCollectionState[key] = \
-                      ( period, amendement, correction, retard, Primary, Cycle )
+                         if BBB[0] == 'A' and amendement < value : amendement = value
+                         if BBB[0] == 'C' and correction < value : correction = value
+                         if BBB[0] == 'R' and retard     < value : retard     = value
+
+                         self.mapCollectionState[key] = \
+                         ( period, amendement, correction, retard, Primary, Cycle )
+
+                         count = count + 1
 
                   t = t + 24*3600
+
+        self.logger.info("Collection State had %d updates from DB",count)
 
     #-----------------------------------------------------------------------------------------
     # create an empty collection state 
