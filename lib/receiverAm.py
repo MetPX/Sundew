@@ -37,7 +37,7 @@ class receiverAm(gateway.gateway):
 
         self.logger.debug("Instanciation du bulletinManagerAm")
         
-        self.pathFichierStations = PXPaths.ETC + 'collection_stations.conf'
+        self.pathFichierStations = PXPaths.ETC + 'stations.conf'
 
         # Instanciation du bulletinManagerAm avec la panoplie d'arguments.
         self.unBulletinManager = \
