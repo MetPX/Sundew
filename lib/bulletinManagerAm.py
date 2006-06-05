@@ -193,7 +193,7 @@ class bulletinManagerAm(bulletinManager.bulletinManager):
 
         # read in the collection station file...with the new parser from DL
 
-        sp = StationParser.StationParser(self.pathCollectionStation)
+        sp = StationParser.StationParser( pathFichierStations )
         sp.parse()
         self.mapCollectionStation = sp.getStationsColl()
 
