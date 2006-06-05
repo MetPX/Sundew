@@ -162,7 +162,8 @@ class bulletin:
               day        = time.strftime('%d',time.gmtime(ep_day))
 
         self.ep_emission = ep_day
-        self.emission    = time.strftime('%Y%m%d%H%M%S',time.gmtime(ep_day))
+        self.emission    = time.strftime('%Y%m%d',time.gmtime(ep_day))
+        self.emission   += YYGGGg[2:] + "00"
 
     def doSpecificProcessing(self):
         """doSpecificProcessing()
