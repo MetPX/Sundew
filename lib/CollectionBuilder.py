@@ -38,6 +38,7 @@ class CollectionBuilder(object):
         # General Attributes
 
         self.bullManager   = collManager.bullManager
+        self.source        = collManager.source
         self.logger        = collManager.logger
         self.now           = collManager.now
 
@@ -53,6 +54,8 @@ class CollectionBuilder(object):
 
         self.mapCollectionStation  = collManager.mapCollectionStation
         self.mapCollectionState    = collManager.mapCollectionState
+        self.collectionState       = collManager.collectionState
+        self.mapChanged            = False
 
         # alphabet...
 
@@ -160,17 +163,37 @@ class CollectionBuilder(object):
 
             BBB = entry.BBB
 
+            # amendement's BBB : if primary was not done... we are all confused... make it a Y
+
             if BBB[0] == 'A' :
                self.amendement = self.amendement + 1
                cBBB = 'AA' + self.alpha[self.amendement%25]
+               if self.period < 0 :
+                  cBBB = 'AAY'
+               elif self.amendement == 24 :
+                  self.logger.info("This amendement has reach the limit so set it to AAZ" )
+                  cBBB = 'AAZ'
+
+            # correction's BBB : if primary was not done... we are all confused... make it a Y
 
             if BBB[0] == 'C' :
                self.correction = self.correction + 1
                cBBB = 'CC' + self.alpha[self.correction%25]
+               if self.period < 0 :
+                  cBBB = 'CCY'
+               elif self.correction == 24 :
+                  self.logger.info("This correction has reach the limit so set it to CCZ" )
+                  cBBB = 'CCZ'
 
             data = entry.header[0] + ' ' + entry.header[1] + ' ' + entry.header[2] + ' ' + cBBB + '\n'
             if entry.header[0][:2] == 'SM' or entry.header[0][:2] == 'SI' : data += 'AAXX\n'
             data += string.join(entry.bulletin.bulletin[1:],'\n')
+
+            if cBBB[0] == 'A' and cBBB[2] == 'Y' :
+               self.logger.info("This amendement had no primary collection" )
+
+            if cBBB[0] == 'C' and cBBB[2] == 'Y' :
+               self.logger.info("This correction had no primary collection" )
 
             self.bullManager.writeBulletinToDisk(data, True, True)
 
@@ -211,10 +234,13 @@ class CollectionBuilder(object):
 
         header  = self.key.split("_")
 
-        # start building a retarded collection
+        # retarded's BBB : if primary was not done... we are all confused... make it a Y
 
         self.retard = self.retard + 1
         cBBB = 'RR' + self.alpha[self.retard%25]
+        if self.period < 0 :
+           cBBB = 'RRY'
+           self.logger.info("Late bulletin(s) with no primary collection" )
 
         data = header[0] + ' ' + header[1] + ' ' + header[2] + ' ' + cBBB + '\n'
 
@@ -241,9 +267,10 @@ class CollectionBuilder(object):
 
         self.logger.info("Used %d files for that collection" % len(picked) )
 
-        for entry in picked :
-            if entry.path in info : self.logger.debug("File collected  : %s "  % os.path.basename(entry.path))
-            else :                  self.logger.debug("File considered : %s "  % os.path.basename(entry.path))
+        if len(picked) > 1 :
+           for entry in picked :
+               if entry.path in info : self.logger.info("File collected  : %s "  % os.path.basename(entry.path))
+               else :                  self.logger.info("File considered : %s "  % os.path.basename(entry.path))
 
         # unlink all the files
  
@@ -261,38 +288,43 @@ class CollectionBuilder(object):
 
     def process( self ):
 
+        self.mapChanged = False
+
         # loop on all the collected state map
 
         for self.key in self.mapCollectionState :
 
             # extract collection state info 
 
-            lst = self.mapCollectionState[self.key]
-            ( self.period, self.amendement, self.correction, self.retard, self.Primary, self.Cycle ) = lst
+            ( self.period, self.amendement, self.correction, self.retard, self.Primary, self.Cycle ) = \
+            self.mapCollectionState[self.key]
 
             # process primary
 
             if len(self.Primary) != 0 :
                self.processPrimary()
-               self.period  = 0
-               self.Primary = []
+               self.period     = 0
+               self.Primary    = []
+               self.mapChanged = True
+
+            # process an empty primary if needed
+
+            self.processEmptyPrimary()
 
             # process cycle
 
             if len(self.Cycle) != 0 :
                self.processCycle()
-               self.Cycle = []
-
-            # check if it is due and period == -1 than send a primary with all NILS
-
+               self.Cycle      = []
+               self.mapChanged = True
 
             # update collection state info 
 
             self.mapCollectionState[self.key] =  \
-            [ self.period, self.amendement, self.correction, self.retard, self.Primary, self.Cycle ]
+            ( self.period, self.amendement, self.correction, self.retard, self.Primary, self.Cycle )
 
 
-        return True
+        return self.mapChanged
 
     #-----------------------------------------------------------------------------------------
     # processing primary collection
@@ -343,8 +375,8 @@ class CollectionBuilder(object):
         self.logger.info("Used %d files for that collection" % len(self.Primary) )
 
         for entry in self.Primary :
-            if entry.path in info : self.logger.debug("File collected  : %s "  % os.path.basename(entry.path))
-            else :                  self.logger.debug("File considered : %s "  % os.path.basename(entry.path))
+            if entry.path in info : self.logger.info("File collected  : %s "  % os.path.basename(entry.path))
+            else :                  self.logger.info("File considered : %s "  % os.path.basename(entry.path))
 
         # unlink all the files
  
@@ -362,13 +394,51 @@ class CollectionBuilder(object):
         self.Primary = []
 
     #-----------------------------------------------------------------------------------------
+    # processing empty primary : when collection has past its primary and none ingested...
+    #                            create and ingest an empty one
+    #-----------------------------------------------------------------------------------------
+
+    def processEmptyPrimary( self ):
+
+        # current hour and current delay after that hour
+
+        delay  = self.now % 3600
+        ddhhmm = time.strftime('%d%H%M',time.localtime(self.now-delay))
+
+        # primary already done
+
+        if self.period >= 0 : return
+
+        # not the current emission
+
+        if self.key[-6:] != ddhhmm : return
+
+        # if for that header this time is collectable than add it to CollectionState map
+
+        indx = -1
+        try     : indx  = self.source.headers.index(self.key[:2])
+        except  : return
+
+        # give a time range to create an empty primary : range is ]primary,primary+cycle[
+
+        iprimary =  int(self.source.issue_primary[indx]) * 60
+        icycle   =  int(self.source.issue_cycle  [indx]) * 60
+
+        if delay <= iprimary or  delay >= (iprimary+icycle) : return
+
+        # ok make an empty Primary
+
+        self.processPrimary()
+
+        self.period     = 0
+        self.Primary    = []
+        self.mapChanged = True
+
+    #-----------------------------------------------------------------------------------------
     # processing cycle collection
     #-----------------------------------------------------------------------------------------
 
     def processCycle( self ):
-
-        for entry in self.Cycle :
-            entry.print_debug()
 
         # get all available cycles and sort them
 
@@ -386,11 +456,6 @@ class CollectionBuilder(object):
 
             list = self.getCurrentCycle(cycle)
 
-            # if we are ready to write an amendement,correction or retarded
-            # and the primary was not done... ingest an empty one
-
-            if self.period < 0 : self.processPrimary()
-
             # ingest amendements and corrections right away if any
 
             self.ingest_AMD_COR(list)
@@ -398,33 +463,6 @@ class CollectionBuilder(object):
             # ingest retarded
 
             self.ingest_retarded(list)
-
-#   if the collector is down for an hour... than the empty primary will get ingested
-#   at the first arrival of an amemdement,correction,retard bulletin... so not on time
-#   def primary_due( self, index ):
-#
-#       self.now
-#       hour  = ... self.now...
-#       delay = now - hour
-#
-#       for pos,header in enumerate(self.source.headers) :
-#
-#           if self.source.issue_hours[pos][0] != 'all' and not hour in self.source.issue_hours[pos] : continue
-#           primary = 60 * int(self.source.issue_primary[pos])
-#           if delay < primary : continue
-#
-#           due.append(header_DDHHMM)
-#
-#       if len(due) == 0 : return
-#
-#       for key in mapCollectionState :
-#           header_DDHHMM = key[:2] + '_' + key[-6:]
-#           if not header_DDHHMM in due : continue
-#           ( period, amendement, correction, retard, Primary, Cycle ) = self.mapCollectionState[key]
-#            if period >= 0 : continue
-#
-#           # ingest empty primary
-#           self.processPrimary()
 
 if __name__ == '__main__':
     pass

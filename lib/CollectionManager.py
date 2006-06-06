@@ -78,36 +78,26 @@ class CollectionManager(object):
 
     def conformWithStationDictionary( self, index ):
 
-        bulltin = self.bulletins[index]
-
         # check if header found in the dictionnary
 
-        header = bulltin.getHeader().split()
-        key    = header[0] + ' ' + header[1]
-
-        if not key in self.mapCollectionStation :
+        if not self.entry.dictkey in self.mapCollectionStation :
            self.ignore(index,"File %s ignored : (%s) not defined in collection_station dictionnary" % \
-                      (self.files[index],key) )
+                      (self.files[index],self.entry.dictkey) )
            return False
 
-        # check if the station found in the dictionnary
+        # check if the station was found in bulletin
 
-        station = bulltin.getStation()
-        if station == None :
+        if self.entry.station == None :
            self.ignore(index,"File %s ignored : station not found" % self.files[index] )
            return False
 
-        slist = self.mapCollectionStation[key]
-        if not station in slist :
+        # check if the station is defined in the dictionnary
+
+        slist = self.mapCollectionStation[self.entry.dictkey]
+        if not self.entry.station in slist :
            self.ignore(index,"File %s ignored : station(%s) not defined in collection_station dictionnary for %s" % \
-                      (self.files[index],station,key) )
+                      (self.files[index],self.entry.station,self.entry.dictkey) )
            return False
-
-        # put info in bulletinCollection entry
-
-        self.entry.header   = header
-        self.entry.station  = station
-        self.entry.dictkey  = key
 
         return True
 
@@ -134,12 +124,12 @@ class CollectionManager(object):
 
         hour   = bulltin.emission[ 8:10]
         if self.source.issue_hours[pos][0] != 'all' and not hour in self.source.issue_hours[pos] :
-           self.ingest(index,"File %s ingested : (%s) not a collectable time" % (self.files[index],hour+minute) )
+           self.ingest(index,None,"File %s ingested : (%s) not a collectable time" % (self.files[index],hour+minute) )
            return False
 
         minute = bulltin.emission[10:12]
         if minute != '00' :
-           self.ingest(index,"File %s ingested : (%s) not a collectable time" % (self.files[index],hour+minute) )
+           self.ingest(index,None,"File %s ingested : (%s) not a collectable time" % (self.files[index],hour+minute) )
            return False
 
         # check if the bulletin is too early or too old in regards of his emission
@@ -147,9 +137,28 @@ class CollectionManager(object):
         history = 3600 * self.source.history
         future  = -60  * self.source.future
 
-        if bulltin.delay > history or bulltin.delay < future :
+        if bulltin.delay < future :
            self.ignore(index,"File %s ignored : received (%s) emission (%s) so out of its collecting period" % \
                       (self.files[index],bulltin.arrival,bulltin.emission) )
+           return False
+
+        if bulltin.delay > history :
+           header = self.entry.header
+           BBB    = self.entry.BBB
+
+           cBBB = ''
+           if bulltin.delay > history :
+              if   BBB    == None : cBBB = 'RRZ'
+              elif BBB[0] == 'A'  : cBBB = 'AAZ'
+              elif BBB[0] == 'C'  : cBBB = 'CCZ'
+              else                : cBBB = 'RRZ'
+
+           data = header[0] + ' ' + header[1] + ' ' + header[2] + ' ' + cBBB + '\n'
+           if header[0][:2] == 'SM' or header[0][:2] == 'SI' : data += 'AAXX\n'
+           data += string.join(bulltin.bulletin[1:],'\n')
+
+           self.ingest(index,data,"File %s ingested but out received more than %s hours late "  % \
+                      (self.files[index],self.source.history) )
            return False
 
         # if bulletin is primary but it is not the time to collect ...
@@ -173,7 +182,7 @@ class CollectionManager(object):
         # still collectable...
         # put info in bulletinCollection entry
 
-        self.entry.period  = period
+        self.entry.period = period
 
         return True
 
@@ -198,12 +207,13 @@ class CollectionManager(object):
     # direct bulletin ingestion ( log a message, ingest normally)
     #-----------------------------------------------------------------------------------------
 
-    def ingest( self, index, msg  ):
+    def ingest( self, index, data, msg  ):
 
         self.logger.info(msg)
 
-        data = self.data[index]
         path = self.files[index]
+
+        if data == None : data = self.data[index]
 
         self.bullManager.writeBulletinToDisk(data, True, True)
 
@@ -223,7 +233,7 @@ class CollectionManager(object):
         # setting current time
         # it is very important to set this only once for the duration of the process
 
-        self.now = time.mktime(time.gmtime())
+        self.now = time.mktime(time.localtime())
 
         # setting the collection state map
 
@@ -234,7 +244,13 @@ class CollectionManager(object):
         #        so these lines don't use the batch option from config
 
         self.reader.read()
-        if len(self.reader.sortedFiles) <= 0 : return
+
+        if len(self.reader.sortedFiles) <= 0 : 
+           changed = self.collectionBuilder.process()
+           if changed :
+              self.collectionState.mapCollectionState = self.mapCollectionState
+              self.collectionState.saveCollectionState()
+           return
 
         self.bulletins = []
         self.data      = self.reader.getFilesContent()
@@ -268,13 +284,18 @@ class CollectionManager(object):
             self.entry.bulletin = bulltin
             self.entry.index    = index
 
-            # check if the bulletin is defined in the collecteur's configuration 
-
-            if not self.conformWithSourceConfig( index ) : continue
+            self.entry.header   = bulltin.getHeader().split()
+            self.entry.BBB      = bulltin.getBBB()
+            self.entry.station  = bulltin.getStation()
+            self.entry.dictkey  = self.entry.header[0] + ' ' + self.entry.header[1]
 
             # check if the bulletin is defined in the collection_station dictionnary
 
             if not self.conformWithStationDictionary( index ) : continue
+
+            # check if the bulletin is defined in the collecteur's configuration 
+
+            if not self.conformWithSourceConfig( index ) : continue
 
             # check if the bulletin is not in conflict with its collection state
 
@@ -282,13 +303,13 @@ class CollectionManager(object):
 
         # all files are classified... build collections if needed
 
-        self.collectionBuilder.process()
+        changed = self.collectionBuilder.process()
 
         # saving the collection state map
 
-        self.collectionState.mapCollectionState = self.mapCollectionState
-        self.collectionState.saveCollectionState()
-
+        if changed :
+                     self.collectionState.mapCollectionState = self.mapCollectionState
+                     self.collectionState.saveCollectionState()
 
     #-----------------------------------------------------------------------------------------
     # add the bulletin to the collection state map

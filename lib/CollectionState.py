@@ -134,7 +134,7 @@ class CollectionState(object):
                   # create DB directory
 
                   Dir  = PXPaths.DB
-                  Dir += time.strftime("%Y%m%d",time.gmtime(t)) + "/"
+                  Dir += time.strftime("%Y%m%d",time.localtime(t)) + "/"
                   Dir += specific
 
                   # read and scan DB directory
@@ -211,7 +211,7 @@ class CollectionState(object):
 
                   # create entry for that report in dictionary
 
-                  key = "%s_%s"%( h, time.strftime("%d%H%M",time.gmtime(t)) )
+                  key = "%s_%s"%( h, time.strftime("%d%H%M",time.localtime(t)) )
                   self.mapCollectionState[key] = ( -1, -1, -1, -1, [], [] )
 
               t = t + 3600
