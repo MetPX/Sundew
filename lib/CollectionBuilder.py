@@ -188,7 +188,7 @@ class CollectionBuilder(object):
             data    = entry.header[0] + ' ' + entry.header[1] + ' ' + entry.header[2] + ' ' + cBBB + '\n'
 
             istart = 1
-            if header[0][:2] == 'SM' or header[0][:2] == 'SI' : 
+            if entry.header[0][:2] == 'SM' or entry.header[0][:2] == 'SI' : 
                data += 'AAXX\n'
                if entry.bulletin.bulletin[1][0:4] == 'AAXX' : istart = 2
 
