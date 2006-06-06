@@ -185,9 +185,14 @@ class CollectionBuilder(object):
                   self.logger.info("This correction has reach the limit so set it to CCZ" )
                   cBBB = 'CCZ'
 
-            data = entry.header[0] + ' ' + entry.header[1] + ' ' + entry.header[2] + ' ' + cBBB + '\n'
-            if entry.header[0][:2] == 'SM' or entry.header[0][:2] == 'SI' : data += 'AAXX\n'
-            data += string.join(entry.bulletin.bulletin[1:],'\n')
+            data    = entry.header[0] + ' ' + entry.header[1] + ' ' + entry.header[2] + ' ' + cBBB + '\n'
+
+            istart = 1
+            if header[0][:2] == 'SM' or header[0][:2] == 'SI' : 
+               data += 'AAXX\n'
+               if entry.bulletin.bulletin[1][0:4] == 'AAXX' : istart = 2
+
+            data += string.join(entry.bulletin.bulletin[istart:],'\n')
 
             if cBBB[0] == 'A' and cBBB[2] == 'Y' :
                self.logger.info("This amendement had no primary collection" )
@@ -256,7 +261,11 @@ class CollectionBuilder(object):
 
             # add report to the collection
 
-            data += string.join(best.bulletin.bulletin[1:],'\n')
+            istart = 1
+            if header[0][:2] == 'SM' or header[0][:2] == 'SI' : 
+               if entry.bulletin.bulletin[1][0:4] == 'AAXX' : istart = 2
+
+            data += string.join(best.bulletin.bulletin[istart:],'\n')
             info.append(best.path)
 
         # ingest that collection
@@ -357,7 +366,12 @@ class CollectionBuilder(object):
             # add report to the collection
 
             if best != None :
-               data += string.join(best.bulletin.bulletin[1:],'\n')
+
+               istart = 1
+               if header[0][:2] == 'SM' or header[0][:2] == 'SI' : 
+                  if entry.bulletin.bulletin[1][0:4] == 'AAXX' : istart = 2
+
+               data += string.join(best.bulletin.bulletin[istart:],'\n')
                info.append(best.path)
 
             # add station with NIL because it is missing
