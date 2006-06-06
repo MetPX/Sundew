@@ -263,7 +263,7 @@ class CollectionBuilder(object):
 
             istart = 1
             if header[0][:2] == 'SM' or header[0][:2] == 'SI' : 
-               if entry.bulletin.bulletin[1][0:4] == 'AAXX' : istart = 2
+               if best.bulletin.bulletin[1][0:4] == 'AAXX' : istart = 2
 
             data += string.join(best.bulletin.bulletin[istart:],'\n')
             info.append(best.path)
@@ -369,7 +369,7 @@ class CollectionBuilder(object):
 
                istart = 1
                if header[0][:2] == 'SM' or header[0][:2] == 'SI' : 
-                  if entry.bulletin.bulletin[1][0:4] == 'AAXX' : istart = 2
+                  if best.bulletin.bulletin[1][0:4] == 'AAXX' : istart = 2
 
                data += string.join(best.bulletin.bulletin[istart:],'\n')
                info.append(best.path)
