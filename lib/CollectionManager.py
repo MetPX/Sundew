@@ -123,11 +123,12 @@ class CollectionManager(object):
         # specs says : if time not collectable or minute != 00  ingest NOW
 
         hour   = bulltin.emission[ 8:10]
+        minute = bulltin.emission[10:12]
+
         if self.source.issue_hours[pos][0] != 'all' and not hour in self.source.issue_hours[pos] :
            self.ingest(index,None,"File %s ingested : (%s) not a collectable time" % (self.files[index],hour+minute) )
            return False
 
-        minute = bulltin.emission[10:12]
         if minute != '00' :
            self.ingest(index,None,"File %s ingested : (%s) not a collectable time" % (self.files[index],hour+minute) )
            return False
