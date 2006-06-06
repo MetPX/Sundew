@@ -163,7 +163,7 @@ class bulletin:
            self.emission   += YYGGGg[2:] + "00"
            timeStruct       = time.strptime(self.emission, '%Y%m%d%H%M%S')
            self.ep_emission = time.mktime(timeStruct)
-	   return
+           return
 
         # if not go backward in time until the emission day is reached
 
