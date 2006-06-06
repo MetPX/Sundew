@@ -160,7 +160,7 @@ class Igniter:
          except:
             self.printComment('lockfile corrupt, removing')
             os.unlink(self.lock)
-	    self.lockpid = False
+            self.lockpid = False
          lockFile.close()
          return self.lockpid
       else:
