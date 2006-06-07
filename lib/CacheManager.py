@@ -64,6 +64,20 @@ class CacheManager(object):
             self.add(key)
             return None
 
+    # MG test without adding... 
+    # can test for presence and add whenever convenient
+
+    def has(self, object, keyType='standard'):
+        #Create the key according to key type:
+        if keyType == 'standard': 
+            key = object
+        elif keyType == 'md5':
+            key = md5.new(object).hexdigest()
+
+        if key in self.cache: return True
+
+        return False
+
     def clear(self):
         self.cache = {}
 
@@ -105,6 +119,8 @@ if __name__ == '__main__':
     time.sleep(6)
     #print manager.cache
 
+    if     manager.has('toto') : print(" HAS toto")
+    if not manager.has('titi') : print(" NO  titi")
     manager.find('titi')
     manager.find('toto')
     #print manager.cache
