@@ -37,12 +37,18 @@ class CollectionBuilder(object):
         
         # General Attributes
 
-        self.bullManager   = collManager.bullManager
         self.source        = collManager.source
         self.logger        = collManager.logger
         self.now           = collManager.now
+        self.cacheManager  = collManager.cacheManager
+
+        self.ingest        = collManager.ingest
+        self.ingestX       = collManager.ingestX
+        self.unlink        = collManager.unlink
 
         self.key           = None
+        self.header        = None
+
         self.period        = -1
         self.amendement    = -1
         self.correction    = -1
@@ -62,6 +68,10 @@ class CollectionBuilder(object):
         self.alpha = \
         [ 'A','B','C','D','E','F','G','H','I','J','K','L','M','N','O','P','Q','R','S','T','U','V','W','X','Y','Z' ]
 
+        # aaxx...
+
+        self.aaxx = [ 'SI', 'SM' ]
+
         # metar...
 
         self.metar = \
@@ -70,28 +80,34 @@ class CollectionBuilder(object):
           'SACN51', 'SACN52'  ]
 
     #-----------------------------------------------------------------------------------------
+    # cache used files
+    #-----------------------------------------------------------------------------------------
+
+    def cache( self, entry ):
+
+        found = self.cacheManager.find(entry.data, 'md5')
+        if found != None : 
+           self.logger.info("%s used more than once" % entry.path )
+
+    #-----------------------------------------------------------------------------------------
     # getBestStationReport : if we have many bulletins for the same station to put in
     #                        the collection : use the most recent
     #-----------------------------------------------------------------------------------------
 
     def getBestStationReport( self, station, list ):
 
-        # loop on all entry
+        # working variables
 
-        best = None
+        best  =  None
+        delay = -99999
+
+        # if the station report more than once... 
+        # than pick the most recent i.e the biggest delay
+
         for entry in list :
-            if entry.station != station : continue
-
-            # first station found
-
-            if best == None :
-               best = entry
-               continue
-
-            # if the station report more than once... 
-            # than pick the most recent i.e the biggest delay
-
-            if entry.bulletin.delay > best.bulletin.delay : best = entry
+            if entry.station == station and entry.bulletin.delay > delay :
+               best  = entry
+               delay = entry.bulletin.delay
 
         # return the best
 
@@ -114,10 +130,10 @@ class CollectionBuilder(object):
 
         def compare(x, y):
 
-            a  = x.bulletin.arrival
-            if x.BBB != None : a += x.BBB
+            a = x.bulletin.arrival
+            b = y.bulletin.arrival
 
-            b  = y.bulletin.arrival
+            if x.BBB != None : a += x.BBB
             if y.BBB != None : b += y.BBB
 
             return cmp(a, b)
@@ -127,6 +143,28 @@ class CollectionBuilder(object):
         clist.sort(compare)
 
         return clist
+
+    #-----------------------------------------------------------------------------------------
+    # increment state for an entry... state can be AMD COR RET
+    #-----------------------------------------------------------------------------------------
+
+    def incState( self, entry, kind, state ):
+
+        new_state = state + 1
+
+        #  if we reach 24 its 'Y' ... we are confused so Y is good
+
+        if new_state >= 24 :
+           self.logger.debug("%s reached %s limit" % (entry.statekey,kind) )
+           new_state  = 24 
+
+        #  if we have no history... we are confused so Y is good
+
+        if self.period < 0 :
+           self.logger.debug("%s state confusion for %s no history" % (entry.statekey,kind) )
+           new_state  = 24
+
+        return new_state
 
     #-----------------------------------------------------------------------------------------
     # ingest amendements and corrections if any
@@ -139,8 +177,7 @@ class CollectionBuilder(object):
         picked   = []
 
         for entry in list :
-            if entry.BBB == None : continue
-            if entry.BBB[0] != 'A' and entry.BBB[0] != 'C' : continue
+            if entry.BBB == None or entry.BBB[0] == 'R' : continue
             picked.append(entry)
 
         if len(picked) <= 0 : return
@@ -155,62 +192,21 @@ class CollectionBuilder(object):
 
         picked.sort(compare)
 
-        # we are ready to ingest...
+        # ingest them in that order
 
         for entry in picked :
 
-            cBBB = ''
+            if   entry.BBB[0] == 'A' : 
+                 amendement = self.incState(entry,"amendement",self.amendement)
+                 if amendement <  24 : self.amendement = amendement
+                 X = self.alpha[amendement]
 
-            BBB = entry.BBB
+            elif entry.BBB[0] == 'C' :
+                 correction = self.incState(entry,"correction",self.correction)
+                 if correction <  24 : self.correction = correction
+                 X = self.alpha[correction]
 
-            # amendement's BBB : if primary was not done... we are all confused... make it a Y
-
-            if BBB[0] == 'A' :
-               self.amendement = self.amendement + 1
-               cBBB = 'AA' + self.alpha[self.amendement%25]
-               if self.period < 0 :
-                  cBBB = 'AAY'
-               elif self.amendement == 24 :
-                  self.logger.info("This amendement has reach the limit so set it to AAZ" )
-                  cBBB = 'AAZ'
-
-            # correction's BBB : if primary was not done... we are all confused... make it a Y
-
-            if BBB[0] == 'C' :
-               self.correction = self.correction + 1
-               cBBB = 'CC' + self.alpha[self.correction%25]
-               if self.period < 0 :
-                  cBBB = 'CCY'
-               elif self.correction == 24 :
-                  self.logger.info("This correction has reach the limit so set it to CCZ" )
-                  cBBB = 'CCZ'
-
-            data    = entry.header[0] + ' ' + entry.header[1] + ' ' + entry.header[2] + ' ' + cBBB + '\n'
-
-            istart = 1
-            if entry.header[0][:2] == 'SM' or entry.header[0][:2] == 'SI' : 
-               data += 'AAXX\n'
-               if entry.bulletin.bulletin[1][0:4] == 'AAXX' : istart = 2
-
-            data += string.join(entry.bulletin.bulletin[istart:],'\n')
-
-            if cBBB[0] == 'A' and cBBB[2] == 'Y' :
-               self.logger.info("This amendement had no primary collection" )
-
-            if cBBB[0] == 'C' and cBBB[2] == 'Y' :
-               self.logger.info("This correction had no primary collection" )
-
-            self.bullManager.writeBulletinToDisk(data, True, True)
-
-            self.logger.info("Used 1 file for that collection" )
-            self.logger.debug("File collected  : %s ", entry.path )
-
-            try:
-                os.unlink(entry.path)
-                self.logger.debug("%s has been erased", os.path.basename(entry.path))
-            except OSError, e:
-                (type, value, tb) = sys.exc_info()
-                self.logger.error("Unable to unlink %s ! Type: %s, Value: %s" % (entry.path, type, value))
+            self.ingestX(entry,X)
 
     #-----------------------------------------------------------------------------------------
     # ingest retarded
@@ -218,10 +214,13 @@ class CollectionBuilder(object):
 
     def ingest_retarded( self, list ):
 
-        # get retarded only
+        # working variables
 
+        header   = self.header
         picked   = []
         stations = {}
+
+        # get retard entries and keep station in list
 
         for entry in list :
             if entry.BBB == None or entry.BBB[0] == 'R' :
@@ -230,26 +229,20 @@ class CollectionBuilder(object):
 
         if len(picked) <= 0 : return
 
-        # get the sorted list of stations for that collection
+        # get the sorted list of unique stations for that collection
 
         stationlist = stations.keys()
         stationlist.sort()
 
-        # get needed info from the collection state key
+        # build header
 
-        header  = self.key.split("_")
+        retard = self.incState(picked[0],"retard",self.retard)
+        if retard < 24 : self.retard = retard
 
-        # retarded's BBB : if primary was not done... we are all confused... make it a Y
+        cBBB   = 'RR' + self.alpha[retard]
+        data   = header[0] + ' ' + header[1] + ' ' + header[2] + ' ' + cBBB + '\n'
 
-        self.retard = self.retard + 1
-        cBBB = 'RR' + self.alpha[self.retard%25]
-        if self.period < 0 :
-           cBBB = 'RRY'
-           self.logger.info("Late bulletin(s) with no primary collection" )
-
-        data = header[0] + ' ' + header[1] + ' ' + header[2] + ' ' + cBBB + '\n'
-
-        if header[0][:2] == 'SM' or header[0][:2] == 'SI' : data += 'AAXX\n'
+        if header[0][:2] in self.aaxx : data += 'AAXX\n'
 
         # add retarded by ordered station ... 
 
@@ -262,15 +255,14 @@ class CollectionBuilder(object):
             # add report to the collection
 
             istart = 1
-            if header[0][:2] == 'SM' or header[0][:2] == 'SI' : 
-               if best.bulletin.bulletin[1][0:4] == 'AAXX' : istart = 2
+            if header[0][:2] in self.aaxx and best.bulletin.bulletin[1][0:4] == 'AAXX' : istart = 2
 
             data += string.join(best.bulletin.bulletin[istart:],'\n')
             info.append(best.path)
 
         # ingest that collection
 
-        self.bullManager.writeBulletinToDisk(data, True, True)
+        self.ingest(data)
 
         # log how many files used for that collection
 
@@ -280,16 +272,6 @@ class CollectionBuilder(object):
            for entry in picked :
                if entry.path in info : self.logger.info("File collected  : %s "  % os.path.basename(entry.path))
                else :                  self.logger.info("File considered : %s "  % os.path.basename(entry.path))
-
-        # unlink all the files
- 
-        for entry in picked :
-            try:
-                os.unlink(entry.path)
-                self.logger.debug("%s has been erased", os.path.basename(entry.path))
-            except OSError, e:
-                (type, value, tb) = sys.exc_info()
-                self.logger.error("Unable to unlink %s ! Type: %s, Value: %s" % (entry.path, type, value))
 
     #-----------------------------------------------------------------------------------------
     # process : create and ingest collected bulletins
@@ -303,6 +285,10 @@ class CollectionBuilder(object):
 
         for self.key in self.mapCollectionState :
 
+            # get needed info from the collection state key
+
+            self.header = self.key.split("_")
+
             # extract collection state info 
 
             ( self.period, self.amendement, self.correction, self.retard, self.Primary, self.Cycle ) = \
@@ -310,11 +296,7 @@ class CollectionBuilder(object):
 
             # process primary
 
-            if len(self.Primary) != 0 :
-               self.processPrimary()
-               self.period     = 0
-               self.Primary    = []
-               self.mapChanged = True
+            if len(self.Primary) != 0 : self.processPrimary()
 
             # process an empty primary if needed
 
@@ -322,10 +304,7 @@ class CollectionBuilder(object):
 
             # process cycle
 
-            if len(self.Cycle) != 0 :
-               self.processCycle()
-               self.Cycle      = []
-               self.mapChanged = True
+            if len(self.Cycle) != 0 : self.processCycle()
 
             # update collection state info 
 
@@ -341,48 +320,43 @@ class CollectionBuilder(object):
 
     def processPrimary( self ):
 
-        # get needed info from the collection state key
+        # working variables
 
-        header  = self.key.split("_")
-        dictkey = header[0] + ' ' + header[1]
-
-        # get the lists of stations for that collection
-
+        info        = []
+        header      = self.header
+        dictkey     = header[0] + ' ' + header[1]
         stationlist = self.mapCollectionStation[dictkey]
 
-        # start building the collection by its header
+        # build the collection's header
 
         data = header[0] + ' ' + header[1] + ' ' + header[2] + '\n'
-
-        if header[0][:2] == 'SM' or header[0][:2] == 'SI' : data += 'AAXX\n'
+        if header[0][:2] in self.aaxx : data += 'AAXX\n'
 
         # loop on stations to put into collection
-
-        info=[]
 
         for station in stationlist :
             best = self.getBestStationReport(station,self.Primary)
 
-            # add report to the collection
+            # station not found : add with NIL 
 
-            if best != None :
-
-               istart = 1
-               if header[0][:2] == 'SM' or header[0][:2] == 'SI' : 
-                  if best.bulletin.bulletin[1][0:4] == 'AAXX' : istart = 2
-
-               data += string.join(best.bulletin.bulletin[istart:],'\n')
-               info.append(best.path)
-
-            # add station with NIL because it is missing
-
-            else :
+            if best == None :
                if header[0][:6] in self.metar : data += 'METAR ' + station + ' NIL=\n'
                else :                           data +=            station + ' NIL=\n'
+               continue
+
+            # add station to the collection
+
+            istart = 1
+            if header[0][:2] in self.aaxx : 
+               if best.bulletin.bulletin[1][0:4] == 'AAXX' : istart = 2
+
+            data += string.join(best.bulletin.bulletin[istart:],'\n')
+            info.append(best.path)
+
 
         # ingest that collection
 
-        self.bullManager.writeBulletinToDisk(data, True, True)
+        self.ingest(data)
 
         # log how many files used for that collection
 
@@ -392,20 +366,17 @@ class CollectionBuilder(object):
             if entry.path in info : self.logger.info("File collected  : %s "  % os.path.basename(entry.path))
             else :                  self.logger.info("File considered : %s "  % os.path.basename(entry.path))
 
-        # unlink all the files
+        # cache and unlink all the files
  
         for entry in self.Primary :
-            try:
-                os.unlink(entry.path)
-                self.logger.debug("%s has been erased", os.path.basename(entry.path))
-            except OSError, e:
-                (type, value, tb) = sys.exc_info()
-                self.logger.error("Unable to unlink %s ! Type: %s, Value: %s" % (entry.path, type, value))
+            self.cache(entry)
+            self.unlink(entry.path)
 
         # update collection state
 
         self.period  = 0
         self.Primary = []
+        self.mapChanged = True
 
     #-----------------------------------------------------------------------------------------
     # processing empty primary : when collection has past its primary and none ingested...
@@ -414,14 +385,14 @@ class CollectionBuilder(object):
 
     def processEmptyPrimary( self ):
 
+        # primary already done
+
+        if self.period >= 0 : return
+
         # current hour and current delay after that hour
 
         delay  = self.now % 3600
         ddhhmm = time.strftime('%d%H%M',time.localtime(self.now-delay))
-
-        # primary already done
-
-        if self.period >= 0 : return
 
         # not the current emission
 
@@ -444,10 +415,6 @@ class CollectionBuilder(object):
 
         self.processPrimary()
 
-        self.period     = 0
-        self.Primary    = []
-        self.mapChanged = True
-
     #-----------------------------------------------------------------------------------------
     # processing cycle collection
     #-----------------------------------------------------------------------------------------
@@ -459,6 +426,7 @@ class CollectionBuilder(object):
         map = {}
         for entry in self.Cycle :
             map[entry.period] = 1
+
         cycles = map.keys()
         cycles.sort()
 
@@ -477,6 +445,17 @@ class CollectionBuilder(object):
             # ingest retarded
 
             self.ingest_retarded(list)
+
+        # cache and unlink all the files
+ 
+        for entry in self.Cycle :
+            self.cache(entry)
+            self.unlink(entry.path)
+
+        # update collection state
+
+        self.Cycle = []
+        self.mapChanged = True
 
 if __name__ == '__main__':
     pass

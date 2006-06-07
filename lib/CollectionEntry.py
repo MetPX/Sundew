@@ -13,37 +13,43 @@ class CollectionEntry:
 
     def __init__(self):
 
-        self.path     = None
-        self.data     = None
-        self.bulletin = None
-        self.index    = -1
+        self.path      = None
+        self.data      = None
 
-        self.header   = None
-        self.BBB      = None
-        self.station  = None
-        self.dictkey  = None
+        self.bulletin  = None
+        self.header    = None
+        self.type      = None
+        self.BBB       = None
+        self.station   = None
 
-        self.period   = -1  # 0 means primary... 1,2... cycle period
+        self.dictkey   = None
+        self.statekey  = None
 
-        self.statekey = None
+        self.sourceidx = -1
+
+        self.period    = -1  # 0 means primary... 1,2... cycle period
 
     def print_debug(self):
 
-        print(" \n CollectionEntry \n "         )
-        print(" path     = %s " % self.path     )
-        print(" data     = %s " % self.data     )
-        print(" bulletin = %s " % self.bulletin )
-        print(" index    = %d " % self.index    )
-
-        print(" header   = %s " % self.header   )
-        print(" BBB      = %s " % self.BBB      )
-        print(" station  = %s " % self.station  )
-        print(" dictkey  = %s " % self.dictkey  )
-
-        print(" period   = %s " % self.period   )
-
-        print(" statekey = %s " % self.statekey )
-
+        print(" \n " )
+        print(" CollectionEntry " )
+        print(" \n " )
+        print(" path      = %s " % self.path     )
+        print(" data      = %s " % self.data     )
+        print(" \n " )
+        print(" bulletin  = %s " % self.bulletin )
+        print(" header    = %s " % self.header   )
+        print(" type      = %s " % self.type     )
+        print(" BBB       = %s " % self.BBB      )
+        print(" station   = %s " % self.station  )
+        print(" \n " )
+        print(" dictkey   = %s " % self.dictkey  )
+        print(" statekey  = %s " % self.statekey )
+        print(" \n " )
+        print(" sourceidx = %s " % self.statekey )
+        print(" \n " )
+        print(" period    = %s " % self.period   )
+        print(" \n " )
         print(" delay    = %s " % self.bulletin.delay )
 
 if __name__ == '__main__':

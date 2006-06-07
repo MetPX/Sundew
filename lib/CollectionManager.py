@@ -27,6 +27,8 @@ import CollectionEntry
 import CollectionState
 import StationParser
 
+from CacheManager import CacheManager
+
 PXPaths.normalPaths()              # Access to PX paths
 
 # CollectionManager
@@ -48,17 +50,19 @@ class CollectionManager(object):
         self.reader        = reader
         self.source        = ingestor.source
 
-        self.bulletins     = []
         self.files         = []
         self.data          = []
         self.entry         = None
 
         self.now           = time.mktime(time.localtime())
 
+        # a cacheManager to make sure we process a file only once
+
+        self.cacheManager  = CacheManager(maxEntries=250000, timeout=int(self.source.history)*3600)
+
         # reading the collection station config file...
 
-        self.pathCollectionStation = PXPaths.ETC + 'stations.conf'
-        sp = StationParser.StationParser(self.pathCollectionStation)
+        sp = StationParser.StationParser(PXPaths.STATION_TABLE)
         sp.parse()
         self.mapCollectionStation = sp.getStationsColl()
 
@@ -66,37 +70,48 @@ class CollectionManager(object):
 
         self.mapCollectionState = {}
         self.collectionState    = CollectionState.CollectionState( self )
-        self.mapCollectionState = self.collectionState.getCollectionState()
+        self.getState           = self.collectionState.getCollectionState
+        self.saveState          = self.collectionState.saveCollectionState
+        self.mapCollectionState = self.getState()
 
         # instantiate the collection builder class
 
         self.collectionBuilder = CollectionBuilder.CollectionBuilder( self )
+        self.collectionBuild   = self.collectionBuilder.process
 
     #-----------------------------------------------------------------------------------------
     # check if the bulletin is defined in the collection_station dictionnary
     #-----------------------------------------------------------------------------------------
 
-    def conformWithStationDictionary( self, index ):
+    def conformWithStationDictionary( self ):
+
+        # working variables
+
+        dict    = PXPaths.STATION_TABLE
+        dictkey = self.entry.dictkey
+        path    = self.entry.path
+        station = self.entry.station
 
         # check if header found in the dictionnary
 
-        if not self.entry.dictkey in self.mapCollectionStation :
-           self.ignore(index,"File %s ignored : (%s) not defined in collection_station dictionnary" % \
-                      (self.files[index],self.entry.dictkey) )
+        if not dictkey in self.mapCollectionStation :
+           self.logger.debug("Reject %s : (%s) not in %s" % (path,dictkey,dict) )
+           self.unlink(path)
            return False
 
         # check if the station was found in bulletin
 
-        if self.entry.station == None :
-           self.ignore(index,"File %s ignored : station not found" % self.files[index] )
+        if station == None :
+           self.logger.warning("Reject %s : station not found" % (path,station) )
+           self.unlink(path)
            return False
 
         # check if the station is defined in the dictionnary
 
-        slist = self.mapCollectionStation[self.entry.dictkey]
-        if not self.entry.station in slist :
-           self.ignore(index,"File %s ignored : station(%s) not defined in collection_station dictionnary for %s" % \
-                      (self.files[index],self.entry.station,self.entry.dictkey) )
+        station_list = self.mapCollectionStation[dictkey]
+        if not station in station_list :
+           self.logger.warning("Reject %s : station %s not defined for %s in %s" % (path,station,dictkey,dict) )
+           self.unlink(path)
            return False
 
         return True
@@ -105,19 +120,28 @@ class CollectionManager(object):
     # check if the bulletin is defined in the collecteur's configuration 
     #-----------------------------------------------------------------------------------------
 
-    def conformWithSourceConfig( self, index ):
+    def conformWithSourceConfig( self ):
 
-        bulltin = self.bulletins[index]
+        # working variables
+
+        bulltin = self.entry.bulletin
+        data    = self.entry.data
+        path    = self.entry.path
+        type    = self.entry.type
+
+        name    = self.source.name
 
         # get bulletin type and check if configured collectable, if not ignore
 
         pos     = -1
-        type    = bulltin.getType()
         try     : pos = self.source.headers.index(type)
         except  :
                   # if bulletin type not configured collectable ignore it
-                  self.ignore(index,"File %s ignored : (%s)  not a collectable type" % (self.files[index],type) )
+                  self.logger.debug("Reject %s : (%s) not define in %s.conf header" % (path,type,name) )
+                  self.unlink(path)
                   return False
+
+        self.entry.sourceidx = pos
 
         # get the bulletin emission and check if time ok
         # specs says : if time not collectable or minute != 00  ingest NOW
@@ -126,111 +150,104 @@ class CollectionManager(object):
         minute = bulltin.emission[10:12]
 
         if self.source.issue_hours[pos][0] != 'all' and not hour in self.source.issue_hours[pos] :
-           self.ingest(index,None,"File %s ingested : (%s) not a collectable time" % (self.files[index],hour+minute) )
+           self.logger.info("Forced ingestion (time) %s" % path )
+           self.ingest(data)
+           self.unlink(path)
            return False
 
         if minute != '00' :
-           self.ingest(index,None,"File %s ingested : (%s) not a collectable time" % (self.files[index],hour+minute) )
+           self.logger.info("Forced ingestion (time) %s" % path )
+           self.ingest(data)
+           self.unlink(path)
            return False
 
-        # check if the bulletin is too early or too old in regards of his emission
+        # check if the bulletin is too early
 
         history = 3600 * self.source.history
         future  = -60  * self.source.future
 
         if bulltin.delay < future :
-           self.ignore(index,"File %s ignored : received (%s) emission (%s) so out of its collecting period" % \
-                      (self.files[index],bulltin.arrival,bulltin.emission) )
+           self.logger.debug("Reject %s : arrived earlier than permitted (%d)" % (path,bulltin.delay) )
+           self.unlink(path)
            return False
 
-        header = self.entry.header
-        BBB    = self.entry.BBB
+        # check if the bulletin is too old
 
         if bulltin.delay > history :
-
-           cBBB = ''
-           if bulltin.delay > history :
-              if   BBB    == None : cBBB = 'RRZ'
-              elif BBB[0] == 'A'  : cBBB = 'AAZ'
-              elif BBB[0] == 'C'  : cBBB = 'CCZ'
-              else                : cBBB = 'RRZ'
-
-           data = header[0] + ' ' + header[1] + ' ' + header[2] + ' ' + cBBB + '\n'
-
-           istart = 1
-           if header[0][:2] == 'SM' or header[0][:2] == 'SI' :
-              data += 'AAXX\n'
-              if bulltin.bulletin[1][0:4] == 'AAXX' : istart = 2
-
-           data += string.join(bulltin.bulletin[istart:],'\n')
-
-           self.ingest(index,data,"File %s ingested but out received more than %s hours late "  % \
-                      (self.files[index],self.source.history) )
+           self.logger.info("Forced ingestion (too old) %s" % path )
+           self.ingestX(self.entry,'Z')
+           self.unlink(path)
            return False
 
-        # if bulletin is primary but it is not the time to collect ...
-        # do nothing but say False because it is unusable for now
+        # compute primary and cycle in secs
 
         primary = 60 * int(self.source.issue_primary[pos])
         cycle   = 60 * int(self.source.issue_cycle[pos])
-        period  = 0
+
+        # if the bulletin is in its primary period
+        # do nothing if it is not time for collection
 
         if bulltin.delay  < primary :
            if bulltin.age < primary : return False
+           self.entry.period = 0
+           return True
 
-        # we are into a cycle period for collection but it is not the time to transmit ...
-        # do nothing but say False because it is unusable for now
+        # the bulletin is in one of its cycle period : compute the period and time of collection
 
-        else :
-          period  = int((bulltin.delay - primary ) / cycle + 1)
-          timeforcycle = primary + period * cycle
-          if bulltin.age < timeforcycle : 
-             if BBB == None or BBB[0] == 'R' : return False
+        self.entry.period = int((bulltin.delay - primary ) / cycle + 1)
+        timeOfCollection  = primary + self.entry.period  * cycle
 
-        # still collectable...
-        # put info in bulletinCollection entry
+        # we can collect
 
-        self.entry.period = period
+        if bulltin.age >= timeOfCollection  : return True
+
+        # it's not time to collect and the bulletin is regular or a repeat: do nothing
+
+        if BBB == None or BBB[0] == 'R' : return False
+
+        # still not time to collect BUT AT THIS POINT
+        # we have an AMD or COR during one of its cycle... ingest !
 
         return True
 
     #-----------------------------------------------------------------------------------------
-    # ignore a file ( log a message, unlink file)
+    # ingest one bulletin's data
     #-----------------------------------------------------------------------------------------
 
-    def ignore( self, index, msg  ):
-
-        self.logger.info(msg)
-
-        path = self.files[index]
-
-        try:
-               os.unlink(path)
-               self.logger.debug("%s has been ignored (erased)", os.path.basename(path))
-        except OSError, e:
-               (type, value, tb) = sys.exc_info()
-               self.logger.error("Unable to unlink %s ! Type: %s, Value: %s" % (path, type, value))
-
-    #-----------------------------------------------------------------------------------------
-    # direct bulletin ingestion ( log a message, ingest normally)
-    #-----------------------------------------------------------------------------------------
-
-    def ingest( self, index, data, msg  ):
-
-        self.logger.info(msg)
-
-        path = self.files[index]
-
-        if data == None : data = self.data[index]
+    def ingest( self, data ):
 
         self.bullManager.writeBulletinToDisk(data, True, True)
 
-        try:
-                os.unlink(path)
-                self.logger.debug("%s has been erased", os.path.basename(path))
-        except OSError, e:
-                (type, value, tb) = sys.exc_info()
-                self.logger.error("Unable to unlink %s ! Type: %s, Value: %s" % (path, type, value))
+    #-----------------------------------------------------------------------------------------
+    # ingestX : ingest one bulletin with a BBB having its last letter as X
+    #-----------------------------------------------------------------------------------------
+
+    def ingestX( self, entry, X ):
+
+        # working variables
+
+        bulltin = entry.bulletin
+        BBB     = entry.BBB
+        data    = entry.data
+        header  = entry.header
+
+        # create its new BBB
+
+        cBBB = ''
+
+        if   BBB    == None : cBBB = 'RR' + X
+        elif BBB[0] == 'A'  : cBBB = 'AA' + X
+        elif BBB[0] == 'C'  : cBBB = 'CC' + X
+        else                : cBBB = 'RR' + x
+
+        # rebuild data with new header
+
+        data  = header[0] + ' ' + header[1] + ' ' + header[2] + ' ' + cBBB + '\n'
+        data += string.join(bulltin.bulletin[1:],'\n')
+
+        # ingest
+
+        self.ingest(data)
 
     #-----------------------------------------------------------------------------------------
     # collection process
@@ -245,7 +262,7 @@ class CollectionManager(object):
 
         # setting the collection state map
 
-        self.mapCollectionState = self.collectionState.getCollectionState()
+        self.mapCollectionState = self.getState()
 
         # read it all 
         # NOTE : it is important not to restrict the reading 
@@ -253,20 +270,27 @@ class CollectionManager(object):
 
         self.reader.read()
 
+        # no files...
+        # call the collectionBuilder for empty primary collection...
+        # saveCollection state if needed...
+
         if len(self.reader.sortedFiles) <= 0 : 
-           changed = self.collectionBuilder.process()
-           if changed :
-              self.collectionState.mapCollectionState = self.mapCollectionState
-              self.collectionState.saveCollectionState()
+           changed    = self.collectionBuild()
+           if changed : self.saveState()
            return
 
-        self.bulletins = []
-        self.data      = self.reader.getFilesContent()
-        self.files     = self.reader.sortedFiles
+        # working variables
+
+        self.data  = self.reader.getFilesContent()
+        self.files = self.reader.sortedFiles
 
         # loop on all files
 
         for index in range(len(self.data)):
+
+            # if the bulletin was already processed... skip it
+
+            if self.cacheManager.has( self.data[index] ) : continue
 
             # bulletinCollection is a class to hold bulletin if it has to be collected
 
@@ -283,41 +307,42 @@ class CollectionManager(object):
 
             bulltin.compute_Age(self.now)
 
-            self.bulletins.append(bulltin)
-
             # put info in bulletinCollection entry
 
-            self.entry.path     = self.files[index]
-            self.entry.data     = self.data[index]
-            self.entry.bulletin = bulltin
-            self.entry.index    = index
+            self.entry.path      = self.files[index]
+            self.entry.data      = self.data[index]
 
-            self.entry.header   = bulltin.getHeader().split()
-            self.entry.BBB      = bulltin.getBBB()
-            self.entry.station  = bulltin.getStation()
-            self.entry.dictkey  = self.entry.header[0] + ' ' + self.entry.header[1]
+            self.entry.bulletin  = bulltin
+            self.entry.header    = bulltin.getHeader().split()
+            self.entry.type      = bulltin.getType()
+            self.entry.BBB       = bulltin.getBBB()
+            self.entry.station   = bulltin.getStation()
+
+            self.entry.dictkey   = self.entry.header[0] + ' ' + self.entry.header[1]
+            self.entry.statekey  = self.entry.header[0] + '_' + self.entry.header[1]  + '_' + self.entry.header[2]
+
+            # info initialize and set later
+
+            self.entry.sourceidx = -1
+            self.entry.period    = -1
 
             # check if the bulletin is defined in the collection_station dictionnary
 
-            if not self.conformWithStationDictionary( index ) : continue
+            if not self.conformWithStationDictionary( ) : continue
 
             # check if the bulletin is defined in the collecteur's configuration 
 
-            if not self.conformWithSourceConfig( index ) : continue
+            if not self.conformWithSourceConfig( ) : continue
 
             # check if the bulletin is not in conflict with its collection state
 
             self.addToCollectionState( index )
 
         # all files are classified... build collections if needed
+        # saving the collection state map if needed
 
-        changed = self.collectionBuilder.process()
-
-        # saving the collection state map
-
-        if changed :
-                     self.collectionState.mapCollectionState = self.mapCollectionState
-                     self.collectionState.saveCollectionState()
+        changed    = self.collectionBuild()
+        if changed : self.saveState()
 
     #-----------------------------------------------------------------------------------------
     # add the bulletin to the collection state map
@@ -325,15 +350,14 @@ class CollectionManager(object):
 
     def addToCollectionState( self, index ):
 
-        bulltin = self.bulletins[index]
+        # working variables
+
+        path    = self.entry.path
         header  = self.entry.header
-        BBB     = bulltin.getBBB()
-        key     = header[0] + '_' + header[1] + '_' + header[2]
+        BBB     = self.entry.BBB
+        key     = self.entry.statekey
 
-        self.entry.BBB      = BBB
-        self.entry.statekey = key
-
-        # if first bulletin for that state just create and add MapCollectionState value
+        # if it is the first bulletin for that key just create and add an initial MapCollectionState value
 
         if not key in self.mapCollectionState :
 
@@ -346,33 +370,50 @@ class CollectionManager(object):
 
            self.mapCollectionState[key] = (period,amendement,correction,retard,Primary,Cycle)
 
-        # get MapCollectionState value and make some verifications
-        # if the bulletin is in the primary period and the primary was ingested
-        # we have a problem... recovery mode did not work properly or 
-        # we did not process enough files check source.batch value
+        # get MapCollectionState value
 
         ( period, amendement, correction, retard, Primary, Cycle ) = self.mapCollectionState[key]
 
-        if period == 0 and self.entry.period == 0 :
-           self.ignore(index,"File %s ignored : primary collection already done, maybe batch not big enough" % \
-                       self.files[index] )
-           return False
-
-        # the bulletin is not in the primary period ... put it in Cycle
+        # the bulletin is not a primary
 
         if self.entry.period >  0 :
            Cycle.append(self.entry)
+           return
 
-        # the bulletin is in Primary period :
+        # the bulletin is primary
+        # we have a problem if its primary collection was done...
+        # some possibilities : we were in recovery mode and some files were moved after a collecteur iteration
+        #                      we did not process enough files check the source.batch value
+
+        if period == 0 :
+           self.logger.debug("Reject %s : primary already done" % (path,dictkey,dict) )
+           self.unlink(path)
+           return
+
+        # primary bulletin are splitted...
         # normal and repeated       are place in Primary
         # amendement and correction are place in Cycle
+        # the primary is collected and ingested first than
+        # the entries in cycle are ingested per period order 0,1,...
+        # this garanty that AMD and COR (even primary) are sent after 
+        # the primary collection
 
-        else :
-           if    BBB    == None : Primary.append(self.entry)
-           elif  BBB[0] == 'R'  : Primary.append(self.entry)
-           else                 : Cycle.append(self.entry)
+        if    BBB    == None : Primary.append(self.entry)
+        elif  BBB[0] == 'R'  : Primary.append(self.entry)
+        else                 : Cycle.append(self.entry)
 
-        return True
+    #-----------------------------------------------------------------------------------------
+    # unlink a file
+    #-----------------------------------------------------------------------------------------
+
+    def unlink( self, path ):
+
+        try:
+               os.unlink(path)
+               self.logger.debug("%s has been erased", os.path.basename(path))
+        except OSError, e:
+               (type, value, tb) = sys.exc_info()
+               self.logger.error("Unable to unlink %s ! Type: %s, Value: %s" % (path, type, value))
 
 if __name__ == '__main__':
     pass
