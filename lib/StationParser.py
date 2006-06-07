@@ -72,8 +72,8 @@ class StationParser(FileParser):
         if self.printErrors:
             if len(duplicateHeaders):
                 print("Duplicate header line(s): %s" % duplicateHeaders.keys())
-            else:
-                print("No duplicated header")
+            #else:
+            #    print("No duplicated header")
         
     def printMenu(self):
         print
