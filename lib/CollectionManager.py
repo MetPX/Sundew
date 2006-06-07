@@ -143,9 +143,10 @@ class CollectionManager(object):
                       (self.files[index],bulltin.arrival,bulltin.emission) )
            return False
 
+        header = self.entry.header
+        BBB    = self.entry.BBB
+
         if bulltin.delay > history :
-           header = self.entry.header
-           BBB    = self.entry.BBB
 
            cBBB = ''
            if bulltin.delay > history :
@@ -155,8 +156,13 @@ class CollectionManager(object):
               else                : cBBB = 'RRZ'
 
            data = header[0] + ' ' + header[1] + ' ' + header[2] + ' ' + cBBB + '\n'
-           if header[0][:2] == 'SM' or header[0][:2] == 'SI' : data += 'AAXX\n'
-           data += string.join(bulltin.bulletin[1:],'\n')
+
+           istart = 1
+           if header[0][:2] == 'SM' or header[0][:2] == 'SI' :
+              data += 'AAXX\n'
+              if bulltin.bulletin[1][0:4] == 'AAXX' : istart = 2
+
+           data += string.join(bulltin.bulletin[istart:],'\n')
 
            self.ingest(index,data,"File %s ingested but out received more than %s hours late "  % \
                       (self.files[index],self.source.history) )
@@ -178,7 +184,8 @@ class CollectionManager(object):
         else :
           period  = int((bulltin.delay - primary ) / cycle + 1)
           timeforcycle = primary + period * cycle
-          if bulltin.age < timeforcycle : return False
+          if bulltin.age < timeforcycle : 
+             if BBB == None or BBB[0] == 'R' : return False
 
         # still collectable...
         # put info in bulletinCollection entry
