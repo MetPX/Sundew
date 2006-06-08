@@ -146,8 +146,13 @@ class bulletin:
         header           = self.getHeader().split()
         YYGGGg           = header[2]
         self.emission    = arrival[0:6] + YYGGGg + "00"
-        timeStruct       = time.strptime(self.emission, '%Y%m%d%H%M%S')
-        self.ep_emission = time.mktime(timeStruct)
+
+        # the date-time we are trying here may not exist... so catch exception
+
+        try :
+                 timeStruct       = time.strptime(self.emission, '%Y%m%d%H%M%S')
+                 self.ep_emission = time.mktime(timeStruct)
+        except : pass
 
         # if the arrival day is the same as the one in header... we are done
 

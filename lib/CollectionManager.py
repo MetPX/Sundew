@@ -128,6 +128,7 @@ class CollectionManager(object):
         data    = self.entry.data
         path    = self.entry.path
         type    = self.entry.type
+        BBB     = self.entry.BBB
 
         name    = self.source.name
 
@@ -302,7 +303,7 @@ class CollectionManager(object):
 
             bulltin = bulletin.bulletin(self.data[index],self.logger)
 
-            try     : bulltin.setArrivalStr(self.files[index].split(":")[6])
+            try     : bulltin.setArrivalStr(self.files[index].split(':')[6])
             except  : bulltin.setArrivalEp (self.now)
 
             bulltin.compute_Age(self.now)
