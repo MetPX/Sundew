@@ -239,7 +239,7 @@ class CollectionManager(object):
         if   BBB    == None : cBBB = 'RR' + X
         elif BBB[0] == 'A'  : cBBB = 'AA' + X
         elif BBB[0] == 'C'  : cBBB = 'CC' + X
-        else                : cBBB = 'RR' + x
+        else                : cBBB = 'RR' + X
 
         # rebuild data with new header
 
