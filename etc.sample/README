@@ -44,12 +44,14 @@ to go to all Aviation clients,  including the AACNCYVR node addressed through th
 
 
 -------------------------------
-collection_stations.conf:
+stations.conf:
 
-collection_stations.conf is a text configuration file.  The first word on the line is the concatenated TTAAiiCCCC to be applied to bulletins received which have incomplete headers... ie.. an SA received from CYAZ will have it's header changed to  SACN43 CWAO ...
+stations.conf is also a text file with colon separated fields.  
 
+A line could look like :
 
-SACN42CWAO   CYAZ    CYBL    CYBV    CYCP CYCQ    CYDB    CYDC    CYEV    CYFO    CYHE    CYIV    CYKY    CYMD    CYPR    CYQD    CYQZ    CYRV    CYUA    CYXC    CYXE    CYXQ    CYXS    CYZP    CYZT
+SACN42 CWAO:COL:CYAZ    CYBL    CYBV    CYCP CYCQ    CYDB    CYDC    CYEV    CYFO    CYHE    CYIV    CYKY    CYMD    CYPR  CYQD    CYQZ    CYRV    CYUA    CYXC    CYXE    CYXQ    CYXS    CYZP    CYZT
 
-
-
+-- First field (SACN42 CWAO) is an AHL specification (TTAAii CCCC) as, indicating the AHL of messages 
+-- Second field (COL or nothing ::) determine if the bulletins for that message type are collectables
+-- Third field (space separated station name) is the alphabetically ordered station list for that message type

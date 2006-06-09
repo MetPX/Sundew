@@ -9,12 +9,12 @@ See configuration files examples in /apps/px/etc.sample/rx/
 
 General Options:
 
-type (keyword, default: none  am|wmo|single-file|bulletin-file)
+type (keyword, default: none  am|wmo|single-file|bulletin-file|collector)
     am              - AM protocol socket
     wmo             - WMO protocol socket
     single-file     - Receive plain files (like a PDS)
-    single-bulletin - receive bulletins in a file (ingested like from a socket)
-
+    bulletin-file   - receive bulletins in a file (ingested like from a socket)
+    collector       - receive bulletins in a file, create and ingest collections
 
 extension  (string, default:  MISSING:MISSING:MISSING:MISSING:)           
 extension tandem:-CCCC:-TT:-CIRCUIT:Direct
@@ -38,6 +38,9 @@ against the emask and imask patterns.  The default is for the
 bulletin to be accepted.  emask (exclusion) can be used to suppress
 reception of bulletins with a certain pattern.   
 messages suppressed are not ingested into the DB.
+
+feed (file receiver...)
+     a receiver can feed one or more others (like collectors)
 
 Socket Protocol options:
 
@@ -68,6 +71,23 @@ mtime 5
     modification time. This option is useful for files received
     by rcp, ftp, etc. Only used when type is single-file or bulletin-file.
 
+Collector Specific Options:
+
+header  SA 
+    Defines a header to collect
+
+issue all 7 5
+issue 0,6,12,18 12 5
+    Defines a the bulletin hours to collect 'all' or a comma separated list
+    Followed by the minute after the collect hour to issue the primary collection here 7 or 12
+    The last number is the cycle in minutes to issue the other bulletins received after the primary collection
+    here 5 means every 5 minutes issue collected retarded bulletins
+
+history 24                
+    The amount of time in hours for which it is valid to collect a bulletin
+
+future  40
+    Specified in minutes.  Maximum limit to consider valid a report dated in the future
 
 =========================================================================================
 Developer options: 
