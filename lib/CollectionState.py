@@ -21,9 +21,9 @@ named COPYING in the root of the source directory tree.
 #              ( period, amendement, correction, retard, Primary, Cycle )
 #
 #              period       : integer, -1 nothing done, 0 primary done
-#              amendement   : integer, -1 none done,    1, 2, ... number of amendements done
-#              correction   : integer, -1 none done,    1, 2, ... number of corrections done
-#              retard       : integer, -1 none done,    1, 2, ... number of retards     done
+#              amendement   : integer, -1 none done,    0, 1, 2, ... amendements done A,B,C...
+#              correction   : integer, -1 none done,    0, 1, 2, ... corrections done A,B,C...
+#              retard       : integer, -1 none done,    0, 1, 2, ... retards     done A,B,C...
 #              Primary list : bulletins classified for the primary collection
 #              Cycle   list : bulletins classified for amendements, corrections and retards
 #
@@ -61,6 +61,7 @@ class CollectionState(object):
         self.now         = collector.now
         self.fin         = self.now - ( self.now            % 3600 )
         self.debut       = self.fin - ( self.source.history * 3600 )
+        self.lastload    = self.now
 
         # alphabet...
 
@@ -246,6 +247,13 @@ class CollectionState(object):
 
     def getCollectionState(self):
 
+        # get current time... and if state was in memory for more than 24 hours
+        # a reload will clean it from entries no longer needed
+
+        self.now = self.collector.now
+        delay    = self.now - self.lastload
+        if delay > 24*3600 : self.ready = False
+
         # map ready... return it
 
         if self.ready : return self.mapCollectionState
@@ -256,7 +264,6 @@ class CollectionState(object):
 
         # current epocal and collection time span epocal truncated to the nearest hour
 
-        self.now         = self.collector.now
         self.fin         = self.now - ( self.now            % 3600 )
         self.debut       = self.fin - ( self.source.history * 3600 )
 
@@ -274,19 +281,29 @@ class CollectionState(object):
            self.buildCollectionState()
            self.saveCollectionState()
 
-        # debug
-        #keys = self.mapCollectionState.keys()
-        #keys.sort()
-        #for key in keys :
-        #    ( period, amendement, correction, retard, Primary, Cycle ) = self.mapCollectionState[key]
-        #    if period < 0 : continue
-        #    print(" %s = %d %d %d %d %s %s " % ( key, period, amendement, correction, retard, Primary, Cycle) )
-
         # map ready... return it
 
-        self.ready = True
+        self.ready    = True
+        self.lastload = self.now
+
+        # inform that we refreshed ( reloaded or rebuild ) the collectionState
+
+        self.logger.info("Collection State refreshed")
 
         return self.mapCollectionState
+
+    #-----------------------------------------------------------------------------------------
+    # print debug...
+    #-----------------------------------------------------------------------------------------
+
+    def print_debug(self):
+
+        keys = self.mapCollectionState.keys()
+        keys.sort()
+        for key in keys :
+            ( period, amendement, correction, retard, Primary, Cycle ) = self.mapCollectionState[key]
+            if period < 0 : continue
+            print(" %s = %d %d %d %d %s %s " % ( key, period, amendement, correction, retard, Primary, Cycle) )
 
     #-----------------------------------------------------------------------------------------
     # loading the collection state 
@@ -312,7 +329,7 @@ class CollectionState(object):
             # skip and warn if not already in the empty CollectionState map
 
             if not parse[0] in self.mapCollectionState :
-               self.logger.info(" Not collecting %s anymore " % parse[0] )
+               self.logger.debug(" Not collecting %s anymore " % parse[0] )
                continue
 
             # set key to its value
