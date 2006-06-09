@@ -8,6 +8,7 @@ named COPYING in the root of the source directory tree.
 """Gestion des bulletins "AM" """
 
 import bulletinManager, bulletinAm, os, string
+import StationParser
 
 __version__ = '2.0'
 
@@ -170,25 +171,28 @@ class bulletinManagerAm(bulletinManager.bulletinManager):
         """initMapEntetes(pathFichierStations)
 
            pathFichierStations: String
-                                - Chemin d'accès vers le fichier de "collection"
+                                - Chemin d'acces vers le fichier de "collection"
 
-           mapEntetes sera un map contenant les entête à utiliser avec
-           quelles stations. La clé se trouve a être une concaténation des
-           2 premières lettres du bulletin et de la station, la définition
-           est une string qui contient l'entête à ajouter au bulletin.
+           mapEntetes sera un map contenant les entete a utiliser avec
+           quelles stations. La cle se trouve a etre une concatenation des
+           2 premieres lettres du bulletin et de la station, la definition
+           est une string qui contient l'entete a ajouter au bulletin.
 
-           self.mapEntetes2mapStations sera un map, avec pour chaque entête
-           un map associé des stations, dont la valeur sera None.
+           self.mapEntetes2mapStations sera un map, avec pour chaque entete
+           un map associe des stations, dont la valeur sera None.
 
                 Ex.: mapEntetes["SPCZPC"] = "CN52 CWAO "
 
-           Visibilité:  Privée
-           Auteur:      Louis-Philippe Thériault
+           Visibilite:  Privee
+           Auteur:      Louis-Philippe Theriault
            Date:        Octobre 2004
         """
         if pathFichierStations == None:
             self.mapEntetes = None
             return
+
+        sp = StationParser.StationParser(pathFichierStations)
+        sp.parse()
 
         uneEntete = ""
         uneCle = ""
@@ -197,20 +201,30 @@ class bulletinManagerAm(bulletinManager.bulletinManager):
         self.mapEntetes = {}
         self.mapEntetes2mapStations = {}
 
-        # Construction des 2 map en même temps
-        for ligne in self.lireFicTexte(pathFichierStations):
-            uneLigneParsee = ligne.split()
+        # Construction des 2 map en meme temps
+        for key in sp.stations :
+            unPrefixe = key[0:2]
+            uneEntete = key[2:] + ' '
 
-            unPrefixe = uneLigneParsee[0][0:2]
-            uneEntete = uneLigneParsee[0][2:6] + ' ' + uneLigneParsee[0][6:] + ' '
-
-            # Ajout d'un map vide pour l'entête courante
+            # Ajout d'un map vide pour l'entete courante
             if unPrefixe + uneEntete[:-1] not in self.mapEntetes2mapStations:
                 self.mapEntetes2mapStations[unPrefixe + uneEntete[:-1]] = {}
 
-            for station in uneLigneParsee[1:]:
+            for station in sp.stations[key]:
                 uneCle = unPrefixe + station
 
                 self.mapEntetes[uneCle] = uneEntete
 
                 self.mapEntetes2mapStations[unPrefixe + uneEntete[:-1]][station] = None
+
+    def print_debug(self):
+
+        keys = self.mapEntetes.keys()
+        keys.sort()
+        for key in keys :
+            print(" mapEntetes key (%s) = (%s) " % (key,self.mapEntetes[key]) )
+
+        keys = self.mapEntetes2mapStations.keys()
+        keys.sort()
+        for key in keys :
+            print(" mapEntetes2mapStations key (%s) = (%s) " % (key,self.mapEntetes2mapStations[key]) )
