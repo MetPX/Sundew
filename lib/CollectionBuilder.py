@@ -68,9 +68,9 @@ class CollectionBuilder(object):
         self.alpha = \
         [ 'A','B','C','D','E','F','G','H','I','J','K','L','M','N','O','P','Q','R','S','T','U','V','W','X','Y','Z' ]
 
-        # aaxx...
+        # AAXX...
 
-        self.aaxx = [ 'SI', 'SM' ]
+        self.AAXX = [ 'SI', 'SM' ]
 
         # metar...
 
@@ -242,7 +242,7 @@ class CollectionBuilder(object):
         cBBB   = 'RR' + self.alpha[retard]
         data   = header[0] + ' ' + header[1] + ' ' + header[2] + ' ' + cBBB + '\n'
 
-        if header[0][:2] in self.aaxx : data += 'AAXX\n'
+        if header[0][:2] in self.AAXX : data += 'AAXX' + header[2][:4] + '4\n'
 
         # add retarded by ordered station ... 
 
@@ -255,7 +255,7 @@ class CollectionBuilder(object):
             # add report to the collection
 
             istart = 1
-            if header[0][:2] in self.aaxx and best.bulletin.bulletin[1][0:4] == 'AAXX' : istart = 2
+            if header[0][:2] in self.AAXX and best.bulletin.bulletin[1][0:4] == 'AAXX' : istart = 2
 
             data += string.join(best.bulletin.bulletin[istart:],'\n')
             info.append(best.path)
@@ -330,7 +330,7 @@ class CollectionBuilder(object):
         # build the collection's header
 
         data = header[0] + ' ' + header[1] + ' ' + header[2] + '\n'
-        if header[0][:2] in self.aaxx : data += 'AAXX\n'
+        if header[0][:2] in self.AAXX : data += 'AAXX' + header[2][:4] + '4\n'
 
         # loop on stations to put into collection
 
@@ -347,7 +347,7 @@ class CollectionBuilder(object):
             # add station to the collection
 
             istart = 1
-            if header[0][:2] in self.aaxx : 
+            if header[0][:2] in self.AAXX : 
                if best.bulletin.bulletin[1][0:4] == 'AAXX' : istart = 2
 
             data += string.join(best.bulletin.bulletin[istart:],'\n')
