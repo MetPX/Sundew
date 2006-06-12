@@ -47,12 +47,16 @@ def updateSearchObject(so, options, args):
 def search(logFileName, regex):
     print "Searching in: %s" % (logFileName)
     print "Using: %s\n" % (regex)
+  
+    # Temporary machine list storage
+    machines = open("machines.txt", "r").readlines()
     
-    status, output = commands.getstatusoutput("egrep %s %s" % (regex, logFileName))
-    lines = output.splitlines()
-    for line in lines:
-        print line
-    print "Number of matches: %s" % (len(lines))
+    for machine in machines:
+        status, output = commands.getstatusoutput('ssh %s "egrep %s %s"' % (machine, regex, logFileName))
+        lines = output.splitlines()
+        for line in lines:
+            print line
+        print "Number of matches: %s" % (len(lines))
     
 def createParser(so):
     usagemsg = "%prog [options] <name>\nSearch in the PX unified log for bulletins matching certain criterias."
@@ -80,8 +84,7 @@ def main():
     options, args = parser.parse_args()
    
     updateSearchObject(so, options, args)
-    #search(so.getLogPath(), so.getSearchRegex())
-    search("./logs/rx_ncp2.log", so.getSearchRegex())
+    search(so.getLogPath(), so.getSearchRegex())
     
 if __name__ == "__main__":
    main() 
