@@ -33,17 +33,18 @@ class receiverWmo(gateway.gateway):
 
         self.source = source 
         self.establishConnection()
+    
+        self.renewBulletinManager()
 
-        self.logger.debug("Instanciation du bulletinManagerWmo")
-
-        # Instanciation du bulletinManagerWmo avec la panoplie d'arguments.
-        self.unBulletinManager = \
-                  bulletinManagerWmo.bulletinManagerWmo(
-                     PXPaths.RXQ + source.name, logger, \
-                     pathFichierCircuit = '/dev/null', \
-                     extension = source.extension, \
-                     mapEnteteDelai = source.mapEnteteDelai,
-                     source = source)
+    def renewBulletinManager(self):
+        self.logger.debug("renewBulletinManager() has been called (type = wmo)")
+        self.unBulletinManager = bulletinManagerWmo.bulletinManagerWmo(
+                                    PXPaths.RXQ + self.source.name,
+                                    self.logger,
+                                    pathFichierCircuit = '/dev/null',
+                                    extension = self.source.extension,
+                                    mapEnteteDelai = self.source.mapEnteteDelai,
+                                    source = self.source)
 
     def shutdown(self):
         __doc__ = gateway.gateway.shutdown.__doc__ + \

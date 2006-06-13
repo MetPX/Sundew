@@ -9,6 +9,7 @@ named COPYING in the root of the source directory tree.
 import imp, time, sys
 from MultiKeysStringSorter import MultiKeysStringSorter
 from DiskReader import DiskReader
+from Source import Source
 import PXPaths
 PXPaths.normalPaths()
 
@@ -175,6 +176,10 @@ class gateway:
                         data = []
 
                     self.establishConnection()
+
+                    if isinstance(self.flow, Source):
+                        if self.flow.type in ['am', 'wmo']:
+                            self.renewBulletinManager()
                 else:
                     raise
 
