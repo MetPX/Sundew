@@ -31,20 +31,19 @@ class receiverWmo(gateway.gateway):
     def __init__(self,path,source,logger):
         gateway.gateway.__init__(self,path,source,logger)
 
-        self.source = source 
         self.establishConnection()
-    
+
         self.renewBulletinManager()
 
     def renewBulletinManager(self):
         self.logger.debug("renewBulletinManager() has been called (type = wmo)")
         self.unBulletinManager = bulletinManagerWmo.bulletinManagerWmo(
-                                    PXPaths.RXQ + self.source.name,
+                                    PXPaths.RXQ + self.flow.name,
                                     self.logger,
                                     pathFichierCircuit = '/dev/null',
-                                    extension = self.source.extension,
-                                    mapEnteteDelai = self.source.mapEnteteDelai,
-                                    source = self.source)
+                                    extension = self.flow.extension,
+                                    mapEnteteDelai = self.flow.mapEnteteDelai,
+                                    source = self.flow)
 
     def shutdown(self):
         __doc__ = gateway.gateway.shutdown.__doc__ + \
@@ -93,7 +92,7 @@ class receiverWmo(gateway.gateway):
 
         self.unSocketManagerWmo = \
                   socketManagerWmo.socketManagerWmo(self.logger,type='slave', \
-                                                         port=self.source.port)
+                                                         port=self.flow.port)
 
     def read(self):
         __doc__ =  gateway.gateway.read.__doc__ + \

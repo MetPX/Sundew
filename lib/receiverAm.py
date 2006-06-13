@@ -31,7 +31,6 @@ class receiverAm(gateway.gateway):
     def __init__(self, path, source, logger):
         gateway.gateway.__init__(self, path, source, logger)
 
-        self.source = source
         self.pathFichierStations = PXPaths.STATION_TABLE
 
         self.establishConnection()
@@ -41,14 +40,14 @@ class receiverAm(gateway.gateway):
     def renewBulletinManager(self):
         self.logger.debug("renewBulletinManager() has been called (type = am)")
         self.unBulletinManager = bulletinManagerAm.bulletinManagerAm(
-                                    PXPaths.RXQ + self.source.name,
+                                    PXPaths.RXQ + self.flow.name,
                                     self.logger,
                                     pathFichierCircuit = '/dev/null', 
-                                    SMHeaderFormat = self.source.addSMHeader,
+                                    SMHeaderFormat = self.flow.addSMHeader,
                                     pathFichierStations = self.pathFichierStations,
-                                    extension = self.source.extension, 
-                                    mapEnteteDelai = self.source.mapEnteteDelai,
-                                    source= self.source)
+                                    extension = self.flow.extension, 
+                                    mapEnteteDelai = self.flow.mapEnteteDelai,
+                                    source= self.flow)
 
     def shutdown(self):
         __doc__ = gateway.gateway.shutdown.__doc__ + \
@@ -96,7 +95,7 @@ class receiverAm(gateway.gateway):
         # Instanciation du socketManagerAm
         self.unSocketManagerAm = \
                 socketManagerAm.socketManagerAm(self.logger,type='slave', \
-                        port=self.source.port)
+                        port=self.flow.port)
 
     def read(self):
         __doc__ =  gateway.gateway.read.__doc__ + \
