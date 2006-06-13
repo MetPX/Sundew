@@ -176,9 +176,12 @@ class gateway:
                         data = []
 
                     self.establishConnection()
-
+                      
+                    # We need (am and wmo receivers) to reread the config file, the ROUTING_TABLE (and px clients), 
+                    # and maybe the STATION_TABLE (am)
                     if isinstance(self.flow, Source):
                         if self.flow.type in ['am', 'wmo']:
+                            self.flow.__init__(self.flow.name, self.flow.logger)
                             self.renewBulletinManager()
                 else:
                     raise
