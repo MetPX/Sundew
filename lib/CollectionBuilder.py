@@ -242,7 +242,7 @@ class CollectionBuilder(object):
         cBBB   = 'RR' + self.alpha[retard]
         data   = header[0] + ' ' + header[1] + ' ' + header[2] + ' ' + cBBB + '\n'
 
-        if header[0][:2] in self.AAXX : data += 'AAXX' + header[2][:4] + '4\n'
+        if header[0][:2] in self.AAXX : data += 'AAXX ' + header[2][:4] + '4\n'
 
         # add retarded by ordered station ... 
 
@@ -330,7 +330,7 @@ class CollectionBuilder(object):
         # build the collection's header
 
         data = header[0] + ' ' + header[1] + ' ' + header[2] + '\n'
-        if header[0][:2] in self.AAXX : data += 'AAXX' + header[2][:4] + '4\n'
+        if header[0][:2] in self.AAXX : data += 'AAXX ' + header[2][:4] + '4\n'
 
         # loop on stations to put into collection
 
