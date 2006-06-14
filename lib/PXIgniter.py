@@ -134,6 +134,9 @@ class PXIgniter(Igniter):
                #print self.flow
                #print "ext: %s" % (self.flow.extension)
                #print "addSM: %s" % (self.flow.addSMHeader)
+               # Reset all the clients + sourlients names to which px can link (independantly of the routing table)
+               self.gateway.unBulletinManager.drp.pxLinkables = self.flow.ingestor.allNames 
+               # Reparse the ROUTING_TABLE
                self.gateway.unBulletinManager.drp.reparse()
                self.gateway.unBulletinManager.reloadMapEntetes(self.gateway.pathFichierStations)
                self.logger.info("%s has been reloaded" % self.direction.capitalize())
@@ -144,6 +147,9 @@ class PXIgniter(Igniter):
                self.flow.__init__(self.flow.name, self.flow.logger)
 
                self.gateway.unBulletinManager.extension = self.flow.extension
+               # Reset all the clients + sourlients names to which px can link (independantly of the routing table)
+               self.gateway.unBulletinManager.drp.pxLinkables = self.flow.ingestor.allNames 
+               # Reparse the ROUTING_TABLE
                self.gateway.unBulletinManager.drp.reparse()
                self.logger.info("%s has been reloaded" % self.direction.capitalize())
 
