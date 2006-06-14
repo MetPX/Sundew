@@ -31,12 +31,16 @@ class DirectRoutingParser(FileParser):
         self.badClients = {}            # Sub group of clients that are in header2clients.conf and are not px linkable.
         self.pxLinkables = pxLinkables  # All clients to which px can link (independant of header2clients.conf)
 
+        if self.logger:
+            self.logger.info("Routing table used: %s" % filename)
+
         #self.parse()
 
     def clearInfos(self):
         self.routingInfos = {}
         self.subClients = {}      
         self.aliasedClients = {}  
+        self.aftnMap = {}
         self.goodClients = {}    
         self.badClients = {}    
 
