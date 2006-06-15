@@ -237,6 +237,7 @@ class PXManager(SystemManager):
                 continue
             else:
                 rxNames.append(file[:-5])
+        rxNames.sort()
         self.rxNames = rxNames
                 
     def setTxNames(self):
@@ -250,6 +251,7 @@ class PXManager(SystemManager):
                 continue
             else:
                 txNames.append(file[:-5])
+        txNames.sort()
         self.txNames = txNames
 
     def setTRxNames(self):
@@ -263,6 +265,7 @@ class PXManager(SystemManager):
                 continue
             else:
                 trxNames.append(file[:-5])
+        trxNames.sort()
         self.trxNames = trxNames
 
     def setRxPaths(self):
