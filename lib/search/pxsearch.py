@@ -48,13 +48,15 @@ def updateSearchObject(so, options, args):
     
 def search(logFileName, regex):
     print "Searching in: %s" % (logFileName)
-    print "Using: %s\n" % (regex)
+    print "Using: %s" % (regex)
   
     # Temporary machine list storage
     machines = open("machines.txt", "r").readlines()
     
     for machine in machines:
-        status, output = commands.getstatusoutput('ssh %s "egrep %s %s"' % (machine, regex, logFileName))
+        cmd = "ssh %s egrep %s %s" % (machine.strip(), regex, logFileName)
+        print "Command used: %s" % (cmd)
+        status, output = commands.getstatusoutput(cmd)
         lines = output.splitlines()
         for line in lines:
             print line
