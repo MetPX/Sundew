@@ -67,7 +67,7 @@ def search(logFileName, regex):
     machines = open("machines.txt", "r").readlines()
     
     for machine in machines:
-        cmd = "ssh %s egrep %s %s" % (machine.strip(), regex, logFileName)
+        cmd = "ssh %s egrep -o %s %s" % (machine.strip(), regex, logFileName)
         print "Command used: %s" % (cmd)
         status, output = commands.getstatusoutput(cmd)
         lines = output.splitlines()
