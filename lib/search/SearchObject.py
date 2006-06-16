@@ -43,7 +43,7 @@ class SearchObject(object):
         Refresh the object based on its updated attributes.
         """
 
-        self.logPath = "/apps/px/log/%s_%s.log" % (self.getSearchType(), self.getSearchName())
+        self.logPath = "/apps/px/log/%s_%s.log*" % (self.getSearchType(), self.getSearchName())
         self.searchRegex = "%s_%s_%s_%s_%s_%s:%s:%s:%s:%s:%s:%s" % (self.getHeaderRegex("ttaaii"), self.getHeaderRegex("ccccxx"), self.getHeaderRegex("ddhhmm"), self.getHeaderRegex("bbb"), self.getHeaderRegex("stn"), self.getHeaderRegex("seq"), self.getHeaderRegex("target"), self.getHeaderRegex("ccccxx"), "[[:alnum:]]+", self.getHeaderRegex("prio"), "[[:alnum:]]+", "[[:digit:]]+")
     
     def getSearchRegex(self):
