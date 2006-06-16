@@ -1,4 +1,12 @@
 #!/usr/bin/env python
+
+"""
+MetPX Copyright (C) 2004-2006  Environment Canada
+MetPX comes with ABSOLUTELY NO WARRANTY; For details type see the file
+named COPYING in the root of the source directory tree.
+"""
+
+"""
 ###########################################################
 # Name: SearchObject.py
 #
@@ -10,6 +18,7 @@
 # Date: 2006-05-15
 #
 ###########################################################
+"""
 
 class SearchObject(object):
     __slots__ = ["headerRegexes", "searchRegex", "searchType", "name", "logPath"]
