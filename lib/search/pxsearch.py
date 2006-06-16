@@ -26,8 +26,7 @@ import commands
 from optparse import OptionParser
 
 # Local imports
-sys.path.insert(1,sys.path[0] + '/../lib')
-
+sys.path.append("../")
 import PXPaths; PXPaths.normalPaths()
 from SearchObject import SearchObject
 

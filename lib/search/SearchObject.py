@@ -18,9 +18,10 @@ named COPYING in the root of the source directory tree.
 ###########################################################
 """
 
-# Local imports
-sys.path.insert(1,sys.path[0] + '/../lib')
+import sys
 
+# Local imports
+sys.path.append("../")
 import PXPaths; PXPaths.normalPaths()
 
 class SearchObject(object):
