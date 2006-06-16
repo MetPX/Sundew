@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-
 """
 MetPX Copyright (C) 2004-2006  Environment Canada
 MetPX comes with ABSOLUTELY NO WARRANTY; For details type see the file
@@ -19,6 +17,11 @@ named COPYING in the root of the source directory tree.
 #
 ###########################################################
 """
+
+# Local imports
+sys.path.insert(1,sys.path[0] + '/../lib')
+
+import PXPaths; PXPaths.normalPaths()
 
 class SearchObject(object):
     __slots__ = ["headerRegexes", "searchRegex", "searchType", "name", "logPath"]
@@ -52,7 +55,7 @@ class SearchObject(object):
         Refresh the object based on its updated attributes.
         """
 
-        self.logPath = "/apps/px/log/%s_%s.log*" % (self.getSearchType(), self.getSearchName())
+        self.logPath = "%s%s_%s.log*" % (PXPaths.LOG, self.getSearchType(), self.getSearchName())
         self.searchRegex = "%s_%s_%s_%s_%s_%s:%s:%s:%s:%s:%s:%s" % (self.getHeaderRegex("ttaaii"), self.getHeaderRegex("ccccxx"), self.getHeaderRegex("ddhhmm"), self.getHeaderRegex("bbb"), self.getHeaderRegex("stn"), self.getHeaderRegex("seq"), self.getHeaderRegex("target"), self.getHeaderRegex("ccccxx"), "[[:alnum:]]+", self.getHeaderRegex("prio"), "[[:alnum:]]+", "[[:digit:]]+")
     
     def getSearchRegex(self):

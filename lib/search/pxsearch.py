@@ -20,10 +20,15 @@ named COPYING in the root of the source directory tree.
 ###########################################################
 """
 
+# Python API imports
 import sys
 import commands
 from optparse import OptionParser
 
+# Local imports
+sys.path.insert(1,sys.path[0] + '/../lib')
+
+import PXPaths; PXPaths.normalPaths()
 from SearchObject import SearchObject
 
 def updateSearchObject(so, options, args):
