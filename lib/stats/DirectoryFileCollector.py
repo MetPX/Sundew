@@ -33,8 +33,9 @@ class DirectoryFileCollector:
        """ Constructor.
            builds a directoryFileCollector with no entries.   
        """
-       self.directory = directory 
-       self.entries = []
+       
+       self.directory = directory  # Name of the directory where we collect entries 
+       self.entries = {}           # Dictionary containings filenames,and up to what line we've read it 
        
     
     
@@ -48,16 +49,18 @@ class DirectoryFileCollector:
         """
         
         entries = []
-        
+        validEntries = []
         try:
             if os.path.isdir( self.directory ):
                 entries = os.listdir( self.directory )#gets every files of the folder except . and .. 
                 for i in range( len(entries ) ): #verify every entries.
                     fileName = ( str( self.directory ) + str( entries[i] ) )
                     if not os.path.isdir( fileName ) and str( entries[i] ).startswith( '.' ) == False:
-                        self.entries.append( fileName )
+                        validEntries.append( fileName )
                 
-            
+                
+                self.entries = dict( [(x, [0,0]) for x in validEntries] )
+                            
         except:
             (type, value, tb) = sys.exc_info()
             print("Type: %s, Value: %s" % (type, value))
@@ -72,6 +75,6 @@ if __name__ == "__main__":
         small test case. Tests if everything works plus gives an idea on proper usage.
     """
    
-    dc = DirectoryFileCollector( "/users/dor/aspy/" )
+    dc = DirectoryFileCollector( "/users/dor/aspy/lem/Desktop" )
     dc.collectEntries()            
     print dc.entries            
