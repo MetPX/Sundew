@@ -18,7 +18,7 @@ class SearchObject(object):
         self.headerRegexes = {}
         self.searchRegex = ""
         self.searchType = ""
-        self.name = ""
+        self.name = "*"
         self.logPath = ""
         
         self.fillHeaderRegexes()

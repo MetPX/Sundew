@@ -29,9 +29,11 @@ def updateSearchObject(so, options, args):
         so.setSearchType("rx")
     else:
         so.setSearchType("tx")
-
+    
+    # If there is an argument to the program call, it replaces * with args*
+    # By default * means search in everything
     if len(args) > 0:
-        so.setSearchName(args[0]) # First argument should be the name of the "thing" to search
+        so.setSearchName(args[0] + "*")
     
     so.setHeaderRegex("ttaaii", options.ttaaii) 
     so.setHeaderRegex("ccccxx", options.ccccxx) 
