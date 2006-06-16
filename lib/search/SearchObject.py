@@ -69,6 +69,11 @@ class SearchObject(object):
         return self.headerRegexes[key]
     
     def setHeaderRegex(self, key, value):
+        # If user enters a wildcard card, replace it with a regex wildcard
+        # CAUTION: Does not distinguish between digits and alphanumeric field,
+        #          that means that 98* could be 988 or 98A
+        if "*" in value:
+            value = value.replace("*", "[[:alnum:]-]*")
         self.headerRegexes[key] = value
 
     def getSearchType(self):
