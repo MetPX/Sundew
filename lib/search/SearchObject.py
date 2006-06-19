@@ -93,7 +93,7 @@ class SearchObject(object):
         self.name = value
 
     def getSince(self):
-        return since
+        return self.since
 
     def setSince(self, value):
         self.since = int(since)
