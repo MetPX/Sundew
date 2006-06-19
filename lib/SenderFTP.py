@@ -23,6 +23,7 @@ named COPYING in the root of the source directory tree.
 import sys, os, os.path, time, stat
 import PXPaths, signal, socket
 from AlarmFTP  import AlarmFTP
+from AlarmFTP  import FtpTimeoutException
 from URLParser import URLParser
 from Logger import Logger
 import ftplib
@@ -250,7 +251,7 @@ class SenderFTP(object):
                         os.unlink(file)
                         self.logger.info("(%i Bytes) File %s delivered to %s://%s@%s%s%s" % (nbBytes, file, self.client.protocol, self.client.user, self.client.host, destDirString, destName))
 
-                    except socket.error:
+                    except FtpTimeoutException :
                         self.logger.info("SEND TIMEOUT (%i Bytes) File %s going to %s://%s@%s%s%s" % (nbBytes, file, self.client.protocol, self.client.user, self.client.host, destDirString, destName))
                         return
 
