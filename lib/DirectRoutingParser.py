@@ -12,7 +12,7 @@
 #############################################################################################
 """
 
-import os, sys, re
+import os, os.path, sys, re
 from FileParser import FileParser
 
 class DirectRoutingParser(FileParser):
@@ -93,6 +93,7 @@ class DirectRoutingParser(FileParser):
             self.logger.warning("DirectRoutingParser.reparse() has failed")
             
     def parse(self):
+
         self.clearInfos()
         file = self.openFile(self.filename)
 
@@ -175,6 +176,11 @@ class DirectRoutingParser(FileParser):
 
         file.close()
         # Up to here: 2.3 s of execution time
+
+        badClients = self.badClients.keys()
+        badClients.sort()
+        for client in badClients:
+            self.logger.warning("Client %s is in %s but not in px" % (client, os.path.basename(self.filename)))
 
     def parseAndShowErrors(self):
         self.clearInfos()
