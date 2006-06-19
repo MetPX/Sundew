@@ -76,7 +76,7 @@ class SearchObject(object):
         # If user enters a wildcard card, replace it with a regex wildcard
         # CAUTION: Does not distinguish between digits and alphanumeric field,
         #          that means that 98* could be 988 or 98A
-        if "*" in value:
+        if "*" in value and value != self.headerRegexes[key]:
             value = value.replace("*", "[[:alnum:]-]*")
         self.headerRegexes[key] = value
 
