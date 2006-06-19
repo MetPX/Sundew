@@ -19,13 +19,14 @@ named COPYING in the root of the source directory tree.
 """
 
 import sys
+import time
 
 # Local imports
 sys.path.append("../")
 import PXPaths; PXPaths.normalPaths()
 
 class SearchObject(object):
-    __slots__ = ["headerRegexes", "searchRegex", "searchType", "name", "logPath"]
+    __slots__ = ["headerRegexes", "searchRegex", "searchType", "name", "logPath", "since", "fromdate", "todate"]
 
     def __init__(self):
         self.headerRegexes = {}
@@ -33,6 +34,9 @@ class SearchObject(object):
         self.searchType = ""
         self.name = "*"
         self.logPath = ""
+        self.since = 0
+        self.fromdate = ""
+        self.todate = ""
         
         self.fillHeaderRegexes()
 
@@ -87,3 +91,21 @@ class SearchObject(object):
 
     def setSearchName(self, value):
         self.name = value
+
+    def getSince(self):
+        return since
+
+    def setSince(self, value):
+        self.since = int(since)
+
+    def getFrom(self):
+        return self.fromdate
+
+    def setFrom(self, value):
+        self.fromdate = value
+
+    def getTo(self):
+        return self.todate
+
+    def setTo(self, value):
+        self.todate = value

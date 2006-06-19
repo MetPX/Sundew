@@ -23,6 +23,7 @@ named COPYING in the root of the source directory tree.
 # Python API imports
 import sys
 import commands
+import time
 from optparse import OptionParser
 
 # Local imports
@@ -30,15 +31,45 @@ sys.path.append("../")
 import PXPaths; PXPaths.normalPaths()
 from SearchObject import SearchObject
 
-def updateSearchObject(so, options, args):
-    # Verifying the search type
+def filterTime(so, lines):
+    SECONDSINADAY = 86400
+
+    if so.getSince() != 0:
+        upperBound = time.time()
+        lowerBound = upperBound - (so.getSince() * SECONDSINADAY)
+    else:
+        upperBound = time.mktime(time.strptime(so.getTo(), "%Y%m%d%H%M%S"))
+        lowerBound = time.mktime(time.strptime(so.getFrom(), "%Y%m%d%H%M%S"))
+    
+    result = []
+    for line in lines:
+        stringTime = line.split(":")[-1]
+        timeInSec = time.mktime(time.strptime(stringTime, "%Y%m%d%H%M%S"))
+        if timeInSec >= lowerBound and timeInSec <= upperBound:
+            result.append(line)
+
+    return result
+
+def validateUserInput(options, args):
+    # Validating the search type
     if options.rxtype == True and options.txtype == True:
         print "Cannot search both RX and TX at the same time."
         sys.exit(1)
     elif options.rxtype == False and options.txtype == False:
         print "You must specify a search type (--rx or --tx)."
         sys.exit(1)
-    elif options.rxtype == True:
+
+    # Validating date arguments
+    if options.since != 0 and (options.todate != "" or options.fromdate != ""):
+        print "You cannot use --since with another date filtering mechanism."
+        sys.exit(1)
+    elif (options.todate != "" and options.fromdate == "") or (options.todate == "" and options.fromdate != ""):
+        print "You must use --from and --to together."
+        sys.exit(1)
+
+def updateSearchObject(so, options, args):
+    # Setting the search type
+    if options.rxtype == True:
         so.setSearchType("rx")
     else:
         so.setSearchType("tx")
@@ -56,10 +87,17 @@ def updateSearchObject(so, options, args):
     so.setHeaderRegex("seq", options.seq) 
     so.setHeaderRegex("target", options.target) 
     so.setHeaderRegex("prio", options.prio)
-    
+   
+    so.setSince(options.since)
+    so.setFrom(options.fromdate)
+    so.setTo(options.todate)
+   
     so.compute() # Compute the necessary informations
     
-def search(logFileName, regex):
+def search(so):
+    logFileName = so.getLogPath()
+    regex = so.getSearchRegex()
+
     print "Searching in: %s" % (logFileName)
     print "Using: %s" % (regex)
   
@@ -71,6 +109,11 @@ def search(logFileName, regex):
         print "Command used: %s" % (cmd)
         status, output = commands.getstatusoutput(cmd)
         lines = output.splitlines()
+        
+        # Validation was done in validateUserInput()
+        if so.getSince != 0 or so.getFrom() != 0 or so.getTo() != 0:
+            lines = filterTime(so, lines)
+            
         for line in lines:
             print line
         print "Number of matches: %s" % (len(lines))
@@ -79,7 +122,7 @@ def createParser(so):
     usagemsg = "%prog [options] <name>\nSearch in the PX unified log for bulletins matching certain criterias."
     parser = OptionParser(usage=usagemsg, version="%prog 0.2")
     
-    # These two only offer long option names
+    # These two only offer long option names and using one of them is mandatory
     parser.add_option("--rx", action="store_true", dest = "rxtype", help = "Perform a search in the RX logs.", default = False)
     parser.add_option("--tx", action="store_true", dest = "txtype", help = "Perform a search in the TX logs.", default = False)
     
@@ -92,16 +135,40 @@ def createParser(so):
     parser.add_option("-g", "--target", dest = "target", help = "Specify the source or the destination", default = so.getHeaderRegex("target"))
     parser.add_option("-q", "--seq", dest = "seq", help = "Specify the sequence number", default = so.getHeaderRegex("seq"))
     parser.add_option("-p", "--prio", dest = "prio", help = "Specify the priority number <1|2|3|4|5>", default = so.getHeaderRegex("prio"))
+    
+    # Let the user sort matches based on their time field
+    parser.add_option("-i", "--since", dest = "since", help = "Only show matches since X days ago to now", default = so.getSince())
+    parser.add_option("-f", "--from", dest = "from", help = "Specify a start date <YYYYMMDDhhmmss>", default = so.getFrom())
+    parser.add_option("-o", "--to", dest = "to", help = "Specify a end date <YYYYMMDDhhmmss>", default = so.getTo())
 
     return parser
     
 def main():
+    ##############################
+    # 1. Create the search object
+    ##############################
     so = SearchObject()
+    
+    ################################################################
+    # 2. Initantiate the parse and parse the command line arguments
+    ################################################################
     parser = createParser(so)
     options, args = parser.parse_args()
-   
+    
+    #########################
+    # 3. Validate user input
+    #########################
+    validateUserInput(options,args)
+
+    ##############################################################################
+    # 4. Since input is correct, update the SearchObject with user defined values
+    ##############################################################################
     updateSearchObject(so, options, args)
-    search(so.getLogPath(), so.getSearchRegex())
+
+    ##############################
+    # 5. Begin the search process
+    ##############################
+    search(so)
     
 if __name__ == "__main__":
    main() 
