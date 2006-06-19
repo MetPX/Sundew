@@ -57,6 +57,7 @@ class Sourlient(object):
         self.otherAddress = 'CYHQMHSN'            # AFTN address of the other party
         self.digits = 4                           # Number of digits used in the CSN
 
+        self.routingTable = PXPaths.ROUTING_TABLE # Defaut routing table name
         self.ackUsed = True                       # Should always be True. False is only for testing purposes
         self.maxAckTime = 60                      # Number of second we wait for an ack before trying to reconnect
 
@@ -146,6 +147,7 @@ class Sourlient(object):
                     elif words[0] == 'otherAddress': self.otherAddress = words[1]
                     elif words[0] == 'digits': self.digits = int(words[1])
 
+                    elif words[0] == 'routingTable': self.routingTable = words[1]
                     elif words[0] == 'ackUsed': self.ackUsed = isTrue(words[1])
                     elif words[0] == 'maxAckTime': self.maxAckTime = int(words[1])
                     
@@ -193,6 +195,7 @@ class Sourlient(object):
         print("Timeout: %s" % client.timeout)
         print("Sorter: %s" % client.sorter)
         print("Validation: %s" % client.validation)
+        print("Routing table: %s" % client.routingTable)
         print("Maximum time (seconds) we wait for an ack: %s" % client.maxAckTime)
         print("Ack used: %s" % client.ackUsed)
 
