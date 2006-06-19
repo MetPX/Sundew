@@ -32,11 +32,11 @@ import PXPaths; PXPaths.normalPaths()
 from SearchObject import SearchObject
 
 def filterTime(so, lines):
-    SECONDSINADAY = 86400
+    HOURINSECONDS = 3600
 
     if so.getSince() != 0:
         upperBound = time.time()
-        lowerBound = upperBound - (so.getSince() * SECONDSINADAY)
+        lowerBound = upperBound - (so.getSince() * HOURINSECONDS)
     else:
         upperBound = time.mktime(time.strptime(so.getTo(), "%Y%m%d%H%M%S"))
         lowerBound = time.mktime(time.strptime(so.getFrom(), "%Y%m%d%H%M%S"))
@@ -111,7 +111,7 @@ def search(so):
         lines = output.splitlines()
         
         # Validation was done in validateUserInput()
-        if so.getSince != 0 or so.getFrom() != 0 or so.getTo() != 0:
+        if so.getSince() != 0 or so.getFrom() != "" or so.getTo() != "":
             lines = filterTime(so, lines)
             
         for line in lines:
@@ -137,7 +137,7 @@ def createParser(so):
     parser.add_option("-p", "--prio", dest = "prio", help = "Specify the priority number <1|2|3|4|5>", default = so.getHeaderRegex("prio"))
     
     # Let the user sort matches based on their time field
-    parser.add_option("-i", "--since", dest = "since", help = "Only show matches since X days ago to now", default = so.getSince())
+    parser.add_option("-i", "--since", dest = "since", help = "Only show matches since X hours ago to now", default = so.getSince())
     parser.add_option("-f", "--from", dest = "fromdate", help = "Specify a start date <YYYYMMDDhhmmss>", default = so.getFrom())
     parser.add_option("-o", "--to", dest = "todate", help = "Specify a end date <YYYYMMDDhhmmss>", default = so.getTo())
 
