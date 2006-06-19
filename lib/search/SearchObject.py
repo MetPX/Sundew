@@ -96,7 +96,7 @@ class SearchObject(object):
         return self.since
 
     def setSince(self, value):
-        self.since = int(since)
+        self.since = int(value)
 
     def getFrom(self):
         return self.fromdate
