@@ -57,6 +57,9 @@ class Sourlient(object):
         self.otherAddress = 'CYHQMHSN'            # AFTN address of the other party
         self.digits = 4                           # Number of digits used in the CSN
 
+        self.ackUsed = True                       # Should always be True. False is only for testing purposes
+        self.maxAckTime = 60                      # Number of second we wait for an ack before trying to reconnect
+
         self.batch = 100                          # Number of files that will be read in each pass
         self.timeout = 10                         # Time we wait between each tentative to connect
         self.maxLength = 0                        # Max. length of a message... limit use for segmentation, 0 means unused
@@ -142,6 +145,9 @@ class Sourlient(object):
                     elif words[0] == 'address': self.address = words[1]
                     elif words[0] == 'otherAddress': self.otherAddress = words[1]
                     elif words[0] == 'digits': self.digits = int(words[1])
+
+                    elif words[0] == 'ackUsed': self.ackUsed = isTrue(words[1])
+                    elif words[0] == 'maxAckTime': self.maxAckTime = int(words[1])
                     
                     elif words[0] == 'batch': self.batch = int(words[1])
                     elif words[0] == 'debug' and isTrue(words[1]): self.debug = True
@@ -187,6 +193,9 @@ class Sourlient(object):
         print("Timeout: %s" % client.timeout)
         print("Sorter: %s" % client.sorter)
         print("Validation: %s" % client.validation)
+        print("Maximum time (seconds) we wait for an ack: %s" % client.maxAckTime)
+        print("Ack used: %s" % client.ackUsed)
+
         print("Sourlient Pattern Matching: %s" % client.patternMatching)
         print("Clients Pattern Matching: %s" % client.clientsPatternMatching)
 
