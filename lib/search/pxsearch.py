@@ -91,12 +91,12 @@ def updateSearchObject(so, options, args):
     so.setSince(options.since)
     
     if options.fromdate == "epoch":
-        so.setFrom(time.strftime("%Y%m%d%H%M%S", time.gmtime(0))
+        so.setFrom(time.strftime("%Y%m%d%H%M%S", time.gmtime(0)))
     else:
         so.setFrom(options.fromdate)
 
     if options.todate == "now":
-        so.setTo(time.strftime("%Y%m%d%H%M%S", time.gmtime())
+        so.setTo(time.strftime("%Y%m%d%H%M%S", time.gmtime()))
     else:
         so.setTo(options.todate)
    
