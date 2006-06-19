@@ -89,8 +89,16 @@ def updateSearchObject(so, options, args):
     so.setHeaderRegex("prio", options.prio)
    
     so.setSince(options.since)
-    so.setFrom(options.fromdate)
-    so.setTo(options.todate)
+    
+    if options.fromdate == "epoch":
+        so.setFrom(time.strftime("%Y%m%d%H%M%S", time.gmtime(0))
+    else:
+        so.setFrom(options.fromdate)
+
+    if options.todate == "now":
+        so.setTo(time.strftime("%Y%m%d%H%M%S", time.gmtime())
+    else:
+        so.setTo(options.todate)
    
     so.compute() # Compute the necessary informations
     
@@ -138,8 +146,8 @@ def createParser(so):
     
     # Let the user sort matches based on their time field
     parser.add_option("-i", "--since", dest = "since", help = "Only show matches since X hours ago to now", default = so.getSince())
-    parser.add_option("-f", "--from", dest = "fromdate", help = "Specify a start date <YYYYMMDDhhmmss>", default = so.getFrom())
-    parser.add_option("-o", "--to", dest = "todate", help = "Specify a end date <YYYYMMDDhhmmss>", default = so.getTo())
+    parser.add_option("-f", "--from", dest = "fromdate", help = "Specify a start date <YYYYMMDDhhmmss> or <epoch>", default = so.getFrom())
+    parser.add_option("-o", "--to", dest = "todate", help = "Specify a end date <YYYYMMDDhhmmss> or <now>", default = so.getTo())
 
     return parser
     
