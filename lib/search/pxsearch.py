@@ -138,8 +138,8 @@ def createParser(so):
     
     # Let the user sort matches based on their time field
     parser.add_option("-i", "--since", dest = "since", help = "Only show matches since X days ago to now", default = so.getSince())
-    parser.add_option("-f", "--from", dest = "from", help = "Specify a start date <YYYYMMDDhhmmss>", default = so.getFrom())
-    parser.add_option("-o", "--to", dest = "to", help = "Specify a end date <YYYYMMDDhhmmss>", default = so.getTo())
+    parser.add_option("-f", "--from", dest = "fromdate", help = "Specify a start date <YYYYMMDDhhmmss>", default = so.getFrom())
+    parser.add_option("-o", "--to", dest = "todate", help = "Specify a end date <YYYYMMDDhhmmss>", default = so.getTo())
 
     return parser
     
