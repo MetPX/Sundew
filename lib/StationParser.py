@@ -25,7 +25,8 @@ class StationParser(FileParser):
         self.headers = {}        # Indexed by station
         self.stations = {}       # Indexed by header
         self.stationsColl = {}   # Indexed by header (only the ones that have to be collected)
-        self.printErrors = True  #
+        self.printErrors = False # Print errors
+        self.logErrors = True    # Log errors
 
     def getStationsColl(self):
         return self.stationsColl
@@ -69,12 +70,18 @@ class StationParser(FileParser):
             if duplicateForHeader and self.printErrors:
                 print("%s has duplicate(s): %s" % (header, duplicateForHeader))
 
+            if duplicateForHeader and self.logErrors and self.logger:
+                self.logger.warning("%s has duplicate(s): %s" % (header, duplicateForHeader))
+
         if self.printErrors:
             if len(duplicateHeaders):
                 print("Duplicate header line(s): %s" % duplicateHeaders.keys())
             #else:
             #    print("No duplicated header")
-        
+        if self.logErrors and self.logger:
+            if len(duplicateHeaders):
+                self.logger.warning("Duplicate header line(s): %s" % duplicateHeaders.keys())
+
     def printMenu(self):
         print
         print("1-Headers indexed by station")

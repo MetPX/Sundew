@@ -191,7 +191,7 @@ class bulletinManagerAm(bulletinManager.bulletinManager):
             self.mapEntetes = None
             return
 
-        sp = StationParser.StationParser(pathFichierStations)
+        sp = StationParser.StationParser(pathFichierStations, self.logger)
         sp.parse()
 
         uneEntete = ""
