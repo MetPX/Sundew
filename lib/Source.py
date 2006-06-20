@@ -57,6 +57,7 @@ class Source(object):
         self.extension = ':MISSING:MISSING:MISSING:MISSING:'   # Extension to be added to the ingest name
         self.type = None                                       # Must be in ['single-file', 'bulletin-file', 'am', 'wmo']
         self.port = None                                       # Port number if type is in ['am', 'wmo']
+        self.routingTable = PXPaths.ROUTING_TABLE              # Defaut routing table name
         self.mapEnteteDelai = None                             #
         self.addSMHeader = False                               #
         self.validation = False                                # Validate the filename (ex: prio an timestamp)
