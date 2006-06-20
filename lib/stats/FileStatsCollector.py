@@ -3,6 +3,7 @@ MetPX Copyright (C) 2004-2006  Environment Canada
 MetPX comes with ABSOLUTELY NO WARRANTY; For details type see the file
 named COPYING in the root of the source directory tree.
 """
+
 #######################################################################################
 ##
 ## Name   : FileStatsCollector.py 
@@ -103,13 +104,15 @@ class FileStatsCollector:
         self.width          = width              # Width of said timespan.
         self.interval       = interval           # Interval at wich we separate stats entries 
         self.totalWidth     = totalWidth         # used to build timesperators
-        self.timeSeperators = copy.deepcopy(MyDateLib.getSeparatorsWithStartTime( self.startTime, self.totalWidth, self.interval ) )
-            
-        self.nbEntries           =  len ( self.timeSeperators ) 
-        self.lastEntryCalculated = lastEntryCalculated
-        self.lastFilledEntry     = lastFilledEntry
+        self.timeSeperators = (MyDateLib.getSeparatorsWithStartTime( self.startTime, self.totalWidth, self.interval ) )
         
-        self.createEmptyEntries() # Create all empty buckets right away
+        self.nbEntries            = len ( self.timeSeperators )# Nb of "buckets" or entries  
+        self.lastEntryCalculated  = lastEntryCalculated        # Last entry for wich we calculated mean max etc....
+        self.lastFilledEntry      = lastFilledEntry            # Last entry we filled with data. 
+        self.maximum              = {}                         # Dict. containg value of the maximum.
+        self.filesWhereMaxOccured = {}                         # Dict. containing file name where max occured. 
+        self.timeOfMax            = {}                         # Dict. containing time where maximum value occured
+        self.createEmptyEntries()                              # Create all empty buckets right away
         
 
 
@@ -135,7 +138,7 @@ class FileStatsCollector:
         median  = 0  # Median of a certain field within a entry.
         values  = [] # Used to sort value to find median. 
         
-        for i in xrange( self.lastEntryCalculated , self.lastFilledEntry + 1 ): #for each file entries we need to deal with 
+        for i in xrange( self.lastEntryCalculated , self.lastFilledEntry + 1 ): #for each entries we need to deal with 
             
             self.fileEntries[i].medians  = []
             self.fileEntries[i].minimums = []
@@ -151,11 +154,13 @@ class FileStatsCollector:
                 
                     
                     if self.fileEntries[i].values.rows != 0:
-                    
-#                         values.sort()   
-#                         minimum = values[0]
-#                         maximum = values[ self.fileEntries[i].values.rows - 1 ]  
-#                         median  = values[ int( int(self.fileEntries[i].values.rows) / 2 ) ]    
+                        #set values for each bucket..... 
+                        
+                        #is in commented block now for performance testing....
+#                       values.sort()   
+#                       minimum = values[0]
+#                       maximum = values[ self.fileEntries[i].values.rows - 1 ]  
+#                       median  = values[ int( int(self.fileEntries[i].values.rows) / 2 ) ]    
                         total   = sum( values )
                         mean    = float( total / len(values) )
                     
@@ -171,20 +176,49 @@ class FileStatsCollector:
                     self.fileEntries[i].maximums.append( maximum )   # as many datatypes as he wishes
                     self.fileEntries[i].means.append( mean )         #
                     self.fileEntries[i].totals.append( float(total) )
-                    #print "mean : %s " %mean
                     values = []
         
         self.lastEntryCalculated = self.lastFilledEntry
     
     
+#     def findValue( self, statsType, line = "" ):
+#         """
+#             This method is used to find a particular entry within a line. 
+#             Line format should be : timeofarrival;timeofdeparture;bytecount
+#             
+#             This method will return the value according to the type received as a parameter. 
+#             
+#             If type is unknown, method will return "". 
+#         
+#         """
+#         
+#         value = "" #in case of an unknown type
+#         
+#         if line != "" and line != "\n" :
+#             
+#             parsedLine = line.split( ";" )
+#         
+#             
+#             if statsType == "latency":
+#                 value =  MyDateLib.getSecondsSinceEpoch( parsedLine[1] ) -  MyDateLib.getSecondsSinceEpoch( parsedLine[0] ) 
+#                 
+#             elif statsType == "arrival":
+#                 
+#                 value =  MyDateLib.getSecondsSinceEpoch( parsedLine[0] )      
+#             
+#             elif statsType == "bytecount":
+#                 value = parsedLine[2]
+#                 value = value.replace( '\n', '' )
+#                 value = int(value)
+#         
+#         return value
+    
+    
+    
     def findValue( self, statsType, line = "" ):
         """
             This method is used to find a particular entry within a line. 
-            Line format should be : timeofarrival;timeofdeparture;bytecount
-            
-            This method will return the value according to the type received as a parameter. 
-            
-            If type is unknown, method will return "". 
+            Used with line format used in tx_satnet.logxxxxxxxxxx
         
         """
         
@@ -192,37 +226,47 @@ class FileStatsCollector:
         
         if line != "" and line != "\n" :
             
-            parsedLine = line.split( ";" )
+            parsedLine = line.split( " " )
         
-            
             if statsType == "latency":
-                value =  MyDateLib.getSecondsSinceEpoch( parsedLine[1] ) -  MyDateLib.getSecondsSinceEpoch( parsedLine[0] ) 
+                lastPart  = parsedLine[6] 
+                lastPart  = lastPart.split(":") 
+                arrival   = MyDateLib.isoDateDashed( lastPart[6] )
+                departure = line.split( ",")
+                departure = departure[0]
+                value     = MyDateLib.getSecondsSinceEpoch( departure ) - MyDateLib.getSecondsSinceEpoch( arrival)
                 
             elif statsType == "arrival":
-                
-                value =  MyDateLib.getSecondsSinceEpoch( parsedLine[0] )      
+                lastPart = parsedLine[6] 
+                lastPart = lastPart.split(":") 
+                arrival  = MyDateLib.isoDateDashed( lastPart[6] )
+                value    = MyDateLib.getSecondsSinceEpoch( arrival)    
             
             elif statsType == "bytecount":
-                value = parsedLine[2]
-                value = value.replace( '\n', '' )
+                value = parsedLine[3]
+                value = value.replace( '(', '' )
                 value = int(value)
+                
+            elif statsType == "fileName":
+                value = parsedLine[6]
+                value = value.split( ":" )
+                value = value[0]
+            
+                
         
         return value
-    
-    
+
+
     
     def containsUsefullInfo( self, file ):
         """
             This method returns whether or not a certain file contain any data wich is within 
-        
+            the range we want 
         """
         
         status,firstLine = commands.getstatusoutput( 'head -n 1  %s'%file) 
         
         arrival =  self.findValue( "arrival", firstLine )
-        print file 
-        print arrival
-        print ( self.startTime + self.totalWidth)
         
         if arrival <= (self.startTime + self.totalWidth)  :
             status,lastLine = commands.getstatusoutput( 'tail -n 1 %s' %file) 
@@ -241,6 +285,41 @@ class FileStatsCollector:
         
     
     
+    def setMaximums(self):
+        """
+            if maximum values were'nt previously set, set default value 
+            for every data type. 
+        
+        """
+        
+        if self.maximum == {}:
+            for statType in self.statsTypes:
+                self.maximum[statType]              = 0
+                self.filesWhereMaxOccured[statType] = "" 
+                self.timeOfMax[statType]            = 0 
+    
+    
+    def findFirstInterestingLine( self,file ):
+        """
+            Finds the first interesting line in a file, starting where we last read the file.
+            If file was never read, will of course satrt from start of file. 
+            
+            returns the first line 
+        """
+        
+        offset = self.files[file][0]#if file was previously read, we'll know where we last stopped
+        entryCount = self.files[file][1]
+        filehandle = open( file , 'rb' )
+            
+        filehandle.seek( offset , 0 )
+        
+        line = filehandle.readline()# we need first line 
+        
+        #here we should call a isvalid(line) once we know what makes up a valid line.... 
+        while line != "" and( line.replace( ' ', '' ) == "\n" or line[0] != '2' or "sent" in line or "Speed" in line or "Caching" in line  or "Initialisation " in line or "Cache" in line or "reloaded" in line ):
+            line = filehandle.readline()# we read again 
+            
+        return entryCount,line,filehandle
     
     
     
@@ -258,68 +337,63 @@ class FileStatsCollector:
         
         value = []
         files =  self.files.keys()    
+        self.setMaximums( ) 
         
         
         for file in files :#read everyfile and append data found to matrixes 
             
-            if self.containsUsefullInfo( file ) == True :    
-        
-                #find the first line entry in the file wich is within the timespan we want
-                offset = self.files[file][0]
-                entryCount = self.files[file][1]#if file was previously read, we'll know where we last stopped
-                #print "file dans collect stats : %s" %file
-                #print "rendu a la ligne : %d " %offset 
-                #print "entry count : %s " %entryCount
+            #if self.containsUsefullInfo( file ) == True :    
+            entryCount,line,filehandle  = self.findFirstInterestingLine( file )
+            
+                                                    
+            endTime = self.width + self.startTime #set them values so they dont have to be reevaluated at every step 
+            arrival = self.findValue( "arrival" , line )
+            
+            while arrival != "" and arrival < endTime : 
                 
-                fileHandle = open( file , 'rb' )
+                #go to next time separator until we find the right one. 
+                while  arrival > self.timeSeperators[ entryCount ]:
+                    entryCount = entryCount + 1 
                 
-                fileHandle.seek( offset , 0 )
+                #find values to append 
+                for statType in self.statsTypes :                  
+                    newValue = self.findValue( statType , line )
+                    value.append( newValue )
+                    
+                    if newValue > self.maximum[statType] : 
+                        self.maximum[statType]              = newValue
+                        self.filesWhereMaxOccured[statType] = self.findValue( "fileName", line  ) 
+                        self.timeOfMax[statType]            = self.findValue( "arrival" , line ) 
                 
-                line = fileHandle.readline()# we need first line 
+                #add values at the right place  
+                self.fileEntries[ entryCount ].values.matrix.append( value )
+                self.fileEntries[ entryCount ].values.rows = self.fileEntries[ entryCount ].values.rows + 1
                 
-                if line.replace( ' ', '' ) == "\n" :
-                    line = fileHandle.readline()# we read again 
+
+                offset  = filehandle.tell()
+                line    = filehandle.readline()
                 
-                #print "line before while : %s" %line
-                
-                #set values so they dont have to be reevaluated at every step 
-                endTime = self.width + self.startTime 
+                #add a is valid method once we know what a valid line is ....
+                while line != "" and( line.replace( ' ', '' ) == "\n" or line[0] != '2' or "sent" in line or "Speed" in line or "Caching" in line or "erased" in line or "Initialisation " in line or "Cache" in line or "reloaded" in line)  :
+                    line = filehandle.readline()# we read again 
                 
                 arrival = self.findValue( "arrival" , line )
+                value   = []
+              
                 
-                while arrival != "" and arrival < endTime : 
-                        
-                    #go to next time separator until we find the right one. 
-                    while  arrival > self.timeSeperators[ entryCount ]:
-                        entryCount = entryCount + 1 
-                    
-                    #find values to append 
-                    for statType in self.statsTypes :                  
-                        value.append( self.findValue( statType , line ) )
-                    
-                    #add values at the right place  
-                    self.fileEntries[ entryCount ].values.matrix.append( value )
-                    self.fileEntries[ entryCount ].values.rows = self.fileEntries[ entryCount ].values.rows + 1
-                    
-                    offset  = fileHandle.tell()
-                    line    = fileHandle.readline()
-                    arrival = self.findValue( "arrival" , line )
-                    value   = []
-                    #print entryCount
-                    
-                # We won't change offset if last line read isnt within range or else we'll lose it 
-                # in the next reading.
-                if arrival == "" or arrival < endTime :
-                    offset = fileHandle.tell()
-                    
-                #print "Last line read : %s" %line 
-                self.files[file][0] = offset         
-                self.files[file][1] = entryCount + 1 
-                self.lastFilledEntry = entryCount
-                fileHandle.close()
+            # We won't change offset if last line read isnt within range or else we'll lose it 
+            # in the next reading.
+            if arrival == "" or arrival < endTime :
+                offset = filehandle.tell()
                 
-            else:
-                print "useless file : %s " %file                     
+            
+            self.files[file][0] = offset         
+            self.files[file][1] = entryCount + 1 
+            self.lastFilledEntry = entryCount
+            filehandle.close()
+                
+#             else:
+#                 print "useless file : %s " %file                     
 #         except:
 #             
 #             print "Error. There was an error reading source file named %s" %( self.files )
@@ -332,6 +406,7 @@ class FileStatsCollector:
         """
             Needs to be in a separate method 
             we fill up fileEntries with empty entries with proper time labels 
+        
         """
         
         if len ( self.timeSeperators ) > 0 : 
@@ -360,11 +435,11 @@ class FileStatsCollector:
             each data types wanted. 
                
         """
+        
         self.setValues()            #fill matrix with values
-        print "Temps avant mean : % s" %time.gmtime( time.time() )
-        self.setMinMaxMeanMedians() #find medians  
-        print "Temps apres mean : % s" %time.gmtime( time.time() )
-       
+        self.setMinMaxMeanMedians() #use values to find these values.   
+
+        
         
                          
 
@@ -373,10 +448,10 @@ if __name__ == "__main__":
         small test case. Tests if everything works plus gives an idea on proper usage.
     """
     
-    types = [ 'latency', 'bytecount']
+    types = [ 'latency']
     filename = '/a/lib/stats/files/log'
      
-    stats = FileStatsCollector( files = dict( [("/apps/px/lib/stats/files/log", [0,0]) ] ), statsTypes = types , startTime = '2006-05-18 00:00:00', width = 1*HOUR, interval = 1*MINUTE,save = False  )
+    stats = FileStatsCollector( files = dict( [("/apps/px/lib/stats/files/log", [0,0]) ] ), statsTypes = types , startTime = '2006-05-18 00:00:00', width = 1*HOUR, interval = 1*MINUTE  )
     
     stats.collectStats()
     

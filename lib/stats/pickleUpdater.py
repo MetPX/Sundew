@@ -42,7 +42,7 @@ class _UpdaterInfos:
         self.machines    = machines                                         # Machines on wich we'll search data. 
         self.types       = types                                            # Data types to collect  
         self.directories = directories                                      # Get the directory containing the files  
-        self.width       = width or 1                                       # Width for wich we'll collect data
+        self.width       = width    or 1                                    # Width for wich we'll collect data
         self.interval    = interval or 1                                    # Interval..... 
         self.startTimes  = startTimes                                       #Time of last crontab job.... 
 
@@ -64,44 +64,60 @@ def getfilesIntoDirectory( clientName, machines = "" ):
         
 
 
-def getLastCronJob( clientName, currentDate, clients, update = True   ):
+def getLastCronJob( clientName, currentDate, update = True, width = 1    ):
     """
         This method gets the dictionnary containing all the last cron job list. From that dictionnary
         it returns the right value. 
         
     """ 
     
-      
+    lastCronJob = {}
+    times = {}  
+    
+    
     if os.path.isfile( "PICKLED-TIMES" ):
         
-        fileHandle  = open( "PICKLED-TIMES", "rb" )
+        try :
+            
+            fileHandle  = open( "PICKLED-TIMES", "wb+" )
+            
+            times       = pickle.load( fileHandle )
+            lastCronJob = times[clientName]
+            
+            if update == True :
+                times[ clientName ] = currentDate     
+                pickle.dump( times, fileHandle )
+            
+            fileHandle.close()
         
-        times       = pickle.load( fileHandle )
-        lastCronjob = times[clientName]
-        
-        if update == True :
-            times[ clientName ] = currentDate     
-        
-        fileHandle.close()
-    
-        
+         
+        except Exception, e:#key doesn't exist for this client...
+             
+            print "Exception : %s " %e
+            print "currentDate : %s" %currentDate
+             
+            lastCronJob = MyDateLib.getOriginalDate( MyDateLib.getSecondsSinceEpoch( currentDate ) - ( width * MyDateLib.HOUR ) )# atificial cron
+             
+            times[ clientName ] = currentDate  #update field 
+            pickle.dump( times, fileHandle )
+            fileHandle.close()
+         
+         
     else:#create a new pickle file  
+         
         
-        times = {}
         fileHandle  = open( "PICKLED-TIMES", "wb" )
         
-        for client in clients :
-            times[client]= currentDate     
-        
-            
-        
-        lastCronjob = times[clientName]
+        times[clientName]= currentDate     
+         
         pickle.dump( times, fileHandle )
-        
+         
+        lastCronJob = MyDateLib.getOriginalDate( MyDateLib.getSecondsSinceEpoch( currentDate ) - ( width * MyDateLib.HOUR ) )
+         
         fileHandle.close()
        
 
-    return lastCronjob
+    return lastCronJob
 
     
             
@@ -122,10 +138,10 @@ def getOptionsFromParser(  parser ):
     """ 
     
     ( options, args ) = parser.parse_args()        
-   
-    #we take all space out
     directories  = []
     startTimes   = []
+    
+    #we take all space out
     clients      = options.clients.replace( ' ','' ).split(',')
     machines     = options.machines.replace( ' ', '' ).split(',')
     types        = options.types.replace( ' ', '').split(',')
@@ -164,9 +180,8 @@ def getOptionsFromParser(  parser ):
     
     for client in clients :
         directories.append( getfilesIntoDirectory( client, machines ) )
-        startTimes.append( getLastCronJob( client,currentDate, clients ) )
-    
-    
+        startTimes.append( getLastCronJob( client, currentDate , width )  )
+        
     #everything should be ok                    
     infos = _UpdaterInfos( currentDate = currentDate, clients = clients, startTimes = startTimes, machines = machines, directories = directories ,types = types )
     
@@ -189,7 +204,10 @@ def createParser( ):
         
 
 def addOptions( parser ):
-    #date, pattern, machines, sources, clients
+    """
+        This method is used to add all available options to the option parser.
+        
+    """
     
 
     parser.add_option("-c", "--clients", action="store", type="string", dest="clients", default="",

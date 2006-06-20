@@ -8,6 +8,14 @@
 ##
 ## Date   : 06-07-2006 
 ##
+##
+## Description : Contains all class' and methods usefull to produce a graphic 
+##               for a certain client. Main use is to build latency graphics
+##               for one or many clients. 
+##               Implementation of other classes used allow for multi-data types.
+##               Thus far this implentation is slightly too rigid to produce 
+##               multi data types graphics but should be easily modified to do so.
+##
 ##############################################################################
 
 
@@ -37,8 +45,8 @@ class ClientGraphicProducer:
         
         self.clientNames  = clientNames or [] # Client name we need to get the data from.
         self.currentTime  = time.time()       # Time when stats were queried.
-        self.timespan     = timespan          # Number of hours we want to gather the data from 
-    
+        self.timespan     = timespan          # Number of hours we want to gather the data from. 
+        
         
             
     def getStartTimes( self, currentTime = 0 ,  timespan = 0 ):
@@ -80,7 +88,7 @@ class ClientGraphicProducer:
     
     
     
-    def getStatsFromPickle( self, pickleName , dataCollector, startTime = "2006-06-8 00:00:00"  ):
+    def getStatsFromPickle( self, type, pickleName , dataCollector, previousMaximum, previousFile, previousTimeOfMax, startTime = "2006-06-8 00:00:00" ):
         """
             This method returns a list of all the stats found in a pickle, 
             from the starting point up to the very end of the file.
@@ -94,13 +102,22 @@ class ClientGraphicProducer:
         
         try:
             
+            maximum              = previousMaximum 
+            filesWhereMaxOccured = previousFile
+            timeOfMax            = previousTimeOfMax
+            
             statsCollection = gzippickle.load( pickleName )
             numberOfMinutes = MyDateLib.getMinutesSinceStartOfDay( startTime )
     
             for i in range( numberOfMinutes, len( statsCollection.fileEntries) ):
                 dataCollector.statsCollection.fileEntries.append( statsCollection.fileEntries [i] )
 
-            return dataCollector.statsCollection.fileEntries
+            if dataCollector.statsCollection.maximum > previousMaximum :
+                maximum              =  dataCollector.statsCollection.maximum     
+                filesWhereMaxOccured =  dataCollector.statsCollection.filesWhereMaxOccured
+                timeOfMax            =  dataCollector.statsCollection.timeOfMax
+                
+            return maximum[type], filesWhereMaxOccured[type], timeOfMax[type],dataCollector.statsCollection.fileEntries
             
             
         except:
@@ -155,7 +172,7 @@ class ClientGraphicProducer:
         
         else:    
            
-            nbDaysToSearch = 2 + (( self.timespan - int(currentHour) )/24)   #number of past days we need to look up
+            nbDaysToSearch = 2 + (( self.timespan - int(currentHour) ) /24 )   #number of past days we need to look up
             
  
         
@@ -166,7 +183,7 @@ class ClientGraphicProducer:
         
         
         
-    def getStatsFromDsCollector( self, entries, dataCollector , startTime = "2006-06-8 00:00:00"  ) :
+    def getStatsFromDsCollector( self, type, entries, dataCollector , previousMaximum, previousFile, previousTimeOfMax, startTime = "2006-06-8 00:00:00"  ) :
         """
             This method returns a list of all the stats found in a dataCollector, 
             from the starting point set up by startTime up to the very end.
@@ -175,13 +192,26 @@ class ClientGraphicProducer:
             ***warning***We take for granted here that buckets were allready made for every minute.... 
             
         """ 
-
-        numberOfMinutes = MyDateLib.getMinutesSinceStartOfDay( startTime )
         
+        maximum              = previousMaximum 
+        filesWhereMaxOccured = previousFile
+        timeOfMax            = previousTimeOfMax
+        
+        numberOfMinutes      = MyDateLib.getMinutesSinceStartOfDay( startTime )
+        print "number of minutes : %s " %numberOfMinutes
+         
         for i in range( numberOfMinutes, len( dataCollector.statsCollection.fileEntries) ):
-            entries.append( dataCollector.statsCollection.fileEntries [i] )
-
-        return entries
+           # print i,dataCollector.statsCollection.fileEntries[i].means 
+            entries.append( dataCollector.statsCollection.fileEntries[i] )
+            
+        
+        if dataCollector.statsCollection.maximum > previousMaximum:
+            maximum              =  dataCollector.statsCollection.maximum
+            filesWhereMaxOccured =  dataCollector.statsCollection.filesWhereMaxOccured
+            timeOfMax            =  dataCollector.statsCollection.timeOfMax
+            
+            
+        return  maximum[type], filesWhereMaxOccured[type], timeOfMax[type], entries
         
  
         
@@ -196,7 +226,12 @@ class ClientGraphicProducer:
                       
         """ 
         
-        collectorsList = []        
+        collectorsList       = []      
+        maximums             = []
+        filesWhereMaxOccured = []
+        timeOfMax            = []
+        
+           
         #Find how data will be spread between within different days and hours....   
         startTimes = self.getStartTimes( self, currentTime = self.currentTime ,  timespan = self.timespan ) 
         startTimes.reverse()
@@ -206,22 +241,31 @@ class ClientGraphicProducer:
         
         
         for i in range( len( self.clientNames ) ):
-            
+            #add new entry to maxs
+            maximums.append(0)
+            filesWhereMaxOccured.append("")
+            timeOfMax.append("")       
+
+
             #Create empty entries that are properly cut in buckets....
             statsCollection = FileStatsCollector( statsTypes = types, startTime = startTimes[ len(startTimes)-1 ] , width = (self.timespan* MyDateLib.HOUR), interval = MyDateLib.MINUTE, totalWidth = (self.timespan* MyDateLib.HOUR) )
             
-            lastCronJob = pickleUpdater.getLastCronJob( self.clientNames[i],self.currentTime,self.clientNames,update = False )
+            print "self.currentTime : %s" %self.currentTime
+            lastCronJob = pickleUpdater.getLastCronJob( self.clientNames[i], MyDateLib.getOriginalDate(self.currentTime),update = False )
             
             #collect today's missing data since last pickle occured....
             dataCollector  = DirectoryStatsCollector( startTime = startTimes[0], statsCollection = statsCollection )
             dataCollector.startTime = startTimes[0]
             dataCollector.statsCollection.fileEntries = []
             
-            timeSinceLastCron = self.currentTime -  lastCronJob 
+            print "Last cron job : %s " %lastCronJob
+            timeSinceLastCron = self.currentTime -  MyDateLib.getSecondsSinceEpoch( lastCronJob )
+            
             
             ds = DirectoryStatsCollector( directory = pickleUpdater.getfilesIntoDirectory( self.clientNames[i] ) )
-            ds.collectStats( types, startTime = MyDateLib.getOriginalDate(lastCronJob) , width = timeSinceLastCron, interval = 1*MyDateLib.MINUTE,pickle = DirectoryStatsCollector.buildTodaysFileName( self.clientNames[i] ),save = False )
-            
+            print "appel collect stats"
+            ds.collectStats( types, startTime = lastCronJob , width = timeSinceLastCron, interval = 1*MyDateLib.MINUTE,pickle = DirectoryStatsCollector.buildTodaysFileName( self.clientNames[i] ),save = False )                   
+
             
             for j in days : #Now gather all usefull info that was previously treated.
                 
@@ -229,11 +273,13 @@ class ClientGraphicProducer:
                 thatDaysPickle = DirectoryStatsCollector.buildTodaysFileName( self.clientNames[i], offset = j - ( 2*j ) )
                 
                 if j == 0 :
-                    dataCollector.statsCollection.fileEntries = self.getStatsFromDsCollector(  entries = dataCollector.statsCollection.fileEntries, dataCollector = ds, startTime = startTimes[j] )  
+                
+                    print "working on todays data day"
+                    maximums[i], filesWhereMaxOccured[i], timeOfMax[i], dataCollector.statsCollection.fileEntries = self.getStatsFromDsCollector( type = types[0], entries = dataCollector.statsCollection.fileEntries, dataCollector = ds, previousMaximum = maximums[i], previousFile = filesWhereMaxOccured[i], previousTimeOfMax =  timeOfMax[i] , startTime = startTimes[j])  
                     
                 elif os.path.isfile( thatDaysPickle ) :#check to see if that days pickle exist. 
         
-                    dataCollector.statsCollection.fileEntries =  self.getStatsFromPickle( pickleName = thatDaysPickle, dataCollector = dataCollector, startTime = startTimes[j] ) 
+                     maximums[i], filesWhereMaxOccured[i], timeOfMax[i], dataCollector.statsCollection.fileEntries =  self.getStatsFromPickle( type = types[0], pickleName = thatDaysPickle, dataCollector = dataCollector, startTime = startTimes[j], previousMaximum = maximums[i], previousFile = filesWhereMaxOccured[i], previousTimeOfMax = timeOfMax[i] ) 
                 
                 else:#fill up gap with empty entries 
                     
@@ -245,11 +291,13 @@ class ClientGraphicProducer:
                         nbEmptyEntries = MyDateLib.getMinutesSinceStartOfDay( MyDateLib.getOriginalDate(self.currentTime) )- MyDateLib.getMinutesSinceStartOfDay( startTimes[j] )
                     
                     dataCollector.statsCollection.fileEntries = self.fillWithEmptyEntries( nbEmptyEntries, dataCollector.statsCollection.fileEntries)
-    
+                
+                print"avant append : %s" %ds.statsCollection.filesWhereMaxOccured
                 collectorsList.append( dataCollector )
                          
-        #Finally we use stats plotter to produce graphic.
-        plotter = StatsPlotter( stats = collectorsList, clientNames = self.clientNames, timespan = self.timespan,currentTime = self.currentTime  ) 
+        print "timeOfMax : %s"  %timeOfMax  
+        
+        plotter = StatsPlotter( stats = collectorsList, clientNames = self.clientNames, timespan = self.timespan, currentTime = self.currentTime, maximums = maximums, filesWhereMaxOccured = filesWhereMaxOccured,  timeOfMax = timeOfMax )
         plotter.plot()                          
          
 
@@ -259,6 +307,8 @@ if __name__ == "__main__":
         small test case to see proper use and see if everything works fine. 
         
     """
-    gp = ClientGraphicProducer( clientNames = ['metpx'], timespan = 12 )  
+    
+    
+    gp = ClientGraphicProducer( clientNames = ['satnet'], timespan = 12 )  
     gp.produceGraphic( types = ["latency"] )
         

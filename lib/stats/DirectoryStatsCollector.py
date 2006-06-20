@@ -45,7 +45,7 @@ class DirectoryStatsCollector:
     def __init__( self, directory = "", statsTypes = None, startTime = "2006-05-18 21:45:30",statsCollection = None ):
         """ 
             Constructor.
-            builds a directoryFileCollector with no entries.   
+            -Builds a directoryFileCollector with no entries.   
         
         """
         
@@ -66,8 +66,7 @@ class DirectoryStatsCollector:
         
         """    
         
-        print "offset : %s" %offset
-        fileName = str( os.getcwd() )
+        fileName = str( os.getcwd() ) #will probably need a better path eventually.... 
         fileName = fileName +  "/" + clientName +"-PICKLE-"
         
         tempTime = time.time() 
@@ -85,8 +84,6 @@ class DirectoryStatsCollector:
             if i != 2: 
                 fileName = fileName + "-" 
         
-        
-        print "todaysfilename:%s" %fileName
         
         return fileName 
         
@@ -139,19 +136,22 @@ class DirectoryStatsCollector:
             
             
             self.statsCollection.collectStats( )           
-        
-        except: # create new statscollection for the day 
-            print"pas trouver le %s!?" %pickle
+            
+           
+            
+        except Exception, e :
+            print "exception : %s " %e
+
             self.statsCollection = FileStatsCollector( files = self.fileCollection.entries, statsTypes = types, startTime = startTime, width = width, interval = interval, totalWidth = 24*HOUR )
             self.statsCollection.collectStats(  )         
-         
+        
         
         if save == True :
             print "Temps avant save : % s" %time.gmtime( time.time() )
             gzippickle.save ( object = self.statsCollection, filename = pickle ) 
             print "Temps apres save: % s" %time.gmtime( time.time() )
     
-    
+       
     
     def collectStatsWithoutPickling( self, types, startTime = '2006-05-18 00:00:00', width=DAY, interval = 60*MINUTE, totalWidth = 24*HOUR  ):
         """
@@ -159,7 +159,6 @@ class DirectoryStatsCollector:
         
         """
         
-         
         self.fileCollection.collectEntries() # find all entries from the folder
         
         self.statsCollection = FileStatsCollector( files = self.fileCollection.entries, statsTypes = types, startTime = startTime , width = width, interval = interval, totalWidth = totalWidth )
@@ -292,25 +291,17 @@ def main():
     #DirectoryStatsCollector.createLogFile( "/apps/px/lib/stats/files/2006-06-16" )
     
     types = [ 'latency']
-#     #'bytecount' 
-#         
-#     ds = DirectoryStatsCollector( directory = "/apps/px/lib/stats/files/" )
-#     ds.fileCollection.collectEntries()
-#     ds.collectStatsWithoutPickling( types, startTime = '2006-05-18 00:00:00', width = 60*MINUTE, interval = 1*MINUTE ,totalWidth = 24 * HOUR )
-        
-    # simulate a crontab call at every hour. We use different files at every call to simulate an 
-    #expanding file over 24 hours 
     
     print "Temps avant : % s" %time.gmtime( time.time() )
+    
     ds = DirectoryStatsCollector( directory = "/apps/px/lib/stats/files/" )
-    #ds.fileCollection.collectEntries()
-    ds.collectStats( types, startTime = '2006-06-16 00:00:00', width = 14*HOUR, interval = 1*MINUTE,pickle = "metpx-PICKLE-2006-06-16" )
+    ds.collectStats( types, startTime = '2006-06-20 00:00:00', width = 13*HOUR, interval = 1*MINUTE,pickle = "satnet-PICKLE-2006-06-20" )
+    
     print "Temps apres : % s" %time.gmtime( time.time() )
-    print "call 1 to collect stats done"
-#     
-    print "len(ds.statsCollection.fileEntries) %s" %len(ds.statsCollection.fileEntries)  
+    print "call to collect stats done"
+    
     #ds.printStats()        
-#    return ds         
+        
 
 if __name__ == "__main__":
     main()    

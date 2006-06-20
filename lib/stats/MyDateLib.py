@@ -1,4 +1,3 @@
-
 import time,sys,os
     
 MINUTE = 60
@@ -15,13 +14,15 @@ class MyDateLib:
 
     
     """
-        This section should be put in date library 
+        This section should be put in date library upon approval. 
+    
     """
+    
     def getSecondsSinceEpoch( date='2005-08-30 20:06:59' ):
         
         
         try:
-            
+
             timeStruct = time.strptime( date, '%Y-%m-%d %H:%M:%S' )
             return time.mktime( timeStruct )
         
@@ -43,6 +44,11 @@ class MyDateLib:
     
     
     def getHoursSinceStartOfDay( date='2005-08-30 20:06:59' ):
+        """
+            This method takes an iso style date and returns the number 
+            of hours that have passed since 00:00:00 of the same day.
+        
+        """
         
         try:
             splitDate = date.split( " " )
@@ -55,16 +61,37 @@ class MyDateLib:
             return hourssSinceStartOfDay
         
         except:
+        
             print "Cannot convert %s in getMinutesSinceStartOfDay. " %date 
             sys.exit()
     
     
+    
+    def isoDateDashed( date = "20060613162653" ):
+        """
+            This method takes in parameter a non dashed iso date and 
+            returns the date dashed and the time with : as seperator. 
+            
+        """    
+        
+        dashedDate = date[0:4] + "-" + date[4:6] + "-" + date[6:8] + " "  + date[8:10] + ":"  + date[10:12] + ":" + date[12:14]
+          
+        return dashedDate
+        
+    isoDateDashed = staticmethod( isoDateDashed )  
+    
+    
+    
     def getMinutesSinceStartOfDay( date='2005-08-30 20:06:59' ):
         """
-            
+            This method receives an iso date as parameter and returns the number of minutes 
+            wich have passed since the start of that day.            
+        
         """
-#     
+     
+        
         try:
+            
             splitDate = date.split( " " )
             splitDate = splitDate[1]
             splitDate = splitDate.split( ":" )
@@ -75,13 +102,15 @@ class MyDateLib:
             return minutesSinceStartOfDay
         
         except:
+            
             print "Cannot convert %s in getMinutesSinceStartOfDay. " %date 
             sys.exit()
     
 
     getMinutesSinceStartOfDay = staticmethod( getMinutesSinceStartOfDay )        
     
-
+    
+    
     def getNumericMonthFromString( month ) :
         """
             This method takes a month in the string format and returns the month.
@@ -149,6 +178,7 @@ class MyDateLib:
             Take a number of seconds built with getSecondsSinceEpoch
             and returns a date in the format of '2005-08-30 20:06:59'
             Thu May 18 13:00:00 2006     
+        
         """
         
         timeString = time.ctime( seconds )
@@ -177,7 +207,9 @@ class MyDateLib:
         """
             This method works exactly like getSeparators but it uses a start time to set 
             the separators
+        
         """    
+        
         separators = []
         
         if interval <= width :
@@ -192,14 +224,10 @@ class MyDateLib:
         
     getSeparatorsWithStartTime = staticmethod( getSeparatorsWithStartTime )
     
+    
     """ 
         End of section that needs to be in date library 
     """
-
-
-
-if __name__ == "__main__":
     
-    MyDateLib.getOriginalDate( time.time() )    
 
        
