@@ -40,7 +40,7 @@ class receiverWmo(gateway.gateway):
         self.unBulletinManager = bulletinManagerWmo.bulletinManagerWmo(
                                     PXPaths.RXQ + self.flow.name,
                                     self.logger,
-                                    self.flow.routingTable,
+                                    pathFichierCircuit = self.flow.routingTable,
                                     extension = self.flow.extension,
                                     mapEnteteDelai = self.flow.mapEnteteDelai,
                                     source = self.flow)

@@ -42,7 +42,7 @@ class receiverAm(gateway.gateway):
         self.unBulletinManager = bulletinManagerAm.bulletinManagerAm(
                                     PXPaths.RXQ + self.flow.name,
                                     self.logger,
-                                    self.flow.routingTable, 
+                                    pathFichierCircuit = self.flow.routingTable, 
                                     SMHeaderFormat = self.flow.addSMHeader,
                                     pathFichierStations = self.pathFichierStations,
                                     extension = self.flow.extension, 

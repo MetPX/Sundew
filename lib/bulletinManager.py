@@ -89,16 +89,17 @@ class bulletinManager:
             mapEnteteDelai=None,
             source=None):
 
+        self.pathTemp = self.__normalizePath(pathTemp)
         self.logger = logger
         self.pathSource = self.__normalizePath(pathSource)
-        self.pathTemp = self.__normalizePath(pathTemp)
         self.maxCompteur = maxCompteur
-        # FIXME: this should be read from a config file, haven't understood enough yet.
-        self.compteur = 0
-        self.extension = extension
         self.lineSeparator = lineSeparator
+        self.extension = extension
         self.mapEnteteDelai = mapEnteteDelai
         self.source = source
+
+        # FIXME: this should be read from a config file, haven't understood enough yet.
+        self.compteur = 0
 
         #map du contenu de bulletins en format brut
         #associe a leur arborescence absolue
