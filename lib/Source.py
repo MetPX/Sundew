@@ -163,6 +163,7 @@ class Source(object):
                     elif words[0] == 'primary': self.issue_primary.append(words[1])
                     elif words[0] == 'cycle': self.issue_cycle.append(words[1])
                     elif words[0] == 'feed': self.feeds.append(words[1])
+                    elif words[0] == 'routingTable': self.routingTable = words[1]
 
                     if   self.type == 'collector' :
                          if   words[0] == 'history': self.history = int(words[1])
@@ -225,6 +226,7 @@ class Source(object):
         print("Clients Pattern Matching: %s" % source.clientsPatternMatching)
         print("mtime: %s" % source.mtime)
         print("Sorter: %s" % source.sorter)
+        print("Routing table: %s" % source.routingTable)
         
         print("******************************************")
         print("*       Source Masks                     *")
