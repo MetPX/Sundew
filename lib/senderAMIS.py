@@ -63,7 +63,7 @@ class senderAMIS:
       self._connect()
       #self.run()
 
-   def set_maxLength(self,value)
+   def set_maxLength(self,value):
       if value <= 0  : value = 14000
       self.maxLength = value
 
