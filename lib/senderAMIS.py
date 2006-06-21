@@ -52,8 +52,7 @@ class senderAMIS:
 
       # AMIS's maximum bulletin size is 14000
 
-      if self.client.maxLength == 0 :
-         self.client.maxLength = 14000
+      self.set_maxLength(self.client.maxLength)
 
       # statistics.
       self.totBytes = 0
@@ -63,6 +62,10 @@ class senderAMIS:
 
       self._connect()
       #self.run()
+
+   def set_maxLength(self,value)
+      if value <= 0  : value = 14000
+      self.maxLength = value
 
    def printSpeed(self):
       elapsedTime = time.time() - self.initialTime
@@ -111,6 +114,7 @@ class senderAMIS:
       if self.igniter.reloadMode == True:
          # We assign the defaults and reread the configuration file (in __init__)
          self.client.__init__(self.client.name, self.client.logger)
+         self.set_maxLength(self.client.maxLength)
          self.resetReader()
          self.cacheManager.clear()
          self.logger.info("Cache has been cleared")
@@ -126,6 +130,7 @@ class senderAMIS:
          for index in range(len(data)):
 
              tosplit = self.need_split( data[index] )
+
              if tosplit :
                 succes, nbBytesSent = self.write_segmented_data( data[index], self.reader.sortedFiles[index] )
                 # all parts were cached... nothing to do
@@ -228,7 +233,7 @@ class senderAMIS:
 
        tosplit = False
        totAmis = self.encapsulated_size(data)
-       if totAmis > self.client.maxLength : tosplit = True
+       if totAmis > self.maxLength : tosplit = True
 
        return tosplit
 
@@ -294,7 +299,7 @@ class senderAMIS:
 
        # compute block size limit
 
-       limit  = self.client.maxLength
+       limit  = self.maxLength
        limit -= len(self.preamble)
        limit -= lheader + 4 + len(self.endOfLineSep)
        limit -= len(self.endOfMessage)
