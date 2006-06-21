@@ -56,10 +56,11 @@ class senderAm(gateway.gateway):
         self.cacheManager = CacheManager(maxEntries=120000, timeout=8*3600)
 
         # AM's maximum bulletin size is 32K
+        self.set_maxLength( self.client.maxLength )
 
-        if self.client.maxLength == 0 :
-           self.client.maxLength = 32 * 1024
-
+    def set_maxLength(self,value):
+        if value <= 0  : value = 32 * 1024
+        self.maxLength = value
 
     def shutdown(self):
         gateway.gateway.shutdown(self)
@@ -85,6 +86,7 @@ class senderAm(gateway.gateway):
         if self.igniter.reloadMode == True:
             # We assign the defaults and reread the configuration file (in __init__)
             self.client.__init__(self.client.name, self.client.logger)
+            self.set_maxLength( self.client.maxLength )
             self.resetReader()
             self.cacheManager.clear()
             self.logger.info("Cache has been cleared")
@@ -176,7 +178,7 @@ class senderAm(gateway.gateway):
         # followed by the bulletin.
 
         unBulletinAm = bulletinAm.bulletinAm(data,self.logger,lineSeparator='\r\r\n')
-        limit   = self.client.maxLength - 128
+        limit   = self.maxLength - 128
         header  = unBulletinAm.getHeader()
         lheader = len(header) + 1
 
@@ -212,7 +214,7 @@ class senderAm(gateway.gateway):
     def write_segmented_data(self,data,path):
 
         unBulletinAm = bulletinAm.bulletinAm(data,self.logger,lineSeparator='\r\r\n')
-        limit   = self.client.maxLength - 128
+        limit   = self.maxLength - 128
         header  = unBulletinAm.getHeader()
         lheader = len(header) + 1
 
@@ -240,7 +242,7 @@ class senderAm(gateway.gateway):
         # segmentation the block size is computed like this :
         # maxLength - 128 (Am struct size) - (len(header) + '\n\ + ' ' + BBB  )
 
-        limit   = self.client.maxLength - 128 - (lheader + 4)
+        limit   = self.maxLength - 128 - (lheader + 4)
         blocks  = TextSplitter(data[lheader:], limit ).breakMarker()
         self.logger.info("Bulletin %s segmented in %d parts" % (path,len(blocks)))
                     

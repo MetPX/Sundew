@@ -51,14 +51,15 @@ class senderWmo(gateway.gateway):
                                  eval(self.client.sorter),
                                  self.client)
 
-
-        # WMO's maximum bulletin size is 500 000 bytes
-        if self.client.maxLength == 0 :
-           self.client.maxLength = 500000
-
         # Mechanism to eliminate multiple copies of a bulletin
         self.cacheManager = CacheManager(maxEntries=120000, timeout=8*3600)
 
+        # WMO's maximum bulletin size is 500 000 bytes
+        self.set_maxLength( self.client.maxLength )
+
+    def set_maxLength(self,value):
+        if value <= 0  : value = 500000
+        self.maxLength = value
 
     def shutdown(self):
         gateway.gateway.shutdown(self)
@@ -84,6 +85,7 @@ class senderWmo(gateway.gateway):
         if self.igniter.reloadMode == True:
             # We assign the defaults and reread the configuration file (in __init__)
             self.client.__init__(self.client.name, self.client.logger)
+            self.set_maxLength( self.client.maxLength )
             self.resetReader()
             self.cacheManager.clear()
             self.logger.info("Cache has been cleared")
@@ -192,7 +194,7 @@ class senderWmo(gateway.gateway):
         totWmo  += 4
 
         tosplit = False
-        if  totWmo  > self.client.maxLength :
+        if  totWmo  > self.maxLength :
             tosplit = True
 
         return tosplit
@@ -242,7 +244,7 @@ class senderWmo(gateway.gateway):
 
         # compute block size limit = maxLength - preamble(22) - endofMessage(4) - bulletinheader with "\r\r\n"
 
-        limit  = self.client.maxLength -26 - (lheader + 2)
+        limit  = self.maxLength -26 - (lheader + 2)
 
         # replace all \n by Amis endOfLineSep
 
