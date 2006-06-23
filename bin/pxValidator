@@ -115,11 +115,11 @@ class PXValidator:
         
     def validate(self):
         print "################################################################"
-        print "#                       Routing Table Errors                   #"
+        print "# Routing Table (%s) Errors" % PXValidator.filename
         print "################################################################"
         self.drp.parseAndShowErrors()
         print "################################################################"
-        print "#                       Station Table Errors                   #"
+        print "# Station Table (%s) Errors" % PXPaths.STATION_TABLE
         print "################################################################"
         self.sp.printErrors = True
         self.sp.parse()
