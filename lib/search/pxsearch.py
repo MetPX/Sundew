@@ -105,6 +105,9 @@ def updateSearchObject(so, options, args):
 def nameSort(lineA, lineB):
     return cmp(lineA.split(":")[1].split("_")[0], lineB.split(":")[1].split("_")[0])
 
+def timeSort(lineA, lineB):
+    return cmp(lineA.split(":")[-1], lineB.split(":")[-1])
+
 def search(so):
     logFileName = so.getLogPath()
     regex = so.getSearchRegex()
@@ -124,8 +127,10 @@ def search(so):
         # Validation was done in validateUserInput()
         if so.getSince() != 0 or so.getFrom() != "" or so.getTo() != "":
             lines = filterTime(so, lines)
-        
-        lines.sort(nameSort)
+            lines.sort(timeSort)
+        else:
+            lines.sort(nameSort)
+            
         for line in lines:
             print line
         print "Number of matches: %s" % (len(lines))
