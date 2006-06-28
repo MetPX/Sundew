@@ -27,14 +27,16 @@ from StationParser import StationParser
 from DirectRoutingParser import DirectRoutingParser
 
 def usage():
-    print "\nUsage: pxValidator [-f filename] where filename is the name of the direct routing file"
-    print "ex 1: pxValidator  (default filename is PXPaths.ROUTING_TABLE)"
-    print "ex 2: pxValidator -f header2client.conf (defaut path is PXPaths.ETC)"
-    print "ex 3: pxValidator -f /toto/tutu/head.conf\n"
+    print "\nUsage: pxValidator [-r routing] [-s stations] where routing is"
+    print "the name of the routing file and stations is the name of the stations file\n"
+    print "ex 1: pxValidator  (default routing is PXPaths.ROUTING_TABLE and default stations is PXPaths.STATION_TABLE)"
+    print "ex 2: pxValidator -r pxRouting.conf (defaut path is PXPaths.ETC)"
+    print "ex 3: pxValidator -r /toto/tutu/pxRouting.conf\n"
 
 class PXValidator:
     LOG_LEVEL = "INFO"      # Logging level
-    filename = None
+    routingFilename = None
+    stationsFilename = None
 
     def __init__(self):
 
@@ -47,8 +49,9 @@ class PXValidator:
         self.logger = logger.getLogger()
         self.manager.setLogger(self.logger)
 
-        self.drp = DirectRoutingParser(PXValidator.filename)
-        self.sp = StationParser(PXPaths.STATION_TABLE)
+        self.drp = DirectRoutingParser(PXValidator.routingFilename)
+        self.sp = StationParser(PXValidator.stationsFilename)
+        #self.sp = StationParser(PXPaths.STATION_TABLE)
 
     def printMenu(self):
         print
@@ -115,22 +118,26 @@ class PXValidator:
         
     def validate(self):
         print "################################################################"
-        print "# Routing Table (%s) Errors" % PXValidator.filename
+        print "# Routing Table (%s) Errors" % PXValidator.routingFilename
         print "################################################################"
         self.drp.parseAndShowErrors()
         print "################################################################"
-        print "# Station Table (%s) Errors" % PXPaths.STATION_TABLE
+        print "# Station Table (%s) Errors" % PXValidator.stationsFilename
         print "################################################################"
         self.sp.printErrors = True
         self.sp.parse()
         #self.sp.printInfos()
         print "##########################END###################################"
 
+        print "\nNOTE: The following menu has NOTHING to do with automatic validation"
+        print "If you're only interested in validation results, type q (to quit)."
+
     def getOptionsParser(self):
-        filename = False
+        routingFilename = False
+        stationsFilename = False
 
         try:
-            opts, args = getopt.getopt(sys.argv[1:], 'f:h', ['help', 'filename='])
+            opts, args = getopt.getopt(sys.argv[1:], 'r:s:h', ['help', 'routing=', 'stations='])
             #print "Options:%s" % opts
             #print "Args:%s" % args
             if args:
@@ -145,15 +152,29 @@ class PXValidator:
             if option in ('-h', '--help'):
                 usage()
                 sys.exit()
-            if option in ('-f', '--filename'):
-                filename = True
-                if os.path.dirname(value):
-                    PXValidator.filename = value
-                else:
-                    PXValidator.filename = PXPaths.ETC + value
 
-        if filename  is False:
-            PXValidator.filename = PXPaths.ROUTING_TABLE
+            # Routing 
+            if option in ('-r', '--routing'):
+                routingFilename = True
+                if os.path.dirname(value):
+                    PXValidator.routingFilename = value
+                else:
+                    PXValidator.routingFilename = PXPaths.ETC + value
+
+            # Stations
+            if option in ('-s', '--stations'):
+                stationsFilename = True
+                if os.path.dirname(value):
+                    PXValidator.stationsFilename = value
+                else:
+                    PXValidator.stationsFilename = PXPaths.ETC + value
+
+        if routingFilename  is False:
+            PXValidator.routingFilename = PXPaths.ROUTING_TABLE
+
+        if stationsFilename is False:
+            PXValidator.stationsFilename = PXPaths.STATION_TABLE
+
 
 if __name__ == '__main__':
 
