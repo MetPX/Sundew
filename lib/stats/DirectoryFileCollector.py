@@ -36,11 +36,13 @@ class DirectoryFileCollector:
         
         Data structure is a dictionary. The key is the entry's name. Value is 
         a list wich has 2 entries.
+        
         [0] contains the offset,wich mean the number of byte where we last read the file.
             Is really usefull for reading expanding files...
         [1] contains the entry count, meaning the last fileEntry of a FileStatsCollector instance 
             we were at while reading the file. 
             Is also really usefull for reading expanding files...
+    
     
     """
     

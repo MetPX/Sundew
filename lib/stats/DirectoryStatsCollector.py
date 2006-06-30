@@ -56,24 +56,33 @@ class DirectoryStatsCollector:
         
         
     
-    def buildTodaysFileName(  clientName = "", offset = 0 ):
+    def buildTodaysFileName(  clientName = "", offset = 0, tempTime = "" ):
         """ 
             Builds a filename using current time
             The format will be 2006-10-31-19-15-53.txt
             Meaning October 31st 2006 at 19:15:53
             
             offset can be used to find a file from a day close to the current one 
-        
+            
+            tempTime can also be used to build a filename from another day. 
+            
+            
         """    
         
         fileName = str( os.getcwd() ) #will probably need a better path eventually.... 
         fileName = fileName +  "/" + clientName +"-PICKLE-"
         
-        tempTime = time.time() 
+        if tempTime == "" :
         
-        tempTime = tempTime + (offset*24*60*60)
+            tempTime = time.time() 
+            tempTime = tempTime + (offset*24*60*60)
         
-        
+        else:
+            
+            tempTime = MyDateLib.getSecondsSinceEpoch( tempTime )
+            tempTime = tempTime + (offset*24*60*60)
+            
+            
         for i in range(3):
             
             if i == 1 and int(i) < 10:
@@ -112,7 +121,7 @@ class DirectoryStatsCollector:
 
 
 
-    def collectStats( self, types, startTime = '2006-05-18 00:00:00', width=DAY, interval = 60*MINUTE, pickle = "todaysPickle", save = True ):
+    def collectStats( self, types, startTime = '2006-05-18 00:00:00', endTime = "",  width=DAY, interval = 60*MINUTE, pickle = "todaysPickle", save = True, dailyPickling = True ):
         """
             This method collects the stats for all the files found in the directory. 
         """
@@ -120,10 +129,11 @@ class DirectoryStatsCollector:
             
         self.fileCollection.collectEntries()          #find all entries from the folder
         
-        try:
+        
+        if os.path.isfile( pickle ):
                     
             self.statsCollection = gzippickle.load( pickle )            
-            
+           
             #update fields who need to be updated
             #we dont allow someone to change interval during the day so we dont even look it up 
             self.statsCollection.startTime = MyDateLib.getSecondsSinceEpoch( startTime )
@@ -135,21 +145,25 @@ class DirectoryStatsCollector:
                     self.statsCollection.fileEntries.append( (currentFile, [0, 0] ) )
             
             
-            self.statsCollection.collectStats( )           
+            self.statsCollection.collectStats( endTime  )           
             
            
+        elif dailyPickling == True :
             
-        except Exception, e :
-            print "exception : %s " %e
+            self.statsCollection = FileStatsCollector( files = self.fileCollection.entries, statsTypes = types, startTime = MyDateLib.getIsoTodaysMidnight( startTime ), width = width, interval = interval, totalWidth = 24*HOUR )
+            self.statsCollection.collectStats( endTime )
+            
+        
+        elif dailyPickling == False:
 
-            self.statsCollection = FileStatsCollector( files = self.fileCollection.entries, statsTypes = types, startTime = startTime, width = width, interval = interval, totalWidth = 24*HOUR )
-            self.statsCollection.collectStats(  )         
+            self.statsCollection = FileStatsCollector( files = self.fileCollection.entries, statsTypes = types, startTime = MyDateLib.getIsoWithRoundedSeconds(startTime), width = width, interval = interval, totalWidth = 24*HOUR )
+            self.statsCollection.collectStats( endTime )         
         
         
         if save == True :
-            print "Temps avant save : % s" %time.gmtime( time.time() )
+            print "Saving.... : % s" %time.gmtime( time.time() )
             gzippickle.save ( object = self.statsCollection, filename = pickle ) 
-            print "Temps apres save: % s" %time.gmtime( time.time() )
+            print "Saving done...: % s" %time.gmtime( time.time() )
     
        
     
@@ -171,18 +185,24 @@ class DirectoryStatsCollector:
     def printStats( self ) :       
         """
             This method prints out all the stats concerning each files. 
-            Mostly usefull for debugging. 
+            Mostly usefull for debugging. Could be removed.....
         
         """    
-     
+        
+        absoluteFilename = str( os.getcwd() ) + "/beforepickling "
+        print "Absolute filename : %s" %absoluteFilename
+        fileHandle = open( absoluteFilename , 'w' )
+        old_stdout = sys.stdout 
+        sys.stdout = fileHandle 
+        
         print "\n\nFiles used : %s" %self.fileCollection.entries
-        print "Starting date: %s" % MyDateLib.getOriginalDate(self.statsCollection.startTime)
+        print "Starting date: %s" % MyDateLib.getIsoFromEpoch(self.statsCollection.startTime)
                                     
         print "Interval: %s" %self.statsCollection.interval
         print "Time Width: %s" %self.statsCollection.width
 
         for j in range( self.statsCollection.nbEntries ):
-            print "\nEntry's interval : %s - %s " %( MyDateLib.getOriginalDate(self.statsCollection.fileEntries[j].startTime), MyDateLib.getOriginalDate(self.statsCollection.fileEntries[j].endTime ) )
+            print "\nEntry's interval : %s - %s " %( MyDateLib.getIsoFromEpoch(self.statsCollection.fileEntries[j].startTime), MyDateLib.getIsoFromEpoch(self.statsCollection.fileEntries[j].endTime ) )
             print "Values :"
             print self.statsCollection.fileEntries[j].values.matrix
             print "Means :"
@@ -196,7 +216,14 @@ class DirectoryStatsCollector:
             print "Total"
             print self.statsCollection.fileEntries[j].totals
     
-
+#             if len(self.statsCollection.fileEntries[j].means) >=1:
+#                 if self.statsCollection.fileEntries[j].means[0] != 0 :
+#                     #raw_input( "Press enter")
+            
+        fileHandle.close()      
+        sys.stdout = old_stdout #resets standard output  
+        print "printed %s " %absoluteFilename
+    
     
     def createLogFile( name = "log" ):
         """
@@ -220,10 +247,10 @@ class DirectoryStatsCollector:
             
             byteCount = i
             
-            departure = MyDateLib.getOriginalDate( MyDateLib.getSecondsSinceEpoch( arrival ) + randint( 1,30) )
+            departure = MyDateLib.getIsoFromEpoch( MyDateLib.getSecondsSinceEpoch( arrival ) + randint( 1,30) )
             
             if i%4 == 1:
-                arrival = MyDateLib.getOriginalDate( MyDateLib.getSecondsSinceEpoch( arrival ) + 1 )
+                arrival = MyDateLib.getIsoFromEpoch( MyDateLib.getSecondsSinceEpoch( arrival ) + 1 )
             
             print "%s;%s;%s" %( arrival, departure, byteCount ) 
         
@@ -233,55 +260,7 @@ class DirectoryStatsCollector:
 
     createLogFile = staticmethod( createLogFile )
 
-
-
-    def testCollectStats( self, types, startTime = '2006-05-18 00:00:00', width=DAY, interval = 60*MINUTE , pickle = "todaysPickle", save = True ):
-        
-        """
-            This method collects the stats for all the files found in the directory. 
-        """
-        
-           
-        self.fileCollection.collectEntries()          #find all entries from the folder
-        
-        try:
-             
-            self.statsCollection = gzippickle.load( pickle )
-            #update fields who need to be updated
-            #we dont allow someone to change interval during the day so we dont even look it up 
-            self.statsCollection.startTime = MyDateLib.getSecondsSinceEpoch( startTime )
-            self.statsCollection.width = width 
-            
-            # Test sequence to pretend like we are using the same file all the time like we'll
-            # usually do
-            
-            lastFile =  self.statsCollection.files.keys() # should only be one file there.... 
-           
-            
-            lastValues = self.statsCollection.files[ lastFile[0] ]
-           
-                
-            lastValues = self.statsCollection.files[ lastFile[0] ]
-            
-            del self.statsCollection.files[ lastFile[0] ]
-            
-            
-            newFiles = self.fileCollection.entries.keys()
-            
-            self.statsCollection.files = dict( [( newFiles[0], lastValues )] )
-            
-            self.statsCollection.collectStats( )           
-            
-            
-        except: # create new statscollection from skratch 
-            self.statsCollection = FileStatsCollector( files = self.fileCollection.entries, statsTypes = types, startTime = startTime, width = width, interval = interval, totalWidth = 24*HOUR )
-            
-            self.statsCollection.collectStats(  )         
-
-        if save == True :
-            gzippickle.save ( object = self.statsCollection, filename = todaysFile )
-  
-
+ 
 def main():
     """
             small test case. Tests if everything works plus gives an idea on proper usage.
@@ -295,12 +274,12 @@ def main():
     print "Temps avant : % s" %time.gmtime( time.time() )
     
     ds = DirectoryStatsCollector( directory = "/apps/px/lib/stats/files/" )
-    ds.collectStats( types, startTime = '2006-06-20 00:00:00', width = 13*HOUR, interval = 1*MINUTE,pickle = "satnet-PICKLE-2006-06-20" )
+    ds.collectStats( types, startTime = '2006-06-23 00:00:12', width = 10*HOUR, interval = 1*MINUTE,pickle = "satnet-PICKLE-2006-06-23" )
     
     print "Temps apres : % s" %time.gmtime( time.time() )
     print "call to collect stats done"
     
-    #ds.printStats()        
+    ds.printStats()        
         
 
 if __name__ == "__main__":

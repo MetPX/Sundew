@@ -20,6 +20,8 @@ named COPYING in the root of the source directory tree.
 ##
 ##  This module saves and reloads compressed representations of generic Python
 ##  objects to and from the disk.
+##
+##
 ##############################################################################
 
 
@@ -35,34 +37,34 @@ import cPickle
 
 
 def save( object, filename, protocol = 0 ):
-        """
-            Saves a compressed object to disk
-        
-        """
-        
-        file = gzip.GzipFile(filename, 'wb')
-        file.write(cPickle.dumps(object, -1))
-        file.close()
+    """
+        Saves a compressed object to disk
+    
+    """
+    
+    file = gzip.GzipFile(filename, 'wb')
+    file.write(cPickle.dumps(object, -1))
+    file.close()
 
         
 def load( filename ):
-        """
-            Loads a compressed object from disk
-        
-        """
-        
-        file = gzip.GzipFile(filename, 'rb')
-        buffer = ""
-        
-        while 1:
-                
-                data = file.read()
-                if data == "":
-                        break
-                buffer += data
-        object = cPickle.loads(buffer)
-        file.close()
-        
-        return object
+    """
+        Loads a compressed object from disk
+    
+    """
+    
+    file = gzip.GzipFile(filename, 'rb')
+    buffer = ""
+    
+    while 1:
+            
+            data = file.read()
+            if data == "":
+                    break
+            buffer += data
+    object = cPickle.loads(buffer)
+    file.close()
+    
+    return object
 
 
