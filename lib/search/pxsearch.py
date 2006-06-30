@@ -106,7 +106,15 @@ def updateSearchObject(so, options, args):
     so.compute() # Compute the necessary informations
 
 def nameSort(lineA, lineB):
-    return cmp(lineA.split(":")[1].split("_")[0], lineB.split(":")[1].split("_")[0])
+    """
+    Sorts alphabetically by the TTAAii.
+    If boths are equals, it sorts by time.
+    """
+    nameOrder = cmp(lineA.split(":")[2].split("_")[0], lineB.split(":")[2].split("_")[0])
+    if nameOrder == 0: # Both are equal
+        return timeSort(lineA, lineB)
+    else:
+        return nameOrder
 
 def timeSort(lineA, lineB):
     return cmp(lineA.split(":")[-1], lineB.split(":")[-1])
