@@ -26,7 +26,7 @@ sys.path.append("../")
 import PXPaths; PXPaths.normalPaths()
 
 class SearchObject(object):
-    __slots__ = ["headerRegexes", "searchRegex", "searchType", "name", "logPath", "since", "fromdate", "todate"]
+    __slots__ = ["headerRegexes", "searchRegex", "searchType", "name", "logPath", "since", "fromdate", "todate", "timesort"]
 
     def __init__(self):
         self.headerRegexes = {}
@@ -37,7 +37,8 @@ class SearchObject(object):
         self.since = 0
         self.fromdate = ""
         self.todate = ""
-        
+        self.timesort = False
+
         self.fillHeaderRegexes()
 
     def fillHeaderRegexes(self):
@@ -109,3 +110,9 @@ class SearchObject(object):
 
     def setTo(self, value):
         self.todate = value
+
+    def getTimesort(self):
+        return self.timesort
+
+    def setTimesort(self, value):
+        self.timesort = value

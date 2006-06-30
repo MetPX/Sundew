@@ -99,7 +99,10 @@ def updateSearchObject(so, options, args):
         so.setTo(time.strftime("%Y%m%d%H%M%S", time.gmtime()))
     else:
         so.setTo(options.todate)
-   
+    
+    if options.timesort == True:
+        so.setTimesort(True)
+    
     so.compute() # Compute the necessary informations
 
 def nameSort(lineA, lineB):
@@ -116,33 +119,46 @@ def search(so):
     print "Using: %s" % (regex)
   
     # Temporary machine list storage
-    machines = open("machines.txt", "r").readlines()
+    try:
+        machines = open("%spxsearch.targets" % (PXPaths.ETC), "r").readlines()
+    except IOError:
+        print "A file named pxsearch.targets must be located in %s!" % (PXPaths.ETC)
+        print "Please write one with one machine name per line."
+        sys.exit(1)
     
+    results = []
     for machine in machines:
-        cmd = "ssh %s egrep -o %s %s" % (machine.strip(), regex, logFileName)
+        machine = machine.strip()
+        cmd = 'ssh %s "egrep -o %s %s"' % (machine, regex, logFileName)
         print "Command used: %s" % (cmd)
         status, output = commands.getstatusoutput(cmd)
         lines = output.splitlines()
+        results += ["@%s:%s" % (machine, line) for line in lines] # We add the machine name to the start of the line 
         
-        # Validation was done in validateUserInput()
-        if so.getSince() != 0 or so.getFrom() != "" or so.getTo() != "":
-            lines = filterTime(so, lines)
-            lines.sort(timeSort)
-        else:
-            lines.sort(nameSort)
-            
-        for line in lines:
-            print line
-        print "Number of matches: %s" % (len(lines))
+    # Validation was done in validateUserInput()
+    if so.getSince() != 0 or so.getFrom() != "" or so.getTo() != "":
+        results = filterTime(so, results)
+        results.sort(timeSort)
+    elif so.getTimesort() == True:
+        results.sort(timeSort)
+    else:
+        results.sort(nameSort)
+        
+    for result in results:
+        print result
+    print "Number of matches: %s" % (len(results)) 
     
 def createParser(so):
     usagemsg = "%prog [options] <name>\nSearch in the PX unified log for bulletins matching certain criterias."
     parser = OptionParser(usage=usagemsg, version="%prog 0.2")
     
     # These two only offer long option names and using one of them is mandatory
-    parser.add_option("--rx", action="store_true", dest = "rxtype", help = "Perform a search in the RX logs.", default = False)
-    parser.add_option("--tx", action="store_true", dest = "txtype", help = "Perform a search in the TX logs.", default = False)
+    parser.add_option("--rx", action = "store_true", dest = "rxtype", help = "Perform a search in the RX logs.", default = False)
+    parser.add_option("--tx", action = "store_true", dest = "txtype", help = "Perform a search in the TX logs.", default = False)
     
+    # Optional. No short option.
+    parser.add_option("--timesort", action = "store_true", dest = "timesort", help = "Sort output by timestamps.", default = False)
+   
     # Bulletin name's field content specifiers
     parser.add_option("-t", "--ttaaii", dest = "ttaaii", help = "Specify the TTAAii", default = so.getHeaderRegex("ttaaii"))
     parser.add_option("-c", "--ccccxx", dest = "ccccxx", help = "Specify the CCCCxx", default = so.getHeaderRegex("ccccxx"))
