@@ -13,6 +13,7 @@
 
 import os, os.path, sys, time
 import PXPaths, dateLib
+from FileParser import FileParser
 
 class DBSearcher:
     """
@@ -61,6 +62,8 @@ class DBSearcher:
 
     def _parseRequest(self):
         words = self.request.split()
+        words = [word.upper() for word in words]
+            
         if len(words) < 2 or len(words) > 6:
             print "\nBad request"
         elif len(words) == 2  and 4 <= len(words[0]) <= 6 and len(words[1]) == 4:
@@ -73,9 +76,9 @@ class DBSearcher:
             self.tt = words[0][:2]
             self.center = words[1]
             self.header = words[0] + " " + words[1]
-            if self.center[0].upper() == 'C':
+            if self.center[0] == 'C':
                 self.country = 'CA'
-            elif self.center[0].upper() == 'K':
+            elif self.center[0] == 'K':
                 self.country = 'US'
             
         elif words[0] in DBSearcher.TYPES:
@@ -115,6 +118,53 @@ class DBSearcher:
             results = self._findFD('20060522')
             self.printFDResults(results)
 
+    def _getFilesToParse(self, root, headers):
+        """
+        Given a root path (ex: PXPaths.DB + date + '/SA/') and a list of 
+        headers (ex: ['SAAK31 KWBC', 'SAAK41 KNKA', 'SAUS20 KNKA', 'SAUS70 KWBC']),
+        find the list of files matching these criterias.
+        """
+
+        filesToParse = [] 
+        centers = FileParser.removeDuplicate([header.split()[1] for header in headers])
+
+        # Request SA PATQ 
+        # => headers = ['SAAK31 KWBC', 'SAAK41 KNKA', 'SAUS20 KNKA', 'SAUS70 KWBC']
+        # => ttaaiis = {'KNKA': ['SAAK41', 'SAUS20'], 'KWBC': ['SAAK31', 'SAUS70']}
+        ttaaiis = {}    
+        for header in headers:
+           ttaaiis.setdefault(header.split()[1], []).append(header.split()[0])
+
+        try:
+            sources = os.listdir(root)
+        except:
+            (type, value, tb) = sys.exc_info()
+            print("Type: %s, Value: %s" % (type, value))
+            sys.exit()
+
+        print("Headers: %s" % headers)
+        print("ttaaiis: %s" % ttaaiis)
+        print("centers: %s" % centers)
+        print("sources: %s\n" % sources)
+
+        for source in sources:
+            for center in centers:    
+                pathToCenter = root + source + '/' + center
+                try:
+                    for file in os.listdir(pathToCenter):
+                        for ttaaii in ttaaiis[center]:
+                            if file[:len(ttaaii)] == ttaaii:
+                                filesToParse.append(pathToCenter + '/' + file)
+                                break
+                except:
+                    (type, value, tb) = sys.exc_info()
+                    if self.debug: print("Type: %s, Value: %s" % (type, value))
+                    continue
+
+        print ("len(filesToParse) = %d\n" % len(filesToParse))
+
+        return filesToParse
+
     def _findSA(self, date=TODAY):
         # Partial header request (Type + station(s))
         # ex: SA CYOW CYUL
@@ -130,21 +180,19 @@ class DBSearcher:
         sp.parse()
 
         for station in self.stations:
-            filesToParse = []
+            threeCharHeaders = []
 
             if len(station) == 3:
-                #print("We will try to find the header for stations %s or %s" % ('C' + station.upper() , station.upper()))
-                #headers = sp.headers.get('C' + station.upper(), [])  + sp.headers.get(station, [])
-
-                print ("%s => we will search for %s" % (station.upper(), 'C' + station.upper()))
-                station = 'C' + station.upper()
-                headers = sp.headers.get(station, []) 
+                print ("%s => we will search for %s first, if we obtain no results, we will search for %s" % (station, 'C' + station, station))
+                threeCharHeaders = sp.headers.get(station, [])
+                station = 'C' + station
+                headers = sp.headers.get(station, [])
                 
-            elif station[0].upper() == 'C':
+            elif station[0] == 'C':
                 print("%s is a canadian station" % station)
                 headers = sp.headers.get(station, []) 
 
-            elif station[0].upper() == 'K':
+            elif station[0] == 'K':
                 print("%s is an american station" % station)
                 headers = sp.headers.get(station, [])
 
@@ -152,51 +200,18 @@ class DBSearcher:
                 print("%s is an international station" % station)
                 headers = sp.headers.get(station, [])
 
-            # Request SA PATQ 
-            # => headers = ['SAAK31 KWBC', 'SAAK41 KNKA', 'SAUS20 KNKA', 'SAUS70 KWBC']
-            # => ttaaiis = {'KNKA': ['SAAK41', 'SAUS20'], 'KWBC': ['SAAK31', 'SAUS70']}
-            ttaaiis = {}    
-            for header in headers:
-               ttaaiis.setdefault(header.split()[1], []).append(header.split()[0])
-
-            centers = sp._removeDuplicate([header.split()[1] for header in headers])
-
-            root = PXPaths.DB + date + '/SA/'
-
-            try:
-                sources = os.listdir(root)
-            except:
-                (type, value, tb) = sys.exc_info()
-                print("Type: %s, Value: %s" % (type, value))
-                sys.exit()
-
-            print("Headers: %s" % headers)
-            print("ttaaiis: %s" % ttaaiis)
-            print("centers: %s" % centers)
-            print("sources: %s\n" % sources)
-
-            for source in sources:
-                for center in centers:    
-                    pathToCenter = root + source + '/' + center
-                    try:
-                        for file in os.listdir(pathToCenter):
-                            for ttaaii in ttaaiis[center]:
-                                if file[:len(ttaaii)] == ttaaii:
-                                    filesToParse.append(pathToCenter + '/' + file)
-                                    break
-
-                        #files = [pathToCenter + '/' + file for file in  os.listdir(pathToCenter) if file[:6] in ttaaiis]
-                        #print "Number of files for %s: %i" % (center, len(files))
-                    except:
-                        (type, value, tb) = sys.exc_info()
-                        if self.debug: print("Type: %s, Value: %s" % (type, value))
-                        continue
-
-            print ("len(filesToParse) = %d\n" % len(filesToParse))
-            
+            filesToParse = self._getFilesToParse(PXPaths.DB + date + '/SA/', headers)
             theLine, bestHeaderTime, theFile, bestFileTime = self._findMoreRecentStation(SAParser(''), filesToParse, station)
 
-            # FIXME: Add the header line to theLine (see Alfred's email)
+            if not theLine and threeCharHeaders:
+                # If not successful at finding the 4 chars station when the original request was for a 3 chars station
+                # we try the 3 chars case
+                print 'We are searching for the 3 chars station'
+                station = station[1:]
+                filesToParse = self._getFilesToParse(PXPaths.DB + date + '/SA/', threeCharHeaders)
+                theLine, bestHeaderTime, theFile, bestFileTime = self._findMoreRecentStation(SAParser(''), filesToParse, station)
+
+            # FIXME
             # 1) If we don't find it TODAY, we have to check YESTERDAY
             # 2) Must work for multiples machines
 
@@ -205,7 +220,7 @@ class DBSearcher:
                 parts = os.path.basename(theFile).split('_')
                 header = parts[0] + ' ' + parts[1]
                 speciLine, speciHeaderTime, speciFile, speciFileTime = self._findSpeci(station, header, bestHeaderTime, date)
-                # FIXME: Add the header line to theLine (see Alfred's email)
+                # FIXME
                 # 1) If we don't find it TODAY, we have to check YESTERDAY
                 # 2) Must work for multiples machines
 
@@ -215,7 +230,6 @@ class DBSearcher:
                     speciLine, speciHeaderTime, speciFile, speciFileTime = None, 0, None, 0
                     print "%s END SPECI INFOS %s\n" % (surround, surround)
 
-
             else:
                 speciLine, speciHeaderTime, speciFile, speciFileTime = None, 0, None, 0
 
@@ -224,7 +238,7 @@ class DBSearcher:
         return results
 
     def formatResult(self, result):
-        saResul = ''
+        saResult = ''
         speciResult = ''
 
         station, theLine, bestHeaderTime, theFile, bestFileTime, speciLine, speciHeaderTime, speciFile, speciFileTime = result
@@ -236,7 +250,7 @@ class DBSearcher:
             #print repr(theLine)
             if speciLine:
                 speciHeader = header[0] + 'P' + header[2:]
-                speciResult = speciHeader + ' ' + speciHeaderTime + '\n' + speciLine.strip() + '\n'
+                speciResult = speciHeader + ' ' + speciHeaderTime + '\n' + speciLine.strip() + '\n\n'
 
         return speciResult + saResult  
 
