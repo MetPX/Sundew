@@ -37,6 +37,7 @@ class CollectionBuilder(object):
         
         # General Attributes
 
+        self.collManager   = collManager
         self.source        = collManager.source
         self.logger        = collManager.logger
         self.now           = collManager.now
@@ -280,6 +281,10 @@ class CollectionBuilder(object):
     def process( self ):
 
         self.mapChanged = False
+
+        # set now
+
+        self.now = self.collManager.now
 
         # loop on all the collected state map
 

@@ -383,7 +383,7 @@ class Ingestor(object):
 
             collect.process()
 
-            time.sleep(1)
+            time.sleep(20)
 
     
 if __name__ == '__main__':
