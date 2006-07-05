@@ -306,7 +306,7 @@ class SenderFTP(object):
                                        (self.client.protocol, self.client.user, self.client.host, \
                                        destDirString, destName, type, value))
 
-                      # preventive delete when umask and code value is 450 (file problem)
+                      # preventive delete when umask 
                       if self.client.lock[0] != '.' :
                          self.rm(destName)
 
