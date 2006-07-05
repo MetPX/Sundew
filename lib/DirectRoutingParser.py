@@ -106,11 +106,11 @@ class DirectRoutingParser(FileParser):
             if len(words) >= 2:
                 try:
                     if words[0] == 'subclient':
-                        self.subClients[words[1]] = self._removeDuplicate(words[2].split())
+                        self.subClients[words[1]] = self.removeDuplicate(words[2].split())
                     elif words[0] == 'aftnMap':
                         self.aftnMap[words[1]] = words[2]
                     elif words[0] == 'clientAlias':
-                        self.aliasedClients[words[1]] = self._removeDuplicate(words[2].split())
+                        self.aliasedClients[words[1]] = self.removeDuplicate(words[2].split())
                     elif len(words[0].split()) == 2: # If replace by a simple "else" do nothing for execution time
                         # Here we have a "header line"
                         self.routingInfos[words[0]] = {}
@@ -199,8 +199,8 @@ class DirectRoutingParser(FileParser):
                 try:
                     if words[0] == 'subclient':
                         subclients = words[2].split()
-                        self.subClients[words[1]] = self._removeDuplicate(subclients)
-                        duplicateForSubclient = self._identifyDuplicate(subclients)
+                        self.subClients[words[1]] = self.removeDuplicate(subclients)
+                        duplicateForSubclient = self.identifyDuplicate(subclients)
                         if duplicateForSubclient:
                             print("Subclient %s has duplicate(s): %s" % (words[1], duplicateForSubclient))
 
@@ -209,8 +209,8 @@ class DirectRoutingParser(FileParser):
 
                     elif words[0] == 'clientAlias': 
                         clients = words[2].split()
-                        self.aliasedClients[words[1]] = self._removeDuplicate(clients)
-                        duplicateForAlias = self._identifyDuplicate(clients)
+                        self.aliasedClients[words[1]] = self.removeDuplicate(clients)
+                        duplicateForAlias = self.identifyDuplicate(clients)
                         if duplicateForAlias:
                             print("Alias %s has duplicate(s): %s" % (words[1], duplicateForAlias))
 
@@ -225,8 +225,8 @@ class DirectRoutingParser(FileParser):
 
                         # Assure us that each client is present only once for each header
                         # This is accomplished in O(n). Costs ~ 0.5 seconds to execute.
-                        uniqueClients = self._removeDuplicate(clients)
-                        duplicateForHeader = self._identifyDuplicate(clients)
+                        uniqueClients = self.removeDuplicate(clients)
+                        duplicateForHeader = self.identifyDuplicate(clients)
                         if duplicateForHeader:
                             print("%s has duplicate(s): %s" % (words[0], duplicateForHeader))
 

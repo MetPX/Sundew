@@ -279,7 +279,7 @@ if __name__ == '__main__':
     
         # Remove duplicates
         for header in sp.stations.keys():
-            sp.stations[header] = sp._removeDuplicate(sp.stations[header])
+            sp.stations[header] = sp.removeDuplicate(sp.stations[header])
     
         for header in sp.stations.keys():
             #print "%s : %s" % (header, sp.stations[header])
@@ -329,7 +329,7 @@ if __name__ == '__main__':
 
     # Remove duplicates stations
     for header in sp.stations.keys():
-        sp.stations[header] = sp._removeDuplicate(sp.stations[header])
+        sp.stations[header] = sp.removeDuplicate(sp.stations[header])
         nbStations += len(sp.stations[header])
         #print "%s : %s" % (header, sp.stations[header])
     

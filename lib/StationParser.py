@@ -45,8 +45,8 @@ class StationParser(FileParser):
             stations = words[2].split()
 
             # Find duplicate station for a given header
-            uniqueStations = self._removeDuplicate(stations)
-            duplicateForHeader = self._identifyDuplicate(stations)
+            uniqueStations = self.removeDuplicate(stations)
+            duplicateForHeader = self.identifyDuplicate(stations)
             
             # Sort the stations
             uniqueStations.sort()
