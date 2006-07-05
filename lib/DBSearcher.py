@@ -102,6 +102,9 @@ class DBSearcher:
             results = self._findSA('20060522')
             self.printSAResults(results)
 
+            for result in results:
+                print self.formatResult(result)
+
         # Under construction
         elif self.type in ['FC', 'FT', 'TAF']:
             results = self._findTAF('20060522')
@@ -192,12 +195,19 @@ class DBSearcher:
             print ("len(filesToParse) = %d\n" % len(filesToParse))
             
             theLine, bestHeaderTime, theFile, bestFileTime = self._findMoreRecentStation(SAParser(''), filesToParse, station)
-            
+
+            # FIXME: Add the header line to theLine (see Alfred's email)
+            # 1) If we don't find it TODAY, we have to check YESTERDAY
+            # 2) Must work for multiples machines
+
             if theLine:
                 theLine += '='
                 parts = os.path.basename(theFile).split('_')
                 header = parts[0] + ' ' + parts[1]
                 speciLine, speciHeaderTime, speciFile, speciFileTime = self._findSpeci(station, header, bestHeaderTime, date)
+                # FIXME: Add the header line to theLine (see Alfred's email)
+                # 1) If we don't find it TODAY, we have to check YESTERDAY
+                # 2) Must work for multiples machines
 
                 if speciHeaderTime and (speciHeaderTime < bestHeaderTime):
                     surround = 30*'=' 
@@ -212,6 +222,23 @@ class DBSearcher:
             results.append((station, theLine, bestHeaderTime, theFile, bestFileTime, speciLine, speciHeaderTime, speciFile, speciFileTime))
 
         return results
+
+    def formatResult(self, result):
+        saResul = ''
+        speciResult = ''
+
+        station, theLine, bestHeaderTime, theFile, bestFileTime, speciLine, speciHeaderTime, speciFile, speciFileTime = result
+        
+        if theFile:
+            parts = os.path.basename(theFile).split('_')
+            header = parts[0] + ' ' + parts[1]
+            saResult = header + ' ' + bestHeaderTime + '\n' + theLine.strip() + '\n'
+            #print repr(theLine)
+            if speciLine:
+                speciHeader = header[0] + 'P' + header[2:]
+                speciResult = speciHeader + ' ' + speciHeaderTime + '\n' + speciLine.strip() + '\n'
+
+        return speciResult + saResult  
 
     def printSAResults(self, results):
         print "%s RESULTS %s" % (30*'=', 30*'=')
