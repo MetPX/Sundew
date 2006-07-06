@@ -29,6 +29,9 @@ class DBSearcher:
     TODAY = dateLib.getTodayFormatted()
     YESTERDAY = dateLib.getYesterdayFormatted()
 
+    TODAY = '20060523'
+    YESTERDAY = '20060522'
+
     def __init__(self, request):
         
         self.request = request    # Request before being parsed
@@ -99,24 +102,38 @@ class DBSearcher:
         if self.requestType == 1:
             # Fully qualified header request
             if self.debug: print self.ttaaii, self.center, self.country
-            print self._findFullHeader(True, self.ttaaii, self.center, self.country, '20060522')
-
-        elif self.type == 'SA':
-            results = self._findSA('20060522')
-            self.printSAResults(results)
-
-            for result in results:
-                print self.formatResult(result)
-
-        # Under construction
-        elif self.type in ['FC', 'FT', 'TAF']:
-            results = self._findTAF('20060522')
-            self.printTAFResults(results)
-
-        # Under construction
-        elif self.type in ['FD', 'FD1', 'FD2', 'FD3']:
-            results = self._findFD('20060522')
-            self.printFDResults(results)
+            for date in [DBSearcher.TODAY, DBSearcher.YESTERDAY]:
+                theFile = self._findFullHeader(True, self.ttaaii, self.center, self.country, date)
+                if theFile:
+                    print theFile
+                    return
+        elif self.requestType == 2:
+            for station in self.stations:
+                for date in [DBSearcher.TODAY, DBSearcher.YESTERDAY]:
+                    print 'DATE: %s' % date
+                    if self.type == 'SA':
+                        results = self._findSA([station], date)
+                        if results[0][1]:
+                            self.printSAResults(results)
+                            for result in results:
+                                print self.formatResult(result)
+                            break
+                    # Under construction
+                    elif self.type in ['FC', 'FT', 'TAF']:
+                        results = self._findTAF([station], date)
+                        if results[0][1]:
+                            self.printTAFResults(results)
+                            for result in results:
+                                print self.formatResult(result)
+                            break
+                    # Under construction
+                    elif self.type in ['FD', 'FD1', 'FD2', 'FD3']:
+                        results = self._findFD([station], date)
+                        if results[0][1]:
+                            self.printFDResults(results)
+                            for result in results:
+                                print self.formatResult(result)
+                            break
 
     def _getFilesToParse(self, root, headers):
         """
@@ -165,7 +182,7 @@ class DBSearcher:
 
         return filesToParse
 
-    def _findSA(self, date=TODAY):
+    def _findSA(self, stations, date=TODAY):
         # Partial header request (Type + station(s))
         # ex: SA CYOW CYUL
         # Note: Once we find the better match, we take the header we found (ex: SACN31 CWAO) and we replace the 
@@ -179,7 +196,7 @@ class DBSearcher:
         sp = StationParser(PXPaths.ETC + 'stations_SA.conf')
         sp.parse()
 
-        for station in self.stations:
+        for station in stations:
             threeCharHeaders = []
 
             if len(station) == 3:
