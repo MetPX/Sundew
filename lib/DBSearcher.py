@@ -50,18 +50,9 @@ class DBSearcher:
         self.stationParser = None # Used to map a station to a fully qualified header
         self.debug = False
 
-        self._initResults()       # See the method
-
         self._parseRequest()      # Will determine the request's type
-        #self..printInfos()
+        #self.printInfos()
         self._search()            # Find what we search
-
-    def _initResults(self):
-        self.theFile = None           # The filename of the more recent header in a full qualified header search
-        self.theLine = None           # The more recent line for a given station in a type+station search
-
-        self.bestFileTime = 0         # More recent file
-        self.bestHeaderTime = 0       # More recent header
 
     def _parseRequest(self):
         words = self.request.split()
@@ -99,6 +90,9 @@ class DBSearcher:
             print "\nBad request even if the word's number is good"
 
     def _search(self):
+
+        # FIXME: Must select best result from multiple machines
+
         if self.requestType == 1:
             # Fully qualified header request
             if self.debug: print self.ttaaii, self.center, self.country
@@ -228,18 +222,11 @@ class DBSearcher:
                 filesToParse = self._getFilesToParse(PXPaths.DB + date + '/SA/', threeCharHeaders)
                 theLine, bestHeaderTime, theFile, bestFileTime = self._findMoreRecentStation(SAParser(''), filesToParse, station)
 
-            # FIXME
-            # 1) If we don't find it TODAY, we have to check YESTERDAY
-            # 2) Must work for multiples machines
-
             if theLine:
                 theLine += '='
                 parts = os.path.basename(theFile).split('_')
                 header = parts[0] + ' ' + parts[1]
                 speciLine, speciHeaderTime, speciFile, speciFileTime = self._findSpeci(station, header, bestHeaderTime, date)
-                # FIXME
-                # 1) If we don't find it TODAY, we have to check YESTERDAY
-                # 2) Must work for multiples machines
 
                 if speciHeaderTime and (speciHeaderTime < bestHeaderTime):
                     surround = 30*'=' 
@@ -350,7 +337,10 @@ class DBSearcher:
         pass
 
     def _findFullHeader(self, unique=True, ttaaii='SACN31', center='CWAO', country='CA', date=TODAY):
-        self._initResults()
+        self.theFile = None           # The filename of the more recent header in a full qualified header search
+        self.bestFileTime = 0         # More recent file
+        self.bestHeaderTime = 0       # More recent header
+
         allGoodFiles = []
         try:
             iterator = os.walk(PXPaths.DB + date)
