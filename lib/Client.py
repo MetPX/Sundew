@@ -79,8 +79,14 @@ class Client(object):
         self.lock = '.tmp'                  # file send with extension .tmp for lock
                                             # if lock == "umask" than use umask 777 to put files
 
+        self.destfn_script = None           # a script to rename the file for client
+        self.execfile      = None
 
         self.readConfig()
+
+        if self.execfile != None :
+           execfile(PXPaths.ETC + self.execfile )
+
         #self.printInfos(self)
 
     def readConfig(self):
@@ -145,6 +151,7 @@ class Client(object):
                     elif words[0] == 'ftp_mode': self.ftp_mode = words[1]
                     elif words[0] == 'dir_pattern': self.dir_pattern =  isTrue(words[1])
                     elif words[0] == 'dir_mkdir': self.dir_mkdir =  isTrue(words[1])
+                    elif words[0] == 'destfn_script': self.execfile = words[1]
                 except:
                     self.logger.error("Problem with this line (%s) in configuration file of client %s" % (words, self.name))
 
@@ -154,6 +161,10 @@ class Client(object):
         config.close()
     
         #self.logger.debug("Configuration file of client %s has been read" % (self.name))
+
+    def run_destfn_script(self, filename): 
+        if self.destfn_script == None : return filename
+        return self.destfn_script(filename)
 
     def _getMatchingMask(self, filename): 
         for mask in self.masks:

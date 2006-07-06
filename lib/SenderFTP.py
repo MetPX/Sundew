@@ -275,40 +275,47 @@ class SenderFTP(object):
                             time.sleep(1)
                             continue
 
+               # run destfn
+               ldestName = self.client.run_destfn_script(destName)
+
+               if ldestName != destName :
+                  self.logger.info("destfn_script : %s becomes %s "  % (destName,ldestName) )
+
                # try to write the file to the client
                try :
+
                       # First put method : use a temporary filename = filename + lock extension
                       if self.client.lock[0] == '.':
-                         self.send_lock( file,destName )
+                         self.send_lock( file,ldestName )
 
                       # Second put method : use UMASK to temporary lock the file
                       else:
-                         self.send_umask( file,destName )
+                         self.send_umask( file,ldestName )
 
                       os.unlink(file)
                       self.logger.info("(%i Bytes) File %s delivered to %s://%s@%s%s%s" % \
                                       (nbBytes, file, self.client.protocol, self.client.user, \
-                                      self.client.host, destDirString, destName))
+                                      self.client.host, destDirString, ldestName))
 
                except FtpTimeoutException :
                       self.logger.info("SEND TIMEOUT (%i Bytes) File %s going to %s://%s@%s%s%s" % \
                                       (nbBytes, file, self.client.protocol, self.client.user, \
-                                      self.client.host, destDirString, destName))
+                                      self.client.host, destDirString, ldestName))
 
                       # preventive delete when umask
                       if self.client.lock[0] != '.':
-                         self.rm(destName)
+                         self.rm(ldestName)
                       return
 
                except:
                       (type, value, tb) = sys.exc_info()
                       self.logger.error("Unable to deliver to %s://%s@%s%s%s, Type: %s, Value: %s" % 
                                        (self.client.protocol, self.client.user, self.client.host, \
-                                       destDirString, destName, type, value))
+                                       destDirString, ldestName, type, value))
 
                       # preventive delete when umask 
                       if self.client.lock[0] != '.' :
-                         self.rm(destName)
+                         self.rm(ldestName)
 
                       time.sleep(1)
                    
