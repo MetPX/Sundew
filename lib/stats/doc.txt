@@ -1,3 +1,8 @@
+"""
+MetPX Copyright (C) 2004-2006  Environment Canada
+MetPX comes with ABSOLUTELY NO WARRANTY; For details type see the file 
+named COPYING in the root of the source directory tree.
+"""
 ##################################################################################################
 #  _____ _        _         _     _ _                          
 # /  ___| |      | |       | |   (_) |                         
@@ -21,7 +26,7 @@ GENERAL DESCRIPTION:
 --------------------------------------------------------------------------------------------------- 
 
 The stats library's main goal is to add the possibility to the existing px library to draw graphics of a
-certain client based on stats collected from log files located remotedly. This section tus contains all the
+certain client based on stats collected from log files located remotely. This section thus contains all the
 files needed to do this job. 
 
 
@@ -41,8 +46,8 @@ Files included in the stats library are :
 These library files are required by the stats library :
 
 -DateLib.py : Many methods were added specifically for the stats library, 
-                  but are written so they could be reused for other applications
-                  down the road.    
+              but are written so they could be reused for other applications
+              down the road.    
 
 
 
@@ -76,9 +81,9 @@ File Descriptions
 
 -ClientGraphicProducer.py : This files contains methods to be used when a user of this class wants to produce a graphic.
                             
-                            At first, it takes the previously collected data adds up the data produced between the last collection and the time of the call.
+                            It first takes the previously collected data, then adds up to it the data produced between the last collection and the time of the call.
                             
-                            After that it calls StatsPlotter.py to produce the graphic.
+                            After that it calls StatsPlotter.py with the collected data and uses it to produce the graphic.
 
 
 
@@ -95,9 +100,10 @@ File Descriptions
                                This means all files wich are not directories and whose names don't 
                                start with '.' 
                                
-                               When implemented, the method wich downloads the files from the machines into the directory may or may not be put here.
+                           --->When implemented, the method wich downloads the files from the machines into the directory may or may not be put here.<---
 
 
+                           
 -FileStatsCollector.py : This file contains all the methods needed to collect data from files and produce stats 
                          using said data.
                          
@@ -109,7 +115,7 @@ File Descriptions
                          
                          Data collected thus need a date of occurence so that it can be categorised.  
                          
-                         Once data has been collected, stats will be created for each buckets. This means that every bucket will have it's own min,max,median and mean values.  
+                         Once data has been collected, stats will be created for each buckets. This means that every bucket will have it's own min, max, median and mean values.  
 
 
 
@@ -120,9 +126,9 @@ File Descriptions
                  before writing to disk.
                   
                  Data compression adds processing time for zipping and unzipping data, but it saves 
-                 so much time on reading/writing access to the that it becomes much faster overall. 
+                 so much time on reading/writing to the disk that it becomes much faster overall. 
                  
-                 cpickle is also used instead of pickle wich is a faster way of pickling data.  
+                 cpickle is also used instead of pickle because it is a faster way of pickling data.  
                  
                  
 
@@ -160,9 +166,9 @@ GUIDING PRINCIPLES
 
 - Log files for a specific client are usually stored on many different machines.  
 
-- Log file for a single day from a single machine can be quite large. ( average~ >25 megs)
+- Log file for a single day from a single machine can be quite large. ( average~ >30 megs)
 
-- Gnuplot graphics, even with a lot of date are produced rather quickly. ( average~ <5 secs )
+- Gnuplot graphics, even with a lot of date are generated rather quickly. ( average~ <5 secs )
 
 - Collecting a whole days worth of data and producing stats according to data collected is very long
   ( up to 5 minutes if a very large amount of data is processed. )
@@ -180,7 +186,7 @@ IMPLEMENTATION :
 Remote file access:
 --------------------
 
-- Remotly located log files are transfered to the machine where the library is used.
+- Remotely located log files are transfered to the machine where the library is used.
   ( Should this rather be in DirectoryFilecollector?  thus far pickleUpdater.py contains a method called 
     def getfilesIntoDirectory( clientName, machines = "" ): wich fakes all the needed files being downloaded .  )
 
@@ -194,7 +200,7 @@ Data collection :
   of any importance. 
   
   FilesStatsCollector.py, DirecToryStatsCollector.py, pickleUpdater.py and gzipickle.py all contain
-  method to deal with pickled data and data pickling.
+  methods to deal with pickled data and data pickling.
     
 
 - Because of disk access times, data pickling can be quite slow. To speed it up gzipickle.py has been
@@ -263,17 +269,76 @@ This means that all file entries should have the following syntax :
 
 
 
+Pickle Files :
+---------------------------------------------------------------------------------------------------
+
+
+PICKLED-TIMES :
+---------------
+
+This is the only file created to contain all the last pickleUpdates times fro each of the different 
+clients. This file is save in a regular non-compresses pickle format. This is done so that a user 
+could easily modify a certain client's date if needed.
+
+
+
+
+SERVER NAME-PICKLE-2006-07-1
+------------------------------ 
+
+These file are created as to save the data collected for the period covering the day specified 
+in the file's name.  This file contains a FileStatsCollector instance containing all the data
+collected for that day compressed using gzippickle.py .
+ 
+These files will be grouped in a folder 
+named PICKLES(?). This folder will contain many subfolder, all of wich named after a certain clients 
+name. Theses folder will contain all the pickle files of that client.  
+
+
+
 USAGE:
 ---------------------------------------------------------------------------------------------------
 
-To be completed when usage is final.... 
+To be completed when usage is final.... Current picklUpdater usage is : 
+
+
+Options:
+ 
+    - With -c|--clients you can specify the clients names on wich you want to collect data. 
+    - With -d|--date you can specify the time of the update.( Usefull for past days and testing. )
+    - With -i|--interval you can specify interval in minutes at wich data is collected. 
+    - With -m|--machines you can specify on wich machine we must try to download log files.
+    - With -n|--now you can specify that data must be collected right up to the minute of the call. 
+    - With -t|--types you can specify what data types need to be collected
+
+Defaults :
+
+- Default Client name does not exist.
+- Default Date of update is current system time.  
+- Default interval is 1 minute. 
+- Default machines value is the entire list of existing machines.  
+- Default Now value is False.
+- Default Types value is latency.
+        
+      
+WARNING: - Client name MUST be specified,no default client exists. 
+         - Interval is set by default to 1 minute. If data pickle here is to be used with 
+           ClientGraphicProducer, default value will need to be used since current version only 
+           supports 1 minute long buckets. 
+          
+            
+Ex1: python pickleUpdater                                    --> All default values will be used. Not recommended.  
+Ex2: python pickleUpdater -c satnet                          --> All default values, for client satnet. 
+Ex3: python pickleUpdater -c satnet -d '2006-06-30 05:15:00' --> Client satnet, Date of call 2006-06-30 05:15:00
+
  
 
 INPUT VALIDATION
 ---------------------------------------------------------------------------------------------------
 
-Waiting for usage to be determined....
-
+Date option MUST be of the ISO format meaning a date like this : '2006-06-30 05:15:00'.
+-i --intervall must be an integer value greater than 0.
+-n --now option needs no value. 
 
 
 Critical errors
@@ -281,7 +346,30 @@ Critical errors
 To be completed....    
        
 
-              
+TODO list 
+----------------------------------------------------------------------------------------------------
 
+-Decide wheteher or not bucket size should be choosen by user. Graphics wich span over numerous day
+  with different buckets widths might be hard to handle.
 
+-Fix potential bug where pickled times is updated before program is finished. This might cause a conflict
+ if application fails before it actually did collect the data.-***Done 
+  
+-Find the log file format. Modify findFirstInterestingLine, findValue(line) and while loops according 
+ to new file format                 
 
+-Modify module that gets files into a directory so that it actually downloads the files.
+    -Add everything wich relates to the machine option.
+    
+-Add part that creates PICKLE directory and creates each subfolders for all the clients.***Done 
+  
+
+-Try and find another way to find if files is valid. Grep sometimes results in broken pipe errors...
+ If no better way is found, find a way to trap broken pipe error   
+
+-Add fields to the graphics : # of files with over 15 sec of latency. %of files with over 15 sec of latency.***Done
+
+-Find a folder system to store created pics + Automated cleanup system ?
+
+-Speed up graphic creation by not collecting data since last cron job if no necessary. File verification seems like its 
+slowing down the whole process***done

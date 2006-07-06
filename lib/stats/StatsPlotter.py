@@ -49,7 +49,7 @@ class StatsPlotter:
         self.currentTime = currentTime             # Time of call
         self.type        = type                    # Must be in: ['linespoint', 'lines', 'boxes', 'impulses'].
         self.imageName   = imageName               # Name of the image file.
-        self.nbFiles     = 0                       # Number of files found in the data collected.   
+        self.nbFiles     = 0                       # Number of files found in the data collected.
         self.xtics       = self.getXTics( )        # Seperarators on the x axis.
         self.graph       = Gnuplot.Gnuplot()       # The gnuplot graphic object itself. 
         self.timeOfMax   = []                      # Time where the maximum value occured.  
@@ -60,7 +60,9 @@ class StatsPlotter:
         self.means       = []                      # Mean of all the pairs.
         self.maxFileNames= []                      # Name of file where value is the highest . 
         self.timeOfMax   = []                      # List of all the times where said maximums occured. 
-        self.filesWhereMaxOccured = []             # List of files for wich said maximums occured. 
+        self.nbFilesOverMaxLatency = 0             # Numbers of files for wich the latency was too long.
+        self.ratioOverLatency      = 0.0           # % of files for wich the latency was too long. 
+        self.filesWhereMaxOccured  = []            # List of files for wich said maximums occured. 
            
        
         
@@ -88,18 +90,13 @@ class StatsPlotter:
             xtics += '"%s" %i, ' % ( startTime, self.stats[0].statsCollection.startTime  )
             
             for i in range( 1, nbBuckets ):
-                if ( (  self.stats[0].statsCollection.timeSeperators[i] - self.stats[0].statsCollection.startTime) %(60*60) == 0): 
+                
+                if ( ( self.stats[0].statsCollection.timeSeperators[i] - self.stats[0].statsCollection.startTime) %(60*60) == 0 ): 
                     
-                    originalDate = MyDateLib.getOriginalHour(self.stats[0].statsCollection.timeSeperators[i] )
-                    xtics += '"%s" %i, '%( originalDate ,self.stats[0].statsCollection.timeSeperators[i] ) 
-            
-                   
-            if  self.now == True :
-                originalDate = MyDateLib.getOriginalHour(self.stats[0].statsCollection.timeSeperators[i ] + (60*60) )
-                xtics += '"%s" %i, '%( originalDate, self.stats[0].statsCollection.timeSeperators[ i ] +(60*60) )
-                         
-                                
-            
+                    hour = MyDateLib.getHoursFromIso( MyDateLib.getIsoFromEpoch( self.stats[0].statsCollection.timeSeperators[i] ) )
+                    
+                    xtics += '"%s" %i, '%(  hour ,self.stats[0].statsCollection.timeSeperators[i] ) 
+
         
         return xtics[:-2]
     
@@ -108,11 +105,13 @@ class StatsPlotter:
     def getPairs( self, i ):
         """
            
-           This method is used to create the data coupels used to draw the graphic. Couples are a combination
-           of the data previously gathered and the time at wich data was produced.  
+           This method is used to create the data couples used to draw the graphic.
+           Couples are a combination of the data previously gathered and the time
+           at wich data was produced.  
            
-           Note : One point per pair should generally be drawn on the graphic but certain graph types 
-                  might combine a few pairs before drawing only one point for the entire combination.
+           Note : One point per pair should generally be drawn on the graphic but
+                  certain graph types might combine a few pairs before drawing only 
+                  one point for the entire combination.
         
         """
         
@@ -158,7 +157,10 @@ class StatsPlotter:
                         self.minimums[i] = pairs[j][1]
                     
                     self.nbFiles  = self.nbFiles  + self.stats[i].statsCollection.fileEntries[j].values.rows       
-                
+                    
+                    self.nbFilesOverMaxLatency = self.nbFilesOverMaxLatency + self.stats[i].statsCollection.fileEntries[j].filesOverMaxLatency
+                    
+                    
                 else:
                     pairs.append( [ self.stats[i].statsCollection.timeSeperators[j], 0.0 ] )
                     
@@ -166,7 +168,10 @@ class StatsPlotter:
                 self.total = self.total + pairs[j][1]
                         
             self.means.append( float( self.total / j ) )
-        
+            
+            if self.nbFiles != 0 :
+                print "allo"
+                self.ratioOverLatency  = float( float(self.nbFilesOverMaxLatency) / float(self.nbFiles) ) *100.0
         
         return pairs    
          
@@ -189,19 +194,21 @@ class StatsPlotter:
     
     def plot( self ):
         """
-            Used to plot gnuplot graphics. Settings used are based on Plotter.py's plot function. 
+            Used to plot gnuplot graphics. Settings used are
+            slighly modified but mostly based on Plotter.py's
+            plot function. 
             
         """
+        
         
         color = 1
         
         const = len( self.stats ) -1
         
-         
-        self.graph( 'set size 1.5, %2.1f' % (0.55 * len( self.stats )))
+        self.graph( 'set size 2.0, %2.1f' % (0.55 * len( self.stats )))
         self.graph( 'set linestyle 4 ')
         
-        self.graph.xlabel( 'time (hours)', offset = ( "0.0"," -2.5" ) )
+        self.graph.xlabel( 'time (hours)' ) #, offset = ( "0.0"," -2.5" )
         self.graph.ylabel( 'latency (seconds)' )
         
         self.graph( 'set grid')
@@ -226,7 +233,7 @@ class StatsPlotter:
         self.graph( 'set output "%s%s"' % ( "/apps/", self.imageName ) )
         self.graph( 'set multiplot' ) 
         
-        print "self.stats : %s" %self.stats 
+        
         
         for i in range( len( self.stats ) ) :
             
@@ -244,19 +251,21 @@ class StatsPlotter:
             self.graph( 'set size .65, .55' )
             self.graph( 'set origin 0, %3.2f' %( ((const-i)*.55)  ))
 
-            self.graph( 'set label "Client : %s" at screen .65, screen %3.2f' % ( self.clientNames[i],(.34+(const-i) *.55)  ))
-            self.graph( 'set label "Machines :%s" at screen .65, screen %3.2f' % ( self.machines,(.30+(const-i) *.55)  ) )
+            self.graph( 'set label "Client : %s" at screen .65, screen %3.2f' % ( self.clientNames[i],(.38+(const-i) *.55)  ))
+            self.graph( 'set label "Machines :%s" at screen .65, screen %3.2f' % ( self.machines,(.34+(const-i) *.55)  ) )
             
+            self.graph( 'set label "Maximum occured at: %s" at screen .65, screen %3.2f' % ( ( timeOfMax, (.30+(const-i) *.55)  )))
             
-            self.graph( 'set label "Maximum occured at: %s" at screen .65, screen %3.2f' % ( ( timeOfMax, (.26+(const-i) *.55)  )))
+            self.graph( 'set label "On file :%s" at screen .65, screen %3.2f' % ( self.filesWhereMaxOccured[i], (.26+(const-i) *.55) ))
             
-            self.graph( 'set label "On file :%s" at screen .65, screen %3.2f' % ( self.filesWhereMaxOccured[i], (.22+(const-i) *.55) ))
+            self.graph( 'set label "Maximum was : %s" at screen .65, screen %3.2f' % ( self.maximums[i], (.22+(const-i) *.55) ) )
             
-            self.graph( 'set label "Maximum was : :%s" at screen .65, screen %3.2f' % ( self.maximums[i], (.18+(const-i) *.55) ) )
+            self.graph( 'set label "# of files : %s " at screen .65, screen %3.2f' % ( self.nbFiles , (.18+(const-i) *.55) ) )
+              
+            self.graph( 'set label "# of files over max latency: %s " at screen .65, screen %3.2f' % ( self.nbFilesOverMaxLatency, ( .14+(const-i) *.55 ) ) )
             
-            self.graph( 'set label "# of files : %s " at screen .65, screen %3.2f' % ( self.nbFiles , (.14+(const-i) *.55) ) )
+            self.graph( 'set label "%% of files over max latency: %3.2f %%" at screen .65, screen %3.2f' % ( self.ratioOverLatency   , ( .10+(const-i) *.55 ) ) )
             
-          
             self.graph.title( "%s" %self.buildTitle(i) )
             self.graph.plot( Gnuplot.Data( pairs , with="%s %s 1" % ( self.type, color) ) )
         

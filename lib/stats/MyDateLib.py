@@ -1,8 +1,16 @@
+"""
+MetPX Copyright (C) 2004-2006  Environment Canada
+MetPX comes with ABSOLUTELY NO WARRANTY; For details type see the file 
+named COPYING in the root of the source directory tree.
+"""
+
+
 import time,sys,os
     
 MINUTE = 60
 HOUR   = 60 * MINUTE
 DAY    = 24 * HOUR
+MINUTES_PER_DAY = 24*60
 
 class MyDateLib:
     
@@ -10,13 +18,29 @@ class MyDateLib:
     MINUTE = 60
     HOUR   = 60 * MINUTE
     DAY    = 24 * HOUR
-
+    MINUTES_PER_DAY = 24*60
 
     
     """
         This section should be put in date library upon approval. 
     
     """
+    
+    def getHoursFromIso( iso = '2005-08-30 20:06:59' ):
+        """
+            Returns the hours field from a iso format date. 
+        
+        """
+        
+        
+        iso = iso.split(" ")[1]
+        hours, minutes, seconds = iso.split(':')
+        
+        return hours
+    
+    getHoursFromIso = staticmethod( getHoursFromIso )
+    
+    
     
     def getMinutesFromIso( iso = '2005-08-30 20:06:59' ):
         """
@@ -31,9 +55,11 @@ class MyDateLib:
     getMinutesFromIso = staticmethod( getMinutesFromIso )
     
     
+    
     def rewindXDays( date  = '2005-08-30 20:06:59' , x = 0 ):
         """
-            Takes an iso format date and go back the number of days specified by x.
+            Takes an iso format date and substract the number 
+            of days specified by x.
             
         """
         
@@ -62,6 +88,8 @@ class MyDateLib:
         
         numberOfDays = abs( float( (seconds1-seconds2) /(24*60*60) ) )
         
+	numberOfDays = int( numberOfDays )
+	
         return numberOfDays
     
     
@@ -73,7 +101,7 @@ class MyDateLib:
     def areDifferentDays( date1 = '2005-08-30 20:06:59', date2 = '2005-08-30 20:06:59'   ):
         """
             
-            Takes two iso format dates and returns whether or not both date correspond to the same day.  
+            Takes two iso format dates and returns whether or not both date are on different days.  
            
         """
     
@@ -338,6 +366,7 @@ class MyDateLib:
             splitTimeString[2] = "0" + splitTimeString[2]     
          
         originalDate = splitTimeString[4] + '-' + MyDateLib.getNumericMonthFromString ( splitTimeString[1] ) + '-' + splitTimeString[2] + ' ' + splitTimeString[3]   
+        
         return originalDate
     
     getIsoFromEpoch = staticmethod ( getIsoFromEpoch )

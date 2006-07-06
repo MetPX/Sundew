@@ -58,7 +58,7 @@ class DirectoryStatsCollector:
     
     def buildTodaysFileName(  clientName = "", offset = 0, tempTime = "" ):
         """ 
-            Builds a filename using current time
+            Builds a filename using current time.
             The format will be 2006-10-31-19-15-53.txt
             Meaning October 31st 2006 at 19:15:53
             
@@ -70,7 +70,7 @@ class DirectoryStatsCollector:
         """    
         
         fileName = str( os.getcwd() ) #will probably need a better path eventually.... 
-        fileName = fileName +  "/" + clientName +"-PICKLE-"
+        fileName = fileName +  "/PICKLES/%s/%s-PICKLE-" %( clientName, clientName )
         
         if tempTime == "" :
         
@@ -148,9 +148,10 @@ class DirectoryStatsCollector:
             self.statsCollection.collectStats( endTime  )           
             
            
-        elif dailyPickling == True :
+        elif dailyPickling == True :  
             
             self.statsCollection = FileStatsCollector( files = self.fileCollection.entries, statsTypes = types, startTime = MyDateLib.getIsoTodaysMidnight( startTime ), width = width, interval = interval, totalWidth = 24*HOUR )
+            
             self.statsCollection.collectStats( endTime )
             
         
@@ -161,9 +162,8 @@ class DirectoryStatsCollector:
         
         
         if save == True :
-            print "Saving.... : % s" %time.gmtime( time.time() )
             gzippickle.save ( object = self.statsCollection, filename = pickle ) 
-            print "Saving done...: % s" %time.gmtime( time.time() )
+           
     
        
     
@@ -180,6 +180,7 @@ class DirectoryStatsCollector:
         self.statsCollection.width = totalWidth
         self.statsCollection.collectStats()           
     
+
     
     
     def printStats( self ) :       
@@ -216,59 +217,19 @@ class DirectoryStatsCollector:
             print "Total"
             print self.statsCollection.fileEntries[j].totals
     
-#             if len(self.statsCollection.fileEntries[j].means) >=1:
-#                 if self.statsCollection.fileEntries[j].means[0] != 0 :
-#                     #raw_input( "Press enter")
+
             
         fileHandle.close()      
         sys.stdout = old_stdout #resets standard output  
         print "printed %s " %absoluteFilename
     
     
-    def createLogFile( name = "log" ):
-        """
-            Creates a huge log file : 4 entries per seconds 24 hours file 345 600 lines....
-            takes about 90 sec and weights ~15 megs
-        
-        """
-        
-         
-        arrival   = "2006-06-16 00:00:00"
-        departure = "2006-06-16 00:00:01"
-        
-        byteCount = 0
-        
-        file = open( name, "w")
-        old_stdout = sys.stdout 
-        sys.stdout = file 
-        
-        
-        for i in range( 345600 ):
-            
-            byteCount = i
-            
-            departure = MyDateLib.getIsoFromEpoch( MyDateLib.getSecondsSinceEpoch( arrival ) + randint( 1,30) )
-            
-            if i%4 == 1:
-                arrival = MyDateLib.getIsoFromEpoch( MyDateLib.getSecondsSinceEpoch( arrival ) + 1 )
-            
-            print "%s;%s;%s" %( arrival, departure, byteCount ) 
-        
-                  
-        file.close()                 
-        sys.stdout = old_stdout #resets standard output            
-
-    createLogFile = staticmethod( createLogFile )
-
  
 def main():
     """
             small test case. Tests if everything works plus gives an idea on proper usage.
     """
         
-    # creates a 4 entry per seconds 24 hours file 345 600 lines.... in 90 sec wich weights ~15 megs
-    #DirectoryStatsCollector.createLogFile( "/apps/px/lib/stats/files/2006-06-16" )
-    
     types = [ 'latency']
     
     print "Temps avant : % s" %time.gmtime( time.time() )

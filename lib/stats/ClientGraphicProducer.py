@@ -1,3 +1,9 @@
+"""
+MetPX Copyright (C) 2004-2006  Environment Canada
+MetPX comes with ABSOLUTELY NO WARRANTY; For details type see the file
+named COPYING in the root of the source directory tree.
+"""
+
 ##############################################################################
 ##
 ##
@@ -9,7 +15,7 @@
 ## Date   : 06-07-2006 
 ##
 ##
-## Description : Contains all classes and methods usefull to produce a graphic 
+## Description : Contains all usefullclasses and methods to produce a graphic 
 ##               for a certain client. Main use is to build latency graphics
 ##               for one or many clients. 
 ##
@@ -18,7 +24,8 @@
 ##               for multi-data types.
 ##
 ##               Thus far this implentation is slightly too rigid to produce 
-##               multi data types graphics but should be easily modified to do so.
+##               multi data types graphics but should be easily modified to do
+##               so.
 ##
 ##############################################################################
 
@@ -41,19 +48,31 @@ class ClientGraphicProducer:
     
     
     
-    def __init__( self, clientNames = None ,  timespan = 12 ):
+    def __init__( self, clientNames = None ,  timespan = 12, currentTime = None  ):
         """
-            ClientGraphicProducer constructor.     
+            ClientGraphicProducer constructor. 
+            CurrentTime format is ISO meaning "2006-06-8 00:00:00". Will use current
+            system time by default.   
+            
+            CurrentTime is to be used if a different time than sytem time is to be used. 
+            Very usefull for testing or to implement graphic request where user can choose start 
+            time.  
     
+        
         """
         
+        if currentTime != None :
+            currentTime = MyDateLib.getSecondsSinceEpoch( currentTime ) 
+        else:
+            currentTime = time.time()
+            
+            
         self.clientNames  = clientNames or [] # Client name we need to get the data from.
-        #self.currentTime  = time.time()       # Time when stats were queried.
-        self.currentTime  = MyDateLib.getSecondsSinceEpoch( "2006-06-29 08:25:00" )
         self.timespan     = timespan          # Number of hours we want to gather the data from. 
-        
+        self.currentTime  = currentTime       # Time when stats were queried.
         
             
+    
     def getStartTimes( self, currentTime = 0 ,  timespan = 0 ):
         """ 
             Returns startime for each day we need to look up for 
@@ -76,9 +95,9 @@ class ClientGraphicProducer:
         
         for i in remainingDays:
             
-            startTime = ( currentTime - (i*24*60*60) )
+            startTime  = ( currentTime - (i*24*60*60) )
             dateWoHour = MyDateLib.getIsoFromEpoch( startTime ).split( " ")[0]
-            startTime = dateWoHour + " 00:00:00"
+            startTime  = dateWoHour + " 00:00:00"
             startTimes.append( startTime  )
             
         
@@ -104,13 +123,12 @@ class ClientGraphicProducer:
         
         
         try:
-            
             statsCollection = gzippickle.load( pickleName )
             
             numberOfMinutes = MyDateLib.getMinutesSinceStartOfDay( startTime )
     
             for i in range( numberOfMinutes, len( statsCollection.fileEntries) ):
-                graphEntries.append( statsCollection.fileEntries [i] )
+                graphEntries.append( statsCollection.fileEntries[i] )
                 
             
             return graphEntries
@@ -125,7 +143,7 @@ class ClientGraphicProducer:
     
     def fillWithEmptyEntries( self, nbEmptyEntries, entries ):
         """
-            Append empty entries to the entries
+            Append certain number of empty entries to the entry list. 
         
         """
         
@@ -137,24 +155,7 @@ class ClientGraphicProducer:
         return entries
 
 
-
-    def getCurrentHour( self ):
-        """
-            Returns only the hour field of the current time transformed in 
-            iso date 
-            
-        """
-        
-        currentHour = MyDateLib.getIsoFromEpoch( self.currentTime )
-        currentHour = currentHour.split( " " )
-        currentHour = currentHour[1]
-        currentHour = currentHour.split(":")
-        currentHour = currentHour[0]
-        
-        return currentHour 
     
-        
-        
     def getDaysToSearch( self, currentHour ):
         """
             Returns a list of days to search for data.
@@ -166,7 +167,7 @@ class ClientGraphicProducer:
         if ( ( int(currentHour) - self.timespan ) >= 0 ):
             nbDaysToSearch = 1
         else:    
-            nbDaysToSearch = 2 + (( self.timespan - int(currentHour) ) /24 )   #number of past days we need to look up
+            nbDaysToSearch = 2 + (( self.timespan - int(currentHour) ) /24 ) #number of past days we need to look up
             
         
         days  = range( nbDaysToSearch )
@@ -190,11 +191,11 @@ class ClientGraphicProducer:
         emptyEntry = _FileStatsEntry( means = [0.0], maximums = [0.0] )
         
         numberOfMinutesStart  = MyDateLib.getMinutesSinceStartOfDay( startTime )
-        numberOfMinutesEnd    = MyDateLib.getMinutesSinceStartOfDay(MyDateLib.getIsoFromEpoch(self.currentTime))
+        numberOfMinutesEnd    = MyDateLib.getMinutesSinceStartOfDay( MyDateLib.getIsoFromEpoch( self.currentTime ) )
         
         
         entryCount = 0 
-	while entryCount < len(todaysEntries) and MyDateLib.getMinutesSinceStartOfDay( MyDateLib.getIsoFromEpoch(todaysEntries[entryCount].startTime)) < numberOfMinutesStart: 
+	while entryCount < len( todaysEntries ) and MyDateLib.getMinutesSinceStartOfDay( MyDateLib.getIsoFromEpoch(todaysEntries[entryCount].startTime)) < numberOfMinutesStart: 
 	    
             entryCount =  entryCount + 1
         
@@ -212,7 +213,7 @@ class ClientGraphicProducer:
                 graphEntries.append( todaysEntries[ entryCount] )    
                 entryCount = entryCount + 1
                 
-        return  graphEntries
+        return graphEntries
         
  
         
@@ -237,16 +238,17 @@ class ClientGraphicProducer:
         startTimes.reverse()
         
         
-        currentHour = self.getCurrentHour()
+        currentHour = MyDateLib.getHoursFromIso( MyDateLib.getIsoFromEpoch( self.currentTime ) )
         days = self.getDaysToSearch( currentHour )    
         
         if now == True :
-            endTime =  MyDateLib.getIsoFromEpoch( self.currentTime ) 
+            endTime =  MyDateLib.getIsoWithRoundedSeconds( MyDateLib.getIsoFromEpoch( self.currentTime ) )
             minutesToAppend = int(MyDateLib.getMinutesFromIso( endTime )  )
         
         else :     
-            endTime = MyDateLib.getIsoWithRoundedSeconds( MyDateLib.getIsoFromEpoch( self.currentTime ) )
-            minutesToAppend + 0
+            endTime = MyDateLib.getIsoWithRoundedHours( MyDateLib.getIsoFromEpoch( self.currentTime ) )
+            minutesToAppend = 0
+            
             
         for i in range( len( self.clientNames ) ):
             
@@ -255,16 +257,24 @@ class ClientGraphicProducer:
             statsCollection = FileStatsCollector( statsTypes = types, startTime = startTimes[ len(startTimes)-1 ] , width = ( self.timespan* MyDateLib.HOUR ), interval = MyDateLib.MINUTE, totalWidth = ((self.timespan* MyDateLib.HOUR ) + 60 * minutesToAppend ) )
             
             
-            lastCronJob = pickleUpdater.getLastCronJob( self.clientNames[i], MyDateLib.getIsoFromEpoch(self.currentTime),update = False )
-            
+            lastCronJob = pickleUpdater.getLastCronJob( self.clientNames[i], MyDateLib.getIsoFromEpoch(self.currentTime) )
             
             timeSinceLastCron = self.currentTime -  MyDateLib.getSecondsSinceEpoch( lastCronJob )
             
-            
-            #do a pickle update like job without saving pickle....
-            ds = DirectoryStatsCollector( directory = pickleUpdater.getfilesIntoDirectory( self.clientNames[i] ) )
-            ds.collectStats( types, startTime = lastCronJob , endTime = endTime, width = timeSinceLastCron, interval = 1*MyDateLib.MINUTE, pickle = DirectoryStatsCollector.buildTodaysFileName( self.clientNames[i],tempTime = MyDateLib.getIsoFromEpoch(self.currentTime )) , save = False )                   
 
+            #do a pickleUpdater like job without saving pickle....
+            ds = DirectoryStatsCollector( directory = pickleUpdater.getfilesIntoDirectory( self.clientNames[i] ) )
+            
+            
+            if endTime != lastCronJob : #collect data that was not collected
+            
+                ds.collectStats( types, startTime = lastCronJob , endTime = endTime, width = timeSinceLastCron, interval = 1*MyDateLib.MINUTE, pickle = DirectoryStatsCollector.buildTodaysFileName( self.clientNames[i], tempTime = MyDateLib.getIsoFromEpoch(self.currentTime )) , save = False )         
+            
+            else:#skip collecting 
+                
+                pickleName = DirectoryStatsCollector.buildTodaysFileName( self.clientNames[i], tempTime = MyDateLib.getIsoFromEpoch(self.currentTime ))
+                ds.statsCollection = gzippickle.load( pickleName )
+                      
             
             #Build a directory stats collector with todays info.... stats collection has allread been cut in bucket 
             #corresponding to the ones needed in the graphic
@@ -272,6 +282,7 @@ class ClientGraphicProducer:
             dataCollector.startTime = startTimes[0]
             dataCollector.statsCollection.fileEntries = []
             
+           
              
             for j in days : #Now gather all usefull info that was previously treated.
                 
@@ -280,50 +291,40 @@ class ClientGraphicProducer:
                 
                 if j == 0 :
                 
-                    print "***working on todays data"
+                  
 
-                    print "pickle startTime avant getstats from ds collector : %s" %MyDateLib.getIsoFromEpoch( ds.statsCollection.fileEntries[0].startTime)   
                     dataCollector.statsCollection.fileEntries = self.getStatsFromDsCollector( type = types[0], graphEntries = dataCollector.statsCollection.fileEntries, todaysEntries = ds.statsCollection.fileEntries, startTime = startTimes[0],pickleStartTime = ds.statsCollection.fileEntries[0].startTime )  
                     
-                    print "len apres : %s " %len(dataCollector.statsCollection.fileEntries)
-                
+                                    
                 elif os.path.isfile( thatDaysPickle ) :#check to see if that days pickle exist. 
-                     print "****from the pickle : %s" %thatDaysPickle
-                     print "j : %s" %j 
-                     print "offset : %s " % (j - ( 2*j ))
-                     print "types : %s" %types
-                     print "starttimes : %s" %startTimes
-                     print "startime du pickle : %s" %startTimes[j]
+                    
+                                          
                      dataCollector.statsCollection.fileEntries =  self.getStatsFromPickle( type = types[0], pickleName = thatDaysPickle, graphEntries = dataCollector.statsCollection.fileEntries, startTime = startTimes[j] ) 
                      
-                     print "len data collector apres pickling : %s" %len(dataCollector.statsCollection.fileEntries)
+                     
                      
                          
-                else:#fill up gap with empty entries 
-                    print "***empty entries "
-                    MINUTES_PER_DAY = 60*24 
+                else:#fill up gap with empty entries                
                     
                     if j != 0 :#j is allready tested fount out why im testing this....
-                        nbEmptyEntries = MINUTES_PER_DAY - MyDateLib.getMinutesSinceStartOfDay( startTimes[j] )
-                        print "MINUTES_PER_DAY :%s " %MINUTES_PER_DAY
-                        print "MyDateLib.getMinutesSinceStartOfDay( startTimes[j] ) : %s" %MyDateLib.getMinutesSinceStartOfDay( startTimes[j] )
-                        
+                        nbEmptyEntries = MyDateLib.MINUTES_PER_DAY - MyDateLib.getMinutesSinceStartOfDay( startTimes[j] )
+                                                
                     else:    
                         nbEmptyEntries = MyDateLib.getMinutesSinceStartOfDay( MyDateLib.getIsoFromEpoch(self.currentTime) )- MyDateLib.getMinutesSinceStartOfDay( startTimes[j] )
                     
-                    print "nbEmptyEntries : %s" %nbEmptyEntries
+                    
                     dataCollector.statsCollection.fileEntries = self.fillWithEmptyEntries( nbEmptyEntries, dataCollector.statsCollection.fileEntries)
-                    print "len apres empty entries %s" %len(dataCollector.statsCollection.fileEntries)
+                   
                         
-            print "len avant append : %s " %len(dataCollector.statsCollection.fileEntries)
             
-            collectorsList.append( dataCollector )
-                         
+            
+            collectorsList.append( dataCollector )                        
         
        
-        plotter = StatsPlotter( stats = collectorsList, clientNames = self.clientNames, timespan = self.timespan, currentTime = self.currentTime, now = now  )
+        plotter = StatsPlotter( stats = collectorsList, clientNames = self.clientNames, timespan = self.timespan, currentTime = self.currentTime, now = False  )
         plotter.plot()                          
          
+
 
         
 if __name__ == "__main__":
@@ -332,7 +333,18 @@ if __name__ == "__main__":
         
     """
     
+    gp = ClientGraphicProducer( clientNames = [ 'satnet' ], timespan = 12, currentTime = "2006-07-01 23:15:00" )  
+    gp.produceGraphic( types = ["latency"], now = True   )
+
+
+#     statsCollection = gzippickle.load( "/apps/px/lib/stats/satnet-PICKLE-2006-07-2" )
+#     
+#     for i in range( len( statsCollection.fileEntries ) ):
+#         print "%s, %s" %( statsCollection.fileEntries[i].means ,MyDateLib.getIsoFromEpoch( statsCollection.fileEntries[i].startTime) )
+#         if i % 100 == 0 :
+#             raw_input("press enter")
     
-    gp = ClientGraphicProducer( clientNames = ['satnet'], timespan = 12 )  
-    gp.produceGraphic( types = ["latency"], now = True  )
+
+
+        
         

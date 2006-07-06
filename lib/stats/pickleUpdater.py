@@ -66,10 +66,51 @@ def getfilesIntoDirectory( clientName, machines = "" ):
     #Later this will have a connection the the real method that will download files into a directory 
     
     return "/apps/px/lib/stats/files/"
+    
+    
         
+def setLastCronJob( clientName, currentDate, collectUpToNow = False    ):
+    """
+        This method set the clients lastcronjob to the date received in parameter. 
+        Creates new key if key doesn't exist.
+        Creates new PICKLED-TIMES file if it doesn't allready exist.   
+        
+    """
+    
+    times = {}
+    lastCronJob = {}
+    fileName = str( os.getcwd() ) + "/" + "PICKLED-TIMES"  
+    
+    if collectUpToNow == False :
+        currentDate = MyDateLib.getIsoWithRoundedHours( currentDate ) 
+    
+    
+    if os.path.isfile( fileName ):
+        
+        fileHandle  = open( fileName, "r" )
+        times       = pickle.load( fileHandle )
+        fileHandle.close()
+        
+        times[ clientName ] = currentDate
+        
+        fileHandle  = open( fileName, "w" )
+        pickle.dump( times, fileHandle )
+        fileHandle.close()
+    
+    
+    else:#create a new pickle file  
+         
+        fileHandle  = open( fileName, "w" )
+        
+        times[ clientName ] = currentDate          
+        
+        pickle.dump( times, fileHandle )
+        
+        fileHandle.close()
 
 
-def getLastCronJob( clientName, currentDate, update = True, collectUpToNow = False    ):
+
+def getLastCronJob( clientName, currentDate, collectUpToNow = False    ):
     """
         This method gets the dictionnary containing all the last cron job list. From that dictionnary
         it returns the right value. 
@@ -84,46 +125,18 @@ def getLastCronJob( clientName, currentDate, update = True, collectUpToNow = Fal
     
     if os.path.isfile( fileName ):
         
-        try :
+        
         
             fileHandle  = open( fileName, "r" )
             times       = pickle.load( fileHandle )
-            lastCronJob = times[ clientName ]
-            fileHandle.close()
-            
-            
-            if update == True :
+            try :
+                lastCronJob = times[ clientName ]
+            except:
+                lastCronJob = MyDateLib.getIsoTodaysMidnight( currentDate )
                 
-                fileHandle  = open( fileName, "w" )
-                
-                if collectUpToNow == True :
-                    times[ clientName ] = currentDate    
-                
-                else:#collecting will only have been made up to the top of the hour....
-                    times[ clientName ] = MyDateLib.getIsoWithRoundedHours( currentDate )     
-                
-                pickle.dump( times, fileHandle )
-                
-                fileHandle.close()
+            fileHandle.close()      
             
-        
-         
-        except Exception, e:#key doesn't exist for this client...
-            
-            
-            if collectUpToNow == True :
-                times[ clientName ] = currentDate    
-                
-            else:#collecting will only have been made up to the top of the hour....
-                times[ clientName ] = MyDateLib.getIsoWithRoundedHours( currentDate )   
-             
-            
-            lastCronJob = MyDateLib.getIsoTodaysMidnight( currentDate )  #update field 
-            
-            pickle.dump( times, fileHandle )
-            fileHandle.close()
-         
-         
+    
     else:#create a new pickle file  
          
         fileHandle  = open( fileName, "w" )
@@ -208,7 +221,50 @@ def createParser( ):
     
     """
     
-    usage = """%prog [options]Write something here about options,proper usage, crontab,etc... """    
+    usage = """
+
+%prog [options]
+********************************************
+* See doc.txt for more details.            *
+********************************************
+Notes :
+- Update request for a client with no history means it's data will be collected 
+  from 00:00:00 of the day of the resquest up to the time of the resquest.    
+-
+-
+Defaults :
+
+- Default Client name does not exist.
+- Default Date of update is current system time.  
+- Default interval is 1 minute. 
+- Default machines value is the entire list of existing machines.  
+- Default Now value is False.
+- Default Types value is latency.
+
+Options:
+ 
+    - With -c|--clients you can specify the clients names on wich you want to collect data. 
+    - With -d|--date you can specify the time of the update.( Usefull for past days and testing. )
+    - With -i|--interval you can specify interval in minutes at wich data is collected. 
+    - With -m|--machines you can specify on wich machine we must try to download log files.
+    - With -n|--now you can specify that data must be collected right up to the minute of the call. 
+    - With -t|--types you can specify what data types need to be collected
+    
+      
+WARNING: - Client name MUST be specified,no default client exists. 
+         - Interval is set by default to 1 minute. If data pickle here is to be used with 
+           ClientGraphicProducer, default value will need to be used since current version only 
+           supports 1 minute long buckets. 
+          
+            
+Ex1: %prog                                   --> All default values will be used. Not recommended.  
+Ex2: %prog -c satnet                         --> All default values, for client satnet. 
+Ex3: %prog -c satnet -d '2006-06-30 05:15:00'--> Client satnet, Date of call 2006-06-30 05:15:00
+
+********************************************
+* See /doc.txt for more details.           *
+********************************************"""   
+    
     parser = OptionParser( usage )
     addOptions( parser )
     
@@ -275,30 +331,38 @@ def main():
             day = days.reverse()
             
             print "... days to manage : %s " %days 
-            for j in days:
+            for j in days: #Covers days where no pickling was done. 
                 
                 print "2222-goes in the for"    
                 
-                if j == ( nbDifferentDays - 1 ):#Where last pickle occured. No need to pickle all day
+                if j == ( nbDifferentDays - 1 ):#Day where last pickle occured. No need to pickle all day
                     print "3333-goes to day where last pickle occured"
                     endTime = MyDateLib.getIsoLastMinuteOfDay( infos.startTimes[i] )
+                    
+                    print "pickle wich allready existed : %s" %DirectoryStatsCollector.buildTodaysFileName( clientName = infos.clients[i], tempTime =  infos.startTimes[i] )
                     
                     ds.collectStats( infos.types, startTime = MyDateLib.getIsoTodaysMidnight( infos.startTimes[i] ), endTime = endTime, interval = infos.interval * MyDateLib.MINUTE , pickle = DirectoryStatsCollector.buildTodaysFileName( clientName = infos.clients[i], tempTime =  infos.startTimes[i] )  )
                 
                 
                 else:#in between days....need to collect everything from 00:00:00 23:59:59
-                    print "????-goes to day in between"
+                    
                     rewindedTime = MyDateLib.rewindXDays( infos.endTime, j + 1 ) 
                     
                     endTime = MyDateLib.getIsoLastMinuteOfDay( rewindedTime )
                     
-                    ds.collectStats( infos.types, startTime = MyDateLib.getIsoTodaysMidnight( rewindedTime ), endTime = endTime,interval = infos.interval * MyDateLib.MINUTE , pickle = DirectoryStatsCollector.buildTodaysFileName( clientName = infos.clients[i], tempTime = rewindedTime )  )
+                    print "????-goes to day in between"
+                    print "startTime day in between : %s" %MyDateLib.getIsoTodaysMidnight( rewindedTime )
+                    print "day between pickle : %s " %DirectoryStatsCollector.buildTodaysFileName( clientName = infos.clients[i], tempTime = rewindedTime )
+                    print "endTime : %s " %endTime  
+                    
+                    ds.collectStats( infos.types, startTime = MyDateLib.getIsoTodaysMidnight( rewindedTime ), endTime = endTime, interval = infos.interval * MyDateLib.MINUTE , pickle = DirectoryStatsCollector.buildTodaysFileName( clientName = infos.clients[i], tempTime = rewindedTime ), width = 24 * MyDateLib.HOUR,   )
                 
                     
             #Collect todays data.
             pickle = DirectoryStatsCollector.buildTodaysFileName( clientName = infos.clients[i], tempTime = infos.currentDate )
-            print "pickle used for other day "         
-            ds.collectStats( infos.types, startTime = MyDateLib.getIsoTodaysMidnight( infos.endTime ), endTime = infos.endTime, interval = infos.interval * MyDateLib.MINUTE , pickle =pickle   )
+            
+            print "pickle used today : %s " %pickle         
+            ds.collectStats( infos.types, startTime = MyDateLib.getIsoTodaysMidnight( infos.endTime ), endTime = infos.endTime, interval = infos.interval * MyDateLib.MINUTE , pickle = pickle   )
                     
                     
                     
@@ -309,6 +373,7 @@ def main():
             ds.collectStats( infos.types, startTime = infos.startTimes[i], endTime = infos.endTime, interval = infos.interval * MyDateLib.MINUTE , pickle = pickle   )
            
         
+        setLastCronJob( clientName = infos.clients[i], currentDate = infos.currentDate, collectUpToNow = infos.collectUpToNow )
         
 
 if __name__ == "__main__":
