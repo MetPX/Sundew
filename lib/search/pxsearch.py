@@ -17,6 +17,8 @@ named COPYING in the root of the source directory tree.
 #
 # Date: 2006-05-08
 #
+# TODO: Comment all functions
+#
 ###########################################################
 """
 
@@ -158,7 +160,7 @@ def search(so):
     
 def createParser(so):
     usagemsg = "%prog [options] <name>\nSearch in the PX unified log for bulletins matching certain criterias."
-    parser = OptionParser(usage=usagemsg, version="%prog 0.2")
+    parser = OptionParser(usage=usagemsg, version="%prog 1.0-rc1")
     
     # These two only offer long option names and using one of them is mandatory
     parser.add_option("--rx", action = "store_true", dest = "rxtype", help = "Perform a search in the RX logs.", default = False)
@@ -190,9 +192,9 @@ def main():
     ##############################
     so = SearchObject()
     
-    ################################################################
-    # 2. Initantiate the parse and parse the command line arguments
-    ################################################################
+    #################################################################
+    # 2. Instantiate the parser and parse the command line arguments
+    #################################################################
     parser = createParser(so)
     options, args = parser.parse_args()
     
