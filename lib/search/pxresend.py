@@ -27,50 +27,61 @@ from optparse import OptionParser
 # Local imports
 sys.path.append("../")
 import PXPaths; PXPaths.normalPaths()
+from ResendObject import *
 
 def validateUserInput(options, args):
+    # Those two options must be used together
     if (options.header != "" and options.machine == "") or (options.header == "" and options.machine != ""):
         print "You must use --header and --machine together."
         sys.exit(1)
-
+    
+    # Priority number must be between 1 and 5
     if int(options.prio) < 1 or int(options.prio) > 5:
         print "Incorrect priority number!"
         print "Available priorities are 1 or 2 or 3 or 4 or 5."
         sys.exit(1)
 
-def createParser():
+def updateResendObject(ro, options, args):
+    pass
+
+def createParser(ro):
     usagemsg = "%prog [options] <name>\nResend a bulletin or a list of bulletins."
     parser = OptionParser(usage=usagemsg, version="%prog 0.1-alpha")
 
-    parser.add_option("--ask", action = "store_true", dest = "prompt", help = "Ask for a resending confirmation for each bulletins.", default=False)
-    parser.add_option("--all", action = "store_false", dest = "prompt", help = "Send all bulletins without confirmation (default).", default=False)
-    parser.add_option("-p", "--prio", dest = "prio", help = "Specify in which priority you want to put the bulletin in? (default 3).", default="3")
-    parser.add_option("-h", "--header", dest = "header", help = "Specify a precise bulletin header (can be used instead of the output of pxsearch.py", default = "")
-    parser.add_option("-m", "--machine", dest = "machine", help = "Specify the machine on which the bulletin can be found. Use this only with --header." default = "") 
+    parser.add_option("--ask", action = "store_true", dest = "prompt", help = "Ask for a resending confirmation for each bulletins.")
+    parser.add_option("--all", action = "store_false", dest = "prompt", help = "Send all bulletins without confirmation (default).")
+    parser.add_option("-t", "--to", dest = "to", help = "Specify the client to which you want to resend.", default = ro.getTo())
+    parser.add_option("-p", "--prio", dest = "prio", help = "Specify in which priority you want to put the bulletin in? (default 3).", default = ro.getPrio())
+    parser.add_option("-b", "--bulletin", dest = "bulletin", help = "Specify a precise bulletin header to be resent (i.e.: machine:full_header)")
     
     return parser
 
-def prepareArgs(args):
-    machineDict = {}
-    
-    for arg in args:
-        header, machine = parseInput(arg)
-        if machine not in machineDict.keys():
-            machineDict[machine] = 
-
-def parseInput(line):
-    header = ":".join(line.split(":")[2:])
-    machine = (line.split(":")[0])[1:] # Removes the @
-
-    return header, machine
-
 def main():
-    parser = createParser()
+    ##############################
+    # 1. Create the resend object
+    ##############################
+    ro = ResendObject()
+    
+    #################################################################
+    # 2. Instantiate the parser and parse the command line arguments
+    #################################################################
+    parser = createParser(ro)
     options, args = parser.parse_args()
+    
+    #########################
+    # 3. Validate user input
+    #########################
     validateUserInput(options, args)
     
-    if options.header != "":
-        
-    
+    ##############################################################################
+    # 4. Since input is correct, update the ResendObject with user defined values
+    ##############################################################################
+    updateResendObject(ro, options, args)
+
+    #####################
+    # 5. Begin resending
+    #####################
+    pass
+
 if __name__ == "__main__":
     main()
