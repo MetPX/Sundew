@@ -75,6 +75,7 @@ def setLastCronJob( clientName, currentDate, collectUpToNow = False    ):
         Creates new key if key doesn't exist.
         Creates new PICKLED-TIMES file if it doesn't allready exist.   
         
+        In fiunal version this will need a better filename and a stable path....
     """
     
     times = {}
@@ -112,8 +113,8 @@ def setLastCronJob( clientName, currentDate, collectUpToNow = False    ):
 
 def getLastCronJob( clientName, currentDate, collectUpToNow = False    ):
     """
-        This method gets the dictionnary containing all the last cron job list. From that dictionnary
-        it returns the right value. 
+        This method gets the dictionnary containing all the last cron job list.
+        From that dictionnary it returns the right value. 
         
         Note : pickled-times would need a better path..... 
         
@@ -124,11 +125,10 @@ def getLastCronJob( clientName, currentDate, collectUpToNow = False    ):
     fileName = str( os.getcwd() ) + "/" + "PICKLED-TIMES"  
     
     if os.path.isfile( fileName ):
-        
-        
-        
+            
             fileHandle  = open( fileName, "r" )
             times       = pickle.load( fileHandle )
+            
             try :
                 lastCronJob = times[ clientName ]
             except:
@@ -169,7 +169,8 @@ def getOptionsFromParser( parser ):
         It takes the params wich have been passed by the user and sets them 
         in the corresponding fields of the hlE variable.   
     
-        If errors are encountered in parameters used, it will terminate the application. 
+        If errors are encountered in parameters used, it will immediatly terminate 
+        the application. 
     
     """ 
     
@@ -186,12 +187,10 @@ def getOptionsFromParser( parser ):
     interval        = options.interval
     collectUpToNow  = options.collectUpToNow
     
-    
+     
     try:    
-        
-        if  interval != 1 :
-            if int( interval ) <= 0 :
-                raise 
+        if int( interval ) < 1 :
+            raise 
     
     except:
         
@@ -200,6 +199,20 @@ def getOptionsFromParser( parser ):
         print "Program terminated."
         sys.exit()
         
+    try:
+        for t in types :
+            if t not in["errors","latency","bytecount"]:
+                raise 
+    
+    except:    
+        
+        print "Error. Type value must be either errors, latency or bytecount."
+        print 'For multiple types use this syntax : -t "errors,latency,bytecount"' 
+        print "Use -h for additional help."
+        print "Program terminated."
+        sys.exit()
+        
+    
     
     for client in clients :
         directories.append( getfilesIntoDirectory( client, machines ) )
@@ -302,7 +315,8 @@ def main():
         on parameters received.  
         
         
-        contains a lot of debugging printing ...needs to me removed in future updates.
+        Contains a lot of debugging printing ...needs to me removed in future updates.
+    
     """
     
    
@@ -310,20 +324,12 @@ def main():
     infos = getOptionsFromParser( parser )
     
     for i in range( len (infos.clients) ) :
-        print "infos.clients :%s" %infos.clients
-        print "start time : %s" %infos.startTimes[i]
-        print "interval : %s" %infos.interval
         
         ds = DirectoryStatsCollector( infos.directories[i] )
-        print "pickle updater startTime: %s" %infos.startTimes
         
-        
-        #this section would require a lot of testing to make sure it works properly 
-        #In case pickling didnt happen for a few days for some reason... 
-        print " infos.startTimes[i] : %s infos.endTime : %s" %(infos.startTimes[i],infos.endTime )
-        
+        #In case pickling didnt happen for a few days for some reason...                 
         if MyDateLib.areDifferentDays( infos.startTimes[i], infos.endTime ) == True :
-            print "111-last pickle on a different day "
+            print "111-last pickle was on a different day "
             
             nbDifferentDays = MyDateLib.getNumberOfDaysBetween( infos.startTimes[i], infos.endTime )
             
@@ -333,10 +339,10 @@ def main():
             print "... days to manage : %s " %days 
             for j in days: #Covers days where no pickling was done. 
                 
-                print "2222-goes in the for"    
+                print "-goes in the for"    
                 
                 if j == ( nbDifferentDays - 1 ):#Day where last pickle occured. No need to pickle all day
-                    print "3333-goes to day where last pickle occured"
+                    print "goes to day where last pickle occured"
                     endTime = MyDateLib.getIsoLastMinuteOfDay( infos.startTimes[i] )
                     
                     print "pickle wich allready existed : %s" %DirectoryStatsCollector.buildTodaysFileName( clientName = infos.clients[i], tempTime =  infos.startTimes[i] )
@@ -350,7 +356,7 @@ def main():
                     
                     endTime = MyDateLib.getIsoLastMinuteOfDay( rewindedTime )
                     
-                    print "????-goes to day in between"
+                    print "-goes to day in between"
                     print "startTime day in between : %s" %MyDateLib.getIsoTodaysMidnight( rewindedTime )
                     print "day between pickle : %s " %DirectoryStatsCollector.buildTodaysFileName( clientName = infos.clients[i], tempTime = rewindedTime )
                     print "endTime : %s " %endTime  
@@ -361,13 +367,12 @@ def main():
             #Collect todays data.
             pickle = DirectoryStatsCollector.buildTodaysFileName( clientName = infos.clients[i], tempTime = infos.currentDate )
             
-            print "pickle used today : %s " %pickle         
             ds.collectStats( infos.types, startTime = MyDateLib.getIsoTodaysMidnight( infos.endTime ), endTime = infos.endTime, interval = infos.interval * MyDateLib.MINUTE , pickle = pickle   )
                     
                     
                     
         else:#last pickleUpdate happened today 
-            print "!!!!-goes to same day pickling"
+            
             pickle = DirectoryStatsCollector.buildTodaysFileName( clientName = infos.clients[i], tempTime = infos.currentDate )
             print "pickled used in calling : %s " %pickle 
             ds.collectStats( infos.types, startTime = infos.startTimes[i], endTime = infos.endTime, interval = infos.interval * MyDateLib.MINUTE , pickle = pickle   )

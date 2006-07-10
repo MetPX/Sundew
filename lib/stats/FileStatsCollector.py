@@ -71,7 +71,7 @@ class _FileStatsEntry:
         self.endTime   = endTime         # End time IN SECONDS SINCE EPOCH.                      
         self.values    = values          # List of values from all the types. 
         self.minimums  = minimums or []  # List of the minimums of all types.
-        
+        self.nbFiles   = 0               # Number of files dealt with during this entry.
         self.filesWhereMinOccured =  []  # List of files where min appened for each type  
         self.timesWhereMinOccured =  []  # List of times where min appened for each type 
         self.maximums  = maximums or []  # Maximum of all types.   
@@ -190,12 +190,21 @@ class FileStatsCollector:
                             self.fileEntries[i].filesWhereMaxOccured[j] = files[k]    
                             self.fileEntries[i].timesWhereMaxOccured[j] = times[k]  
    
-                                
+                    
+                                        
                     #median  = values[ int( int(self.fileEntries[i].values.rows) / 2 ) ]    
                     median  = 0 
                     total   = sum( values )
                     mean    = float( total / len(values) )
-                
+                    
+                    if self.statsTypes[j] == "errors" :
+                        if total > maximum :
+                            maximum = total
+                            self.fileEntries[i].maximums[j] = total
+                            self.fileEntries[i].filesWhereMaxOccured[j] = files[k]    
+                            self.fileEntries[i].timesWhereMaxOccured[j] = times[k]
+                            
+                         
                 else: #this entry has no values 
                     minimum = 0
                     median  = 0
@@ -206,6 +215,8 @@ class FileStatsCollector:
                 self.fileEntries[i].medians.append( median )     # appending values to a list    
                 self.fileEntries[i].means.append( mean )         
                 self.fileEntries[i].totals.append( float(total) )
+                
+                self.fileEntries[i].totals
                 values = []
                 files  = []
                 times  = []
@@ -214,7 +225,7 @@ class FileStatsCollector:
     
     
     
-    def findValue( self, statsType, line = "" ):
+    def findValue( self, statsType, line = "", lineType = "[INFO]" ):
         """
             This method is used to find a particular entry within a line. 
             Used with line format used in tx_satnet.logxxxxxxxxxx
@@ -225,95 +236,153 @@ class FileStatsCollector:
         
         if line != "" and line != "\n" :
             
-            parsedLine = line.split( " " )
-        
-            if statsType == "latency":
-                
-                lastPart  = parsedLine[6] 
-                lastPart  = lastPart.split(":") 
-                arrival   = MyDateLib.isoDateDashed( lastPart[6] )
-                departure = line.split( ",")
-                departure = departure[0]
-                value     = MyDateLib.getSecondsSinceEpoch( departure ) - MyDateLib.getSecondsSinceEpoch( arrival)
-                
-            elif statsType == "arrival":
-                
-                try : # for debugging....lines passed should always be valid in final versions.      
-                    
-                    lastPart = parsedLine[6] 
-                    lastPart = lastPart.split(":") 
-                    arrival  = MyDateLib.isoDateDashed( lastPart[6] )
-                    value    = MyDateLib.getSecondsSinceEpoch( arrival)    
-                
-                except Exception,e :
-                    print line 
-                    print e 
-                    sys.exit()
-                    
-            elif statsType == "bytecount":
-                value = parsedLine[3]
-                value = value.replace( '(', '' )
-                value = int(value)
-                
-            elif statsType == "fileName":
-                value = parsedLine[6]
-                value = value.split( ":" )
-                value = value[0]
+            if lineType == "[INFO]" :
             
-            elif statsType == "departure":
-                departure = line.split( ",")
-                departure = departure[0] 
-                value     = MyDateLib.getSecondsSinceEpoch( departure )
-        
+                parsedLine = line.split( " " )
+                
+                if statsType == "latency":
+                    try:
+                        lastPart  = parsedLine[6] 
+                        lastPart  = lastPart.split(":") 
+                        arrival   = MyDateLib.isoDateDashed( lastPart[6] )
+                        departure = line.split( ",")
+                        departure = departure[0]
+                        value     = MyDateLib.getSecondsSinceEpoch( departure ) - MyDateLib.getSecondsSinceEpoch( arrival)
+                        
+                    except Exception,e:
+                        print line 
+                        print e 
+                        sys.exit()
+                        
+                elif statsType == "arrival":
+                    
+                    try : # for debugging....lines passed should always be valid in final versions.      
+                        
+                        lastPart = parsedLine[6] 
+                        lastPart = lastPart.split(":") 
+                        arrival  = MyDateLib.isoDateDashed( lastPart[6] )
+                        value    = MyDateLib.getSecondsSinceEpoch( arrival)    
+                    
+                    except Exception,e :
+                        print line 
+                        print e 
+                        sys.exit()
+                        
+                elif statsType == "bytecount":
+                    value = parsedLine[3]
+                    value = value.replace( '(', '' )
+                    value = int(value)
+                    
+                elif statsType == "fileName":
+                    value = parsedLine[6]
+                    value = value.split( ":" )
+                    value = value[0]
+                
+                elif statsType == "departure":
+                    departure = line.split( ",")
+                    departure = departure[0] 
+                    value     = MyDateLib.getSecondsSinceEpoch( departure )
+                
+                elif statsType == "errors" :
+                    value = 0    
+                
+            elif lineType == "[ERROR]":
+            
+                if statsType == "errors" :
+                    value = 1
+                    
+                elif statsType == "departure":
+                    departure = line.split( ",")
+                    departure = departure[0] 
+                    value     = MyDateLib.getSecondsSinceEpoch( departure )     
+                else:
+                    value = 0
+                    
+                    
+        if value == "":
+            print statsType
+            print lineType 
+            print "line has no value : %s" %line 
+              
         return value
 
 
     
-    def containsUsefullInfo( self, file ):
+    def containsUsefullInfo( self, file, endTime = ""  ):
         """
             This method returns whether or not a certain file contain any data wich is within 
             the range we want.
             
-            
-            ***Warning : There is a bug using these system calls that contain pipes. 
-               It will somethime give "Broken pipes errors" for yet unknown reasons.     
         """
         
-        status,firstLine = commands.getstatusoutput( 'grep -v "/sec" %s | grep "Bytes" | head -n 1  '%file) 
-        
-        departure =  self.findValue( "departure", firstLine )
-
-        
-        if departure <= ( self.startTime + self.width )  :
+        usefull = False 
             
-            status,lastLine = commands.getstatusoutput( 'grep -v "/sec" %s | grep "Bytes" | tail -n 1  '%file) 
-            departure = self.findValue( "departure", lastLine )
-            
-            
-            if departure >= self.startTime :
-                usefull = True
-            else:
-                usefull = False
         
+        if endTime == "" :                                        
+            endTime = self.width + self.startTime
         else:
+            endTime = MyDateLib.getSecondsSinceEpoch( endTime )
             
-            usefull = False 
+        entryCount,line,filehandle,offset,lineType  = self.findFirstInterestingLine( file, endTime  )    
         
-        return usefull            
+        
+        if line != "" :    
+            departure = self.findValue( "departure", line, lineType )
+            
+            if departure >= self.startTime  and departure <= endTime  :
+                usefull = True
+        
+                        
+        return usefull, entryCount, line , filehandle, offset , lineType           
         
     
     
-    def findFirstInterestingLine( self, file ):
+    def isInterestingLine( self, line ):
+        """
+            This method returns the first interesting whether or not the 
+            line is interesting according to the types ask for in parameters. 
+            
+            Also returns for what type it's interesting.   
+            
+            To be modified when new log file format comes in.   
+        
+        """
+        
+        isInteresting = False 
+        lineType = ""
+        
+        if line != "" :
+            
+            if "errors" in self.statsTypes and "[ERROR]" in line:
+                isInteresting = True
+                lineType = "[ERROR]" 
+            
+            elif "[INFO]" in line and "Bytes" in line and "/sec" not in line and " Segment " not in line : 
+                isInteresting = True             
+                lineType = "[INFO]"
+                
+        return isInteresting,lineType
+    
+    
+    
+    def findFirstInterestingLine( self, file, endtime  ):
         """
             Finds the first interesting line in a file.
             Search starts where we last read the file.
             If file was never read starts from start of file. 
             
-            Returns the first line 
+            Returns last entrycount treated, line where we're at in the file, 
+            fileHandle of the file if we still need it and offset of the file meaning where 
+            we ast read the file.
+            
+            Warning -> This method leaves the fileHandle wich is returned opened to decrease 
+                       the overall number of open/close file operations. Method wich receives the 
+                       fileHandle has the responsability to close it.   
         
         """
         
         #if file was previously read, we'll know where we last stopped
+        
         offset = self.files[file][0]
         entryCount = self.files[file][1]
 
@@ -322,13 +391,14 @@ class FileStatsCollector:
         filehandle.seek( offset , 0 )
         
         line = filehandle.readline()# we need first line 
+        isInteresting ,lineType = self.isInterestingLine( line )          
         
-        #should be some sort of call call to a isvalid( line ) once we know what makes up a valid line.... 
-        while line != "" and (( "Bytes" not in line ) or ("/sec" in line ) or( self.findValue( "departure" , line ) < self.startTime ) ) :
+        while isInteresting == False or ( self.findValue( "departure" , line, lineType ) < self.startTime ) :
             line = filehandle.readline()# we read again 
-        
+            isInteresting ,lineType = self.isInterestingLine( line ) 
               
-        return entryCount,line,filehandle,offset
+        
+        return entryCount, line, filehandle, offset, lineType
     
     
     
@@ -343,88 +413,96 @@ class FileStatsCollector:
         
         """
         
-        try:
-        
-            value = []
-            files =  self.files.keys()
-                
-            if endTime == "" :                                        
-                endTime = self.width + self.startTime
-            else:
-                endTime = MyDateLib.getSecondsSinceEpoch( endTime )
+        #try:
+    
+        value = []
+        files =  self.files.keys()
+        nbErrors = 0 
             
-                        
+        if endTime == "" :                                        
+            endTime = self.width + self.startTime
+        else:
+            endTime = MyDateLib.getSecondsSinceEpoch( endTime )
+        
+        for file in files :#read everyfile and append data found to matrixes 
+            
+            usefull, entryCount, line , filehandle, offset, lineType  = self.containsUsefullInfo( file )
+
+            if  usefull == True :    
                 
-            for file in files :#read everyfile and append data found to matrixes 
-                
-                
-    
-                if self.containsUsefullInfo( file ) == True :    
+                departure = self.findValue( "departure" , line, lineType )
+            
+                while str( departure ) != "" and float( departure ) < float( endTime ) : 
                     
-                    entryCount,line,filehandle,offset  = self.findFirstInterestingLine( file )                 
-                    
+                    while long( departure ) > long(self.timeSeperators[ entryCount ]):
+                        entryCount = entryCount + 1 
+
+                    if departure <= self.timeSeperators[ entryCount ]:                    
                         
-                    departure = self.findValue( "departure" , line )
-                
-                    while str( departure ) != "" and float( departure ) < float( endTime ) : 
-                        
-                        while long( departure ) > long(self.timeSeperators[ entryCount ]):
-                            entryCount = entryCount + 1 
-    
-                        if departure <= self.timeSeperators[ entryCount ]:                    
+                        #find values to append 
+                        for statType in self.statsTypes :   
                             
-                            #find values to append 
-                            for statType in self.statsTypes :   
-                                newValue = self.findValue( statType , line )
+                            newValue = self.findValue( statType , line, lineType )
+                            
+                            if statType == "latency":
+                                if newValue > self.maxLatency :      
+                                    self.fileEntries[ entryCount ].filesOverMaxLatency = self.fileEntries[ entryCount ].filesOverMaxLatency + 1                          
+                                                               
+                            value.append( newValue )
+                        
                                 
-                                if statType == "latency":
-                                    if newValue > self.maxLatency :      
-                                        self.fileEntries[ entryCount ].filesOverMaxLatency = self.fileEntries[ entryCount ].filesOverMaxLatency + 1
-                                        
-                                value.append( newValue )
-                                
-                            #add values at the right place  
-                            self.fileEntries[ entryCount ].values.matrix.append( value )
-                            self.fileEntries[ entryCount ].files.append( self.findValue( "fileName" , line ) )
-                            self.fileEntries[ entryCount ].times.append( self.findValue( "departure" , line ) )
-                            self.fileEntries[ entryCount ].values.rows = self.fileEntries[ entryCount ].values.rows + 1
-                        
-        
-                        offset  = filehandle.tell()
-                        line    = filehandle.readline()
-                        
-                        #call a isvalid( line ) method once we know what a valid line is ....
-                        while line != "" and ( ( "Bytes" not in line ) or ( "/sec" in line ) ) :
-                            line = filehandle.readline()# we read again 
-                        
-                        departure = self.findValue( "departure" , line )
-                        value     = [] 
+                        #add values at the right place  
+                        self.fileEntries[ entryCount ].values.matrix.append( value )
+                        self.fileEntries[ entryCount ].files.append( self.findValue( "fileName" , line ) )
+                        self.fileEntries[ entryCount ].times.append( self.findValue( "departure" , line ) )
+                        self.fileEntries[ entryCount ].values.rows = self.fileEntries[ entryCount ].values.rows + 1
                     
+                    
+                    if lineType != "[ERROR]" :
+                         self.fileEntries[ entryCount ].nbFiles = self.fileEntries[ entryCount ].nbFiles + 1        
+                    
+                    offset  = filehandle.tell()
+                    line    = filehandle.readline()
+                    isInteresting,lineType = self.isInterestingLine( line )
+                    
+                    while isInteresting == False :
+                        line = filehandle.readline()# we read again 
+                        isInteresting,lineType = self.isInterestingLine( line )
                         
-                    # We won't change offset if last line read isnt within range or else we'll lose it 
-                    # in the next reading.
-                    if departure == "" or departure < endTime:
-                        offset = filehandle.tell()
                         
-                    
-                    self.files[file][0]  = offset         
-                    self.files[file][1]  = entryCount + 1 
-                    
-                    if entryCount > self.lastFilledEntry : # in case of numerous files....
-                        self.lastFilledEntry = entryCount                  
-                    
-                    filehandle.close()                  
-                                        
+                    departure = self.findValue( "departure" , line, lineType )
+                    value     = [] 
                 
                     
-        
-        except Exception,e:
+                # We won't change offset if last line read isnt within range or else we'll lose it 
+                # in the next reading.
+                if departure == "" or departure < endTime:
+                    offset = filehandle.tell()
+                    
+                
+                self.files[file][0]  = offset         
+                self.files[file][1]  = entryCount + 1 
+                
+                if entryCount > self.lastFilledEntry : # in case of numerous files....
+                    self.lastFilledEntry = entryCount                  
+                
+                filehandle.close()                  
+                                    
             
-            print "*************************************************************************"
-            print "Exception : %s" %e
-            print "Error. There was an error reading source file named %s" %( self.files )
-            print "Program terminated."
-            sys.exit()                     
+            else:
+            
+                print "useless file : %s" %file 
+                fileHandle.close()
+                
+                    
+#         
+#         except Exception,e:
+#             
+#             print "*************************************************************************"
+#             print "Exception : %s" %e
+#             print "Error. There was an error reading source file named %s" %( self.files )
+#             print "Program terminated."
+#             sys.exit()                     
             
     
     

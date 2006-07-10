@@ -224,7 +224,10 @@ class ClientGraphicProducer:
             attributes of a ClientGraphicProducer.  
             
             This method will gather the data starting from current time - timespan up to the time of the call.   
-                      
+            
+            Note : Quite long for my likings.
+                   Would be nice if it could be trimmed up a little or split into different part.          
+        
         """ 
         
         collectorsList = [] #     
@@ -291,19 +294,14 @@ class ClientGraphicProducer:
                 
                 if j == 0 :
                 
-                  
-
                     dataCollector.statsCollection.fileEntries = self.getStatsFromDsCollector( type = types[0], graphEntries = dataCollector.statsCollection.fileEntries, todaysEntries = ds.statsCollection.fileEntries, startTime = startTimes[0],pickleStartTime = ds.statsCollection.fileEntries[0].startTime )  
                     
                                     
                 elif os.path.isfile( thatDaysPickle ) :#check to see if that days pickle exist. 
                     
-                                          
-                     dataCollector.statsCollection.fileEntries =  self.getStatsFromPickle( type = types[0], pickleName = thatDaysPickle, graphEntries = dataCollector.statsCollection.fileEntries, startTime = startTimes[j] ) 
+                    dataCollector.statsCollection.fileEntries =  self.getStatsFromPickle( type = types[0], pickleName = thatDaysPickle, graphEntries = dataCollector.statsCollection.fileEntries, startTime = startTimes[j] ) 
                      
-                     
-                     
-                         
+                
                 else:#fill up gap with empty entries                
                     
                     if j != 0 :#j is allready tested fount out why im testing this....
@@ -316,12 +314,10 @@ class ClientGraphicProducer:
                     dataCollector.statsCollection.fileEntries = self.fillWithEmptyEntries( nbEmptyEntries, dataCollector.statsCollection.fileEntries)
                    
                         
-            
-            
             collectorsList.append( dataCollector )                        
         
        
-        plotter = StatsPlotter( stats = collectorsList, clientNames = self.clientNames, timespan = self.timespan, currentTime = self.currentTime, now = False  )
+        plotter = StatsPlotter( stats = collectorsList, clientNames = self.clientNames, timespan = self.timespan, currentTime = self.currentTime, now = False, statsTypes = types  )
         plotter.plot()                          
          
 
@@ -333,18 +329,8 @@ if __name__ == "__main__":
         
     """
     
-    gp = ClientGraphicProducer( clientNames = [ 'satnet' ], timespan = 12, currentTime = "2006-07-01 23:15:00" )  
-    gp.produceGraphic( types = ["latency"], now = True   )
+    gp = ClientGraphicProducer( clientNames = [ 'satnet' ], timespan = 12, currentTime = "2006-07-01 10:15:00"  )  
+    gp.produceGraphic( types = [ "latency","errors" ], now = False   )
 
 
-#     statsCollection = gzippickle.load( "/apps/px/lib/stats/satnet-PICKLE-2006-07-2" )
-#     
-#     for i in range( len( statsCollection.fileEntries ) ):
-#         print "%s, %s" %( statsCollection.fileEntries[i].means ,MyDateLib.getIsoFromEpoch( statsCollection.fileEntries[i].startTime) )
-#         if i % 100 == 0 :
-#             raw_input("press enter")
     
-
-
-        
-        
