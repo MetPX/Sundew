@@ -102,7 +102,7 @@ class CollectionManager(object):
         # check if the station was found in bulletin
 
         if station == None :
-           self.logger.warning("Reject %s : station not found" % (path,station) )
+           self.logger.warning("Reject %s : station %s not found" % (path,station) )
            self.unlink(path)
            return False
 
@@ -389,7 +389,7 @@ class CollectionManager(object):
         #                      we did not process enough files check the source.batch value
 
         if period == 0 :
-           self.logger.debug("Reject %s : primary already done" % (path,dictkey,dict) )
+           self.logger.debug("Reject %s : primary already done" % path )
            self.unlink(path)
            return
 
