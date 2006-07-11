@@ -61,7 +61,7 @@ class CollectionState(object):
         self.now         = collector.now
         self.fin         = self.now - ( self.now            % 3600 )
         self.debut       = self.fin - ( self.source.history * 3600 )
-        self.lastload    = self.now
+        self.lastload    = self.fin
 
         # alphabet...
 
@@ -247,12 +247,12 @@ class CollectionState(object):
 
     def getCollectionState(self):
 
-        # get current time... and if state was in memory for more than 24 hours
+        # get current time... and if state was in memory for more than 1 hour
         # a reload will clean it from entries no longer needed
 
-        self.now = self.collector.now
-        delay    = self.now - self.lastload
-        if delay > 24*3600 : self.ready = False
+        self.now  = self.collector.now
+        delay     = self.now - self.lastload
+        if delay >= 3600 : self.ready = False
 
         # map ready... return it
 
@@ -279,12 +279,15 @@ class CollectionState(object):
  
         if not self.loaded :
            self.buildCollectionState()
-           self.saveCollectionState()
 
         # map ready... return it
 
         self.ready    = True
-        self.lastload = self.now
+        self.lastload = self.fin
+
+        # save the refreshed
+
+        self.saveCollectionState()
 
         # inform that we refreshed ( reloaded or rebuild ) the collectionState
 
@@ -364,7 +367,6 @@ class CollectionState(object):
 
                 for key in keys :
                     ( period, amendement, correction, retard, Primary, Cycle ) = self.mapCollectionState[key]
-                    if period == -1 : continue
                     line = "%s %d %d %d %d\n" % (key, period, amendement, correction, retard )
                     f.write(line)
 
@@ -373,6 +375,8 @@ class CollectionState(object):
         except:
                 self.logger.info("Could not save the collection state" )
                 return
+
+        self.logger.info("Collection State saved")
 
 if __name__ == '__main__':
     pass
