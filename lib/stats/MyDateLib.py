@@ -86,7 +86,7 @@ class MyDateLib:
         seconds1 = MyDateLib.getSecondsSinceEpoch( date1 ) - MyDateLib.getSecondsSinceStartOfDay( date1 )
         seconds2 = MyDateLib.getSecondsSinceEpoch( date2 ) - MyDateLib.getSecondsSinceStartOfDay( date2 )
         
-        numberOfDays = abs( float( (seconds1-seconds2) /(24*60*60) ) )
+        numberOfDays = abs( float( (seconds1-seconds2) /( 24*60*60 ) ) )
         
 	numberOfDays = int( numberOfDays )
 	
@@ -229,7 +229,6 @@ class MyDateLib:
             
             hoursSinceStartOfDay = int( splitDate[0] )  
             
-            
             return hourssSinceStartOfDay
         
         except:
@@ -270,7 +269,6 @@ class MyDateLib:
             
             minutesSinceStartOfDay = int( splitDate[0] ) * 60 + int( splitDate[1] ) 
             
-            
             return minutesSinceStartOfDay
         
         except:
@@ -297,7 +295,6 @@ class MyDateLib:
             splitDate = splitDate.split( ":" )
             
             minutesSinceStartOfDay = ( int( splitDate[0] ) * 60 *60 ) + ( int( splitDate[1] ) *60 ) + int( splitDate[2] ) 
-            
             
             return minutesSinceStartOfDay
         

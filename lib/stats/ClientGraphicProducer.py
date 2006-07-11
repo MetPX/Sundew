@@ -17,15 +17,9 @@ named COPYING in the root of the source directory tree.
 ##
 ## Description : Contains all usefullclasses and methods to produce a graphic 
 ##               for a certain client. Main use is to build latency graphics
-##               for one or many clients. 
+##               for one or many clients. Can also produce graphics on
+##               bytecounts and errors found in log files. 
 ##
-##
-##               Implementation of other classes of this library used allow
-##               for multi-data types.
-##
-##               Thus far this implentation is slightly too rigid to produce 
-##               multi data types graphics but should be easily modified to do
-##               so.
 ##
 ##############################################################################
 
@@ -51,6 +45,7 @@ class ClientGraphicProducer:
     def __init__( self, clientNames = None ,  timespan = 12, currentTime = None  ):
         """
             ClientGraphicProducer constructor. 
+            
             CurrentTime format is ISO meaning "2006-06-8 00:00:00". Will use current
             system time by default.   
             
@@ -187,15 +182,14 @@ class ClientGraphicProducer:
             
         """ 
         
+        entryCount = 0 
         
         emptyEntry = _FileStatsEntry( means = [0.0], maximums = [0.0] )
         
         numberOfMinutesStart  = MyDateLib.getMinutesSinceStartOfDay( startTime )
         numberOfMinutesEnd    = MyDateLib.getMinutesSinceStartOfDay( MyDateLib.getIsoFromEpoch( self.currentTime ) )
         
-        
-        entryCount = 0 
-	while entryCount < len( todaysEntries ) and MyDateLib.getMinutesSinceStartOfDay( MyDateLib.getIsoFromEpoch(todaysEntries[entryCount].startTime)) < numberOfMinutesStart: 
+        while entryCount < len( todaysEntries ) and MyDateLib.getMinutesSinceStartOfDay( MyDateLib.getIsoFromEpoch(todaysEntries[entryCount].startTime)) < numberOfMinutesStart: 
 	    
             entryCount =  entryCount + 1
         
@@ -256,7 +250,7 @@ class ClientGraphicProducer:
         for i in range( len( self.clientNames ) ):
             
             
-            #Create empty entries that are properly cut in buckets....
+            #Create collection that's properly cut in buckets....
             statsCollection = FileStatsCollector( statsTypes = types, startTime = startTimes[ len(startTimes)-1 ] , width = ( self.timespan* MyDateLib.HOUR ), interval = MyDateLib.MINUTE, totalWidth = ((self.timespan* MyDateLib.HOUR ) + 60 * minutesToAppend ) )
             
             
@@ -279,7 +273,7 @@ class ClientGraphicProducer:
                 ds.statsCollection = gzippickle.load( pickleName )
                       
             
-            #Build a directory stats collector with todays info.... stats collection has allread been cut in bucket 
+            #Build a directory stats collector with todays info.. stats collection has allready been cut in bucket 
             #corresponding to the ones needed in the graphic
             dataCollector  = DirectoryStatsCollector( startTime = startTimes[0], statsCollection = statsCollection )
             dataCollector.startTime = startTimes[0]
@@ -329,8 +323,8 @@ if __name__ == "__main__":
         
     """
     
-    gp = ClientGraphicProducer( clientNames = [ 'satnet' ], timespan = 12, currentTime = "2006-07-01 10:15:00"  )  
-    gp.produceGraphic( types = [ "latency","errors" ], now = False   )
+    gp = ClientGraphicProducer( clientNames = [ 'satnet' ], timespan = 24, currentTime = "2006-07-01 18:15:00"  )  
+    gp.produceGraphic( types = [ "errors","latency" ], now = False   )
 
 
     

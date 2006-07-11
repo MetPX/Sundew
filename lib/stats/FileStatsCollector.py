@@ -54,7 +54,7 @@ class _Matrix:
         
         self.columns = columns       #number of columns of the matrix 
         self.rows    = rows          #number of rows 
-        self.matrix  =  [[0 for column in xrange(0,columns)] for row in xrange(0,rows)] #matrix containing values
+        self.matrix  = {}            #
          
 
 
@@ -70,17 +70,17 @@ class _FileStatsEntry:
         self.startTime = startTime       # Start time IN SECONDS SINCE EPOCH.
         self.endTime   = endTime         # End time IN SECONDS SINCE EPOCH.                      
         self.values    = values          # List of values from all the types. 
-        self.minimums  = minimums or []  # List of the minimums of all types.
+        self.minimums  = minimums or {}  # List of the minimums of all types.
         self.nbFiles   = 0               # Number of files dealt with during this entry.
-        self.filesWhereMinOccured =  []  # List of files where min appened for each type  
-        self.timesWhereMinOccured =  []  # List of times where min appened for each type 
-        self.maximums  = maximums or []  # Maximum of all types.   
-        self.filesWhereMaxOccured =  []  # List of files where max appened for each type
-        self.timesWhereMaxOccured =  []  # List of times where max appened for each type 
+        self.filesWhereMinOccured =  {}  # Dict of files where min appened for each type  
+        self.timesWhereMinOccured =  {}  # Dict of times where min appened for each type 
+        self.maximums  = maximums or {}  # Maximum of all types.   
+        self.filesWhereMaxOccured =  {}  # Dict of files where max appened for each type
+        self.timesWhereMaxOccured =  {}  # Dict of times where max appened for each type 
         self.filesOverMaxLatency  =  0   # Number of files per entry whos latency are too long.  
-        self.means     = means    or []  # Means for all the values of all the files.
-        self.medians   = medians  or []  # Medians for all the values of all the files.
-        self.totals    = totals   or []  # Total for all values of each files.                
+        self.means     = means    or {}  # Means for all the values of all the files.
+        self.medians   = medians  or {}  # Medians for all the values of all the files.
+        self.totals    = totals   or {}  # Total for all values of each files.                
         self.files     = []              # Files to be read for data collection. 
         self.times     = []              # Time of departure of an entry 
 
@@ -150,28 +150,28 @@ class FileStatsCollector:
         for i in xrange( self.lastEntryCalculated , self.lastFilledEntry + 1 ): #for each entries we need to deal with 
             
             
-            self.fileEntries[i].medians  = []
-            self.fileEntries[i].minimums = []
-            self.fileEntries[i].maximums = []
+            self.fileEntries[i].medians  = {}
+            self.fileEntries[i].minimums = {}
+            self.fileEntries[i].maximums = {}
             
             
-            for j in xrange( 0,len( self.statsTypes ) ) :#for each datatype        
+            for aType in self.statsTypes :#for each datatype        
                 
-                self.fileEntries[i].minimums.append( 0.0 )   
-                self.fileEntries[i].filesWhereMinOccured.append( "" )
-                self.fileEntries[i].timesWhereMinOccured.append( 0 )
-                self.fileEntries[i].maximums.append( 0.0 )   
-                self.fileEntries[i].filesWhereMaxOccured.append( "" )
-                self.fileEntries[i].timesWhereMaxOccured.append( 0 )
+                self.fileEntries[i].minimums[aType] =  0.0    
+                self.fileEntries[i].filesWhereMinOccured[aType] =  ""
+                self.fileEntries[i].timesWhereMinOccured[aType]= 0 
+                self.fileEntries[i].maximums[aType]= 0.0    
+                self.fileEntries[i].filesWhereMaxOccured[aType] = "" 
+                self.fileEntries[i].timesWhereMaxOccured[aType] = 0 
                                         
                 
                 if self.fileEntries[i].values.rows != 0:
                     #set values for each bucket..... 
-                    for line in xrange( 0, self.fileEntries[i].values.rows ) : # for each line in the entry 
+                    for row in xrange( 0, self.fileEntries[i].values.rows ) : # for each line in the entry 
                         
-                        values.append(self.fileEntries[i].values.matrix[line][j] )#add to new array
-                        files.append( self.fileEntries[i].files[line]  )
-                        times.append( self.fileEntries[i].times[line]  )
+                        values.append(self.fileEntries[i].values.matrix[aType][row] )#add to new array
+                        files.append( self.fileEntries[i].files[row]  )
+                        times.append( self.fileEntries[i].times[row]  )
                     
                     minimum = values[0]
                     maximum = values[0]
@@ -180,15 +180,15 @@ class FileStatsCollector:
                         
                         if values[k] < minimum:
                             minimum = values[k]
-                            self.fileEntries[i].minimums[j] = values[k]
-                            self.fileEntries[i].filesWhereMinOccured[j] = files[k]    
-                            self.fileEntries[i].timesWhereMinOccured[j] = times[k]
+                            self.fileEntries[i].minimums[aType] = values[k]
+                            self.fileEntries[i].filesWhereMinOccured[aType] = files[k]    
+                            self.fileEntries[i].timesWhereMinOccured[aType] = times[k]
                         
                         elif values[k] > maximum:
                             maximum = values[k]
-                            self.fileEntries[i].maximums[j] = values[k]
-                            self.fileEntries[i].filesWhereMaxOccured[j] = files[k]    
-                            self.fileEntries[i].timesWhereMaxOccured[j] = times[k]  
+                            self.fileEntries[i].maximums[aType]= values[k]
+                            self.fileEntries[i].filesWhereMaxOccured[aType] = files[k]    
+                            self.fileEntries[i].timesWhereMaxOccured[aType] = times[k]  
    
                     
                                         
@@ -197,12 +197,12 @@ class FileStatsCollector:
                     total   = sum( values )
                     mean    = float( total / len(values) )
                     
-                    if self.statsTypes[j] == "errors" :
+                    if aType == "errors" :
                         if total > maximum :
                             maximum = total
-                            self.fileEntries[i].maximums[j] = total
-                            self.fileEntries[i].filesWhereMaxOccured[j] = files[k]    
-                            self.fileEntries[i].timesWhereMaxOccured[j] = times[k]
+                            self.fileEntries[i].maximums[aType] = total
+                            self.fileEntries[i].filesWhereMaxOccured[aType] = files[k]    
+                            self.fileEntries[i].timesWhereMaxOccured[aType] = times[k]
                             
                          
                 else: #this entry has no values 
@@ -212,11 +212,10 @@ class FileStatsCollector:
                     total   = 0
                     mean    = 0
                     
-                self.fileEntries[i].medians.append( median )     # appending values to a list    
-                self.fileEntries[i].means.append( mean )         
-                self.fileEntries[i].totals.append( float(total) )
+                self.fileEntries[i].medians[aType]= median     # appending values to a list    
+                self.fileEntries[i].means[aType] = mean         
+                self.fileEntries[i].totals[aType] =  float(total)
                 
-                self.fileEntries[i].totals
                 values = []
                 files  = []
                 times  = []
@@ -230,6 +229,8 @@ class FileStatsCollector:
             This method is used to find a particular entry within a line. 
             Used with line format used in tx_satnet.logxxxxxxxxxx
         
+            To be modified once line format is decided upon. 
+            
         """
         
         value = "" #in case of an unknown type
@@ -323,7 +324,7 @@ class FileStatsCollector:
         else:
             endTime = MyDateLib.getSecondsSinceEpoch( endTime )
             
-        entryCount,line,filehandle,offset,lineType  = self.findFirstInterestingLine( file, endTime  )    
+        entryCount,line,fileHandle,offset,lineType  = self.findFirstInterestingLine( file, endTime  )    
         
         
         if line != "" :    
@@ -333,14 +334,14 @@ class FileStatsCollector:
                 usefull = True
         
                         
-        return usefull, entryCount, line , filehandle, offset , lineType           
+        return usefull, entryCount, line , fileHandle, offset , lineType           
         
     
     
     def isInterestingLine( self, line ):
         """
-            This method returns the first interesting whether or not the 
-            line is interesting according to the types ask for in parameters. 
+            This method returns whether or not the line is interesting 
+            according to the types ask for in parameters. 
             
             Also returns for what type it's interesting.   
             
@@ -386,25 +387,25 @@ class FileStatsCollector:
         offset = self.files[file][0]
         entryCount = self.files[file][1]
 
-        filehandle = open( file , 'rb' )
+        fileHandle = open( file , 'rb' )
             
-        filehandle.seek( offset , 0 )
+        fileHandle.seek( offset , 0 )
         
-        line = filehandle.readline()# we need first line 
+        line = fileHandle.readline()# we need first line 
         isInteresting ,lineType = self.isInterestingLine( line )          
         
         while isInteresting == False or ( self.findValue( "departure" , line, lineType ) < self.startTime ) :
-            line = filehandle.readline()# we read again 
+            line = fileHandle.readline()# we read again 
             isInteresting ,lineType = self.isInterestingLine( line ) 
               
         
-        return entryCount, line, filehandle, offset, lineType
+        return entryCount, line, fileHandle, offset, lineType
     
     
     
     def setValues( self, endTime = "" ):
         """
-            This method opens a file and finds sets all the values found in the file in the appropriate entry's value matrix.
+            This method opens a file and sets all the values found in the file in the appropriate entry's value matrix.
             -Values searched depend on the datatypes asked for by the user.
             -Number of entries is based on the time separators wich are found with the startTime, width and interval.  -Only entries with arrival time comprised between startTime and startTime + width will be saved in matrixes
             -Entries wich have no values will have 0 as value for means, minimum maximum and median     
@@ -418,7 +419,7 @@ class FileStatsCollector:
         value = []
         files =  self.files.keys()
         nbErrors = 0 
-            
+        
         if endTime == "" :                                        
             endTime = self.width + self.startTime
         else:
@@ -426,8 +427,11 @@ class FileStatsCollector:
         
         for file in files :#read everyfile and append data found to matrixes 
             
-            usefull, entryCount, line , filehandle, offset, lineType  = self.containsUsefullInfo( file )
-
+            usefull, entryCount, line , fileHandle, offset, lineType  = self.containsUsefullInfo( file )
+            
+            for statType in self.statsTypes:
+                self.fileEntries[ entryCount ].values.matrix[statType] = []
+            
             if  usefull == True :    
                 
                 departure = self.findValue( "departure" , line, lineType )
@@ -436,6 +440,8 @@ class FileStatsCollector:
                     
                     while long( departure ) > long(self.timeSeperators[ entryCount ]):
                         entryCount = entryCount + 1 
+                        for statType in self.statsTypes:
+                            self.fileEntries[ entryCount ].values.matrix[statType] = []
 
                     if departure <= self.timeSeperators[ entryCount ]:                    
                         
@@ -446,13 +452,11 @@ class FileStatsCollector:
                             
                             if statType == "latency":
                                 if newValue > self.maxLatency :      
-                                    self.fileEntries[ entryCount ].filesOverMaxLatency = self.fileEntries[ entryCount ].filesOverMaxLatency + 1                          
-                                                               
-                            value.append( newValue )
-                        
-                                
+                                    self.fileEntries[ entryCount ].filesOverMaxLatency = self.fileEntries[entryCount ].filesOverMaxLatency + 1                          
+                            
+                            self.fileEntries[ entryCount ].values.matrix[statType].append( newValue )                                  
+                            
                         #add values at the right place  
-                        self.fileEntries[ entryCount ].values.matrix.append( value )
                         self.fileEntries[ entryCount ].files.append( self.findValue( "fileName" , line ) )
                         self.fileEntries[ entryCount ].times.append( self.findValue( "departure" , line ) )
                         self.fileEntries[ entryCount ].values.rows = self.fileEntries[ entryCount ].values.rows + 1
@@ -461,12 +465,12 @@ class FileStatsCollector:
                     if lineType != "[ERROR]" :
                          self.fileEntries[ entryCount ].nbFiles = self.fileEntries[ entryCount ].nbFiles + 1        
                     
-                    offset  = filehandle.tell()
-                    line    = filehandle.readline()
+                    offset  = fileHandle.tell()
+                    line    = fileHandle.readline()
                     isInteresting,lineType = self.isInterestingLine( line )
                     
                     while isInteresting == False :
-                        line = filehandle.readline()# we read again 
+                        line = fileHandle.readline()# we read again 
                         isInteresting,lineType = self.isInterestingLine( line )
                         
                         
@@ -477,7 +481,7 @@ class FileStatsCollector:
                 # We won't change offset if last line read isnt within range or else we'll lose it 
                 # in the next reading.
                 if departure == "" or departure < endTime:
-                    offset = filehandle.tell()
+                    offset = fileHandle.tell()
                     
                 
                 self.files[file][0]  = offset         
@@ -486,7 +490,7 @@ class FileStatsCollector:
                 if entryCount > self.lastFilledEntry : # in case of numerous files....
                     self.lastFilledEntry = entryCount                  
                 
-                filehandle.close()                  
+                fileHandle.close()                  
                                     
             
             else:
@@ -508,8 +512,7 @@ class FileStatsCollector:
     
     def createEmptyEntries( self ):    
         """
-            Needs to be in a separate method 
-            we fill up fileEntries with empty entries with proper time labels 
+            We fill up fileEntries with empty entries with proper time labels 
         
         """
         

@@ -232,7 +232,8 @@ Graphic production
   Otherwise, the graphic's data will not include data after the last crontab 
   call but will be drawn faster since no time will be spent on collecting and calculating new data.
       
-  
+-It is now possible to produce graphics for each data type collected. This means latency,bytecount 
+ and errors.  
 
 
 Specifics
@@ -276,7 +277,7 @@ Pickle Files :
 PICKLED-TIMES :
 ---------------
 
-This is the only file created to contain all the last pickleUpdates times fro each of the different 
+This is the only file created to contain all the last pickleUpdates times from each of the different 
 clients. This file is save in a regular non-compresses pickle format. This is done so that a user 
 could easily modify a certain client's date if needed.
 
@@ -286,7 +287,7 @@ could easily modify a certain client's date if needed.
 SERVER NAME-PICKLE-2006-07-1
 ------------------------------ 
 
-These file are created as to save the data collected for the period covering the day specified 
+These file are created to save the data collected for the period covering the day specified 
 in the file's name.  This file contains a FileStatsCollector instance containing all the data
 collected for that day compressed using gzippickle.py .
  
@@ -350,26 +351,28 @@ TODO list
 ----------------------------------------------------------------------------------------------------
 
 -Decide wheteher or not bucket size should be choosen by user. Graphics wich span over numerous day
-  with different buckets widths might be hard to handle.
+  with different buckets widths might be hard to handle.-***Done
 
 -Fix potential bug where pickled times is updated before program is finished. This might cause a conflict
  if application fails before it actually did collect the data.-***Done 
   
--Find the log file format. Modify findFirstInterestingLine, findValue(line) and while loops according 
- to new file format                 
-
--Modify module that gets files into a directory so that it actually downloads the files.
-    -Add everything wich relates to the machine option.
     
 -Add part that creates PICKLE directory and creates each subfolders for all the clients.***Done 
   
 
 -Try and find another way to find if files is valid. Grep sometimes results in broken pipe errors...
- If no better way is found, find a way to trap broken pipe error   
+ If no better way is found, find a way to trap broken pipe error-***Done   
 
 -Add fields to the graphics : # of files with over 15 sec of latency. %of files with over 15 sec of latency.***Done
 
--Find a folder system to store created pics + Automated cleanup system ?
+-Find a folder system to store created pics-***done
+ + Automated cleanup system ?
 
 -Speed up graphic creation by not collecting data since last cron job if no necessary. File verification seems like its 
-slowing down the whole process***done
+slowing down the whole process-***Done
+
+-Find the log file format. Modify findFirstInterestingLine, findValue(line) and while loops according 
+ to new file format                 
+
+-Modify module that gets files into a directory so that it actually downloads the files.
+    -Add everything wich relates to the machine option.

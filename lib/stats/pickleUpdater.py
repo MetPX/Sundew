@@ -75,7 +75,8 @@ def setLastCronJob( clientName, currentDate, collectUpToNow = False    ):
         Creates new key if key doesn't exist.
         Creates new PICKLED-TIMES file if it doesn't allready exist.   
         
-        In fiunal version this will need a better filename and a stable path....
+        In final version this will need a better filename and a stable path....
+        
     """
     
     times = {}
@@ -125,16 +126,16 @@ def getLastCronJob( clientName, currentDate, collectUpToNow = False    ):
     fileName = str( os.getcwd() ) + "/" + "PICKLED-TIMES"  
     
     if os.path.isfile( fileName ):
+        
+        fileHandle  = open( fileName, "r" )
+        times       = pickle.load( fileHandle )
+        
+        try :
+            lastCronJob = times[ clientName ]
+        except:
+            lastCronJob = MyDateLib.getIsoTodaysMidnight( currentDate )
             
-            fileHandle  = open( fileName, "r" )
-            times       = pickle.load( fileHandle )
-            
-            try :
-                lastCronJob = times[ clientName ]
-            except:
-                lastCronJob = MyDateLib.getIsoTodaysMidnight( currentDate )
-                
-            fileHandle.close()      
+        fileHandle.close()      
             
     
     else:#create a new pickle file  
@@ -243,8 +244,7 @@ def createParser( ):
 Notes :
 - Update request for a client with no history means it's data will be collected 
   from 00:00:00 of the day of the resquest up to the time of the resquest.    
--
--
+
 Defaults :
 
 - Default Client name does not exist.
@@ -253,6 +253,9 @@ Defaults :
 - Default machines value is the entire list of existing machines.  
 - Default Now value is False.
 - Default Types value is latency.
+- Accepted values for types are : errors,latency,bytecount
+  -To use mutiple types, use -t|--types "type1,type2"
+
 
 Options:
  
@@ -272,8 +275,8 @@ WARNING: - Client name MUST be specified,no default client exists.
             
 Ex1: %prog                                   --> All default values will be used. Not recommended.  
 Ex2: %prog -c satnet                         --> All default values, for client satnet. 
-Ex3: %prog -c satnet -d '2006-06-30 05:15:00'--> Client satnet, Date of call 2006-06-30 05:15:00
-
+Ex3: %prog -c satnet -d '2006-06-30 05:15:00'--> Client satnet, Date of call 2006-06-30 05:15:00.
+Ex4: %prog -c satnet -t "errors,latency"     --> Uses current time, client satnet and collect those 2 types.
 ********************************************
 * See /doc.txt for more details.           *
 ********************************************"""   
@@ -311,7 +314,7 @@ def addOptions( parser ):
 
 def main():
     """
-        Gathers options, then makes call to DirectoryStatsCollector to collec the stats based 
+        Gathers options, then makes call to DirectoryStatsCollector to collect the stats based 
         on parameters received.  
         
         
@@ -329,17 +332,15 @@ def main():
         
         #In case pickling didnt happen for a few days for some reason...                 
         if MyDateLib.areDifferentDays( infos.startTimes[i], infos.endTime ) == True :
-            print "111-last pickle was on a different day "
+            print "-last pickle was on a different day "
             
             nbDifferentDays = MyDateLib.getNumberOfDaysBetween( infos.startTimes[i], infos.endTime )
             
             days = range( nbDifferentDays )
             day = days.reverse()
             
-            print "... days to manage : %s " %days 
-            for j in days: #Covers days where no pickling was done. 
-                
-                print "-goes in the for"    
+            
+            for j in days: #Covers days where no pickling was done.                               
                 
                 if j == ( nbDifferentDays - 1 ):#Day where last pickle occured. No need to pickle all day
                     print "goes to day where last pickle occured"
@@ -356,10 +357,7 @@ def main():
                     
                     endTime = MyDateLib.getIsoLastMinuteOfDay( rewindedTime )
                     
-                    print "-goes to day in between"
-                    print "startTime day in between : %s" %MyDateLib.getIsoTodaysMidnight( rewindedTime )
-                    print "day between pickle : %s " %DirectoryStatsCollector.buildTodaysFileName( clientName = infos.clients[i], tempTime = rewindedTime )
-                    print "endTime : %s " %endTime  
+                    print "-goes to day in between"   
                     
                     ds.collectStats( infos.types, startTime = MyDateLib.getIsoTodaysMidnight( rewindedTime ), endTime = endTime, interval = infos.interval * MyDateLib.MINUTE , pickle = DirectoryStatsCollector.buildTodaysFileName( clientName = infos.clients[i], tempTime = rewindedTime ), width = 24 * MyDateLib.HOUR,   )
                 
