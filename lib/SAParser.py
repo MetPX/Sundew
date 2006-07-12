@@ -97,17 +97,13 @@ class SAParser(FileParser):
                 if newLines[-1] == '': del newLines[-1]
             #print newLines
 
-            #print self.filename
-            #try:
-            count =  0
             for line in newLines:
                 parts = line.split()
                 if parts == []: continue  # Happens when the token '==' is in the bulletin
                 if station in parts and ('NIL' not in parts):
                     #print line
                     results = (line, time)
-            if count >= 1: 
-                print "The count is %d" % count
+
             return results
 
     def parseInt(self, lines):
@@ -241,62 +237,7 @@ class SAParser(FileParser):
 
 if __name__ == '__main__':
     import os, sys
-
-    """
-    root = '/apps/px/db/20060522/SA/ncp1/CWAO'
-    root = '/apps/px/db/20060522/SA/ukmet-bkp/AMMC'
-    root = '/apps/px/db/20060522/SA/ukmet-bkp/BGSF'
-    root = '/apps/px/db/20060522/SA/ukmet-bkp/BICC'
-    root = '/apps/px/db/20060522/SA/ukmet-bkp/BKPR'
-    proot = '/apps/px/db/20060522/SA/ukmet-bkp'
-    #proot = '/apps/px/db/20060522/SA/ncp1'
-    #proot = '/apps/px/db/20060522/SA/ukmetin'
-    #proot = '/apps/px/db/20060523/SA/ncp2'
-    proot = '/apps/px/db/20060523/SA/nws-alph'
-    #proot = '/apps/px/db/20060523/SA/ukmet-bkp'
-    #proot = '/apps/px/db/20060523/SA/ukmetin'
-    #files = os.listdir(root)
-    dirs = os.listdir(proot)
-    #dirs = ['CWAO']
-    #print dirs
-    nbFiles = 0
-    for dir in dirs:
-        root = proot + '/' + dir
-        #print root
-        files = os.listdir(root)
-        nbFiles += len(files)
-        #print len(files)
-        #files = ['SACN75_CWAO_232200__YXP_97124:ncp2:CWAO:SA:3:Direct:20060523220130']
-        
-        stationCount = 0
-        sp = SAParser('')
-        for file in files:
-            sp.type = 'INT'
-            sp.filename = root + '/' + file
-            sp.parse()
-        #print "Parsing finished"
-        #print len(sp.stations)
-    
-        # Remove duplicates
-        for header in sp.stations.keys():
-            sp.stations[header] = sp.removeDuplicate(sp.stations[header])
-    
-        for header in sp.stations.keys():
-            #print "%s : %s" % (header, sp.stations[header])
-            stationCount += len(sp.stations[header])
-        sp.stations
-        headers = sp.stations.keys()
-        headers.sort()
-        #print headers
-        #print stationCount
-        metars = sp.metars.keys()
-        metars.sort()
-        #print metars 
-    print "Number of files: %d" % nbFiles
-
-    """
     from StationFileCreator import StationFileCreator
-
 
     root1 = '/apps/px/db/20060522/SA/'
     root2 = '/apps/px/db/20060523/SA/'
@@ -329,7 +270,9 @@ if __name__ == '__main__':
 
     # Remove duplicates stations
     for header in sp.stations.keys():
-        sp.stations[header] = sp.removeDuplicate(sp.stations[header])
+        noDupStations = sp.removeDuplicate(sp.stations[header])
+        noDupStations.sort()
+        sp.stations[header] = noDupStations
         nbStations += len(sp.stations[header])
         #print "%s : %s" % (header, sp.stations[header])
     
