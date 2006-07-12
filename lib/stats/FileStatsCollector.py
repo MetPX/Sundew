@@ -47,15 +47,14 @@ class _Matrix:
     def __init__( self, columns =0, rows=0 ):
         """ 
            Constructor.
-           By default builds a 0*0 matrix.
-           Matrix is always empty, values need to be added after creation.  
+           By default builds a 0*0 dictionary.
+           dictionary is always empty, values need to be added after creation.  
         
         """
-        
-        self.columns = columns       #number of columns of the matrix 
+        self.columns = columns       #number of columns of the dictionary 
         self.rows    = rows          #number of rows 
-        self.matrix  = {}            #
-         
+        self.dictionary  = {}        #
+        self.productTypes = []       # For each line read, we save up what product type it was   
 
 
 class _FileStatsEntry:
@@ -83,7 +82,7 @@ class _FileStatsEntry:
         self.totals    = totals   or {}  # Total for all values of each files.                
         self.files     = []              # Files to be read for data collection. 
         self.times     = []              # Time of departure of an entry 
-
+        
 
 class FileStatsCollector:
     """
@@ -126,15 +125,18 @@ class FileStatsCollector:
 
     
     
-    def setMinMaxMeanMedians( self ):
+    def setMinMaxMeanMedians( self, productType = "", startingBucket = 0 , finishingBucket = 0  ):
         """
-            This method takes all the values set in the values matrix, finds the media for every
+            This method takes all the values set in the values dictionary, finds the media for every
             types found and sets them in a list of medians. This means if statsTypes = [latency, bytecount]
             we will store the medians in the same order :[ latencyMedian, bytecountMedian ] 
             
             All values are set in the same method as to enhance performances slightly.
+           
+            Product type starting bucket and finishing bucket can be quite usefull to recalculate a days data 
+            for only selected products names.  
             
-            precondition : Values matrix should have been built and filled prior to using this method.
+            Pre-condition : Values dictionary should have been built and filled prior to using this method.
         
         """
         
@@ -146,6 +148,12 @@ class FileStatsCollector:
         values  = [] # Used to sort value to find median. 
         files   = [] # Used to browse all files of an entry
         times   = [] # Used to browse all times of an entry 
+        
+        if startingBucket != 0 :
+            self.lastEntryCalculated  = startingBucket
+        if finishingBucket !=0 :    
+            self.lastFilledEntry = finishingBucket -1
+                         
         
         for i in xrange( self.lastEntryCalculated , self.lastFilledEntry + 1 ): #for each entries we need to deal with 
             
@@ -169,12 +177,22 @@ class FileStatsCollector:
                     #set values for each bucket..... 
                     for row in xrange( 0, self.fileEntries[i].values.rows ) : # for each line in the entry 
                         
-                        values.append(self.fileEntries[i].values.matrix[aType][row] )#add to new array
-                        files.append( self.fileEntries[i].files[row]  )
-                        times.append( self.fileEntries[i].times[row]  )
-                    
-                    minimum = values[0]
-                    maximum = values[0]
+                        if productType in self.fileEntries[i].values.productTypes[row] :
+                            values.append(self.fileEntries[i].values.dictionary[aType][row] )#add to new array
+                            files.append( self.fileEntries[i].files[row]  )
+                            times.append( self.fileEntries[i].times[row]  )
+                        else:
+                            self.fileEntries[i].nbFiles = self.fileEntries[i].nbFiles -1 #one less interesting file
+                            if aType == "latency":
+                                if self.fileEntries[i].values.dictionary[aType][row] > self.maxLatency:  
+                                    self.fileEntries[i].filesOverMaxLatency = self.fileEntries[i].filesOverMaxLatency - 1  
+                            
+                    if len( values ) != 0 :
+                        minimum = values[0]
+                        maximum = values[0]
+                    else:
+                        minimum =0
+                        maximum =0
                     
                     for k in range( len( values ) ) :
                         
@@ -195,8 +213,12 @@ class FileStatsCollector:
                     #median  = values[ int( int(self.fileEntries[i].values.rows) / 2 ) ]    
                     median  = 0 
                     total   = sum( values )
-                    mean    = float( total / len(values) )
-                    
+                    if len(values) != 0 :
+                        mean    = float( total / len(values) )
+                    else:
+                        mean = 0
+                        
+                        
                     if aType == "errors" :
                         if total > maximum :
                             maximum = total
@@ -242,6 +264,7 @@ class FileStatsCollector:
                 parsedLine = line.split( " " )
                 
                 if statsType == "latency":
+                    
                     try:
                         lastPart  = parsedLine[6] 
                         lastPart  = lastPart.split(":") 
@@ -284,6 +307,10 @@ class FileStatsCollector:
                     departure = departure[0] 
                     value     = MyDateLib.getSecondsSinceEpoch( departure )
                 
+                elif statsType == "productType":
+                    splitLine = line.split( " " )
+                    value = splitLine[6]
+                    
                 elif statsType == "errors" :
                     value = 0    
                 
@@ -296,6 +323,9 @@ class FileStatsCollector:
                     departure = line.split( ",")
                     departure = departure[0] 
                     value     = MyDateLib.getSecondsSinceEpoch( departure )     
+                
+                elif statsType == "productType" :     
+                    value = ""
                 else:
                     value = 0
                     
@@ -405,7 +435,7 @@ class FileStatsCollector:
     
     def setValues( self, endTime = "" ):
         """
-            This method opens a file and sets all the values found in the file in the appropriate entry's value matrix.
+            This method opens a file and sets all the values found in the file in the appropriate entry's value dictionary.
             -Values searched depend on the datatypes asked for by the user.
             -Number of entries is based on the time separators wich are found with the startTime, width and interval.  -Only entries with arrival time comprised between startTime and startTime + width will be saved in matrixes
             -Entries wich have no values will have 0 as value for means, minimum maximum and median     
@@ -430,18 +460,19 @@ class FileStatsCollector:
             usefull, entryCount, line , fileHandle, offset, lineType  = self.containsUsefullInfo( file )
             
             for statType in self.statsTypes:
-                self.fileEntries[ entryCount ].values.matrix[statType] = []
+                self.fileEntries[ entryCount ].values.dictionary[statType] = []
             
             if  usefull == True :    
                 
-                departure = self.findValue( "departure" , line, lineType )
-            
+                departure   = self.findValue( "departure" , line, lineType )
+                productType = self.findValue( "productType",line, lineType )
+                
                 while str( departure ) != "" and float( departure ) < float( endTime ) : 
                     
                     while long( departure ) > long(self.timeSeperators[ entryCount ]):
                         entryCount = entryCount + 1 
                         for statType in self.statsTypes:
-                            self.fileEntries[ entryCount ].values.matrix[statType] = []
+                            self.fileEntries[ entryCount ].values.dictionary[statType] = []
 
                     if departure <= self.timeSeperators[ entryCount ]:                    
                         
@@ -453,8 +484,8 @@ class FileStatsCollector:
                             if statType == "latency":
                                 if newValue > self.maxLatency :      
                                     self.fileEntries[ entryCount ].filesOverMaxLatency = self.fileEntries[entryCount ].filesOverMaxLatency + 1                          
-                            
-                            self.fileEntries[ entryCount ].values.matrix[statType].append( newValue )                                  
+                            self.fileEntries[ entryCount ].values.productTypes.append( productType )
+                            self.fileEntries[ entryCount ].values.dictionary[statType].append( newValue )                                  
                             
                         #add values at the right place  
                         self.fileEntries[ entryCount ].files.append( self.findValue( "fileName" , line ) )
@@ -474,7 +505,8 @@ class FileStatsCollector:
                         isInteresting,lineType = self.isInterestingLine( line )
                         
                         
-                    departure = self.findValue( "departure" , line, lineType )
+                    departure   = self.findValue( "departure" , line, lineType )
+                    productType = self.findValue( "productType",line, lineType )
                     value     = [] 
                 
                     
@@ -538,14 +570,14 @@ class FileStatsCollector:
     def collectStats( self, endTime = "" ):
         """
             This is the main method to use with a FileStatsCollector. 
-            It will collect the values from the file and set them in a matrix.
-            It will use that matrix to find the totals and means of each data types wanted. 
-            It will also use that matrix to find the minimum max andmedians of 
+            It will collect the values from the file and set them in a dictionary.
+            It will use that dictionary to find the totals and means of each data types wanted. 
+            It will also use that dictionary to find the minimum max andmedians of 
             each data types wanted. 
                
         """
         
-        self.setValues( endTime )   #fill matrix with values
+        self.setValues( endTime )   #fill dictionary with values
         self.setMinMaxMeanMedians() #use values to find these values.   
 
 

@@ -42,7 +42,7 @@ class ClientGraphicProducer:
     
     
     
-    def __init__( self, clientNames = None ,  timespan = 12, currentTime = None  ):
+    def __init__( self, clientNames = None ,  timespan = 12, currentTime = None, productType = "All"  ):
         """
             ClientGraphicProducer constructor. 
             
@@ -65,7 +65,7 @@ class ClientGraphicProducer:
         self.clientNames  = clientNames or [] # Client name we need to get the data from.
         self.timespan     = timespan          # Number of hours we want to gather the data from. 
         self.currentTime  = currentTime       # Time when stats were queried.
-        
+        self.productType  = productType       # Specific data type on wich we'll collect the data.
             
     
     def getStartTimes( self, currentTime = 0 ,  timespan = 0 ):
@@ -264,8 +264,12 @@ class ClientGraphicProducer:
             
             
             if endTime != lastCronJob : #collect data that was not collected
-            
+                
+                print "endTime : %s" %endTime 
+                print "lastCronJob:%s" %lastCronJob
+                
                 ds.collectStats( types, startTime = lastCronJob , endTime = endTime, width = timeSinceLastCron, interval = 1*MyDateLib.MINUTE, pickle = DirectoryStatsCollector.buildTodaysFileName( self.clientNames[i], tempTime = MyDateLib.getIsoFromEpoch(self.currentTime )) , save = False )         
+                
             
             else:#skip collecting 
                 
@@ -310,8 +314,12 @@ class ClientGraphicProducer:
                         
             collectorsList.append( dataCollector )                        
         
-       
-        plotter = StatsPlotter( stats = collectorsList, clientNames = self.clientNames, timespan = self.timespan, currentTime = self.currentTime, now = False, statsTypes = types  )
+        if self.productType != "All":
+            for ds in collectorsList: 
+                ds.statsCollection.setMinMaxMeanMedians(  self.productType, startingBucket = 0 , finishingBucket = len(ds.statsCollection.fileEntries)  )
+                
+                
+        plotter = StatsPlotter( stats = collectorsList, clientNames = self.clientNames, timespan = self.timespan, currentTime = self.currentTime, now = False, statsTypes = types, productType = self.productType  )
         plotter.plot()                          
          
 
@@ -323,8 +331,8 @@ if __name__ == "__main__":
         
     """
     
-    gp = ClientGraphicProducer( clientNames = [ 'satnet' ], timespan = 24, currentTime = "2006-07-01 18:15:00"  )  
-    gp.produceGraphic( types = [ "errors","latency" ], now = False   )
+    gp = ClientGraphicProducer( clientNames = [ 'satnet' ], timespan = 24, currentTime = "2006-07-01 02:15:00",productType = "SAAK"  )  
+    gp.produceGraphic( types = [ "latency" ], now = False   )
 
 
     
