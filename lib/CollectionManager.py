@@ -95,7 +95,7 @@ class CollectionManager(object):
         # check if header found in the dictionnary
 
         if not dictkey in self.mapCollectionStation :
-           self.logger.debug("Reject %s : (%s) not in %s" % (path,dictkey,dict) )
+           self.logger.warning("Reject %s : (%s) not in %s" % (path,dictkey,dict) )
            self.unlink(path)
            return False
 
@@ -138,7 +138,7 @@ class CollectionManager(object):
         try     : pos = self.source.headers.index(type)
         except  :
                   # if bulletin type not configured collectable ignore it
-                  self.logger.debug("Reject %s : (%s) not define in %s.conf header" % (path,type,name) )
+                  self.logger.warning("Reject %s : (%s) not define in %s.conf header" % (path,type,name) )
                   self.unlink(path)
                   return False
 
@@ -168,7 +168,7 @@ class CollectionManager(object):
         future  = -60  * self.source.future
 
         if bulltin.delay < future :
-           self.logger.debug("Reject %s : arrived earlier than permitted (%d)" % (path,bulltin.delay) )
+           self.logger.warning("Reject %s : arrived earlier than permitted (%d)" % (path,bulltin.delay) )
            self.unlink(path)
            return False
 
@@ -389,7 +389,7 @@ class CollectionManager(object):
         #                      we did not process enough files check the source.batch value
 
         if period == 0 :
-           self.logger.debug("Reject %s : primary already done" % path )
+           self.logger.warning("Reject %s : primary already done" % path )
            self.unlink(path)
            return
 

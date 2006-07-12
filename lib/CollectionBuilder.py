@@ -284,7 +284,8 @@ class CollectionBuilder(object):
 
         # set now
 
-        self.now = self.collManager.now
+        self.now                = self.collManager.now
+        self.mapCollectionState = self.collManager.mapCollectionState
 
         # loop on all the collected state map
 
