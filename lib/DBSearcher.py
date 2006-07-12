@@ -108,18 +108,18 @@ class DBSearcher:
                     if self.type == 'SA':
                         results = self._findSA([station], date)
                         if results[0][1]:
-                            self.printSAResults(results)
+                            self.printResults(results, self.type)
                             for result in results:
-                                print self.formatResult(result)
+                                print self.formatResult(result, self.type)
                             break
-                    # Under construction
                     elif self.type in ['FC', 'FT', 'TAF']:
                         results = self._findTAF([station], date)
                         if results[0][1]:
-                            self.printTAFResults(results)
+                            self.printResults(results, self.type)
                             for result in results:
-                                print self.formatResult(result)
+                                print self.formatResult(result, self.type)
                             break
+
                     # Under construction
                     elif self.type in ['FD', 'FD1', 'FD2', 'FD3']:
                         results = self._findFD([station], date)
@@ -175,6 +175,29 @@ class DBSearcher:
         print ("len(filesToParse) = %d\n" % len(filesToParse))
 
         return filesToParse
+
+    def _findTAF(self, stations, date=TODAY):
+        from StationParser import StationParser
+        from TAFParser import TAFParser
+
+        results = [] # ex: [('CYOW', TAF_LINE, TAF_HEADER_TIME, TAF_FILE, TAF_FILE_TIME), ('CYUL', ...)]
+
+        sp = StationParser(PXPaths.ETC + 'stations_TAF.conf')
+        sp.parse()
+
+        for station in stations:
+            headers = sp.headers.get(station, [])
+            filesToParse = self._getFilesToParse(PXPaths.DB + date + '/FC/', headers)
+            filesToParse.extend(self._getFilesToParse(PXPaths.DB + date + '/FT/', headers))
+            #print("In findTAF, len(filesToParse) = %d" % len(filesToParse))
+            theLine, bestHeaderTime, theFile, bestFileTime = self._findMoreRecentStation(TAFParser(''), filesToParse, station)
+
+            if theLine:
+                theLine += '='
+
+            results.append((station, theLine, bestHeaderTime, theFile, bestFileTime))
+
+        return results
 
     def _findSA(self, stations, date=TODAY):
         # Partial header request (Type + station(s))
@@ -241,43 +264,47 @@ class DBSearcher:
 
         return results
 
-    def formatResult(self, result):
+    def formatResult(self, result, type):
         saResult = ''
         speciResult = ''
 
-        station, theLine, bestHeaderTime, theFile, bestFileTime, speciLine, speciHeaderTime, speciFile, speciFileTime = result
+        if type == 'SA':
+            station, theLine, bestHeaderTime, theFile, bestFileTime, speciLine, speciHeaderTime, speciFile, speciFileTime = result
+        else:
+            station, theLine, bestHeaderTime, theFile, bestFileTime = result
         
         if theFile:
             parts = os.path.basename(theFile).split('_')
             header = parts[0] + ' ' + parts[1]
             saResult = header + ' ' + bestHeaderTime + '\n' + theLine.strip() + '\n'
             #print repr(theLine)
-            if speciLine:
+            if type == 'SA' and speciLine:
                 speciHeader = header[0] + 'P' + header[2:]
                 speciResult = speciHeader + ' ' + speciHeaderTime + '\n' + speciLine.strip() + '\n\n'
 
         return speciResult + saResult  
 
-    def printSAResults(self, results):
+    def printResults(self, results, type):
         print "%s RESULTS %s" % (30*'=', 30*'=')
         for result in results:
-            station, theLine, bestHeaderTime, theFile, bestFileTime, speciLine, speciHeaderTime, speciFile, speciFileTime = result
+            if type == 'SA':
+                station, theLine, bestHeaderTime, theFile, bestFileTime, speciLine, speciHeaderTime, speciFile, speciFileTime = result
+            else:
+                station, theLine, bestHeaderTime, theFile, bestFileTime = result
+            
             print "Station: %s" % station
-            print "SA_Line: %s" % theLine
-            print "SA_HeaderTime: %s" % bestHeaderTime
-            print "SA_File: %s" % theFile
-            print "SA_FileTime: %s" % bestFileTime
-            print "SP_Line: %s" % speciLine
-            print "SP_HeaderTime: %s" % speciHeaderTime
-            print "SP_File: %s" % speciFile
-            print "SP_FileTime: %s" % speciFileTime
+            print "Line: %s" % theLine
+            print "HeaderTime: %s" % bestHeaderTime
+            print "File: %s" % theFile
+            print "FileTime: %s" % bestFileTime
+
+            if type == 'SA':
+                print "SP_Line: %s" % speciLine
+                print "SP_HeaderTime: %s" % speciHeaderTime
+                print "SP_File: %s" % speciFile
+                print "SP_FileTime: %s" % speciFileTime
+
             print "\n"
-
-    def printTAFResults(self, results):
-        pass
-
-    def printFDResults(self, results):
-        pass
 
     def _findSpeci(self, station, header, headerTime, DBDate):
         from SAParser import SAParser
@@ -330,9 +357,6 @@ class DBSearcher:
 
         return (theLine, bestHeaderTime, theFile, bestFileTime)
         
-    def _findTAF(self):
-        pass
-
     def _findFD(self):
         pass
 
