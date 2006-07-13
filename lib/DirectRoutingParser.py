@@ -31,6 +31,9 @@ class DirectRoutingParser(FileParser):
         self.badClients = {}            # Sub group of clients that are in header2clients.conf and are not px linkable.
         self.pxLinkables = pxLinkables  # All clients to which px can link (independant of header2clients.conf)
 
+        self.originalClients = {}       # Indexed by header, remove duplicate, no alias expansion, subclients as is.
+                                        # Only used to reconstruct the routing file
+
         if self.logger:
             self.logger.info("Routing table used: %s" % filename)
 
@@ -186,6 +189,11 @@ class DirectRoutingParser(FileParser):
         self.clearInfos()
         file = self.openFile(self.filename)
 
+        if self.printErrors:
+            myprint = lambda *x:sys.stdout.write(" ".join(map(str, x)) + '\n')
+        else:
+            myprint = lambda *x: None
+
         uniqueHeaders = {}
         duplicateHeaders = {}
 
@@ -193,16 +201,16 @@ class DirectRoutingParser(FileParser):
             line = line.strip().strip(':')
             words = line.split(':')
             # Up to here: 0.2 s of execution time
-            #print words
-            #if (len(words) >= 2 and not re.compile('^[ \t]*#').search(line)): # Regex costs ~ 0.35 seconds (when compare to if len(words) >= 2)
-            if len(words) >= 2:
+            #myprint words
+            #if len(words) >= 2:
+            if (len(words) >= 2 and not re.compile('^[ \t]*#').search(line)): # Regex costs ~ 0.35 seconds (when compare to if len(words) >= 2)
                 try:
                     if words[0] == 'subclient':
                         subclients = words[2].split()
                         self.subClients[words[1]] = self.removeDuplicate(subclients)
                         duplicateForSubclient = self.identifyDuplicate(subclients)
                         if duplicateForSubclient:
-                            print("Subclient %s has duplicate(s): %s" % (words[1], duplicateForSubclient))
+                            myprint("Subclient %s has duplicate(s): %s" % (words[1], duplicateForSubclient))
 
                     elif words[0] == 'aftnMap':
                         self.aftnMap[words[1]] = words[2]
@@ -212,7 +220,7 @@ class DirectRoutingParser(FileParser):
                         self.aliasedClients[words[1]] = self.removeDuplicate(clients)
                         duplicateForAlias = self.identifyDuplicate(clients)
                         if duplicateForAlias:
-                            print("Alias %s has duplicate(s): %s" % (words[1], duplicateForAlias))
+                            myprint("Alias %s has duplicate(s): %s" % (words[1], duplicateForAlias))
 
                     elif len(words[0].split()) == 2: # If replace by a simple "else" do nothing for execution time
                         # Here we have a "header line"
@@ -228,9 +236,10 @@ class DirectRoutingParser(FileParser):
                         uniqueClients = self.removeDuplicate(clients)
                         duplicateForHeader = self.identifyDuplicate(clients)
                         if duplicateForHeader:
-                            print("%s has duplicate(s): %s" % (words[0], duplicateForHeader))
+                            myprint("%s has duplicate(s): %s" % (words[0], duplicateForHeader))
 
                         # Up to here: 0.8 s of execution time
+                        self.originalClients[words[0]] = uniqueClients[:]
 
                         self.routingInfos[words[0]] = {}
                         self.routingInfos[words[0]]['subclients'] = {}
@@ -250,14 +259,14 @@ class DirectRoutingParser(FileParser):
                         # Costs ~ 0.5 seconds to execute this block
                         for client in self.routingInfos[words[0]]['clients'][:]:
                             if client.find('.') != -1:
-                                #print("Client %s " % client)
+                                #myprint("Client %s " % client)
                                 # Here we have subclients (ex: aftn.XXXXXXXX)
                                 clientParts = client.split('.')
                                 # Up to here: ~ 1.6 s of execution time
                                 if self.subClients.has_key(clientParts[0]):
                                     if clientParts[1] in self.subClients[clientParts[0]]:
                                         if not self.routingInfos[words[0]]['subclients'].has_key(clientParts[0]):
-                                            #print clientParts
+                                            #myprint clientParts
                                             self.routingInfos[words[0]]['subclients'][clientParts[0]] = [clientParts[1]]
                                             self.routingInfos[words[0]]['clients'].remove(client)
                                             self.routingInfos[words[0]]['clients'].append(clientParts[0])
@@ -267,24 +276,24 @@ class DirectRoutingParser(FileParser):
                                         else:
                                             # Should never arrived here because of uniqueClients
                                             self.routingInfos[words[0]]['clients'].remove(client)
-                                            print("%s has duplicate: %s" % (words[0], client))
+                                            myprint("%s has duplicate: %s" % (words[0], client))
                                     else:
                                         # When subclient (ex: BIRDZQZZ) is not defined in the subclient directive for the client (ex: aftn)
-                                        print("%s has subclient %s that is not acceptable for client %s" % (words[0], clientParts[1], clientParts[0]))
+                                        myprint("%s has subclient %s that is not acceptable for client %s" % (words[0], clientParts[1], clientParts[0]))
                                         self.routingInfos[words[0]]['clients'].remove(client)
                                 else:
                                     # Subclient is not defined
-                                    print("%s has client %s and %s is not defined with a subclient directive" % (words[0], client, clientParts[0]))
+                                    myprint("%s has client %s and %s is not defined with a subclient directive" % (words[0], client, clientParts[0]))
                                     self.routingInfos[words[0]]['clients'].remove(client)
 
                         
                 except:
                     (type, value, tb) = sys.exc_info()
-                    print("Type: %s, Value: %s" % (type, value))
-                    print("Problem with this line (%s) in the direct routing file (%s)" % (words, self.filename))
+                    myprint("Type: %s, Value: %s" % (type, value))
+                    myprint("Problem with this line (%s) in the direct routing file (%s)" % (words, self.filename))
 
         if len(duplicateHeaders):
-            print("Duplicate header line(s): %s" % duplicateHeaders.keys())
+            myprint("Duplicate header line(s): %s" % duplicateHeaders.keys())
         file.close()
         # Up to here: 2.3 s of execution time
 
