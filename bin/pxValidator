@@ -16,7 +16,7 @@ named COPYING in the root of the source directory tree.
 #############################################################################################
 """
 
-import os, sys, getopt
+import os, os.path, sys, getopt
 sys.path.insert(1, sys.path[0] + '/../lib')
 sys.path.insert(1,sys.path[0] + '/../lib/importedLibs')
 
@@ -25,16 +25,39 @@ from Logger import Logger
 from PXManager import PXManager
 from StationParser import StationParser
 from DirectRoutingParser import DirectRoutingParser
+from RoutingFileCreator import RoutingFileCreator
+from StationFileCreator import StationFileCreator
 
 def usage():
-    print "\nUsage: pxValidator [-r routing] [-s stations] where routing is"
+    print "\nUsage: pxValidator [-m] [-r routing] [-s stations] where routing is"
     print "the name of the routing file and stations is the name of the stations file\n"
     print "ex 1: pxValidator  (default routing is PXPaths.ROUTING_TABLE and default stations is PXPaths.STATION_TABLE)"
     print "ex 2: pxValidator -r pxRouting.conf (defaut path is PXPaths.ETC)"
-    print "ex 3: pxValidator -r /toto/tutu/pxRouting.conf\n"
+    print "ex 3: pxValidator -r /toto/tutu/pxRouting.conf"
+    print "ex 4: pxValidator -m (menu will appears)\n"
+
+def findChange(oldList, newList):
+    deleted = []
+    newDict = {}
+
+    for item in newList:
+        newDict[item] = 1
+
+    for item in oldList: 
+        if newDict.get(item, None): 
+            del newDict[item]
+        else:
+            deleted.append(item)
+
+    added = newDict.keys()
+    added.sort()
+    deleted.sort()
+        
+    return deleted, added
 
 class PXValidator:
     LOG_LEVEL = "INFO"      # Logging level
+    menu = False
     routingFilename = None
     stationsFilename = None
 
@@ -50,6 +73,7 @@ class PXValidator:
         self.manager.setLogger(self.logger)
 
         self.drp = DirectRoutingParser(PXValidator.routingFilename)
+
         self.sp = StationParser(PXValidator.stationsFilename)
         #self.sp = StationParser(PXPaths.STATION_TABLE)
 
@@ -115,29 +139,60 @@ class PXValidator:
                     print("aftn client is not in the table for this header")
                 else:
                     print self.drp.routingInfos[answer]['subclients']['aftn']
-        
+
+    def stationsDiff(self, filename, sp):
+        spOld = StationParser(filename)
+        spOld.printErrors = False
+        spOld.parse()
+        deleted, added = findChange(spOld.stations.keys(), sp.stations.keys())
+        if deleted:
+            for header in deleted:
+                print("NOTE: %s has been DELETED" % header)
+        if added:
+            for header in added:
+                print("NOTE: %s has been ADDED" % header)
+
+    def routingDiff(self, filename, drp):
+        drpOld = DirectRoutingParser(filename)
+        drpOld.printErrors = False
+        drpOld.parseAndShowErrors()
+        deleted, added = findChange(drpOld.originalClients.keys(), drp.originalClients.keys())
+        if deleted:
+            for header in deleted:
+                print("NOTE: %s has been DELETED" % header)
+        if added:
+            for header in added:
+                print("NOTE: %s has been ADDED" % header)
+
     def validate(self):
         print "################################################################"
-        print "# Routing Table (%s) Errors" % PXValidator.routingFilename
+        print "# Routing Table Errors (%s)" % PXValidator.routingFilename
         print "################################################################"
         self.drp.parseAndShowErrors()
+        if os.path.isfile(PXValidator.routingFilename + '.pxv'):
+            self.routingDiff(PXValidator.routingFilename + '.pxv', self.drp)
+        RoutingFileCreator(self.drp, PXValidator.routingFilename + '.pxv', self.logger)
         print "################################################################"
-        print "# Station Table (%s) Errors" % PXValidator.stationsFilename
+        print "# Station Table Errors (%s) " % PXValidator.stationsFilename
         print "################################################################"
         self.sp.printErrors = True
         self.sp.parse()
+        if os.path.isfile(PXValidator.stationsFilename + '.pxv'):
+            self.stationsDiff(PXValidator.stationsFilename + '.pxv', self.sp)
+        StationFileCreator(PXValidator.stationsFilename + '.pxv', self.logger, self.sp.stations, self.sp.stationsColl)
         #self.sp.printInfos()
         print "##########################END###################################"
-
-        print "\nNOTE: The following menu has NOTHING to do with automatic validation"
-        print "If you're only interested in validation results, type q (to quit)."
+        
+        if PXValidator.menu:
+            print "\nNOTE: The following menu has NOTHING to do with automatic validation"
+            print "If you're only interested in validation results, type q (to quit)."
 
     def getOptionsParser(self):
         routingFilename = False
         stationsFilename = False
 
         try:
-            opts, args = getopt.getopt(sys.argv[1:], 'r:s:h', ['help', 'routing=', 'stations='])
+            opts, args = getopt.getopt(sys.argv[1:], 'hmr:s:', ['help', 'menu', 'routing=', 'stations='])
             #print "Options:%s" % opts
             #print "Args:%s" % args
             if args:
@@ -152,6 +207,9 @@ class PXValidator:
             if option in ('-h', '--help'):
                 usage()
                 sys.exit()
+
+            if option in ('-m', '--menu'):
+                PXValidator.menu = True
 
             # Routing 
             if option in ('-r', '--routing'):
@@ -177,8 +235,11 @@ class PXValidator:
 
 
 if __name__ == '__main__':
-
+     
+    #print findChange([1,2,3,4,5], [2,5,6,7,8])
     validator =  PXValidator()
     validator.validate()
-    validator.interrogate()
+
+    if validator.menu:
+        validator.interrogate()
     #print "The program successfully ended"
