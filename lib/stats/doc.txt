@@ -25,9 +25,9 @@ named COPYING in the root of the source directory tree.
 GENERAL DESCRIPTION:
 --------------------------------------------------------------------------------------------------- 
 
-The stats library's main goal is to add the possibility to the existing px library to draw graphics of a
-certain client based on stats collected from log files located remotely. This section thus contains all the
-files needed to do this job. 
+The stats library's main goal is to add the possibility to the existing px library to draw graphics for
+a client based on stats collected from log files located remotely.
+This section thus contains all thefiles needed to do this job. 
 
 
 
@@ -75,13 +75,13 @@ DirectoryFilecollector           |                          |
 
 
 
-File Descriptions 
+File Overview 
 ----------------------------                
    
 
--ClientGraphicProducer.py : This files contains methods to be used when a user of this class wants to produce a graphic.
+-ClientGraphicProducer.py : This file contains methods to be used when a user of this class wants to produce a graphic.
                             
-                            It first takes the previously collected data, then adds up to it the data produced between the last collection and the time of the call.
+                            It first takes the previously collected data, then adds up the data produced between the last collection and the time of the call.
                             
                             After that it calls StatsPlotter.py with the collected data and uses it to produce the graphic.
 
@@ -132,15 +132,14 @@ File Descriptions
                  
                  
 
--MyDateLib.py     : Temporary file wich contains data manipulation methods I have been working on. They probably should                      be addded to the regular DateLib.py once they are found to be usefull and reliable.   
+-MyDateLib.py     : Temporary file wich contains date manipulation methods I have been working on. They probably should                      be addded to the regular DateLib.py once they are found to be usefull and reliable.   
                                                                            
 
 -pickleUpdater.py : This program is the one to use to make automated data updates. Recommended usage is to call 
                     this program every hours to update the stored stats on a client. Calling this program at that rate
-                    wil ensure that each update takes a reasonable amount of time and that graphics produced  
-
-
-
+                    will ensure that each update takes a reasonable amount of time and that graphics produced.
+                    
+                      
 -StatsPlotter.py : This file contains the methods to plot a gnuplot graphic once the data has been
                    collected using the previously described files. This is very similar to the 
                    Plotter.py allready found in the library.  
@@ -151,13 +150,34 @@ File Descriptions
 REQUIREMENTS :
 ---------------------------------------------------------------------------------------------------
 
-1- Library has to be able to read a specific format of log files.
-   Format is as following : ??????????   
+- Library has to be able to read a specific format of log files.
+      Format is as following : ??????????   
 
-2- Library has to be able to gather files from remote locations.   
+- Library has to be able to gather log files from remote locations( machines ).   
+ 
+- Library must allow user to collect data of log files wich are constantly growing. 
   
-3- The user must be able to request a graphic on the fly and receive it within an acceptable time frame.
-  ( < 40 sec )    
+- Library must have a way to save data collected. 
+
+- Library must be able to collect the following types : errors, bytecount and latency.
+
+- Library must have a way to save wich product type is associated with each line collected.  
+
+- User must be able to specify for wich client he want to collect data. 
+
+- The user must be able to request a graphic on the fly and receive it within an acceptable time frame.
+ ( < 40 sec )    
+  
+- User must be able to specify the time of resquest of the graphic. 
+  Data displayed on the graphic must end at the time of the resquest and start x amount of time 
+  prior to the resquest. User must be able to specify the width of the graphic. 
+  
+- User must be able to choose wich type of graphics he desires between the collected types. 
+
+- Graphics must be in png format. 
+   
+- User must be able to specify wich product type he wants to use as data for his graphics. 
+    
 
 
 
@@ -168,10 +188,17 @@ GUIDING PRINCIPLES
 
 - Log file for a single day from a single machine can be quite large. ( average~ >30 megs)
 
-- Gnuplot graphics, even with a lot of date are generated rather quickly. ( average~ <5 secs )
+- Log file names aren't reliable. Even if a file has a certain date in it's name it doesn't necessarily 
+  mean it will contain data for that day. File content still need to be invetigated to make sure 
+  it does or doesn't contain usefull info.   
+ 
+- Gnuplot graphics, even with a lot of data are generated rather quickly. ( average~ <5 secs )
 
 - Collecting a whole days worth of data and producing stats according to data collected is very long
   ( up to 5 minutes if a very large amount of data is processed. )
+
+- The time taken to pickle a single hour of data depends on the time of day. First hours on a 30 meg file 
+  will take less than 10 seconds but the last hour will take around 25 seconds.
 
 - Disk access is very slow. Anything that has to be loaded or saved on the disk slows down the entire
   process quite a lot.   
@@ -213,7 +240,17 @@ Data collection :
 
 
 - Data collection can be done on an automated basis using crontab to call pickleUpdater.
-    
+
+- Data colection can be made on growing files. This is true as long as the top of the file remains
+  intact and that data is only appended at the end of the log files. If top of the file is modified 
+  positioning in the file will be corrupted and reading the file will probably produce errors.  
+
+- By default all data types are collected. This is done so that there will be no problem if a user wants
+  to produce any kind of graphic for a certain client.
+
+-User can specify wich data types he wants collected but that will limit user choices for graphics.  
+  
+          
 
 Graphic production
 -------------------
@@ -235,17 +272,26 @@ Graphic production
 -It is now possible to produce graphics for each data type collected. This means latency,bytecount 
  and errors.  
 
+-It is impossible to create a graphic on a data type wich was not previously collected. 
+ This is why by default all types are collected and pickled. This allows users to have access 
+ to every data type possible. 
 
-Specifics
+ 
+ 
+Important notes ( Specifics )
 ---------------------------------------------------------------------------------------------------
 
 When using the pickleUpdater to make automatic updates, data collection will start where the last 
 data Collection was made. If no pickling was made for that day, it will start at 00:00:00 of that 
 day.   
 
-Data pickling can only be done within the same day. If data needs to be collected in a previous
-day, you need to specify the day in the call to pickleUpdater call. ***See usage for details.  
+Data pickling a client thats not lsited in PICKLED-TIMES can only be done within the same day.
+If data needs to be collected in a previousday, you need to specify the day in the call to pickleUpdater
+call. ***See usage for details.  
 
+Data pickling can otherwise be done over numerous days. This means that if no pickling occured for a few 
+days for some reason, pickling can be resumed like nothing happened although first pickle update will be 
+quite long. 
 
 While using the higher level pickleUpdater and ClientGraphicProducer classes, time buckets and 
 pickle files will be created on a much more rigid daily basis.
@@ -256,8 +302,13 @@ pickle files will be created on a much more rigid daily basis.
     - Pickle will dave each daily instance in a file named after the client's name and the date of 
       the pickle. 
       
-      Every day, a new pickle will be created to contain the new FileStatscollector entry.     
+    - Every day, a new pickle will be created to contain the new FileStatscollector entry.     
 
+
+Graphics cannot be produced for a data type wich was not previously collected for that client. 
+
+If need be, PICKLED-TIMES can be modified so that library thinks last pickle update occrued at a
+different time than was written.   
 
 
 Log Files 
@@ -284,7 +335,7 @@ could easily modify a certain client's date if needed.
 
 
 
-SERVER NAME-PICKLE-2006-07-1
+CLIENT NAME-PICKLE-YYYY-MM-D
 ------------------------------ 
 
 These file are created to save the data collected for the period covering the day specified 
@@ -294,9 +345,54 @@ collected for that day compressed using gzippickle.py .
 These files will be grouped in a folder 
 named PICKLES(?). This folder will contain many subfolder, all of wich named after a certain clients 
 name. Theses folder will contain all the pickle files of that client.  
+             
+             -----
+Exemple :   |Stats|
+             -----
+               |
+            ------------
+            | PICKLES  |
+            ------------
+          /            \
+         /              \
+       ------          ----------
+      |satnet|        |satnet-ice|
+       ------          ----------
+       /                    \
+      /                      \
+satnet-PICKLE-2006-07-12     satnet-ice-PICKLE-2006-07-12   
 
 
 
+CLIENT NAME-Current Time in ISO.png
+-------------------------------------  
+The files are created everytime are graphic is asked for by a user. This will be the png image containing all the graphics asked for by the user during his resquest.  It will contain graphs for each of of the data types asked for as many clients as specified. 
+
+These files will be grouped in a folder named GRAPHS(?). This folder will contain many subfolder, all of wich named after a certain clients name. Theses folder will contain all the image files of that client.
+
+
+               -----
+Exemple :     |Stats|
+               -----
+                 |
+            ------------
+            | GRAPHS   |
+            ------------
+          /            \
+         /              \
+       ------          ----------
+      |satnet|        |satnet-ice|
+       ------          ----------
+       /                    \
+      /                      \
+satnet-PICKLE-2006-07-12     satnet-ice-PICKLE-2006-07-12   
+
+            
+        
+        
+        
+        
+        
 USAGE:
 ---------------------------------------------------------------------------------------------------
 
@@ -319,7 +415,7 @@ Defaults :
 - Default interval is 1 minute. 
 - Default machines value is the entire list of existing machines.  
 - Default Now value is False.
-- Default Types value is latency.
+- Default Types value is latency, errors, bytecount.
         
       
 WARNING: - Client name MUST be specified,no default client exists. 
@@ -331,16 +427,19 @@ WARNING: - Client name MUST be specified,no default client exists.
 Ex1: python pickleUpdater                                    --> All default values will be used. Not recommended.  
 Ex2: python pickleUpdater -c satnet                          --> All default values, for client satnet. 
 Ex3: python pickleUpdater -c satnet -d '2006-06-30 05:15:00' --> Client satnet, Date of call 2006-06-30 05:15:00
-
+Ex4: python pickleUpdater -c satnet -t "errors,latency"      --> Uses current time, client satnet and collect those 2                                                                     types.
  
 
 INPUT VALIDATION
 ---------------------------------------------------------------------------------------------------
 
 Date option MUST be of the ISO format meaning a date like this : '2006-06-30 05:15:00'.
+
 -i --intervall must be an integer value greater than 0.
 -n --now option needs no value. 
+-t --types value must be either errors,bytecount,latency or a combination of any of the three. 
 
+Any illegal value will terminate application. Default values will be used for ommited parameters. 
 
 Critical errors
 ---------------------------------------------------------------------------------------------------
@@ -369,10 +468,19 @@ TODO list
  + Automated cleanup system ?
 
 -Speed up graphic creation by not collecting data since last cron job if no necessary. File verification seems like its 
-slowing down the whole process-***Done
+ slowing down the whole process-***Done
 
 -Find the log file format. Modify findFirstInterestingLine, findValue(line) and while loops according 
  to new file format                 
 
 -Modify module that gets files into a directory so that it actually downloads the files.
     -Add everything wich relates to the machine option.
+    
+-Find a better file naming system for the graphs. Make sure files can't be overwritten if 2 user ask for a graphs at the same time.     
+
+-Find scalable implementation of the system wich will allow for as many machines as possible to run this system.
+
+-Add option for user to specify for wich machine he wants to produce graphics. This will probably imply that 
+ data collection will be done per client-machine couples and not only per client anymore. This will also probably
+ need a way to combine pickle files from different machines covering the same timespan if more than one machine is queried for a graphic.  
+ 
