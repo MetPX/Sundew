@@ -125,8 +125,9 @@ def search(so):
     logFileName = so.getLogPath()
     regex = so.getSearchRegex()
 
-    print "Searching in: %s" % (logFileName)
-    print "Using: %s" % (regex)
+    # Debug infos
+    #print "Searching in: %s" % (logFileName)
+    #print "Using: %s" % (regex)
   
     # Temporary machine list storage
     try:
@@ -140,7 +141,6 @@ def search(so):
     for machine in machines:
         machine = machine.strip()
         cmd = 'ssh %s "egrep -o %s %s"' % (machine, regex, logFileName)
-        print "Command used: %s" % (cmd)
         status, output = commands.getstatusoutput(cmd)
         lines = output.splitlines()
         results += ["%s:%s" % (machine, line) for line in lines] # We add the machine name to the start of the line 
@@ -156,7 +156,6 @@ def search(so):
         
     for result in results:
         print result
-    print "Number of matches: %s" % (len(results)) 
     
 def createParser(so):
     usagemsg = "%prog [options] <name>\nSearch in the PX unified log for bulletins matching certain criterias."

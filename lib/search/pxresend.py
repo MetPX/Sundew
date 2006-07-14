@@ -43,26 +43,33 @@ def validateUserInput(options, args):
         sys.exit(1)
 
 def updateResendObject(ro, options, args):
-    ro.setPrompt = options.prompt
-    ro.setPrio = options.prio
-    ro.setTo(args) # All trailing arguments are destinations
+    ro.setPrompt(options.prompt)
+    ro.setPrio(options.prio)
+    ro.setDestinations(options.destination.split(","))
     
-    if len(sys.stdin.readlines()) > 0:
+    if len(args) == 0: # Get bulletin list from stdin
         for searchLine in sys.stdin:
             machine, bulletinHeader = parseRawLine(searchLine)
             ro.addToMachineHeaderDict(machine, bulletinHeader)
+    else:
+        pass
+        # TODO: Write something there
 
 def resend(ro):
-    pass
+    machineHeaderDict = ro.getMachineHeaderDict()
+    destinations = ro.getDestinations()
+    prio = ro.getPrio()
+
+    print ro.createCommandList()
 
 def createParser(ro):
-    usagemsg = "%prog [options] <destinations>\nResend a bulletin or a list of bulletins."
-    parser = OptionParser(usage=usagemsg, version="%prog 0.2-alpha")
+    usagemsg = "%prog [options] <machine:bulletin-file>\nResend one or more bulletins."
+    parser = OptionParser(usage=usagemsg, version="%prog 0.3-alpha")
 
     parser.add_option("--ask", action = "store_true", dest = "prompt", help = "Ask for a resending confirmation for each bulletins.")
     parser.add_option("--all", action = "store_false", dest = "prompt", help = "Send all bulletins without confirmation (default).")
     parser.add_option("-p", "--prio", dest = "prio", help = "Specify in which priority you want to put the bulletin in? (default 3).", default = ro.getPrio())
-    parser.add_option("-b", "--bulletin", dest = "bulletin", help = "Specify a precise bulletin header to be resent (i.e.: machine:full_header)")
+    parser.add_option("-d", "--destination", dest = "destination", help = "Specify comma-separated list of destinations (ex: ppp1,test,cmc2).", default = ro.getDestinations())
     
     return parser
 

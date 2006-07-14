@@ -25,12 +25,37 @@ sys.path.append("../")
 import PXPaths; PXPaths.normalPaths()
 
 class ResendObject(object):
-
+    __slots__ = ["prompt", "destinations", "prio", "machineHeaderDict"]
+    
     def __init__(self):
         self.prompt = False
-        self.to = []
+        self.destinations = ""
         self.prio = 3
         self.machineHeaderDict = {}
+    
+    def headerToLocation(self, header):
+        headerParts = header.split(":")
+        dbPath = PXPaths.DB
+        date = headerParts[-1][0:8] # First eight caracters of the timestamp 
+        tt = headerParts[0][0:2] # First two letters of the TTAAii
+        target = headerParts[1]
+        cccc = headerParts[2]
+
+        return "%s%s/%s/%s/%s/%s" % (dbPath, date, tt, target, cccc, header)
+    
+    def createCommandList(self):
+        commandList = []
+        for machine in self.machineHeaderDict.keys():
+            for destination in self.destinations:
+                bulletins = self.machineHeaderDict[machine]
+                bstring = ""
+                for bulletin in bulletins:
+                    #############
+                    print "Bulletin is : " + bulletin
+                    #############
+                    bstring += "%s " % (self.headerToLocation(bulletin))
+                commandList += 'ssh %s "cp %s"' % (machine, bstring)
+        return commandList
         
     def getPrompt(self):
         return self.prompt
@@ -38,11 +63,11 @@ class ResendObject(object):
     def setPrompt(self, value):
         self.prompt = value
 
-    def getTo(self):
-        return self.to
+    def getDestinations(self):
+        return self.destinations
 
-    def setTo(self, value):
-        self.to = value
+    def setDestinations(self, value):
+        self.destinations = value
 
     def getPrio(self):
         return self.prio
