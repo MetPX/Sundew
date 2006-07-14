@@ -60,8 +60,12 @@ class CollectionBuilder(object):
         # collection station and state
 
         self.mapCollectionStation  = collManager.mapCollectionStation
-        self.mapCollectionState    = collManager.mapCollectionState
+
         self.collectionState       = collManager.collectionState
+        self.getKeys               = self.collectionState.getKeys
+        self.getState              = self.collectionState.getState
+        self.setState              = self.collectionState.setState
+        self.saveState             = self.collectionState.saveCollectionState
         self.mapChanged            = False
 
         # alphabet...
@@ -269,27 +273,23 @@ class CollectionBuilder(object):
 
         self.logger.info("Used %d files for that collection" % len(picked) )
 
-        if len(picked) > 1 :
-           for entry in picked :
-               if entry.path in info : self.logger.info("File collected  : %s "  % os.path.basename(entry.path))
-               else :                  self.logger.info("File considered : %s "  % os.path.basename(entry.path))
+        for entry in picked :
+            if entry.path in info : self.logger.info("File collected  : %s "  % os.path.basename(entry.path))
+            else :                  self.logger.info("File considered : %s "  % os.path.basename(entry.path))
 
     #-----------------------------------------------------------------------------------------
     # process : create and ingest collected bulletins
     #-----------------------------------------------------------------------------------------
 
-    def process( self ):
+    def process( self,now ):
 
+        self.now        = now
         self.mapChanged = False
-
-        # set now
-
-        self.now                = self.collManager.now
-        self.mapCollectionState = self.collManager.mapCollectionState
+        keys            = self.getKeys()
 
         # loop on all the collected state map
 
-        for self.key in self.mapCollectionState :
+        for self.key in keys :
 
             # get needed info from the collection state key
 
@@ -297,12 +297,13 @@ class CollectionBuilder(object):
 
             # extract collection state info 
 
-            ( self.period, self.amendement, self.correction, self.retard, self.Primary, self.Cycle ) = \
-            self.mapCollectionState[self.key]
+            (self.period,self.amendement,self.correction,self.retard,self.Primary,self.Cycle) = self.getState(self.key)
 
             # process primary
 
-            if len(self.Primary) != 0 : self.processPrimary()
+            if len(self.Primary) != 0 :
+               self.logger.debug("Key %s has primary" % self.key )
+               self.processPrimary()
 
             # process an empty primary if needed
 
@@ -310,15 +311,16 @@ class CollectionBuilder(object):
 
             # process cycle
 
-            if len(self.Cycle) != 0 : self.processCycle()
+            if len(self.Cycle) != 0 :
+               self.logger.debug("Key %s has Cycle" % self.key )
+               self.processCycle()
 
             # update collection state info 
 
-            self.mapCollectionState[self.key] =  \
-            ( self.period, self.amendement, self.correction, self.retard, self.Primary, self.Cycle )
+            self.setState(self.key,self.period,self.amendement,self.correction,self.retard,[],[])
 
-
-        return self.mapChanged
+        # save collection state info if it changed
+        if self.mapChanged : self.saveState()
 
     #-----------------------------------------------------------------------------------------
     # processing primary collection
@@ -418,6 +420,8 @@ class CollectionBuilder(object):
         if delay <= iprimary or  delay >= (iprimary+icycle) : return
 
         # ok make an empty Primary
+
+        self.logger.debug("Key %s : Empty Collection Generated" % self.key )
 
         self.processPrimary()
 

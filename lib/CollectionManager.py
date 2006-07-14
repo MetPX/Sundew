@@ -68,11 +68,10 @@ class CollectionManager(object):
 
         # instantiate the collection state class
 
-        self.mapCollectionState = {}
         self.collectionState    = CollectionState.CollectionState( self )
-        self.getState           = self.collectionState.getCollectionState
-        self.saveState          = self.collectionState.saveCollectionState
-        self.mapCollectionState = self.getState()
+        self.getState           = self.collectionState.getState
+        self.setState           = self.collectionState.setState
+        self.updateState        = self.collectionState.updateCollectionState
 
         # instantiate the collection builder class
 
@@ -189,7 +188,9 @@ class CollectionManager(object):
         # do nothing if it is not time for collection
 
         if bulltin.delay  < primary :
-           if bulltin.age < primary : return False
+           if bulltin.age < primary :
+              self.logger.debug("File %s will be primary soon" % path )
+              return False
            self.entry.period = 0
            return True
 
@@ -204,7 +205,9 @@ class CollectionManager(object):
 
         # it's not time to collect and the bulletin is regular or a repeat: do nothing
 
-        if BBB == None or BBB[0] == 'R' : return False
+        if BBB == None or BBB[0] == 'R' :
+           self.logger.debug("File %s will be cycle soon" % path )
+           return False
 
         # still not time to collect BUT AT THIS POINT
         # we have an AMD or COR during one of its cycle... ingest !
@@ -261,9 +264,9 @@ class CollectionManager(object):
 
         self.now = time.mktime(time.localtime())
 
-        # setting the collection state map
+        # updating the collection state map
 
-        self.mapCollectionState = self.getState()
+        self.updateState(self.now)
 
         # read it all 
         # NOTE : it is important not to restrict the reading 
@@ -273,13 +276,10 @@ class CollectionManager(object):
 
         self.logger.info("%d files in queue" % len(self.reader.sortedFiles))
 
-        # no files...
-        # call the collectionBuilder for empty primary collection...
-        # saveCollection state if needed...
+        # no files : call the collectionBuilder for empty primary collection...
 
         if len(self.reader.sortedFiles) <= 0 : 
-           changed    = self.collectionBuild()
-           if changed : self.saveState()
+           self.collectionBuild(self.now)
            return
 
         # working variables
@@ -293,7 +293,10 @@ class CollectionManager(object):
 
             # if the bulletin was already processed... skip it
 
-            if self.cacheManager.has( self.data[index] ) : continue
+            if self.cacheManager.has( self.data[index] ) :
+               self.logger.info("File %s was cached earlier" % self.files[index] )
+               self.unlink(self.files[index])
+               continue
 
             # bulletinCollection is a class to hold bulletin if it has to be collected
 
@@ -344,8 +347,7 @@ class CollectionManager(object):
         # all files are classified... build collections if needed
         # saving the collection state map if needed
 
-        changed    = self.collectionBuild()
-        if changed : self.saveState()
+        self.collectionBuild(self.now)
 
     #-----------------------------------------------------------------------------------------
     # add the bulletin to the collection state map
@@ -360,27 +362,16 @@ class CollectionManager(object):
         BBB     = self.entry.BBB
         key     = self.entry.statekey
 
-        # if it is the first bulletin for that key just create and add an initial MapCollectionState value
-
-        if not key in self.mapCollectionState :
-
-           period      = -1
-           amendement  = -1
-           correction  = -1
-           retard      = -1
-           Primary     = []
-           Cycle       = []
-
-           self.mapCollectionState[key] = (period,amendement,correction,retard,Primary,Cycle)
-
         # get MapCollectionState value
 
-        ( period, amendement, correction, retard, Primary, Cycle ) = self.mapCollectionState[key]
+        ( period, amendement, correction, retard, Primary, Cycle ) = self.getState(key)
 
         # the bulletin is not a primary
 
         if self.entry.period >  0 :
            Cycle.append(self.entry)
+           self.logger.debug("File %d %s : classified as Cycle" % (index,path) )
+           self.setState( key, period, amendement, correction, retard, Primary, Cycle )
            return
 
         # the bulletin is primary
@@ -389,7 +380,7 @@ class CollectionManager(object):
         #                      we did not process enough files check the source.batch value
 
         if period == 0 :
-           self.logger.warning("Reject %s : primary already done" % path )
+           self.logger.warning("Reject %s : primary already done" % (index,path) )
            self.unlink(path)
            return
 
@@ -401,9 +392,19 @@ class CollectionManager(object):
         # this garanty that AMD and COR (even primary) are sent after 
         # the primary collection
 
-        if    BBB    == None : Primary.append(self.entry)
-        elif  BBB[0] == 'R'  : Primary.append(self.entry)
-        else                 : Cycle.append(self.entry)
+        if    BBB    == None :
+              Primary.append(self.entry)
+              self.logger.debug("File %d %s : classified as Primary" % (index,path) )
+
+        elif  BBB[0] == 'R'  :
+              Primary.append(self.entry)
+              self.logger.debug("File %d %s : classified as Primary" % (index,path) )
+
+        else                 : 
+              Cycle.append(self.entry)
+              self.logger.debug("File %d %s : classified as Cycle  " % (index,path) )
+
+        self.setState( key, period, amendement, correction, retard, Primary, Cycle )
 
     #-----------------------------------------------------------------------------------------
     # unlink a file

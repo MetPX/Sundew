@@ -55,6 +55,7 @@ class CollectionState(object):
         self.logger      = collector.logger
         self.loaded      = False
         self.ready       = False
+        self.debug       = False
 
         # current epocal and collection time span epocal truncated to the nearest hour
 
@@ -189,6 +190,8 @@ class CollectionState(object):
 
     def emptyCollectionState(self):
 
+        self.logger.debug("Empty Collection State")
+
         # loop on time
 
         t = self.debut
@@ -217,6 +220,8 @@ class CollectionState(object):
 
               t = t + 3600
 
+              self.print_debug()
+
     #-----------------------------------------------------------------------------------------
     # from collection station and from source config build header of interest
     #-----------------------------------------------------------------------------------------
@@ -242,58 +247,35 @@ class CollectionState(object):
         self.lstCollectionHeader = lst
 
     #-----------------------------------------------------------------------------------------
-    # get the collection state 
+    # get state...
     #-----------------------------------------------------------------------------------------
 
-    def getCollectionState(self):
+    def getState(self,key):
 
-        # get current time... and if state was in memory for more than 1 hour
-        # a reload will clean it from entries no longer needed
+        # if it is the first bulletin for that key just create and add an initial MapCollectionState value
 
-        self.now  = self.collector.now
-        delay     = self.now - self.lastload
-        if delay >= 3600 : self.ready = False
+        if not key in self.mapCollectionState :
+           period      = -1
+           amendement  = -1
+           correction  = -1
+           retard      = -1
+           Primary     = []
+           Cycle       = []
 
-        # map ready... return it
+           self.mapCollectionState[key] = (period,amendement,correction,retard,Primary,Cycle)
 
-        if self.ready : return self.mapCollectionState
+        return self.mapCollectionState[key]
 
-        # initialization
+    #-----------------------------------------------------------------------------------------
+    # get state keys
+    #-----------------------------------------------------------------------------------------
 
-        self.mapCollectionState = {}
+    def getKeys(self):
 
-        # current epocal and collection time span epocal truncated to the nearest hour
+        keys = self.mapCollectionState.keys()
+        keys.sort()
 
-        self.fin         = self.now - ( self.now            % 3600 )
-        self.debut       = self.fin - ( self.source.history * 3600 )
-
-        # construct an empty collection state
-
-        self.emptyCollectionState()
-
-        # tries to load the collection state
-
-        self.loadCollectionState()
-
-        # if CollectionState was not loaded try to build it from db and save it
- 
-        if not self.loaded :
-           self.buildCollectionState()
-
-        # map ready... return it
-
-        self.ready    = True
-        self.lastload = self.fin
-
-        # save the refreshed
-
-        self.saveCollectionState()
-
-        # inform that we refreshed ( reloaded or rebuild ) the collectionState
-
-        self.logger.info("Collection State refreshed")
-
-        return self.mapCollectionState
+        return keys
 
     #-----------------------------------------------------------------------------------------
     # print debug...
@@ -301,18 +283,22 @@ class CollectionState(object):
 
     def print_debug(self):
 
+        if not self.debug : return
+
         keys = self.mapCollectionState.keys()
         keys.sort()
         for key in keys :
             ( period, amendement, correction, retard, Primary, Cycle ) = self.mapCollectionState[key]
-            if period < 0 : continue
-            print(" %s = %d %d %d %d %s %s " % ( key, period, amendement, correction, retard, Primary, Cycle) )
+            self.logger.debug(" %s = %d %d %d %d %s %s " % \
+                             ( key, period, amendement, correction, retard, Primary, Cycle) )
 
     #-----------------------------------------------------------------------------------------
     # loading the collection state 
     #-----------------------------------------------------------------------------------------
 
     def loadCollectionState(self):
+
+        self.logger.debug("Loading Collection State")
 
         # read collection state config
 
@@ -349,11 +335,17 @@ class CollectionState(object):
 
         self.loaded = True
 
+        self.print_debug()
+
     #-----------------------------------------------------------------------------------------
     # save the collection state 
     #-----------------------------------------------------------------------------------------
 
     def saveCollectionState(self):
+
+        self.logger.debug("Saving Collection State")
+
+        self.print_debug()
 
         # sort the keys just for the beauty of the state file
 
@@ -377,6 +369,72 @@ class CollectionState(object):
                 return
 
         self.logger.info("Collection State saved")
+
+    #-----------------------------------------------------------------------------------------
+    # set State...
+    #-----------------------------------------------------------------------------------------
+
+    def setState(self, key, period, amendement, correction, retard, Primary, Cycle ):
+
+        self.mapCollectionState[key] = ( period, amendement, correction, retard, Primary, Cycle ) 
+
+    #-----------------------------------------------------------------------------------------
+    # update the collection state 
+    #-----------------------------------------------------------------------------------------
+
+    def updateCollectionState(self,now):
+
+        # get current time... and if state was in memory for more than 1 hour
+        # a reload will clean it from entries no longer needed
+
+        self.logger.debug("Update Collection State")
+
+        self.now  = now
+        delay     = self.now - self.lastload
+        if delay >= 3600 : self.ready = False
+
+        # map ready... return it
+
+        if self.ready :
+           self.logger.debug("Collection State not refreshed")
+           return
+
+        # initialization
+
+        self.logger.debug("Updating Collection State")
+
+        self.mapCollectionState = {}
+
+        # current epocal and collection time span epocal truncated to the nearest hour
+
+        self.fin         = self.now - ( self.now            % 3600 )
+        self.debut       = self.fin - ( self.source.history * 3600 )
+
+        # construct an empty collection state
+
+        self.emptyCollectionState()
+
+        # tries to load the collection state
+
+        self.loadCollectionState()
+
+        # if CollectionState was not loaded try to build it from db and save it
+ 
+        if not self.loaded :
+           self.buildCollectionState()
+
+        # map ready... return it
+
+        self.ready    = True
+        self.lastload = self.fin
+
+        # save the refreshed
+
+        self.saveCollectionState()
+
+        # inform that we refreshed ( reloaded or rebuild ) the collectionState
+
+        self.logger.info("Collection State refreshed")
 
 if __name__ == '__main__':
     pass
