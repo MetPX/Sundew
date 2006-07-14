@@ -18,6 +18,8 @@ named COPYING in the root of the source directory tree.
 ###########################################################
 """
 
+import sys
+
 # Local imports
 sys.path.append("../")
 import PXPaths; PXPaths.normalPaths()
@@ -30,11 +32,6 @@ class ResendObject(object):
         self.prio = 3
         self.machineHeaderDict = {}
         
-    def parseRawLine(line):
-        header = ":".join(line.split(":")[2:])
-        machine = (line.split(":")[0])[1:] # Removes the @
-        return header, machine
-
     def getPrompt(self):
         return self.prompt
 
@@ -60,4 +57,4 @@ class ResendObject(object):
         if machine in self.machineHeaderDict.keys():
             self.machineHeaderDict[machine] += header
         else:
-            self.machineHeaderDuct[machine] = [header] 
+            self.machineHeaderDict[machine] = [header] 

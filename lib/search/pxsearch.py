@@ -143,7 +143,7 @@ def search(so):
         print "Command used: %s" % (cmd)
         status, output = commands.getstatusoutput(cmd)
         lines = output.splitlines()
-        results += ["@%s:%s" % (machine, line) for line in lines] # We add the machine name to the start of the line 
+        results += ["%s:%s" % (machine, line) for line in lines] # We add the machine name to the start of the line 
         
     # Validation was done in validateUserInput()
     if so.getSince() != 0 or so.getFrom() != "" or so.getTo() != "":

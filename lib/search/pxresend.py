@@ -29,12 +29,13 @@ sys.path.append("../")
 import PXPaths; PXPaths.normalPaths()
 from ResendObject import *
 
+def parseRawLine(line):
+    lineParts = line.split(":")
+    header = ":".join(lineParts[2:])
+    machine = lineParts[0]
+    return header, machine
+
 def validateUserInput(options, args):
-    # Those two options must be used together
-    if (options.header != "" and options.machine == "") or (options.header == "" and options.machine != ""):
-        print "You must use --header and --machine together."
-        sys.exit(1)
-    
     # Priority number must be between 1 and 5
     if int(options.prio) < 1 or int(options.prio) > 5:
         print "Incorrect priority number!"
@@ -42,15 +43,24 @@ def validateUserInput(options, args):
         sys.exit(1)
 
 def updateResendObject(ro, options, args):
+    ro.setPrompt = options.prompt
+    ro.setPrio = options.prio
+    ro.setTo(args) # All trailing arguments are destinations
+    
+    if len(sys.stdin.readlines()) > 0:
+        for searchLine in sys.stdin:
+            machine, bulletinHeader = parseRawLine(searchLine)
+            ro.addToMachineHeaderDict(machine, bulletinHeader)
+
+def resend(ro):
     pass
 
 def createParser(ro):
-    usagemsg = "%prog [options] <name>\nResend a bulletin or a list of bulletins."
-    parser = OptionParser(usage=usagemsg, version="%prog 0.1-alpha")
+    usagemsg = "%prog [options] <destinations>\nResend a bulletin or a list of bulletins."
+    parser = OptionParser(usage=usagemsg, version="%prog 0.2-alpha")
 
     parser.add_option("--ask", action = "store_true", dest = "prompt", help = "Ask for a resending confirmation for each bulletins.")
     parser.add_option("--all", action = "store_false", dest = "prompt", help = "Send all bulletins without confirmation (default).")
-    parser.add_option("-t", "--to", dest = "to", help = "Specify the client to which you want to resend.", default = ro.getTo())
     parser.add_option("-p", "--prio", dest = "prio", help = "Specify in which priority you want to put the bulletin in? (default 3).", default = ro.getPrio())
     parser.add_option("-b", "--bulletin", dest = "bulletin", help = "Specify a precise bulletin header to be resent (i.e.: machine:full_header)")
     
@@ -81,7 +91,7 @@ def main():
     #####################
     # 5. Begin resending
     #####################
-    pass
+    resend(ro)
 
 if __name__ == "__main__":
     main()
