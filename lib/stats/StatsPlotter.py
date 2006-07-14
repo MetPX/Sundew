@@ -233,9 +233,6 @@ class StatsPlotter:
                         else:
                             pairs.append( [self.stats[clientCount].statsCollection.timeSeperators[k], self.stats[clientCount].statsCollection.fileEntries[k].means[statType]] )
                            
-                               
-                                
-                                
                         
                         if( self.stats[clientCount].statsCollection.fileEntries[k].maximums[statType]  > self.maximums[clientCount][typeCount] ) :
                             
@@ -269,8 +266,8 @@ class StatsPlotter:
             return pairs    
         
         except KeyError:
-            print "Error. The %s stat type was not found in previously collected data."
-            print "Make sure data type is collected priror to asking for a graphic of that type."
+            print "Error. The %s stat type was not found in previously collected data." %statType
+            print "Make sure data type is collected prior to asking for a graphic of that type."
             print "Program terminated."
             sys.exit()         
             
@@ -373,6 +370,9 @@ class StatsPlotter:
         
         if self.maximums[i][j] !=0:
             timeOfMax = MyDateLib.getIsoFromEpoch( self.timeOfMax[i][j] )
+            if self.maximums[i][j] <5 :
+                self.graph( 'set format y "%10.2f"' )
+
         else:
             timeOfMax = ""
                 
@@ -412,6 +412,8 @@ class StatsPlotter:
         
         if self.maximums[i][j] !=0:
             timeOfMax = MyDateLib.getIsoFromEpoch( self.timeOfMax[i][j] )
+            if self.maximums[i][j] <5 :
+                self.graph( 'set format y "%10.2f"' )
         else:
             timeOfMax = ""
                 
@@ -447,6 +449,8 @@ class StatsPlotter:
                  
         if self.maximums[i][j] !=0:
             timeOfMax = MyDateLib.getIsoWithRoundedSeconds( MyDateLib.getIsoFromEpoch( self.timeOfMax[i][j] ) )
+            if self.maximums[i][j] <5 :
+                self.graph( 'set format y "%10.2f"' )
         else:
             timeOfMax = ""
                 

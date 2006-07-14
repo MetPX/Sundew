@@ -306,7 +306,7 @@ def addOptions( parser ):
     
     parser.add_option("-n", "--now", action="store_true", dest = "collectUpToNow", default=False, help="Collect data up to current second.")
        
-    parser.add_option("-t", "--types", type="string", dest="types", default="latency",
+    parser.add_option("-t", "--types", type="string", dest="types", default="latency,errors,bytecount",
                         help="Types of data to look for.")          
     
 

@@ -32,7 +32,7 @@ from   array     import *
 import MyDateLib
 from   MyDateLib import *
 import commands
-
+import copy 
 
 MINUTE = 60
 HOUR   = 60 * MINUTE
@@ -91,7 +91,7 @@ class FileStatsCollector:
     
     """
     
-    def __init__(self, files = None , statsTypes = None,fileEntries = None, startTime = '2005-08-30 20:06:59', width = DAY, interval=20*MINUTE, totalWidth = 24*HOUR, lastEntryCalculated = 0, lastFilledEntry = 0, maxLatency = 15 ):
+    def __init__(self, files = None , statsTypes = None, startTime = '2005-08-30 20:06:59', width = DAY, interval=20*MINUTE, totalWidth = 24*HOUR, lastEntryCalculated = 0, lastFilledEntry = 0, maxLatency = 15,fileEntries = None ):
         """ 
             Constructor. All values can be set from the constructor by the user but recommend usage
             is to set sourceFile and statsType. The class contains other methods to set the other values
@@ -104,10 +104,12 @@ class FileStatsCollector:
         """    
         
         startTimeInSeconds = MyDateLib.getSecondsSinceEpoch( startTime )
-        
+        if fileEntries == None :
+            fileEntries = []    
+         
         self.files          = files or {}        # Source files we will use. 
         self.statsTypes     = statsTypes or []   # List of types we need to manage.
-        self.fileEntries    = fileEntries or []  # list of all entries wich are parsed using time seperators.
+        self.fileEntries    = copy.deepcopy(fileEntries)# list of all entries wich are parsed using time seperators.
         self.startTime      = startTimeInSeconds # Beginning of the timespan used to collect stats.
         self.width          = width              # Width of said timespan.
         self.interval       = interval           # Interval at wich we separate stats entries .
@@ -119,8 +121,8 @@ class FileStatsCollector:
         self.lastEntryCalculated  = lastEntryCalculated        # Last entry for wich we calculated mean max etc....
         self.lastFilledEntry      = lastFilledEntry            # Last entry we filled with data. 
         
-        if fileEntries == [] : 
-            self.createEmptyEntries()                          # Create all empty buckets right away
+        if fileEntries == []:
+            self.createEmptyEntries()                              # Create all empty buckets right away
          
 
 

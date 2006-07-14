@@ -40,8 +40,10 @@ Files included in the stats library are :
 - FileStatsCollector.py 
 - gzippickle.py
 - MyDateLib.py
+- pickleMerging.py
 - pickleUpdater.py 
 - StatsPlotter.py  
+
 
 These library files are required by the stats library :
 
@@ -49,6 +51,13 @@ These library files are required by the stats library :
               but are written so they could be reused for other applications
               down the road.    
 
+-Gnuplot library : Folder named Gnuplot containing the gnuplot library should be found in 
+                   the imported libs folder of the library.
+                   
+                   To use imported libs the following line might be usefull in your ~/.profile
+                   export PYTHONPATH=/apps/px/lib/importedLibs/
+
+              
 
 
 File interaction : 
@@ -57,9 +66,9 @@ File interaction :
 
                           
                           FileStatsCollector            StatsPlotter  
-                                 /\                         /\
-DirectoryFilecollector           |                          | 
-                   /\            |                          |
+                                 /\      /\                 /\
+DirectoryFilecollector           |       |                  | 
+                   /\            |   pickleMerging          |
                    |             |                          | 
                    |             |                          |
  gzippickle<--DirectoryStatscollector <-----------ClientGraphicProducer           
@@ -134,6 +143,12 @@ File Overview
 
 -MyDateLib.py     : Temporary file wich contains date manipulation methods I have been working on. They probably should                      be addded to the regular DateLib.py once they are found to be usefull and reliable.   
                                                                            
+-pickleMerging.py : This file contains the methods needed to combine data found in different pickle files 
+                    that are covering the same time period. Data should also come from the same client.
+                    
+                    This will be very usefull if some pickles for the same client are produced on different 
+                    machines and some operation concerning all the data must be done on a cpecific machine.
+                    Ex see. Clientgraphicproducer.
 
 -pickleUpdater.py : This program is the one to use to make automated data updates. Recommended usage is to call 
                     this program every hours to update the stored stats on a client. Calling this program at that rate
@@ -153,8 +168,12 @@ REQUIREMENTS :
 - Library has to be able to read a specific format of log files.
       Format is as following : ??????????   
 
-- Library has to be able to gather log files from remote locations( machines ).   
- 
+- Library has to be able to gather files from remote locations( machines ).   
+  
+- Library must permit data collection from numerous machines. Each are remotely located. 
+
+- Library must allow a machine to gather remotely located data.  
+  
 - Library must allow user to collect data of log files wich are constantly growing. 
   
 - Library must have a way to save data collected. 
@@ -178,7 +197,7 @@ REQUIREMENTS :
    
 - User must be able to specify wich product type he wants to use as data for his graphics. 
     
-
+ 
 
 
 GUIDING PRINCIPLES
@@ -186,7 +205,7 @@ GUIDING PRINCIPLES
 
 - Log files for a specific client are usually stored on many different machines.  
 
-- Log file for a single day from a single machine can be quite large. ( average~ >30 megs)
+- Log file for a single day from a single machine can be quite large. ( average~ >30 megs )
 
 - Log file names aren't reliable. Even if a file has a certain date in it's name it doesn't necessarily 
   mean it will contain data for that day. File content still need to be invetigated to make sure 
@@ -203,7 +222,8 @@ GUIDING PRINCIPLES
 - Disk access is very slow. Anything that has to be loaded or saved on the disk slows down the entire
   process quite a lot.   
 
-
+- Having every machine perform the collection of the  data found in the files that are present
+  in it's own space makes the application must more scalable. 
 
 
 IMPLEMENTATION :
@@ -276,7 +296,26 @@ Graphic production
  This is why by default all types are collected and pickled. This allows users to have access 
  to every data type possible. 
 
- 
+
+
+Dealing with remote machines
+-----------------------------
+
+- To make the application more scalable in terms of a possible growing number of machines it was 
+  decided that every machines would do it's own data pickling using pickleUpdater. 
+
+- Some clients have their data stored on different machines. This prompted the implementation
+  of a rsync system that allows pickled data found on numerous machines to be brought back 
+  in a single folder of a specific machine if needed. 
+
+- ClientGraphicProducer uses that system to produce graphics for a certain client where the user wants 
+  to have the data from more than one machine.(todo)       
+
+- pickleMerging.py has been introduced in the library to make merging of different machines pickles
+  possible.
+  
+     
+  
  
 Important notes ( Specifics )
 ---------------------------------------------------------------------------------------------------
@@ -476,11 +515,15 @@ TODO list
 -Modify module that gets files into a directory so that it actually downloads the files.
     -Add everything wich relates to the machine option.
     
--Find a better file naming system for the graphs. Make sure files can't be overwritten if 2 user ask for a graphs at the same time.     
-
--Find scalable implementation of the system wich will allow for as many machines as possible to run this system.
+-Find scalable implementation of the system wich will allow for as many machines as possible to run this system.***Done
 
 -Add option for user to specify for wich machine he wants to produce graphics. This will probably imply that 
  data collection will be done per client-machine couples and not only per client anymore. This will also probably
- need a way to combine pickle files from different machines covering the same timespan if more than one machine is queried for a graphic.  
+ need a way to combine pickle files from different machines covering the same timespan if more than one machine is queried for a graphic.***Data merging has been done.  
+ 
+-Find a better file naming system for the graphs. Make sure files can't be overwritten if 2 user ask for a graphs at the same time.  
+
+-Add methods that downloads all the pickles to the central,graphic producing server. 
+ Test file merging. Test graphics produced with unique machines and a combination of machines. 
+ 
  

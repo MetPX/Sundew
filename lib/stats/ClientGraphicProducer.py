@@ -331,8 +331,8 @@ if __name__ == "__main__":
         
     """
     
-    gp = ClientGraphicProducer( clientNames = [ 'satnet' ], timespan = 24, currentTime = "2006-07-01 02:15:00",productType = "SAAK"  )  
-    gp.produceGraphic( types = [ "latency" ], now = False   )
+    gp = ClientGraphicProducer( clientNames = [ 'satnet' ], timespan = 24, currentTime = "2006-07-14 02:15:00" )  
+    gp.produceGraphic( types = [ "bytecount","latency" ], now = False   )
 
 
     
