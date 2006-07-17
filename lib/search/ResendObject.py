@@ -30,7 +30,7 @@ class ResendObject(object):
     def __init__(self):
         self.prompt = False
         self.destinations = ""
-        self.prio = 3
+        self.prio = "3"
         self.machineHeaderDict = {}
     
     def headerToLocation(self, header):
@@ -43,18 +43,24 @@ class ResendObject(object):
 
         return "%s%s/%s/%s/%s/%s" % (dbPath, date, tt, target, cccc, header)
     
+    def createDestinationPath(self, destination):
+        return "%s%s/%s/" % (PXPaths.TXQ, destination, self.prio)
+    
     def createCommandList(self):
-        commandList = []
-        for machine in self.machineHeaderDict.keys():
-            for destination in self.destinations:
+        commandList = [] # List of command to execute
+        
+        for machine in self.machineHeaderDict.keys(): # For every machines with matching bulletins
+            
+            for destination in self.destinations: # One command per destination client
                 bulletins = self.machineHeaderDict[machine]
                 bstring = ""
-                for bulletin in bulletins:
-                    #############
-                    print "Bulletin is : " + bulletin
-                    #############
+                
+                for bulletin in bulletins: # Construct a big string of all bulletins path for the "cp" command
                     bstring += "%s " % (self.headerToLocation(bulletin))
-                commandList += 'ssh %s "cp %s"' % (machine, bstring)
+                    
+                destinationPath = self.createDestinationPath(destination) # Get the destination path
+                commandList += ['ssh %s "cp %s %s"' % (machine, bstring, destinationPath)] # Add the complete command to the list
+        
         return commandList
         
     def getPrompt(self):
@@ -80,6 +86,6 @@ class ResendObject(object):
 
     def addToMachineHeaderDict(self, machine, header):
         if machine in self.machineHeaderDict.keys():
-            self.machineHeaderDict[machine] += header
+            self.machineHeaderDict[machine] += [header]
         else:
             self.machineHeaderDict[machine] = [header] 

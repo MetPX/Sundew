@@ -16,6 +16,11 @@ named COPYING in the root of the source directory tree.
 #
 # Date: 2006-07-07
 #
+# WARNING: There is a possibility that the program cannot
+#          resend a humongous ammount of bulletin since
+#          this would exceed the maxium command line size
+#          allowed.
+#
 ###########################################################
 """
 
@@ -33,7 +38,7 @@ def parseRawLine(line):
     lineParts = line.split(":")
     header = ":".join(lineParts[2:])
     machine = lineParts[0]
-    return header, machine
+    return machine, header
 
 def validateUserInput(options, args):
     # Priority number must be between 1 and 5
@@ -49,22 +54,26 @@ def updateResendObject(ro, options, args):
     
     if len(args) == 0: # Get bulletin list from stdin
         for searchLine in sys.stdin:
-            machine, bulletinHeader = parseRawLine(searchLine)
+            machine, bulletinHeader = parseRawLine(searchLine.strip())
             ro.addToMachineHeaderDict(machine, bulletinHeader)
     else:
         pass
         # TODO: Write something there
 
 def resend(ro):
-    machineHeaderDict = ro.getMachineHeaderDict()
-    destinations = ro.getDestinations()
-    prio = ro.getPrio()
-
-    print ro.createCommandList()
+    commandList = ro.createCommandList()
+    for c in commandList:
+        status, output = commands.getstatusoutput(c)
+        if status:
+            print "An error occured during the resending process!"
+            print "Command used was: %s" % (c)
+            sys.exit(1)
+        else:
+            print "Bulletins resent."
 
 def createParser(ro):
     usagemsg = "%prog [options] <machine:bulletin-file>\nResend one or more bulletins."
-    parser = OptionParser(usage=usagemsg, version="%prog 0.3-alpha")
+    parser = OptionParser(usage=usagemsg, version="%prog 0.7-alpha")
 
     parser.add_option("--ask", action = "store_true", dest = "prompt", help = "Ask for a resending confirmation for each bulletins.")
     parser.add_option("--all", action = "store_false", dest = "prompt", help = "Send all bulletins without confirmation (default).")
