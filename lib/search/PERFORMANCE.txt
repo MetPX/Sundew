@@ -1,0 +1,56 @@
+##########################################################
+# Name: PERFORMANCE.txt
+#
+# Author: Dominik DB
+#                                                         
+# Description: The following text describes possible
+#              solutions about performance issues found
+#              in the MetPX bulletin search program.
+#
+# Date: 2006-05-19                                        
+#
+##########################################################
+
+The main purpose of the program is to locate in the database
+bulletin files which meet certain research criterias.
+Since this operation must be executed quickly we are greatly
+concern about the performance aspect of the underlying code.
+
+The bulletins are located in a file database which spreads like
+a tree. The obvious way to search in it is to use the file system.
+By that we mean that we scan the file system directories based on
+our search criterias. This is a quite simple technique but 
+regretfully, it is quite slow. This gets worse because of the
+tree-like pattern our search can take.
+
+By tree-like pattern we mean that we may have to backtrack in the
+directories in order to get all results for a search. No one
+directory holds all the information needed to complete the search.
+
+For example, walking (going from top to bottom) an average-sized
+directory structure in the database (which would account to around
+200 000 bulletin files) took over 70 seconds to perform. One of the
+bulletin search program requirement is to perform in complete search
+in 10 seconds or less (in fact 10 seconds is way too long under
+heavy usage, our target is closer to under 5 seconds). So that 
+approach in 700% of our worse limit.
+
+The good news is that, since we are in control of the switch which
+copies the bulletins into the database we can gather ALL the
+information in a unique specific place. However, we cannot copy
+all the bulletins in a single directory, we won't have much of a
+database after that. Also, the search program does not really need
+physical access to the bulletins to perform its search job. Once
+we have acquired a bulletin's header (its filename) we can deduce
+its location in the database. In brief, the perfect solution be for
+the switch to produce a new kind of log file. These logs would be
+simpler than the current one (easier to parse by a script), would
+have a unified look (again easier to parse)and would be all located 
+in the same directory.
+
+It has been found, during multiple tests that parsing a text file
+for a particular pattern with regular expressions (regex) can be done
+extremely rapidly (with egrep or Python regexes). In fact, we can
+parse a 57MB log file with a rather generic regex in 2.13 sec in
+Python and in 0.1 sec with egrep. Both method returned the 800
+expected matches. Those number would allow us to meet our objective.
