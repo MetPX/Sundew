@@ -27,7 +27,7 @@ named COPYING in the root of the source directory tree.
 import sys 
 import MyDateLib
 from MyDateLib import *
-import DirectoryStatsCollector
+import ClientStatsCollector
 from Numeric import *
 import Gnuplot, Gnuplot.funcutils
 import copy 
@@ -45,7 +45,7 @@ class StatsPlotter:
         x = [ [0]*5  for x in range(5) ]
         
         self.now         = now                     # False means we round to the top of the hour, True we don't
-        self.stats       = stats or []             # DirectoryStatsCollector instance.
+        self.stats       = stats or []             # ClientStatsCollector instance.
         self.clientNames = clientNames or []       # Clients for wich we are producing the graphics. 
         self.timespan    = timespan                # Helpfull to build titles 
         self.currentTime = currentTime             # Time of call
@@ -112,7 +112,7 @@ class StatsPlotter:
         date = MyDateLib.getIsoFromEpoch( self.currentTime ).replace( " ", "_")
         
         fileName = str( os.getcwd() ) #will probably need a better path eventually.... 
-        fileName = fileName +  "/GRAPHS/%s/%s-%s.png" %( clientName, clientName,date ) 
+        fileName = fileName +  "/graphs/%s/%s-%s-For %s hours-%s.png" %( clientName, clientName,self.statsTypes,self.timespan, date ) 
         
         splitName = fileName.split( "/" ) 
         directory = "/"
@@ -262,7 +262,8 @@ class StatsPlotter:
                 
                 if self.nbFiles[clientCount] != 0 :
                     self.ratioOverLatency[clientCount]  = float( float(self.nbFilesOverMaxLatency[clientCount]) / float(self.nbFiles[clientCount]) ) *100.0
-        
+            
+                       
             return pairs    
         
         except KeyError:
@@ -271,7 +272,27 @@ class StatsPlotter:
             print "Program terminated."
             sys.exit()         
             
-    
+            
+            
+    def getMaxPairValue( self, pairs ):
+        """
+            Returns the maximum value of a list of pairs. 
+        
+        """
+        
+        maximum = 0 
+        
+        if len( pairs) != 0 :
+            
+            for pair in pairs:
+                if pair[1] > maximum:    
+                    maximum = pair[1] 
+                    
+                    
+        return  maximum 
+        
+        
+                    
     def buildTitle( self, i, statType, typeCount ):
         """
             This method is used to build the title we'll print on the graphic.
@@ -340,14 +361,15 @@ class StatsPlotter:
             
             for j in range (len (self.statsTypes) ):
             
-                pairs = self.getPairs( i , self.statsTypes[j], j )
+                pairs        = self.getPairs( i , self.statsTypes[j], j )
+                maxPairValue = self.getMaxPairValue( pairs )
                 
                 if self.statsTypes[j] == "errors" :
-                    self.addErrorsLabelsToGraph(  i , nbGraphs, j )
+                    self.addErrorsLabelsToGraph(  i , nbGraphs, j, maxPairValue )
                 elif self.statsTypes[j] == "latency" :
-                    self.addLatencyLabelsToGraph(  i , nbGraphs, j )
+                    self.addLatencyLabelsToGraph(  i , nbGraphs, j, maxPairValue )
                 elif self.statsTypes[j] == "bytecount" :
-                    self.addBytesLabelsToGraph(  i , nbGraphs, j )
+                    self.addBytesLabelsToGraph(  i , nbGraphs, j, maxPairValue )
                     
                 self.graph.title( "%s" %self.buildTitle( i, self.statsTypes[j] , j ) )
                 
@@ -362,7 +384,7 @@ class StatsPlotter:
                     
         
          
-    def addLatencyLabelsToGraph( self, i , nbGraphs, j ):
+    def addLatencyLabelsToGraph( self, i , nbGraphs, j, maxPairValue ):
         """
             Used to set proper labels for a graph relating to latencies. 
              
@@ -370,7 +392,7 @@ class StatsPlotter:
         
         if self.maximums[i][j] !=0:
             timeOfMax = MyDateLib.getIsoFromEpoch( self.timeOfMax[i][j] )
-            if self.maximums[i][j] <5 :
+            if maxPairValue < 5 :
                 self.graph( 'set format y "%10.2f"' )
 
         else:
@@ -404,7 +426,7 @@ class StatsPlotter:
         ###End of method to build  
         
         
-    def addBytesLabelsToGraph( self, i , nbGraphs, j ):
+    def addBytesLabelsToGraph( self, i , nbGraphs, j, maxPairValue ):
         """
             Used to set proper labels for a graph relating to bytes. 
              
@@ -412,7 +434,7 @@ class StatsPlotter:
         
         if self.maximums[i][j] !=0:
             timeOfMax = MyDateLib.getIsoFromEpoch( self.timeOfMax[i][j] )
-            if self.maximums[i][j] <5 :
+            if maxPairValue <5 :
                 self.graph( 'set format y "%10.2f"' )
         else:
             timeOfMax = ""
@@ -441,7 +463,7 @@ class StatsPlotter:
     
     
     
-    def addErrorsLabelsToGraph( self, i , nbGraphs, j ):
+    def addErrorsLabelsToGraph( self, i , nbGraphs, j,maxPairValue ):
         """
             Used to set proper labels for a graph relating to bytes. 
              
@@ -449,7 +471,7 @@ class StatsPlotter:
                  
         if self.maximums[i][j] !=0:
             timeOfMax = MyDateLib.getIsoWithRoundedSeconds( MyDateLib.getIsoFromEpoch( self.timeOfMax[i][j] ) )
-            if self.maximums[i][j] <5 :
+            if maxPairValue <5 :
                 self.graph( 'set format y "%10.2f"' )
         else:
             timeOfMax = ""

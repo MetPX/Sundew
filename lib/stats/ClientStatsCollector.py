@@ -42,17 +42,18 @@ class ClientStatsCollector:
         Contains all the methods needed to collect stats from a certain directory.
     """
     
-    def __init__( self, directory = "", statsTypes = None, startTime = "2006-05-18 21:45:30",statsCollection = None ):
+    def __init__( self, client = "", directory = "", statsTypes = None, startTime = "2006-05-18 21:45:30",statsCollection = None ):
         """ 
             Constructor.
             -Builds a directoryFileCollector with no entries.   
         
         """
-        
+        self.client           = client                              #Name of the lcient for whom were collecting data  
         self.directory        = directory                           #Name of the directory containing stats files.
+        self.statsTypes       = statsTypes or []                    #Types we'll search for stats. 
         self.fileCollection   = DirectoryFileCollector( directory = directory ) #List of all the test files. 
         self.statsCollection  = statsCollection or FileStatsCollector(startTime = startTime)#All fileStats collected. 
-        self.statsTypes       = statsTypes or []                    #Types we'll search for stats. 
+        
         
         
     
@@ -117,13 +118,20 @@ class ClientStatsCollector:
 
 
 
-    def collectStats( self, types, startTime = '2006-05-18 00:00:00', endTime = "",  width=DAY, interval = 60*MINUTE, pickle = "todaysPickle", save = True, dailyPickling = True ):
+    def collectStats( self, types, pickle, directory,fileType = "tx", startTime = '2006-05-18 00:00:00', endTime = "",  width=DAY, interval = 60*MINUTE, save = True, dailyPickling = True ):
         """
             This method collects the stats for all the files found in the directory. 
         """
+        print "in collect stats " 
+        print "startTime :%s" %startTime
+        print "endtime : %s" %endTime
+        print "fileType : %s" %fileType
+        print "self.client : %s"  %self.client
         
-        self.fileCollection =  DirectoryFileCollector( startTime  = startTimes , endTime = endTime, directory = "/apps/px/log", lastLineRead = "", lineType = "[INFO]", fileType = "tx", client = "satnet" )   
+        self.fileCollection =  DirectoryFileCollector( startTime  = startTime , endTime = endTime, directory = directory, lastLineRead = "", lineType = "[INFO]", fileType = fileType, client = self.client )   
         self.fileCollection.collectEntries()          #find all entries from the folder
+        
+        print "self.fileCollection.entries %s" %self.fileCollection.entries
         
         
         if os.path.isfile( pickle ):
@@ -132,7 +140,7 @@ class ClientStatsCollector:
            
             #update fields who need to be updated like list of file .
             #we dont allow someone to change interval during the day so we dont even look it up
-            self.statsCollection.fileEntries = self.fileCollection.entries 
+            self.statsCollection.files = self.fileCollection.entries 
             self.statsCollection.startTime = MyDateLib.getSecondsSinceEpoch( startTime )
             self.statsCollection.width = width 
             
@@ -157,12 +165,12 @@ class ClientStatsCollector:
            
         
         
-        def collectStatsWithoutPickling( self, types, startTime = '2006-05-18 00:00:00', width=DAY, interval = 60*MINUTE, totalWidth = 24*HOUR  ):
-            """
-                This method collects the stats for all the files found in the directory. 
-            
-            """
+    def collectStatsWithoutPickling( self, types, startTime = '2006-05-18 00:00:00', width=DAY, interval = 60*MINUTE, totalWidth = 24*HOUR, totalwidth = DAY  ):
+        """
+            This method collects the stats for all the files found in the directory. 
         
+        """
+    
         self.fileCollection.collectEntries() # find all entries from the folder
         
         self.statsCollection = FileStatsCollector( files = self.fileCollection.entries, statsTypes = types, startTime = startTime , width = width, interval = interval, totalWidth = totalWidth )
@@ -175,11 +183,11 @@ class ClientStatsCollector:
     def printStats( self ) :       
         """
             This method prints out all the stats concerning each files. 
-            Mostly usefull for debugging. Could be removed.....
+            Mostly usefull for debugging.
         
         """    
         
-        absoluteFilename = str( os.getcwd() ) + "/beforepickling "
+        absoluteFilename = str( os.getcwd() ) + "/CSC_output_file "
         print "Absolute filename : %s" %absoluteFilename
         fileHandle = open( absoluteFilename , 'w' )
         old_stdout = sys.stdout 
@@ -223,13 +231,13 @@ def main():
     
     print "Temps avant : % s" %time.gmtime( time.time() )
     
-    ds = DirectoryStatsCollector( directory = "/apps/px/lib/stats/files/" )
-    ds.collectStats( types, startTime = '2006-06-23 00:00:12', width = 10*HOUR, interval = 1*MINUTE,pickle = "satnet-PICKLE-2006-06-23" )
+    cs = ClientStatsCollector( client = "satnet", directory = "/apps/px/lib/stats/files/" )
+    cs.collectStats( types, directory = "/apps/px/lib/stats/files/", fileType = "tx", pickle = "/apps/px/lib/stats/PICKLES/satnetTestpickle", startTime = '2006-07-20 05:00:12', endTime = "2006-07-20 06:00:12",width = 10*HOUR, interval = 1*MINUTE )
     
     print "Temps apres : % s" %time.gmtime( time.time() )
     print "call to collect stats done"
     
-    ds.printStats()        
+    cs.printStats()        
         
 
 if __name__ == "__main__":

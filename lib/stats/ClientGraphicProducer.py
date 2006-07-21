@@ -29,8 +29,8 @@ import os, time, sys
 import gzippickle
 import MyDateLib
 from MyDateLib import MyDateLib
-import DirectoryStatsCollector
-from DirectoryStatsCollector import DirectoryStatsCollector
+import ClientStatsCollector
+from ClientStatsCollector import ClientStatsCollector
 import StatsPlotter
 from StatsPlotter import StatsPlotter
 import FileStatsCollector
@@ -260,7 +260,7 @@ class ClientGraphicProducer:
             
 
             #do a pickleUpdater like job without saving pickle....
-            ds = DirectoryStatsCollector( directory = pickleUpdater.getfilesIntoDirectory( self.clientNames[i] ) )
+            ds = ClientStatsCollector( directory = pickleUpdater.getfilesIntoDirectory( self.clientNames[i] ) )
             
             
             if endTime != lastCronJob : #collect data that was not collected
@@ -268,18 +268,18 @@ class ClientGraphicProducer:
                 print "endTime : %s" %endTime 
                 print "lastCronJob:%s" %lastCronJob
                 
-                ds.collectStats( types, startTime = lastCronJob , endTime = endTime, width = timeSinceLastCron, interval = 1*MyDateLib.MINUTE, pickle = DirectoryStatsCollector.buildTodaysFileName( self.clientNames[i], tempTime = MyDateLib.getIsoFromEpoch(self.currentTime )) , save = False )         
+                ds.collectStats( types, startTime = lastCronJob , endTime = endTime, width = timeSinceLastCron, interval = 1*MyDateLib.MINUTE, pickle = ClientStatsCollector.buildTodaysFileName( self.clientNames[i], tempTime = MyDateLib.getIsoFromEpoch(self.currentTime )) , save = False )         
                 
             
             else:#skip collecting 
                 
-                pickleName = DirectoryStatsCollector.buildTodaysFileName( self.clientNames[i], tempTime = MyDateLib.getIsoFromEpoch(self.currentTime ))
+                pickleName = ClientStatsCollector.buildTodaysFileName( self.clientNames[i], tempTime = MyDateLib.getIsoFromEpoch(self.currentTime ))
                 ds.statsCollection = gzippickle.load( pickleName )
                       
             
             #Build a directory stats collector with todays info.. stats collection has allready been cut in bucket 
             #corresponding to the ones needed in the graphic
-            dataCollector  = DirectoryStatsCollector( startTime = startTimes[0], statsCollection = statsCollection )
+            dataCollector  = ClientStatsCollector( startTime = startTimes[0], statsCollection = statsCollection )
             dataCollector.startTime = startTimes[0]
             dataCollector.statsCollection.fileEntries = []
             
@@ -288,7 +288,7 @@ class ClientGraphicProducer:
             for j in days : #Now gather all usefull info that was previously treated.
                 
                 
-                thatDaysPickle = DirectoryStatsCollector.buildTodaysFileName( self.clientNames[i],offset = j - ( 2*j ), tempTime = endTime )
+                thatDaysPickle = ClientStatsCollector.buildTodaysFileName( self.clientNames[i],offset = j - ( 2*j ), tempTime = endTime )
                 
                 if j == 0 :
                 
@@ -316,7 +316,7 @@ class ClientGraphicProducer:
         
         if self.productType != "All":
             for ds in collectorsList: 
-                ds.statsCollection.setMinMaxMeanMedians(  self.productType, startingBucket = 0 , finishingBucket = len(ds.statsCollection.fileEntries)  )
+                ds.statsCollection.setMinMaxMeanMedians(  productType = self.productType, startingBucket = 0 , finishingBucket = len(ds.statsCollection.fileEntries)  )
                 
                 
         plotter = StatsPlotter( stats = collectorsList, clientNames = self.clientNames, timespan = self.timespan, currentTime = self.currentTime, now = False, statsTypes = types, productType = self.productType  )
@@ -331,7 +331,7 @@ if __name__ == "__main__":
         
     """
     
-    gp = ClientGraphicProducer( clientNames = [ 'satnet' ], timespan = 24, currentTime = "2006-07-14 02:15:00" )  
+    gp = ClientGraphicProducer( clientNames = [ 'satnet' ], timespan = 12, currentTime = "2006-07-17 02:15:00",productType = "SACN31" )  
     gp.produceGraphic( types = [ "bytecount","latency" ], now = False   )
 
 

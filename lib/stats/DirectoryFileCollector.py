@@ -11,97 +11,131 @@ named COPYING in the root of the source directory tree.
 ##
 ## Date   : May 19th 2006
 ##
-## Goal   : This class is used to collect all the file entries from  
-##          a specified directory.
-## 
-##          Usefull in the stats library since interesting log files are to
-##          be downloaded in a specific directory and we'll need this class 
-##          make the connection between the data collectors and the previously
-##          downloaded files.
+## Goal   : This class' goal is to find all the interesting files within 
+##          a certain directory. 
 ##
+##          Usefull in the library to sort out the numerous log files found 
+##          on a machine
 ##
 ##
 #############################################################################
 
 
-import os,sys #important files 
+import os,sys,glob #important files 
+import backwardReader 
 
-
+from FileStatsCollector import *
 
 class DirectoryFileCollector: 
     """ 
-        This class' goal is to find all the files within a certain directory. 
-        It offers a data structure wich contains the directory name and all it's 
-        entries. 
+        This class' goal is to find all the interesting files within a certain directory. 
         
-        Data structure is a dictionary. The key is the entry's name. Value is 
-        a list wich has 2 entries.
+        It offers a data structure wich contains the directory's name and all the interesting
+        information to make such a search.   
         
-        [0] contains the offset,wich mean the number of byte where we last read the file.
-            Is really usefull for reading expanding files...
-        [1] contains the entry count, meaning the last fileEntry of a FileStatsCollector instance 
-            we were at while reading the file. 
-            Is also really usefull for reading expanding files...
-    
-    
+        Data structure that holds all the found files is a list.
+        
+                 
     """
     
-    def __init__( self, directory = "" ):
+    def __init__( self, startTime = "2006-06-06 01:00:00", endTime = "2006-06-06 02:00:00", directory = "/apps/px/log", lastLineRead = "", lineType = "[INFO]", fileType = "tx", client = "satnet" ):
        """ 
            Constructor.
            -Builds a directoryFileCollector with no entries.   
        
        """
        
-       self.directory = directory  # Name of the directory where we collect entries 
-       self.entries = {}           # Dictionary containings filenames,and up to what line we've read it 
+       startTime = MyDateLib.getSecondsSinceEpoch( startTime )
+       endTime   = MyDateLib.getSecondsSinceEpoch ( endTime ) 
        
+       self.directory    = directory    # Name of the directory where we collect entries 
+       self.startTime    = startTime    # Starting time of the data wich interests us. 
+       self.endTime      = endTime      # Width of time for wich we are interested to collec data. 
+       self.lastLineRead = lastLineRead # Last line read during a previous collection of data.  
+       self.lineType     = lineType     # Type said last line. Needed to be able to deal with data found on that line.
+       self.fileType     = fileType     # Type of file we will be searching for here. tx,rx etc...
+       self.client       = client       # Name of the client for wich we are searching files.  
+       self.entries = []                # List containing filenames of all interesting files found. 
+  
     
     
-    def collectEntries(self):
+    def containsUsefullInfo( self, fileName ):
+        """
+            This method returns whether or not a certain file contain any data wich is within 
+            the range we want.
+            
+        """
+        
+        i = 0
+        departure = ""
+        usefull = False    
+              
+        
+        #This method might be dangerous in case of huge file....
+        fileHandle = open( fileName , 'r' ) 
+        line = fileHandle.readline()
+        print "************************"
+        print line 
+        if line != "":
+            
+            departure =  FileStatsCollector.findValue( "departure" , line )       
+            
+            if departure <= self.endTime  :
+                
+                line == ""
+                fileSize = os.stat(fileName)[6]
+                line,offset  = backwardReader.readLineBackwards( fileHandle, offset = -1, fileSize = fileSize  )
+                print line 
+                lastDeparture = FileStatsCollector.findValue( "departure" , line )        
+                
+                if lastDeparture  >= self.startTime :
+                    print "usefull : %s" %fileName
+                    usefull = True
+        
+        if usefull == True :
+            print "usefull : %s" %fileName    
+            
+        print "************************"                            
+        return usefull                   
+
+
+
+    def collectEntries( self ):
         """ 
             If the directory is valid, this method will add all the valid  
-            directorie entries to the DirectoryFileCollector's entries field. 
+            directory entries to the DirectoryFileCollector's entries field. 
             
             This means all files wich are not directories and whose names don't 
             start with '.'
         
-        """
-        
+        """      
+              
         entries = []
-        validEntries = []
-        
-        try:
+         
+        if os.path.isdir( self.directory ):
             
-            if os.path.isdir( self.directory ):
-                entries = os.listdir( self.directory )#gets every entries of the folder except . and .. 
+            filePattern = self.directory + "/%s_%s.log*" %( self.fileType, self.client )
+            
+            fileNames = glob.glob( filePattern )
+            
+            print fileNames
+            
+            for fileName in fileNames: #verify every entries.
+                usefull = self.containsUsefullInfo( fileName )
                 
-                for i in range( len(entries ) ): #verify every entries.
-                    fileName = ( str( self.directory ) + str( entries[i] ) )
+                if usefull == True :
+                    print "usefull : %s" %fileName
+                    self.entries.append( fileName )
+
+
+
                     
-                    if not os.path.isdir( fileName ) and str( entries[i] ).startswith( '.' ) == False:
-                        validEntries.append( fileName )
-                
-                
-                self.entries = dict( [(x, [0,0]) for x in validEntries] ) # set offset and entryCount at 0.
-                            
-        except:
-            
-            (type, value, tb) = sys.exc_info()
-            
-            print("Type: %s, Value: %s" % (type, value))
-            print "Error. %s is not a valid directory" %self.directory
-            print "Program terminated"
-            sys.exit() 
-
-
-
 if __name__ == "__main__":
     """
         Small test case. Tests if everything works plus gives an idea on proper usage.
     
     """
    
-    dc = DirectoryFileCollector( "/users/dor/aspy/lem/Desktop" )
+    dc = DirectoryFileCollector( startTime = "2006-07-20 01:00:00", endTime= "2006-07-20 02:00:00", directory = "/apps/px/lib/stats/files", lastLineRead = "", lineType = "", fileType = "tx", client = "satnet"  )
     dc.collectEntries()            
     print dc.entries            

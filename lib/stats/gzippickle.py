@@ -38,6 +38,7 @@ import pickle
 import gzip
 import cPickle
 import os 
+import sys
 
 def save( object, filename, protocol = 0 ):
     """
@@ -64,7 +65,8 @@ def save( object, filename, protocol = 0 ):
     
     else:
         print "Error occured in gzippickle.save() ."
-        print "Filename needs to be an absolute path to the file."
+        print "Filename used : %s needs to be an absolute path to the file." %filename
+        
         sys.exit()  
     
         

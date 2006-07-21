@@ -124,7 +124,7 @@ def mergePickles( pickleNames = None, pickledTimes = None, clientName = ""  ):
         
                            
     """
-    
+    z =0 
        
     entryList = []
     
@@ -144,18 +144,30 @@ def mergePickles( pickleNames = None, pickledTimes = None, clientName = ""  ):
              
             for j in range( len(newFSC.fileEntries ) ) : 
                  
-                for k in range( entryList[i].fileEntries[j].values.rows ):
+                for k in range( entryList[i].fileEntries[j].values.rows ):#Add all new value
                     
-                    newFSC.fileEntries[j].values.productTypes.append( entryList[i].fileEntries[j].values.productTypes[k] )             
+                    newFSC.fileEntries[j].values.productTypes.append( entryList[i].fileEntries[j].values.productTypes[k] ) 
+                    
+                    newFSC.fileEntries[j].files.append( entryList[i].fileEntries[j].files[k] ) 
+                    newFSC.fileEntries[j].times.append( entryList[i].fileEntries[j].times[k] )          
                                         
                     if entryList[i].fileEntries[j].values.productTypes[k] != "[ERROR]" :
                          newFSC.fileEntries[ j ].nbFiles = newFSC.fileEntries[ j
                           ].nbFiles + 1
                     
                     for type in newFSC.statsTypes :
+                       # print k,type
                         newFSC.fileEntries[j].values.dictionary[type].append( entryList[i].fileEntries[j].values.dictionary[type][k] ) 
-                    
-        newFSC.setMinMaxMeanMedians()
+                        
+                    newFSC.fileEntries[j].values.rows = newFSC.fileEntries[j].values.rows + 1
+                    z = z + 1
+                    print "newFSC.fileEntries[j].values.rows : %s" %newFSC.fileEntries[j].values.rows
+                    print "len(newFSC.fileEntries[j].values.dictionary[type]) : %s" %len(newFSC.fileEntries[j].values.dictionary[type])        
+        
+        print "z = %s " %z
+        print newFSC.nbEntries
+        
+        newFSC = newFSC.setMinMaxMeanMedians( startingBucket = 0 , finishingBucket = newFSC.nbEntries )
         
         return newFSC
         
@@ -170,11 +182,13 @@ def mergePickles( pickleNames = None, pickledTimes = None, clientName = ""  ):
 
 def main():
     
-    pickleNames = ["/apps/px/lib/stats/PICKLES/satnet2/satnet2-PICKLE-2006-07-14", "/apps/px/lib/stats/PICKLES/satnet1/satnet1-PICKLE-2006-07-14"]
-    pickledTimes = ["/apps/px/lib/stats/PICKLED-TIMES"]
-    pickle = "/apps/px/lib/stats/PICKLES/satnet/satnet-PICKLE-2006-07-14"
+    pickleNames = ["/apps/px/lib/stats/PICKLES/amis2/amis2-PICKLE-2006-07-17","/apps/px/lib/stats/PICKLES/amis1/amis1-PICKLE-2006-07-17"]
     
-    newFSC = mergePickles( pickleNames, pickledTimes,  )
+    
+    pickledTimes = ["/apps/px/lib/stats/PICKLED-TIMES"]
+    pickle = "/apps/px/lib/stats/PICKLES/amis3/amis3-PICKLE-2006-07-17"
+    
+    newFSC = mergePickles( pickleNames=pickleNames, pickledTimes=pickledTimes  )
     gzippickle.save ( object = newFSC, filename = pickle )     
 
     

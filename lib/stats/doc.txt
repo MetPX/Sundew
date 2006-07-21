@@ -350,8 +350,11 @@ If need be, PICKLED-TIMES can be modified so that library thinks last pickle upd
 different time than was written.   
 
 
-Log Files 
+File system 
 ---------------------------------------------------------------------------------------------------
+
+Log Files 
+---------
 The file wich contains the data we want to collect and calculate needs to have a specific format. 
 
 This means that all file entries should have the following syntax : 
@@ -360,13 +363,13 @@ This means that all file entries should have the following syntax :
 
 
 
+
 Pickle Files :
----------------------------------------------------------------------------------------------------
+---------------
 
 
 PICKLED-TIMES :
----------------
-
+--------------
 This is the only file created to contain all the last pickleUpdates times from each of the different 
 clients. This file is save in a regular non-compresses pickle format. This is done so that a user 
 could easily modify a certain client's date if needed.
@@ -428,14 +431,23 @@ satnet-PICKLE-2006-07-12     satnet-ice-PICKLE-2006-07-12
 
             
         
-        
-        
+REMOTE PICKLE FILE SYNCHRONISATION(not yet done)
+-----------------------------------        
+As stated above, central server wich produces graphics must do so in a rather short period of time.
+
+This implies that it can only waste a very small amount gathering the remotely located pickle files from 
+every machines. 
+
+We have thus implemented a file synchronisation mechanism using RSYNC wich allows the server to keep
+up to date version of the pickle files. RSYNC Update must be set using a cron call to ???.py.
+
+This file will update pickles from every server unless specified otherwise in parameters.        
         
         
 USAGE:
 ---------------------------------------------------------------------------------------------------
 
-To be completed when usage is final.... Current picklUpdater usage is : 
+To be completed when usage is final.... Current pickleUpdater usage is : 
 
 
 Options:
@@ -524,6 +536,8 @@ TODO list
 -Find a better file naming system for the graphs. Make sure files can't be overwritten if 2 user ask for a graphs at the same time.  
 
 -Add methods that downloads all the pickles to the central,graphic producing server. 
- Test file merging. Test graphics produced with unique machines and a combination of machines. 
+
+-Test file merging. ***done 
+-Test graphics produced with unique machines and a combination of machines. ***Done
  
  

@@ -26,7 +26,7 @@ import os, pwd, sys,getopt, commands, fnmatch,pickle
 from optparse import OptionParser
 from ConfigParser import ConfigParser
 from MyDateLib import *
-from DirectoryStatsCollector import DirectoryStatsCollector
+from ClientStatsCollector import ClientStatsCollector
 
 
 class _UpdaterInfos: 
@@ -36,7 +36,7 @@ class _UpdaterInfos:
     def __init__( self, clients, machines, directories, types, startTimes,collectUpToNow, currentDate = '2005-06-27 13:15:00', interval = 1  ):
         
         """
-            Data structure used to contain all necessary info for a call to DirectoryStatscollector. 
+            Data structure used to contain all necessary info for a call to ClientStatsCollector. 
             
         """ 
         
@@ -314,7 +314,7 @@ def addOptions( parser ):
 
 def main():
     """
-        Gathers options, then makes call to DirectoryStatsCollector to collect the stats based 
+        Gathers options, then makes call to ClientStatsCollector to collect the stats based 
         on parameters received.  
         
         
@@ -328,7 +328,7 @@ def main():
     
     for i in range( len (infos.clients) ) :
         
-        ds = DirectoryStatsCollector( infos.directories[i] )
+        cs = ClientStatsCollector( client = infos.clients[i] )
         
         #In case pickling didnt happen for a few days for some reason...                 
         if MyDateLib.areDifferentDays( infos.startTimes[i], infos.endTime ) == True :
@@ -346,9 +346,9 @@ def main():
                     print "goes to day where last pickle occured"
                     endTime = MyDateLib.getIsoLastMinuteOfDay( infos.startTimes[i] )
                     
-                    print "pickle wich allready existed : %s" %DirectoryStatsCollector.buildTodaysFileName( clientName = infos.clients[i], tempTime =  infos.startTimes[i] )
+                    print "pickle wich allready existed : %s" %ClientStatsCollector.buildTodaysFileName( clientName = infos.clients[i], tempTime =  infos.startTimes[i] )
                     
-                    ds.collectStats( infos.types, startTime = MyDateLib.getIsoTodaysMidnight( infos.startTimes[i] ), endTime = endTime, interval = infos.interval * MyDateLib.MINUTE , pickle = DirectoryStatsCollector.buildTodaysFileName( clientName = infos.clients[i], tempTime =  infos.startTimes[i] )  )
+                    cs.collectStats( types = infos.types, startTime = MyDateLib.getIsoTodaysMidnight( infos.startTimes[i] ), endTime = endTime, interval = infos.interval * MyDateLib.MINUTE , pickle = ClientStatsCollector.buildTodaysFileName( clientName = infos.clients[i], tempTime =  infos.startTimes[i] ), directory = "/apps/px/lib/stats/files/", fileType = "tx"  )
                 
                 
                 else:#in between days....need to collect everything from 00:00:00 23:59:59
@@ -359,22 +359,26 @@ def main():
                     
                     print "-goes to day in between"   
                     
-                    ds.collectStats( infos.types, startTime = MyDateLib.getIsoTodaysMidnight( rewindedTime ), endTime = endTime, interval = infos.interval * MyDateLib.MINUTE , pickle = DirectoryStatsCollector.buildTodaysFileName( clientName = infos.clients[i], tempTime = rewindedTime ), width = 24 * MyDateLib.HOUR,   )
+                    cs.collectStats( types = infos.types, startTime = MyDateLib.getIsoTodaysMidnight( rewindedTime ), endTime = endTime, interval = infos.interval * MyDateLib.MINUTE , pickle = ClientStatsCollector.buildTodaysFileName( clientName = infos.clients[i], tempTime = rewindedTime ), width = 24 * MyDateLib.HOUR,  directory = "/apps/px/lib/stats/files/", fileType = "tx"  )
                 
                     
             #Collect todays data.
-            pickle = DirectoryStatsCollector.buildTodaysFileName( clientName = infos.clients[i], tempTime = infos.currentDate )
+            print "pickles for today !"
+            pickle = ClientStatsCollector.buildTodaysFileName( clientName = infos.clients[i], tempTime = infos.currentDate )
             
-            ds.collectStats( infos.types, startTime = MyDateLib.getIsoTodaysMidnight( infos.endTime ), endTime = infos.endTime, interval = infos.interval * MyDateLib.MINUTE , pickle = pickle   )
+            cs.collectStats( infos.types, startTime = MyDateLib.getIsoTodaysMidnight( infos.endTime ), endTime = infos.endTime, interval = infos.interval * MyDateLib.MINUTE , pickle = pickle, directory = "/apps/px/lib/stats/files/", fileType = "tx"   )
                     
                     
                     
         else:#last pickleUpdate happened today 
             
-            pickle = DirectoryStatsCollector.buildTodaysFileName( clientName = infos.clients[i], tempTime = infos.currentDate )
+            pickle = ClientStatsCollector.buildTodaysFileName( clientName = infos.clients[i], tempTime = infos.currentDate )
             print "pickled used in calling : %s " %pickle 
-            ds.collectStats( infos.types, startTime = infos.startTimes[i], endTime = infos.endTime, interval = infos.interval * MyDateLib.MINUTE , pickle = pickle   )
-           
+            print "infos.startTimes[i] : %s" %infos.startTimes[i]
+            print "infos.endTime : %s" %infos.endTime
+            
+            cs.collectStats( types = infos.types, directory = "/apps/px/lib/stats/files/", fileType = "tx" , startTime = infos.startTimes[i], endTime = infos.endTime, interval = infos.interval * MyDateLib.MINUTE , pickle = pickle   )
+            print "allo"
         
         setLastCronJob( clientName = infos.clients[i], currentDate = infos.currentDate, collectUpToNow = infos.collectUpToNow )
         
