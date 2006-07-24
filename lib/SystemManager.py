@@ -265,7 +265,30 @@ class SystemManager:
                     print "Problem deleting %s , Type: %s Value: %s" % (file, type, value)
                 else:
                     deleteLog.error("Problem deleting %s , Type: %s Value: %s" % (file, type, value))
-                    
+    
+    def copyFileList(self, fileLog, destinations):
+        """
+        Copy all files listed in the fileLog to a set of destinations.
+        """
+    
+        try:
+            flog = open(fileLog, 'r')
+        except IOError:
+            (type, value, tb) = sys.exc_info()
+            print "Problem opening %s , Type: %s Value: %s" % (fileLog, type, value)
+
+        filesToCopy = flog.readlines()
+        flog.close()
+
+        for file in filesToCopy:
+            file = file.strip()
+            for destination in destinations:
+                try:
+                    shutil.copy(file, destination)
+                except IOError:
+                    (type, value, tb) = sys.exc_info()
+                    print "Problem copying %s to %s, Type: %s Value: %s" % (file, destination, type, value)
+        
 if __name__ == '__main__':
   
     manager = SystemManager()
