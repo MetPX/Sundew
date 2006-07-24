@@ -16,11 +16,6 @@ named COPYING in the root of the source directory tree.
 #
 # Date: 2006-07-07
 #
-# WARNING: There is a possibility that the program cannot
-#          resend a humongous ammount of bulletin since
-#          this would exceed the maxium command line size
-#          allowed.
-#
 ###########################################################
 """
 

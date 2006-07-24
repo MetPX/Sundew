@@ -275,7 +275,7 @@ class SystemManager:
             flog = open(fileLog, 'r')
         except IOError:
             (type, value, tb) = sys.exc_info()
-            print "Problem opening %s , Type: %s Value: %s" % (fileLog, type, value)
+            print "Problem opening %s, Type: %s Value: %s" % (fileLog, type, value)
 
         filesToCopy = flog.readlines()
         flog.close()
