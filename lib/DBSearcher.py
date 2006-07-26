@@ -11,7 +11,7 @@
 #############################################################################################
 """
 
-import os, os.path, sys, time
+import os, os.path, sys, time, copy
 import PXPaths, dateLib
 from FileParser import FileParser
 
@@ -26,11 +26,59 @@ class DBSearcher:
     COUNTRIES = ['CA', 'US']
     INTERNATIONAL_SOURCES = ['nws-alpha', 'ukmetin', 'ukmet-bkp']   # sundew international sources
     CANADIAN_SOURCES = ['cmcin', 'ncp1', 'ncp2']                    # sundew canadian sources 
+
     TODAY = dateLib.getTodayFormatted()
     YESTERDAY = dateLib.getYesterdayFormatted()
 
     TODAY = '20060523'
     YESTERDAY = '20060522'
+
+    FD_COUNTRIES = ['can', 'usa', 'ala', 'bfr']
+    FD_NUMBERS = [1, 2, 3]
+
+    temp = dict(zip(FD_NUMBERS, ['', '', '']))
+    temp = dict(zip(FD_COUNTRIES, [temp.copy() for x in range(4)]))
+    FD = {'low': copy.deepcopy(temp), 'high': copy.deepcopy(temp)}
+
+    # Canada
+    FD['low']['can'][1] = 'FDCN01 CWAO'
+    FD['low']['can'][2] = 'FDCN02 CWAO'
+    FD['low']['can'][3] = 'FDCN03 CWAO'
+    FD['high']['can'][1] = 'FDCN1 KWBC'
+    FD['high']['can'][2] = 'FDCN2 KWBC'
+    FD['high']['can'][3] = 'FDCN3 KWBC'
+
+    # Usa
+    FD['low']['usa'][1] = 'FDUS11 KWBC'
+    FD['low']['usa'][2] = 'FDUS13 KWBC'
+    FD['low']['usa'][3] = 'FDUS15 KWBC'
+    FD['high']['usa'][1] = 'FDUS8 KWBC'
+    FD['high']['usa'][2] = 'FDUS9 KWBC'
+    FD['high']['usa'][3] = 'FDUS10 KWBC'
+
+    # Alaska
+    FD['low']['ala'][1] = 'FDAK1 KWBC'
+    FD['low']['ala'][2] = 'FDAK2 KWBC'
+    FD['low']['ala'][3] = 'FDAK3 KWBC'
+    #FD['high']['ala'][1] = ''
+    #FD['high']['ala'][2] = ''
+    #FD['high']['ala'][3] = ''
+
+    # BFR and PWM ??
+    FD['low']['bfr'][1] = 'FDUS12 KWBC'
+    FD['low']['bfr'][2] = 'FDUS14 KWBC'
+    FD['low']['bfr'][3] = 'FDUS16 KWBC'
+    FD['high']['bfr'][1] = 'FDUE01 KWBC'
+    FD['high']['bfr'][2] = 'FDUE03 KWBC'
+    FD['high']['bfr'][3] = 'FDUE05 KWBC'
+
+    for country in FD_COUNTRIES:
+        exec(country + 'List= []')
+        for height in ['low', 'high']:
+            for number in FD_NUMBERS:
+                if (FD[height][country][number]):
+                    eval(country + 'List').append(FD[height][country][number])
+                    #eval(country + 'List').sort()
 
     def __init__(self, request):
         
@@ -63,7 +111,7 @@ class DBSearcher:
         elif len(words) == 2  and 4 <= len(words[0]) <= 6 and len(words[1]) == 4:
             # ex: SACN31 CWAO
             # ex: FPCN31 CWAO
-            print "\nFully qualified header request\n"
+            #print "\nFully qualified header request\n"
             
             self.requestType = 1 
             self.ttaaii= words[0]
@@ -78,7 +126,7 @@ class DBSearcher:
         elif words[0] in DBSearcher.TYPES:
             # ex: SA YUL
             # ex: SA CYUL PATQ
-            print "\nPartial header request (Type + station(s))\n"
+            #print "\nPartial header request (Type + station(s))\n"
             self.requestType = 2 
             self.type = words[0]
             for station in words[1:]:
@@ -90,9 +138,7 @@ class DBSearcher:
             print "\nBad request even if the word's number is good"
 
     def _search(self):
-
         # FIXME: Must select best result from multiple machines
-
         if self.requestType == 1:
             # Fully qualified header request
             if self.debug: print self.ttaaii, self.center, self.country
@@ -108,25 +154,25 @@ class DBSearcher:
                     if self.type == 'SA':
                         results = self._findSA([station], date)
                         if results[0][1]:
-                            self.printResults(results, self.type)
+                            #self.printResults(results, self.type)
                             for result in results:
                                 print self.formatResult(result, self.type)
                             break
                     elif self.type in ['FC', 'FT', 'TAF']:
                         results = self._findTAF([station], date)
                         if results[0][1]:
-                            self.printResults(results, self.type)
+                            #self.printResults(results, self.type)
                             for result in results:
                                 print self.formatResult(result, self.type)
                             break
 
                     # Under construction
                     elif self.type in ['FD', 'FD1', 'FD2', 'FD3']:
-                        results = self._findFD([station], date)
+                        results = self._findFD([station], self.type, date)
                         if results[0][1]:
-                            self.printFDResults(results)
+                            self.printResults(results)
                             for result in results:
-                                print self.formatResult(result)
+                                print self.formatResult(result, self.type)
                             break
 
     def _getFilesToParse(self, root, headers):
@@ -137,44 +183,111 @@ class DBSearcher:
         """
 
         filesToParse = [] 
-        centers = FileParser.removeDuplicate([header.split()[1] for header in headers])
-
-        # Request SA PATQ 
-        # => headers = ['SAAK31 KWBC', 'SAAK41 KNKA', 'SAUS20 KNKA', 'SAUS70 KWBC']
-        # => ttaaiis = {'KNKA': ['SAAK41', 'SAUS20'], 'KWBC': ['SAAK31', 'SAUS70']}
-        ttaaiis = {}    
-        for header in headers:
-           ttaaiis.setdefault(header.split()[1], []).append(header.split()[0])
-
-        try:
-            sources = os.listdir(root)
-        except:
-            (type, value, tb) = sys.exc_info()
-            print("Type: %s, Value: %s" % (type, value))
-            sys.exit()
-
-        print("Headers: %s" % headers)
-        print("ttaaiis: %s" % ttaaiis)
-        print("centers: %s" % centers)
-        print("sources: %s\n" % sources)
-
-        for source in sources:
-            for center in centers:    
-                pathToCenter = root + source + '/' + center
-                try:
-                    for file in os.listdir(pathToCenter):
-                        for ttaaii in ttaaiis[center]:
-                            if file[:len(ttaaii)] == ttaaii:
-                                filesToParse.append(pathToCenter + '/' + file)
-                                break
-                except:
-                    (type, value, tb) = sys.exc_info()
-                    if self.debug: print("Type: %s, Value: %s" % (type, value))
-                    continue
-
-        print ("len(filesToParse) = %d\n" % len(filesToParse))
+        
+        if headers == ['']:
+            pass
+        else:
+            centers = FileParser.removeDuplicate([header.split()[1] for header in headers])
+    
+            # Request SA PATQ 
+            # => headers = ['SAAK31 KWBC', 'SAAK41 KNKA', 'SAUS20 KNKA', 'SAUS70 KWBC']
+            # => ttaaiis = {'KNKA': ['SAAK41', 'SAUS20'], 'KWBC': ['SAAK31', 'SAUS70']}
+            ttaaiis = {}    
+            for header in headers:
+               ttaaiis.setdefault(header.split()[1], []).append(header.split()[0])
+    
+            try:
+                sources = os.listdir(root)
+            except:
+                (type, value, tb) = sys.exc_info()
+                print("Type: %s, Value: %s" % (type, value))
+                sys.exit()
+    
+            print("Headers: %s" % headers)
+            print("ttaaiis: %s" % ttaaiis)
+            print("centers: %s" % centers)
+            print("sources: %s\n" % sources)
+    
+            for source in sources:
+                for center in centers:    
+                    pathToCenter = root + source + '/' + center
+                    try:
+                        for file in os.listdir(pathToCenter):
+                            for ttaaii in ttaaiis[center]:
+                                if file[:len(ttaaii)] == ttaaii:
+                                    filesToParse.append(pathToCenter + '/' + file)
+                                    break
+                    except:
+                        (type, value, tb) = sys.exc_info()
+                        if self.debug: print("Type: %s, Value: %s" % (type, value))
+                        continue
+    
+            print ("len(filesToParse) = %d\n" % len(filesToParse))
 
         return filesToParse
+
+    def _findFD(self, stations, fdtype, date=TODAY):
+        from StationParser import StationParser
+        from FDParser import FDParser
+
+        results = [] # ex: [('CYOW', FD_LINE, FD_HEADER_TIME, FD_FILE, FD_FILE_TIME), ('CYUL', ...)]
+
+        sp = StationParser(PXPaths.ETC + 'stations_FD.conf')
+        sp.parse()
+
+        for station in stations:
+            countryCase = ''
+            headers = sp.headers.get(station, [])
+            headers.sort()
+
+            # We must find in which case we are ...
+            for country in DBSearcher.FD_COUNTRIES:
+                countryHeaders = eval('DBSearcher.' + country + 'List')
+                countryHeaders.sort()
+                if headers == countryHeaders:
+                    countryCase = country
+                    print "We are in the %s case" % country.upper()
+                    break
+            
+            if countryCase:
+                if fdtype in ['FD1', 'FD2', 'FD3']:
+                    number = fdtype[2]
+                    interestingHeaders = [DBSearcher.FD['low'][countryCase][int(number)], DBSearcher.FD['high'][countryCase][int(number)]]
+                    #print interestingHeaders
+                    for value in [0,1]:
+                        filesToParse = self._getFilesToParse(PXPaths.DB + date + '/FD/', [interestingHeaders[value]])
+                        #print("In findFD, len(filesToParse) = %d" % len(filesToParse))
+                        theLine, bestHeaderTime, theFile, bestFileTime = self._findMoreRecentStation(FDParser(''), filesToParse, station)
+                        if theLine:
+                            bigTitle = FDParser('').getFDTitle(theFile)
+                            #print("BIG TITLE: \n%s" % bigTitle)
+                            #print theFile
+                            #print "theLine: %s" % theLine
+                            theLine = bigTitle + theLine
+
+                        results.append((station, theLine, bestHeaderTime, theFile, bestFileTime))
+                        
+                else:
+                    number = 0
+                    interestingHeaders = eval('DBSearcher.' + country + 'List')
+                    #print interestingHeaders
+                    for headers in [interestingHeaders[:3], interestingHeaders[3:]]:
+                        filesToParse = self._getFilesToParse(PXPaths.DB + date + '/FD/', headers)
+                        #print("In findFD, len(filesToParse) = %d" % len(filesToParse))
+                        theLine, bestHeaderTime, theFile, bestFileTime = self._findMoreRecentStation(FDParser(''), filesToParse, station)
+                        if theLine:
+                            bigTitle = FDParser('').getFDTitle(theFile)
+                            #print("BIG TITLE: \n%s" % bigTitle)
+                            #print theFile
+                            #print "theLine: %s" % theLine
+                            theLine = bigTitle + theLine
+
+                        results.append((station, theLine, bestHeaderTime, theFile, bestFileTime))
+
+            else:
+                print 'PROBLEM: We are unable to determine which headers to use for this station (%s)' % station
+
+        return results
 
     def _findTAF(self, stations, date=TODAY):
         from StationParser import StationParser
@@ -284,7 +397,7 @@ class DBSearcher:
 
         return speciResult + saResult  
 
-    def printResults(self, results, type):
+    def printResults(self, results, type=None):
         print "%s RESULTS %s" % (30*'=', 30*'=')
         for result in results:
             if type == 'SA':
@@ -293,7 +406,7 @@ class DBSearcher:
                 station, theLine, bestHeaderTime, theFile, bestFileTime = result
             
             print "Station: %s" % station
-            print "Line: %s" % theLine
+            print "Line:\n%s" % theLine
             print "HeaderTime: %s" % bestHeaderTime
             print "File: %s" % theFile
             print "FileTime: %s" % bestFileTime
@@ -357,8 +470,6 @@ class DBSearcher:
 
         return (theLine, bestHeaderTime, theFile, bestFileTime)
         
-    def _findFD(self):
-        pass
 
     def _findFullHeader(self, unique=True, ttaaii='SACN31', center='CWAO', country='CA', date=TODAY):
         self.theFile = None           # The filename of the more recent header in a full qualified header search
@@ -534,3 +645,9 @@ if __name__ == '__main__':
 
     request = ' '.join(sys.argv[1:])
     dbs = DBSearcher(request)
+ 
+    """
+    for country in DBSearcher.FD_COUNTRIES:
+    #    print '%s = %s' % (country, eval('DBSearcher.' + country + 'List'))
+        print DBSearcher.FD['low'][country]
+    """
