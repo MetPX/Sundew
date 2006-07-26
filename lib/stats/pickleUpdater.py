@@ -33,7 +33,7 @@ class _UpdaterInfos:
     
 
 
-    def __init__( self, clients, machines, directories, types, startTimes,collectUpToNow, currentDate = '2005-06-27 13:15:00', interval = 1  ):
+    def __init__( self, clients, directories, types, startTimes,collectUpToNow, fileType, currentDate = '2005-06-27 13:15:00', interval = 1  ):
         
         """
             Data structure used to contain all necessary info for a call to ClientStatsCollector. 
@@ -41,20 +41,20 @@ class _UpdaterInfos:
         """ 
         
         systemsCurrentDate  = MyDateLib.getIsoFromEpoch( time.time() )
-        self.clients        = clients                                          # Client for wich the job is done.
-        self.machines       = machines                                         # Machines on wich we'll search data. 
-        self.types          = types                                            # Data types to collect  
-        self.directories    = directories                                      # Get the directory containing files  
-        self.interval       = interval                                         # Interval..... 
-        self.startTimes     = startTimes                                       # Time of last crontab job.... 
-        self.currentDate    = currentDate or  systemsCurrentDate               # Time of the cron job.
-        self.collectUpToNow = collectUpToNow                                   # Wheter or not we collect up to now or 
-        self.endTime        = self.currentDate                                 # Will be currentDate if collectUpTo                                                                             now is true, start of the current                                                                              hour if not 
+        self.clients        = clients                              # Client for wich the job is done.
+        self.types          = types                                # Data types to collect 
+        self.fileType       = fileType                             # file type to use  
+        self.directories    = directories                          # Get the directory containing files  
+        self.interval       = interval                             # Interval..... 
+        self.startTimes     = startTimes                           # Time of last crontab job.... 
+        self.currentDate    = currentDate or  systemsCurrentDate   # Time of the cron job.
+        self.collectUpToNow = collectUpToNow                       # Wheter or not we collect up to now or 
+        self.endTime        = self.currentDate                     # Will be currentDate if collectUpTo                                                                             now is true, start of the current                                                                              hour if not 
        
 
 
 
-def getfilesIntoDirectory( clientName, machines = "" ):
+def getfilesIntoDirectory( clientName ):
     """
         This method is used to get all files wich contains the data we need to look up
         to do the pickle job. 
@@ -181,13 +181,13 @@ def getOptionsFromParser( parser ):
     ( options, args ) = parser.parse_args()        
      
     clients         = options.clients.replace( ' ','' ).split(',')
-    machines        = options.machines.replace( ' ', '' ).split(',')
     types           = options.types.replace( ' ', '').split(',')
     currentDate     = options.currentDate.replace('"','')
     currentDate     = options.currentDate.replace("'",'')
+    fileType        = options.fileType.replace("'",'')
     interval        = options.interval
     collectUpToNow  = options.collectUpToNow
-    
+         
      
     try:    
         if int( interval ) < 1 :
@@ -200,26 +200,40 @@ def getOptionsFromParser( parser ):
         print "Program terminated."
         sys.exit()
         
-    try:
-        for t in types :
-            if t not in["errors","latency","bytecount"]:
-                raise 
     
+    if fileType != "tx" and fileType != "rx":
+        print "Error. File type must be either tx or rx."
+        print 'Multiple types are not accepted.' 
+        print "Use -h for additional help."
+        print "Program terminated."
+        sys.exit()    
+        
+    
+    if fileType == "tx":       
+        validTypes = ["errors","latency","bytecount"]
+
+    else:
+        validTypes = ["errors","bytecount"]
+           
+    try :
+        for t in types :
+            if t not in validTypes:
+                raise 
+
     except:    
         
-        print "Error. Type value must be either errors, latency or bytecount."
-        print 'For multiple types use this syntax : -t "errors,latency,bytecount"' 
+        print "Error. With %s fileType, possible data types values are : %s." %(fileType,validTypes )
+        print 'For multiple types use this syntax : -t "type1,type2"' 
         print "Use -h for additional help."
         print "Program terminated."
         sys.exit()
+    
         
-    
-    
     for client in clients :
-        directories.append( getfilesIntoDirectory( client, machines ) )
+        directories.append( getfilesIntoDirectory( client) )
         startTimes.append( getLastCronJob( clientName = client, currentDate =  currentDate ,collectUpToNow = collectUpToNow ) )
     
-    infos = _UpdaterInfos( currentDate = currentDate, clients = clients, startTimes = startTimes, machines = machines, directories = directories ,types = types, collectUpToNow = collectUpToNow )
+    infos = _UpdaterInfos( currentDate = currentDate, clients = clients, startTimes = startTimes, directories = directories ,types = types, collectUpToNow = collectUpToNow, fileType = fileType )
     
     if collectUpToNow == False:
         infos.endTime = MyDateLib.getIsoWithRoundedHours( infos.currentDate ) 
@@ -250,7 +264,6 @@ Defaults :
 - Default Client name does not exist.
 - Default Date of update is current system time.  
 - Default interval is 1 minute. 
-- Default machines value is the entire list of existing machines.  
 - Default Now value is False.
 - Default Types value is latency.
 - Accepted values for types are : errors,latency,bytecount
@@ -261,8 +274,8 @@ Options:
  
     - With -c|--clients you can specify the clients names on wich you want to collect data. 
     - With -d|--date you can specify the time of the update.( Usefull for past days and testing. )
+    - With -f|--fileType you can specify the file type of the log fiels that will be used.  
     - With -i|--interval you can specify interval in minutes at wich data is collected. 
-    - With -m|--machines you can specify on wich machine we must try to download log files.
     - With -n|--now you can specify that data must be collected right up to the minute of the call. 
     - With -t|--types you can specify what data types need to be collected
     
@@ -302,8 +315,8 @@ def addOptions( parser ):
     parser.add_option("-i", "--interval", type="int", dest="interval", default=1,
                         help="Interval (in minutes) for which a point will be calculated. Will 'smooth' the graph")
     
-    parser.add_option("-m", "--machines", action="store", type="string", dest="machines", default='pds5.cmc.ec.gc.ca, pds6.cmc.ec.gc.ca', help="Machines where the logs are")      
-    
+    parser.add_option("-f", "--fileType", action="store", type="string", dest="fileType", default='tx', help="Type of log files wanted.")                     
+   
     parser.add_option("-n", "--now", action="store_true", dest = "collectUpToNow", default=False, help="Collect data up to current second.")
        
     parser.add_option("-t", "--types", type="string", dest="types", default="latency,errors,bytecount",
@@ -359,7 +372,7 @@ def main():
                     
                     print "-goes to day in between"   
                     
-                    cs.collectStats( types = infos.types, startTime = MyDateLib.getIsoTodaysMidnight( rewindedTime ), endTime = endTime, interval = infos.interval * MyDateLib.MINUTE , pickle = ClientStatsCollector.buildTodaysFileName( clientName = infos.clients[i], tempTime = rewindedTime ), width = 24 * MyDateLib.HOUR,  directory = "/apps/px/lib/stats/files/", fileType = "tx"  )
+                    cs.collectStats( types = infos.types, startTime = MyDateLib.getIsoTodaysMidnight( rewindedTime ), endTime = endTime, interval = infos.interval * MyDateLib.MINUTE , pickle = ClientStatsCollector.buildTodaysFileName( clientName = infos.clients[i], tempTime = rewindedTime ), directory = "/apps/px/lib/stats/files/", fileType = infos.fileType  )
                 
                     
             #Collect todays data.

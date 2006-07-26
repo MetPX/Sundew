@@ -42,7 +42,7 @@ class ClientGraphicProducer:
     
     
     
-    def __init__( self, clientNames = None ,  timespan = 12, currentTime = None, productType = "All"  ):
+    def __init__( self, directory, fileType, clientNames = None ,  timespan = 12, currentTime = None, productType = "All"  ):
         """
             ClientGraphicProducer constructor. 
             
@@ -61,7 +61,8 @@ class ClientGraphicProducer:
         else:
             currentTime = time.time()
             
-            
+        self.directory    = directory         # Directory where log files are located. 
+        self.fileType     = fileType          # Type of log files to be used.    
         self.clientNames  = clientNames or [] # Client name we need to get the data from.
         self.timespan     = timespan          # Number of hours we want to gather the data from. 
         self.currentTime  = currentTime       # Time when stats were queried.
@@ -251,12 +252,12 @@ class ClientGraphicProducer:
             
             
             #Create collection that's properly cut in buckets....
-            statsCollection = FileStatsCollector( statsTypes = types, startTime = startTimes[ len(startTimes)-1 ] , width = ( self.timespan* MyDateLib.HOUR ), interval = MyDateLib.MINUTE, totalWidth = ((self.timespan* MyDateLib.HOUR ) + 60 * minutesToAppend ) )
+            statsCollection = FileStatsCollector( statsTypes = types, startTime = startTimes[ len(startTimes)-1 ] , endTime = endTime, interval = MyDateLib.MINUTE, totalWidth = ((self.timespan* MyDateLib.HOUR ) + 60 * minutesToAppend ) )
             
             
             lastCronJob = pickleUpdater.getLastCronJob( self.clientNames[i], MyDateLib.getIsoFromEpoch(self.currentTime) )
             
-            timeSinceLastCron = self.currentTime -  MyDateLib.getSecondsSinceEpoch( lastCronJob )
+            #timeSinceLastCron = self.currentTime -  MyDateLib.getSecondsSinceEpoch( lastCronJob )
             
 
             #do a pickleUpdater like job without saving pickle....
@@ -267,8 +268,8 @@ class ClientGraphicProducer:
                 
                 print "endTime : %s" %endTime 
                 print "lastCronJob:%s" %lastCronJob
-                
-                ds.collectStats( types, startTime = lastCronJob , endTime = endTime, width = timeSinceLastCron, interval = 1*MyDateLib.MINUTE, pickle = ClientStatsCollector.buildTodaysFileName( self.clientNames[i], tempTime = MyDateLib.getIsoFromEpoch(self.currentTime )) , save = False )         
+ 
+                ds.collectStats( types, directory = self.directory, fileType = self.fileType, startTime = lastCronJob , endTime = endTime,interval = 1*MyDateLib.MINUTE, pickle = ClientStatsCollector.buildTodaysFileName( self.clientNames[i], tempTime = MyDateLib.getIsoFromEpoch(self.currentTime )) , save = False )         
                 
             
             else:#skip collecting 
@@ -330,9 +331,9 @@ if __name__ == "__main__":
         small test case to see proper use and see if everything works fine. 
         
     """
+    gp = ClientGraphicProducer( clientNames = [ 'satnet' ], timespan = 12, currentTime = "2006-07-20 05:15:00",productType = "", directory ="/apps/px/lib/stats/files/" , fileType = "tx" )  
     
-    gp = ClientGraphicProducer( clientNames = [ 'satnet' ], timespan = 12, currentTime = "2006-07-17 02:15:00",productType = "SACN31" )  
-    gp.produceGraphic( types = [ "bytecount","latency" ], now = False   )
+    gp.produceGraphic( types = [ "bytecount","latency","errors" ], now = False   )
 
 
     

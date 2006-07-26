@@ -28,6 +28,8 @@ def tail( nbLines = 1, file = "", printIt = False ):
     """
         Similar to the usual tail method we use in linux, only now it is in pure python.
         
+        File must exist or else program will be terminated. 
+        
         nbLines : Number of lines we want to get from the end of the file.
         file    : Absolute path to the file we want to use.
         printIt : Whether or not user want to print the results of action performed here. 
@@ -40,44 +42,46 @@ def tail( nbLines = 1, file = "", printIt = False ):
         lines    = []
         fileSize = os.stat(file)[6]
         
-        fileHandle = open( file ,"r" )
-        fileHandle.seek( offset,2 )
-        
-        for lineNumber in range( nbLines +1 ) :
+        if fileSize >=2 : 
+            fileHandle = open( file ,"r" )
+            fileHandle.seek( offset,2 )
             
-            while abs( offset) <=  fileSize and fileHandle.read(1) == "\n" :
+            for lineNumber in range( nbLines +1 ) :
                 
-                offset = offset- 1
-                if abs( offset) <=  fileSize :
-                    fileHandle.seek( offset,2 )
-                else:
-                    fileHandle.seek( (fileSize - (2*fileSize)),2 )  
-                        
-            
-            while abs( offset) <=  fileSize and fileHandle.read(1) != "\n" :
+                while abs( offset) <=  fileSize and fileHandle.read(1) == "\n" :
+                    
+                    offset = offset- 1
+                    if abs( offset) <=  fileSize :
+                        fileHandle.seek( offset,2 )
+                    else:
+                        fileHandle.seek( (fileSize - ( 2*fileSize ) ),2 )  
+                            
                 
-                offset = offset- 1
+                while abs( offset) <=  fileSize and fileHandle.read(1) != "\n" :
+                    
+                    offset = offset- 1
+                    
+                    if abs( offset) <=  fileSize :
+                        fileHandle.seek( offset,2 )
+                    else:
+                        fileHandle.seek( (fileSize - ( 2 * fileSize) ),2 )    
                 
-                if abs( offset) <=  fileSize :
-                    fileHandle.seek( offset,2 )
-                else:
-                    fileHandle.seek( (fileSize - (2*fileSize)),2 )    
-            
+                    
+                line = fileHandle.readline()
                 
-            line = fileHandle.readline()
-            
-            if line != "" : #might not be usefull
-                lines.append(line)
-            
-            if abs( offset) >  fileSize : # cant tail any more lines than the file pocess..
-                break   
+                if line != "" : #might not be usefull
+                    lines.append(line)
+                
+                if abs( offset) >  fileSize : # cant tail any more lines than the file pocess..
+                    break   
         
         lines.reverse()            
         if printIt == True :
             for line in lines:
                 print line 
-    
+        
     else:
+    
         print "Error. %s does not exist." %file 
         print "Program terminated."
         sys.exit()   
@@ -109,23 +113,23 @@ def readLineBackwards( fileHandle, offset = -1 , fileSize =0 ) :
             
             offset = offset- 1
             
-            if abs( offset) <=  fileSize :
+            if abs( offset ) <=  fileSize :
                 fileHandle.seek( offset,2 )
             else:
-                fileHandle.seek( (fileSize - (2*fileSize)),2 ) 
+                fileHandle.seek( ( fileSize - (2*fileSize) ), 2 ) 
                 
         if abs( offset) <=  fileSize :
-            fileHandle.seek( offset,2 )
+            fileHandle.seek( offset, 2 )
         else:
-            fileHandle.seek( (fileSize - (2*fileSize)),2 ) 
+            fileHandle.seek( ( fileSize - ( 2*fileSize) ), 2 ) 
                 
-        while abs( offset) <=  fileSize and fileHandle.read(1) != "\n" : 
+        while abs( offset ) <=  fileSize and fileHandle.read(1) != "\n" : 
             offset = offset- 1
             
-            if abs( offset) <=  fileSize :
+            if abs( offset ) <=  fileSize :
                 fileHandle.seek( offset,2 )
             else:
-                fileHandle.seek( (fileSize - (2*fileSize)),2 ) 
+                fileHandle.seek( (fileSize - ( 2*fileSize ) ), 2 ) 
                     
         line = fileHandle.readline()
         
@@ -136,14 +140,16 @@ def readLineBackwards( fileHandle, offset = -1 , fileSize =0 ) :
 if __name__ == "__main__":
     
     """
-        small test case. Tests if everything works plus gives an idea on proper usage.
+        Small test case. Tests if everything works plus gives an idea on proper usage.
     """
     
+    tail( nbLines =10, file = "/apps/px/lib/stats/vide",printIt = True )
     tail( nbLines =10, file = "/apps/px/lib/stats/files/tx_amis-amec.log.old",printIt = True )
-   
-            
-    fileName = "/apps/px/lib/stats/files/bob"
-    fileHandle = open( "/apps/px/lib/stats/files/bob", "r")
+    tail( nbLines =10, file = "/apps/px/lib/stats/files/existepas",printIt = True )
+    tail( nbLines =10, file = "/apps/px/lib/stats/onelinefile",printIt = True)        
+    
+    fileName = "/apps/px/lib/stats/bob"
+    fileHandle = open( "/apps/px/lib/stats/bob", "r")
     
     fileSize = os.stat(fileName)[6]
     line,offset  = readLineBackwards( fileHandle, offset = -1, fileSize = fileSize  )

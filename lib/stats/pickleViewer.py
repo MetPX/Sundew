@@ -42,49 +42,49 @@ def printPickle( pickle, outputFile = "" ):
     
     """
     
-    try :
+#     try :
         
-        if outputFile != "":
-            print "allo"
-            fileHandle = open( outputFile , 'w' )
-            old_stdout = sys.stdout 
-            sys.stdout = fileHandle 
-        
-        statsCollection = gzippickle.load( pickle )
-        
-        print "Pickle used : %s" %pickle
-        print "\n\nFiles used : %s" %statsCollection.files
-        print "Starting date: %s" % MyDateLib.getIsoFromEpoch(statsCollection.startTime)
-                                    
-        print "Interval: %s" %statsCollection.interval
-        print "Time Width: %s" %statsCollection.width
+    if outputFile != "":
+        print "allo"
+        fileHandle = open( outputFile , 'w' )
+        old_stdout = sys.stdout 
+        sys.stdout = fileHandle 
     
-        for j in range( statsCollection.nbEntries ):
-            print "\nEntry's interval : %s - %s " %( MyDateLib.getIsoFromEpoch(statsCollection.fileEntries[j].startTime), MyDateLib.getIsoFromEpoch(statsCollection.fileEntries[j].endTime ) )
-            print "Values :"
-            print statsCollection.fileEntries[j].values.dictionary
-            print "Means :"
-            print statsCollection.fileEntries[j].means
-            print "Medians"    
-            print statsCollection.fileEntries[j].medians
-            print "Minimums"
-            print statsCollection.fileEntries[j].minimums
-            print "Maximums"
-            print statsCollection.fileEntries[j].maximums
-            print "Total"
-            print statsCollection.fileEntries[j].totals
-            
+    statsCollection = gzippickle.load( pickle )
     
-        fileHandle.close()      
-        sys.stdout = old_stdout #resets standard output 
-    
-    
-    except:
+    print "Pickle used : %s" %pickle
+    print "\n\nFiles used : %s" %statsCollection.files
+    print "Starting date: %s" % MyDateLib.getIsoFromEpoch(statsCollection.startTime)
+                                
+    print "Interval: %s" %statsCollection.interval
+    print "End time : %s" %statsCollection.endTime
+
+    for j in range( statsCollection.nbEntries ):
+        print "\nEntry's interval : %s - %s " %( MyDateLib.getIsoFromEpoch(statsCollection.fileEntries[j].startTime), MyDateLib.getIsoFromEpoch(statsCollection.fileEntries[j].endTime ) )
+        print "Values :"
+        print statsCollection.fileEntries[j].values.dictionary
+        print "Means :"
+        print statsCollection.fileEntries[j].means
+        print "Medians"    
+        print statsCollection.fileEntries[j].medians
+        print "Minimums"
+        print statsCollection.fileEntries[j].minimums
+        print "Maximums"
+        print statsCollection.fileEntries[j].maximums
+        print "Total"
+        print statsCollection.fileEntries[j].totals
         
-        print "Error writing to file named %s" %outputFile
-        print "Program terminated."
-        sys.exit()
-        
+
+    fileHandle.close()      
+    sys.stdout = old_stdout #resets standard output 
+    
+    
+#     except:
+#         
+#         print "Error writing to file named %s" %outputFile
+#         print "Program terminated."
+#         sys.exit()
+#         
 
 def main(): 
     """

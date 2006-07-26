@@ -15,7 +15,7 @@ named COPYING in the root of the source directory tree.
 ##          a certain directory. 
 ##
 ##          Usefull in the library to sort out the numerous log files found 
-##          on a machine
+##          on a machine.
 ##
 ##
 #############################################################################
@@ -38,7 +38,7 @@ class DirectoryFileCollector:
                  
     """
     
-    def __init__( self, startTime = "2006-06-06 01:00:00", endTime = "2006-06-06 02:00:00", directory = "/apps/px/log", lastLineRead = "", lineType = "[INFO]", fileType = "tx", client = "satnet" ):
+    def __init__( self, startTime = "2006-06-06 01:00:00", endTime = "2006-06-06 02:00:00", directory = "/apps/px/log", lastLineRead = "", fileType = "tx", client = "satnet" ):
        """ 
            Constructor.
            -Builds a directoryFileCollector with no entries.   
@@ -52,10 +52,9 @@ class DirectoryFileCollector:
        self.startTime    = startTime    # Starting time of the data wich interests us. 
        self.endTime      = endTime      # Width of time for wich we are interested to collec data. 
        self.lastLineRead = lastLineRead # Last line read during a previous collection of data.  
-       self.lineType     = lineType     # Type said last line. Needed to be able to deal with data found on that line.
        self.fileType     = fileType     # Type of file we will be searching for here. tx,rx etc...
        self.client       = client       # Name of the client for wich we are searching files.  
-       self.entries = []                # List containing filenames of all interesting files found. 
+       self.entries      = []           # List containing filenames of all interesting files found. 
   
     
     
@@ -64,18 +63,18 @@ class DirectoryFileCollector:
             This method returns whether or not a certain file contain any data wich is within 
             the range we want.
             
+            Pre-condition : self.startTime must be <= self.endTime            
+                       
         """
         
         i = 0
         departure = ""
-        usefull = False    
-              
-        
-        #This method might be dangerous in case of huge file....
+        usefull = False   
+                     
+                
         fileHandle = open( fileName , 'r' ) 
         line = fileHandle.readline()
-        print "************************"
-        print line 
+        
         if line != "":
             
             departure =  FileStatsCollector.findValue( "departure" , line )       
@@ -83,19 +82,17 @@ class DirectoryFileCollector:
             if departure <= self.endTime  :
                 
                 line == ""
-                fileSize = os.stat(fileName)[6]
-                line,offset  = backwardReader.readLineBackwards( fileHandle, offset = -1, fileSize = fileSize  )
-                print line 
-                lastDeparture = FileStatsCollector.findValue( "departure" , line )        
+                fileSize = os.stat( fileName )[6]
                 
+                line,offset  = backwardReader.readLineBackwards( fileHandle, offset = -1, fileSize = fileSize  )
+                print "+-+- line : %s" %line
+                print "on filename : %s" %fileName
+                lastDeparture = FileStatsCollector.findValue( "departure" , line )        
+
                 if lastDeparture  >= self.startTime :
-                    print "usefull : %s" %fileName
                     usefull = True
         
-        if usefull == True :
-            print "usefull : %s" %fileName    
-            
-        print "************************"                            
+                         
         return usefull                   
 
 
@@ -105,8 +102,8 @@ class DirectoryFileCollector:
             If the directory is valid, this method will add all the valid  
             directory entries to the DirectoryFileCollector's entries field. 
             
-            This means all files wich are not directories and whose names don't 
-            start with '.'
+            Pre-condition : Files in the specified directory must all be of the valid 
+                            log file format. 
         
         """      
               
@@ -116,18 +113,19 @@ class DirectoryFileCollector:
             
             filePattern = self.directory + "/%s_%s.log*" %( self.fileType, self.client )
             
-            fileNames = glob.glob( filePattern )
-            
-            print fileNames
-            
+            fileNames = glob.glob( filePattern )            
+                      
             for fileName in fileNames: #verify every entries.
                 usefull = self.containsUsefullInfo( fileName )
                 
                 if usefull == True :
-                    print "usefull : %s" %fileName
                     self.entries.append( fileName )
 
-
+        else:
+            
+            print "Error. Folder named %s does not exist." %self.directory 
+            print "Program terminated."
+            sys.exit()  
 
                     
 if __name__ == "__main__":
@@ -136,6 +134,7 @@ if __name__ == "__main__":
     
     """
    
-    dc = DirectoryFileCollector( startTime = "2006-07-20 01:00:00", endTime= "2006-07-20 02:00:00", directory = "/apps/px/lib/stats/files", lastLineRead = "", lineType = "", fileType = "tx", client = "satnet"  )
-    dc.collectEntries()            
-    print dc.entries            
+    dc = DirectoryFileCollector( startTime = "2006-07-20 01:00:00", endTime= "2006-07-20 02:00:00", directory = "/apps/px/lib/stats/files", lastLineRead = "", fileType = "tx", client = "satnet"  )
+    dc.collectEntries() 
+    
+    print "Files returned : %s " %dc.entries            

@@ -23,7 +23,7 @@ named COPYING in the root of the source directory tree.
 
 
 import gzippickle
-from   FileStatsCollector     import *
+from   FileStatsCollector import *
 
 
 def picklesWereLastUpdatedAtTheSameTime( pickledTimes = [], clientName = ""  ):
@@ -77,11 +77,9 @@ def picklesWereLastUpdatedAtTheSameTime( pickledTimes = [], clientName = ""  ):
 
 def entryListIsValid( entryList ):
     """
-        returns whether or not an entry list of pickles contains 
+        Returns whether or not an entry list of pickles contains 
         a list of pickles that can be merged. 
          
-        #Might be incomplete...
-    
     """
      
     isValid = True    
@@ -118,13 +116,13 @@ def mergePickles( pickleNames = None, pickledTimes = None, clientName = ""  ):
         This methods receives a list of filenames referring to 
         pickled FileStatsEntries.
         
+        
         Pre condition :Pickle should be of the same timespan and bucket width.
-                       If not exception will be raised and program temrinated.  
+                       If not exception will be raised and program terminated.  
         
-        
-                           
     """
-    z =0 
+    
+    z = 0 
        
     entryList = []
     
@@ -132,18 +130,21 @@ def mergePickles( pickleNames = None, pickledTimes = None, clientName = ""  ):
         
         entryList.append( gzippickle.load( pickle ) )
     
+    
     if entryListIsValid( entryList ) == True and picklesWereLastUpdatedAtTheSameTime( pickledTimes, clientName ) :
         
         #start off with a carbon copy of entryList[0]
-        newFSC = FileStatsCollector( files = entryList[0].files , statsTypes =  entryList[0].statsTypes, startTime = MyDateLib.getIsoFromEpoch(entryList[0].startTime), width = entryList[0].width, interval=entryList[0].interval, totalWidth = entryList[0].totalWidth, lastEntryCalculated = entryList[0].lastEntryCalculated, lastFilledEntry = entryList[0].lastFilledEntry, maxLatency = entryList[0].lastFilledEntry, fileEntries = entryList[0].fileEntries )
+        newFSC = FileStatsCollector( files = entryList[0].files , statsTypes =  entryList[0].statsTypes, startTime = MyDateLib.getIsoFromEpoch(entryList[0].startTime), endTime = MyDateLib.getIsoFromEpoch(entryList[0].endTime), interval=entryList[0].interval, totalWidth = entryList[0].totalWidth, firstFilledEntry = entryList[0].firstFilledEntry, lastFilledEntry = entryList[0].lastFilledEntry, maxLatency = entryList[0].maxLatency, fileEntries = entryList[0].fileEntries )
         
         
         for i in range (1 , len(entryList) ): #add other entries 
             
-            newFSC.files.update( entryList[i].files ) 
-             
+            for file in entryList[i].files :
+                if file not in newFSC.files :
+                    newFSC.files.append( file ) 
+            
             for j in range( len(newFSC.fileEntries ) ) : 
-                 
+                
                 for k in range( entryList[i].fileEntries[j].values.rows ):#Add all new value
                     
                     newFSC.fileEntries[j].values.productTypes.append( entryList[i].fileEntries[j].values.productTypes[k] ) 
@@ -152,20 +153,14 @@ def mergePickles( pickleNames = None, pickledTimes = None, clientName = ""  ):
                     newFSC.fileEntries[j].times.append( entryList[i].fileEntries[j].times[k] )          
                                         
                     if entryList[i].fileEntries[j].values.productTypes[k] != "[ERROR]" :
-                         newFSC.fileEntries[ j ].nbFiles = newFSC.fileEntries[ j
-                          ].nbFiles + 1
+                        newFSC.fileEntries[ j ].nbFiles = newFSC.fileEntries[ j
+                        ].nbFiles + 1
                     
                     for type in newFSC.statsTypes :
-                       # print k,type
                         newFSC.fileEntries[j].values.dictionary[type].append( entryList[i].fileEntries[j].values.dictionary[type][k] ) 
                         
                     newFSC.fileEntries[j].values.rows = newFSC.fileEntries[j].values.rows + 1
-                    z = z + 1
-                    print "newFSC.fileEntries[j].values.rows : %s" %newFSC.fileEntries[j].values.rows
-                    print "len(newFSC.fileEntries[j].values.dictionary[type]) : %s" %len(newFSC.fileEntries[j].values.dictionary[type])        
-        
-        print "z = %s " %z
-        print newFSC.nbEntries
+
         
         newFSC = newFSC.setMinMaxMeanMedians( startingBucket = 0 , finishingBucket = newFSC.nbEntries )
         
@@ -181,12 +176,14 @@ def mergePickles( pickleNames = None, pickledTimes = None, clientName = ""  ):
     
 
 def main():
+    """
+        Small test case. Tests if everything works plus gives an idea on proper usage.
+    """
     
-    pickleNames = ["/apps/px/lib/stats/PICKLES/amis2/amis2-PICKLE-2006-07-17","/apps/px/lib/stats/PICKLES/amis1/amis1-PICKLE-2006-07-17"]
-    
-    
+    #join a pickle with itself to make it easier to see if data was merged or not. 
+    pickleNames = ["/apps/px/lib/stats/pickles/satnet20060720","/apps/px/lib/stats/pickles/satnet20060720"]
     pickledTimes = ["/apps/px/lib/stats/PICKLED-TIMES"]
-    pickle = "/apps/px/lib/stats/PICKLES/amis3/amis3-PICKLE-2006-07-17"
+    pickle = "/apps/px/lib/stats/pickles/mergedpickle/mergedsatnet20060720"
     
     newFSC = mergePickles( pickleNames=pickleNames, pickledTimes=pickledTimes  )
     gzippickle.save ( object = newFSC, filename = pickle )     

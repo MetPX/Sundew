@@ -53,9 +53,9 @@ class _ValuesDictionary:
            dictionary is always empty, values need to be added after creation.  
         
         """
-        self.columns = columns       # Number of columns of the dictionary 
-        self.rows    = rows          # Number of rows 
-        self.dictionary  = {}        # Contains value for each data type collected.
+        self.columns      = columns  # Number of columns of the dictionary 
+        self.rows         = rows     # Number of rows 
+        self.dictionary   = {}       # Contains value for each data type collected.
         self.productTypes = []       # For each line read, we save up what product type it was   
 
 
@@ -93,7 +93,7 @@ class FileStatsCollector:
     
     """
     
-    def __init__(self, files = None , statsTypes = None, startTime = '2005-08-30 20:06:59', width = DAY, interval=20*MINUTE, totalWidth = 24*HOUR, firstFilledentry = 0, lastFilledEntry = 0, lastFilledLine = "", maxLatency = 15,fileEntries = None ):
+    def __init__(self, files = None , statsTypes = None, startTime = '2005-08-30 20:06:59', endTime = '2005-08-30 20:06:59', interval=20*MINUTE, totalWidth = 24*HOUR, firstFilledEntry = 0, lastFilledEntry = 0, lastFilledLine = "", maxLatency = 15,fileEntries = None ):
         """ 
             Constructor. All values can be set from the constructor by the user but recommend usage
             is to set sourceFile and statsType. The class contains other methods to set the other values
@@ -106,6 +106,7 @@ class FileStatsCollector:
         """    
         
         startTimeInSeconds = MyDateLib.getSecondsSinceEpoch( startTime )
+        endTimeInSeconds   = MyDateLib.getSecondsSinceEpoch( endTime )
         if fileEntries == None :
             fileEntries = []    
          
@@ -113,13 +114,13 @@ class FileStatsCollector:
         self.statsTypes     = statsTypes or []   # List of types we need to manage.
         self.fileEntries    = copy.deepcopy(fileEntries)# list of all entries wich are parsed using time seperators.
         self.startTime      = startTimeInSeconds # Beginning of the timespan used to collect stats.
-        self.width          = width              # Width of said timespan.
+        self.endTime        = endTimeInSeconds   # End of saidtimespan.
         self.interval       = interval           # Interval at wich we separate stats entries .
         self.totalWidth     = totalWidth         # used to build timesperators.
         self.maxLatency     = maxLatency         # Acceptable limit for a latency.  
         self.timeSeperators = (MyDateLib.getSeparatorsWithStartTime( self.startTime, self.totalWidth, self.interval ) )
         self.nbEntries        = len ( self.timeSeperators )# Nb of "buckets" or entries  
-        self.firstFilledEntry = firstFilledentry        # Last entry for wich we calculated mean max etc....
+        self.firstFilledEntry = firstFilledEntry        # Last entry for wich we calculated mean max etc....
         self.lastFilledEntry  = lastFilledEntry         # Last entry we filled with data. 
         self.lastFilledLine   = lastFilledLine          # Last line filled in this stats collection.
         
@@ -128,9 +129,6 @@ class FileStatsCollector:
          
 
 
-
-    
-    
     def setMinMaxMeanMedians( self, productType = "", startingBucket = 0 , finishingBucket = 0  ):
         """
             This method takes all the values set in the values dictionary, finds the media for every
@@ -224,7 +222,15 @@ class FileStatsCollector:
                                         
                     #median  = values[ int( int(self.fileEntries[i].values.rows) / 2 ) ]    
                     median  = 0 
-                    total   = sum( values )
+                    try :
+                        total   = sum( values )
+                    except :
+                        print "exception"
+                        print "i: %s" %i
+                        print "type : %s" %aType
+                        print "values :%s " %values 
+                        
+                        
                     if len(values) != 0 :
                         mean    = float( total / len(values) )
                     else:
@@ -254,7 +260,7 @@ class FileStatsCollector:
                     
         self.lastEntryCalculated = self.lastFilledEntry
         
-        return  self
+        return self
     
     
     def findValue( statsType, line = "", lineType = "[INFO]" ):
@@ -340,11 +346,7 @@ class FileStatsCollector:
                     value = 0
             
             #elif lineType == "[OTHER]" :               
-                    
-#         if value == "":
-#             print statsType
-#             print lineType 
-#             print "line has no value : %s" %line 
+
          
         return value
 
@@ -384,7 +386,7 @@ class FileStatsCollector:
     
     
     
-    def findFirstInterestingLine( self, fileName ):
+    def findFirstInterestingLine( self, fileHandle, fileSize ):
         """
             Finds the first interesting line in a file.
             
@@ -397,38 +399,59 @@ class FileStatsCollector:
         """
         
         print "Temps avant find first: %s" %time.gmtime( time.time() )
-        
+        print "self.startTime :%s" %MyDateLib.getIsoFromEpoch( self.startTime )
+        print "self.endTime : %s" %MyDateLib.getIsoFromEpoch( self.endTime )
         line = ""
         backupLine = ""
-        
-        endTime = self.startTime + self.width 
-        fileHandle = open( fileName , 'r' )
-        fileSize = os.stat(fileName)[6]
-        
+        lineFound = False 
         firstLine      = fileHandle.readline()
         firstDeparture = FileStatsCollector.findValue( "departure" , firstLine )
         
         lastLine,offset  = backwardReader.readLineBackwards( fileHandle, offset = -1, fileSize = fileSize  )
         lastDeparture    = FileStatsCollector.findValue( "departure" , lastLine )
+#         print "startTime dans fid first interesting : %s" %MyDateLib.getIsoFromEpoch(self.startTime)
+#         print "endtime dans fid first interesting : %s" %MyDateLib.getIsoFromEpoch(self.endTime)
+#         print "firstDeparture dans find first interesting : %s" %MyDateLib.getIsoFromEpoch(firstDeparture)
+#         print "lastDeparture dans find first interesting : %s" %MyDateLib.getIsoFromEpoch(lastDeparture)
         
-        if abs( firstDeparture - self.startTime ) < abs( lastDeparture - self.startTime ) :
-           
-            
-            for line in fileHandle: 
-                departure =  FileStatsCollector.findValue( "departure" , line )
+              
                 
+        if abs( firstDeparture - self.startTime ) < 2*(abs( lastDeparture - self.startTime )) :
+            fileHandle.seek(0,0)
+            
+            print "+++++find forwards++++++++"    
+            while lineFound == False :     
+                
+                departure =  FileStatsCollector.findValue( "departure" , line )
                 if self.lastFilledLine != "" : 
                     if line == self.lastFilledLine :       
-                        break 
-                elif departure >= self.startTime and departure <=  endTime :
-                    break
-        
-        else:
+                        isInteresting,lineType = self.isInterestingLine( line )
+                        if isInteresting == True :
+                            position = fileHandle.tell()
+                            lineFound = True  
+                
+                elif departure >= self.startTime and departure <=  self.endTime :
+                    isInteresting,lineType = self.isInterestingLine( line )
+                    
+                    if isInteresting == True :
+                        position = fileHandle.tell()
+                        lineFound = True 
+                   
+                if lineFound == False :
+                    line = fileHandle.readline ()        
+                        
+                        
+                        
+               
+        else:#read backwards till we are in the range we want 
+            fileHandle.seek(0,0)
+            print "***find backwards"
+            line = lastLine 
             departure = lastDeparture
             
-            while line != "" and line != self.lastFilledLine and departure > self.startTime :
+            while line != "" and line != self.lastFilledLine and departure >= self.startTime :
                 line,offset = backwardReader.readLineBackwards( fileHandle = fileHandle, offset = offset , fileSize = fileSize )
-                
+                #print line 
                 if line != "":
                     departure =  FileStatsCollector.findValue( "departure" , line )
                 if departure > self.startTime:#save line ,or else well lose it at last turn
@@ -436,10 +459,20 @@ class FileStatsCollector:
             
             if backupLine != "" :        
                 line = backupLine      
-        
+                isInteresting,lineType = self.isInterestingLine( line ) #go back the other way and find first of the good type 
+                while isInteresting == False  :
+                    line = fileHandle.readline()
+                    isInteresting,lineType = self.isInterestingLine( line )     
+                    position = fileHandle.tell()
+                    
         print "Temps apres find first line  : %s" %time.gmtime( time.time() )                  
-        fileHandle.seek(0)
-        return fileHandle, line
+       
+        print "####line : %s" %line  
+        
+        
+        
+        
+        return line, lineType, position 
 
 
 
@@ -450,7 +483,7 @@ class FileStatsCollector:
             -Number of entries is based on the time separators wich are found with the startTime, width and interval.  -Only entries with arrival time comprised between startTime and startTime + width will be saved in dicts
             -Entries wich have no values will have 0 as value for means, minimum maximum and median     
         
-            -A bit long for my likings,would be nice to split up....
+            -Precondition : stats type specified in self must be valid. 
         
         """
         
@@ -461,7 +494,7 @@ class FileStatsCollector:
         self.lastFilledEntry  = 0
         
         if endTime == "" :                                        
-            endTime = self.width + self.startTime
+            endTime = self.endTime
         else:
             endTime = MyDateLib.getSecondsSinceEpoch( endTime )
         
@@ -470,25 +503,23 @@ class FileStatsCollector:
         
         for file in self.files :#read everyfile and append data found to dictionaries
             
-            value         = []
+            print "currently used file : %s" %file              
             nbErrors      = 0 
             entryCount    = 0
-            fileHandle,line  = self.findFirstInterestingLine( file )
             
-            isInteresting,lineType = self.isInterestingLine( line )
-            
-            while isInteresting == False :
-                line = fileHandle.readline()# we read again 
-                isInteresting,lineType = self.isInterestingLine( line )
-                print line                             
-           
-            
+            fileHandle = open( file, "r" )
+            fileSize = os.stat(file)[6]
+            line,lineType,position  = self.findFirstInterestingLine( fileHandle, fileSize )                                        
+            fileHandle.seek(position)
+                       
             departure   = self.findValue( "departure" ,  line, lineType )
             productType = self.findValue( "productType", line, lineType )
+             
             
-            while str( departure ) != "" and float( departure ) < float( endTime ) : #while in proper range 
-                #print MyDateLib.getIsoFromEpoch(departure)
-                while long( departure ) > long(self.timeSeperators[ entryCount ]):#find appropriate bucket
+            while str( departure ) != "" and  departure < self.endTime : #while in proper range 
+                #print "departure : %s endtime : %s " %( MyDateLib.getIsoFromEpoch(departure), MyDateLib.getIsoFromEpoch( endTime ) )
+                
+                while long( departure ) >= long(self.timeSeperators[ entryCount ]):#find appropriate bucket
                     entryCount = entryCount + 1                         
                 
 #                 print len( self.fileEntries    )
@@ -520,23 +551,27 @@ class FileStatsCollector:
                 if lineType != "[ERROR]" :
                     self.fileEntries[ entryCount ].nbFiles = self.fileEntries[ entryCount ].nbFiles + 1        
                 
+                #Find next interesting line     
                 line    = fileHandle.readline()
                 isInteresting,lineType = self.isInterestingLine( line )
-                
-                while isInteresting == False :
+                while isInteresting == False and line != "":
+                          
                     line = fileHandle.readline()# we read again 
                     isInteresting,lineType = self.isInterestingLine( line )
                     
-                    
+                
+                        
                 departure   = self.findValue( "departure" , line, lineType )
                 productType = self.findValue( "productType",line, lineType )
-                value     = []               
+                               
                    
                 if entryCount > self.lastFilledEntry : # in case of numerous files....
                     self.lastFilledEntry = entryCount                  
                     self.lastFilledLine  = line 
+            
+            
             fileHandle.close()                 
-                                    
+            print "goes after filehandle.close"                        
 #         
 #         except Exception,e:
 #             
@@ -586,7 +621,7 @@ class FileStatsCollector:
         """
         
         self.setValues( endTime )   #fill dictionary with values
-        print "goes to set min max median"
+        print "goes into setMinMaxMeanMedians "
         self.setMinMaxMeanMedians() #use values to find these values.   
 
 
@@ -597,10 +632,13 @@ if __name__ == "__main__":
             small test case. Tests if everything works plus gives an idea on proper usage.
     """
     
-    types = [ 'latency']
-    filename = '/apps/px/lib/stats/files/log'
+    types = [ "latency","errors","bytecount" ]
+    filename = '/apps/px/lib/stats/files/tx_satnet.log'
      
-    stats = FileStatsCollector( files = [ filename ], statsTypes = types , startTime = '2006-07-20 00:00:00', width = 1*HOUR, interval = 1*MINUTE  )
+    stats = FileStatsCollector( files = [ filename ], statsTypes = types , startTime = '2006-07-20 01:00:00', endTime = '2006-07-20 02:00:00', interval = 1*MINUTE  )
     
     stats.collectStats()   
-      
+    
+    for i in range(60):
+        print stats.fileEntries[i].means
+     

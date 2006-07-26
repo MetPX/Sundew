@@ -20,15 +20,17 @@ named COPYING in the root of the source directory tree.
 ##############################################################################################
 """
 
-import os,pickle 
+import os,sys,pickle 
 
 def printPickledTimes( pickledTimes, fileName ):
     """
+        This method prints the content of the pickled-times file. 
+        
+        pre condition :pickledTimes must be a dictionary instance. 
     
     """
     
-    print pickledTimes 
-    keys       = pickledTimes.keys()
+    keys = pickledTimes.keys()
     keys.sort()
     
     
@@ -48,7 +50,12 @@ def printPickledTimes( pickledTimes, fileName ):
 
 def loadPickledTimes( fileName ):
     """
-    
+        This method loads a standard non-gzip pickle file.
+        
+        Returns object found in pickle. 
+        
+        Filename must exist or else application is terminated. 
+        
     """
     
     if os.path.isfile( fileName ):
@@ -60,6 +67,7 @@ def loadPickledTimes( fileName ):
     else:
     
         print "Error. Pickled times file named : %s does not exist." %fileName
+        print "Modify content of this program to use another file."
         print "Program terminated."
         sys.exit()    
 
@@ -71,14 +79,18 @@ def loadPickledTimes( fileName ):
         
 def main():
     """
-    
+        Main method.
     """
+    
+    #standard use.
     fileName = "/apps/px/lib/stats/PICKLED-TIMES"
     pickledTimes = loadPickledTimes( fileName )
     printPickledTimes( pickledTimes, fileName  )
 
-
-
+    #tests unexisting file 
+    fileName = "/apps/px/lib/stats/nonexistingfile"
+    pickledTimes = loadPickledTimes( fileName )
+    printPickledTimes( pickledTimes, fileName ) 
 
 if __name__ == "__main__":
     main()

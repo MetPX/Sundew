@@ -121,14 +121,14 @@ class MyDateLib:
         
         """
         
-        try:
+#         try:
 
-            timeStruct = time.strptime( date, '%Y-%m-%d %H:%M:%S' )
-            return time.mktime( timeStruct )
+        timeStruct = time.strptime( date, '%Y-%m-%d %H:%M:%S' )
+        return time.mktime( timeStruct )
         
-        except:
-            print "Cannot convert %s in getSecondsSinceEpoch. " %date 
-            sys.exit()
+#         except:
+#             print "Cannot convert %s in getSecondsSinceEpoch. " %date 
+#             sys.exit()
         
     
     getSecondsSinceEpoch = staticmethod( getSecondsSinceEpoch )

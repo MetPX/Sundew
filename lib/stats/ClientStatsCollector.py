@@ -118,17 +118,17 @@ class ClientStatsCollector:
 
 
 
-    def collectStats( self, types, pickle, directory,fileType = "tx", startTime = '2006-05-18 00:00:00', endTime = "",  width=DAY, interval = 60*MINUTE, save = True, dailyPickling = True ):
+    def collectStats( self, types, pickle, directory,fileType = "tx", startTime = '2006-05-18 00:00:00', endTime = "", interval = 60*MINUTE, save = True, dailyPickling = True ):
         """
             This method collects the stats for all the files found in the directory. 
         """
         print "in collect stats " 
         print "startTime :%s" %startTime
-        print "endtime : %s" %endTime
+        print "endTime : %s" %endTime
         print "fileType : %s" %fileType
         print "self.client : %s"  %self.client
         
-        self.fileCollection =  DirectoryFileCollector( startTime  = startTime , endTime = endTime, directory = directory, lastLineRead = "", lineType = "[INFO]", fileType = fileType, client = self.client )   
+        self.fileCollection =  DirectoryFileCollector( startTime  = startTime , endTime = endTime, directory = directory, lastLineRead = "", fileType = fileType, client = self.client )   
         self.fileCollection.collectEntries()          #find all entries from the folder
         
         print "self.fileCollection.entries %s" %self.fileCollection.entries
@@ -137,26 +137,29 @@ class ClientStatsCollector:
         if os.path.isfile( pickle ):
                     
             self.statsCollection = gzippickle.load( pickle )            
-           
+            print "allready exists pickle "
+            print "startTime : %s" %startTime 
+            print "endTime : %s" %endTime  
+            
             #update fields who need to be updated like list of file .
             #we dont allow someone to change interval during the day so we dont even look it up
             self.statsCollection.files = self.fileCollection.entries 
             self.statsCollection.startTime = MyDateLib.getSecondsSinceEpoch( startTime )
-            self.statsCollection.width = width 
+            self.statsCollection.endTime = MyDateLib.getSecondsSinceEpoch( endTime )
             
             self.statsCollection.collectStats( endTime  )           
             
            
         elif dailyPickling == True :  
-            
-            self.statsCollection = FileStatsCollector( files = self.fileCollection.entries, statsTypes = types, startTime = MyDateLib.getIsoTodaysMidnight( startTime ), width = width, interval = interval, totalWidth = 24*HOUR )
+        
+            self.statsCollection = FileStatsCollector( files = self.fileCollection.entries, statsTypes = types, startTime = MyDateLib.getIsoTodaysMidnight( startTime ), endTime = endTime, interval = interval, totalWidth = 24*HOUR )
             
             self.statsCollection.collectStats( endTime )
             
         
         elif dailyPickling == False:
 
-            self.statsCollection = FileStatsCollector( files = self.fileCollection.entries, statsTypes = types, startTime = MyDateLib.getIsoWithRoundedSeconds(startTime), width = width, interval = interval, totalWidth = 24*HOUR )
+            self.statsCollection = FileStatsCollector( files = self.fileCollection.entries, statsTypes = types, startTime = MyDateLib.getIsoWithRoundedSeconds(startTime), endTime = endTime, interval = interval, totalWidth = 24*HOUR )
             self.statsCollection.collectStats( endTime )         
         
         
@@ -165,7 +168,7 @@ class ClientStatsCollector:
            
         
         
-    def collectStatsWithoutPickling( self, types, startTime = '2006-05-18 00:00:00', width=DAY, interval = 60*MINUTE, totalWidth = 24*HOUR, totalwidth = DAY  ):
+    def collectStatsWithoutPickling( self, types, startTime = '2006-05-18 00:00:00', endTime='2006-05-18 01:00:00', interval = 60*MINUTE, totalWidth = 24*HOUR, totalwidth = DAY  ):
         """
             This method collects the stats for all the files found in the directory. 
         
@@ -184,7 +187,8 @@ class ClientStatsCollector:
         """
             This method prints out all the stats concerning each files. 
             Mostly usefull for debugging.
-        
+            
+            file is printed in currentWorkingDirectory/CSC_output_file
         """    
         
         absoluteFilename = str( os.getcwd() ) + "/CSC_output_file "
@@ -197,7 +201,7 @@ class ClientStatsCollector:
         print "Starting date: %s" % MyDateLib.getIsoFromEpoch(self.statsCollection.startTime)
                                     
         print "Interval: %s" %self.statsCollection.interval
-        print "Time Width: %s" %self.statsCollection.width
+        print "endTime: %s" %self.statsCollection.endTime
 
         for j in range( self.statsCollection.nbEntries ):
             print "\nEntry's interval : %s - %s " %( MyDateLib.getIsoFromEpoch(self.statsCollection.fileEntries[j].startTime), MyDateLib.getIsoFromEpoch(self.statsCollection.fileEntries[j].endTime ) )
@@ -227,16 +231,12 @@ def main():
             small test case. Tests if everything works plus gives an idea on proper usage.
     """
         
-    types = [ 'latency']
-    
-    print "Temps avant : % s" %time.gmtime( time.time() )
-    
+    types = [ "latency","errors","bytecount" ]    
+      
     cs = ClientStatsCollector( client = "satnet", directory = "/apps/px/lib/stats/files/" )
-    cs.collectStats( types, directory = "/apps/px/lib/stats/files/", fileType = "tx", pickle = "/apps/px/lib/stats/PICKLES/satnetTestpickle", startTime = '2006-07-20 05:00:12', endTime = "2006-07-20 06:00:12",width = 10*HOUR, interval = 1*MINUTE )
     
-    print "Temps apres : % s" %time.gmtime( time.time() )
-    print "call to collect stats done"
-    
+    cs.collectStats( types, directory = "/apps/px/lib/stats/files/", fileType = "tx", pickle = "/apps/px/lib/stats/PICKLES/satnetTestpickle", startTime = '2006-07-20 00:00:12', endTime = "2006-07-20 02:00:12", interval = 1*MINUTE )  
+           
     cs.printStats()        
         
 
