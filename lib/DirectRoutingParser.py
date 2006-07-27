@@ -162,7 +162,7 @@ class DirectRoutingParser(FileParser):
 
                         # Assure us that each client is present only once for each header.
                         # Also select only clients that are linkable.
-                        # This is accomplished in O(n). Costs ~ 0.5 seconds to execute.
+                        # This is accomplished in O(1). Costs ~ 0.5 seconds to execute.
                         goodClientsForOneHeader = self._makeClientsGroups(clients, self.pxLinkables)
                         self.routingInfos[words[0]]['clients'] = goodClientsForOneHeader
                         # Up to here: 2.1 s of execution time
@@ -232,7 +232,7 @@ class DirectRoutingParser(FileParser):
                         clients = words[1].split()
 
                         # Assure us that each client is present only once for each header
-                        # This is accomplished in O(n). Costs ~ 0.5 seconds to execute.
+                        # This is accomplished in O(1). Costs ~ 0.5 seconds to execute.
                         uniqueClients = self.removeDuplicate(clients)
                         duplicateForHeader = self.identifyDuplicate(clients)
                         if duplicateForHeader:
@@ -337,6 +337,7 @@ if __name__ == '__main__':
     #parser = DirectRoutingParser('/apps/px/aftn/etc/header2client.conf', pxLinkables, logger)
     parser = DirectRoutingParser('/apps/px/aftn/etc/header2client.conf.test', pxLinkables, logger)
     parser.parseAndShowErrors()
+    """
     print parser.aftnMap
     #parser.parse()
     print parser.getHeaderPriority('AACN02 CWAO13')
@@ -347,4 +348,5 @@ if __name__ == '__main__':
     #parser.printInfos()
     #print("Good clients (%i): %s" % (len(parser.goodClients), parser.goodClients.keys()))
     #print("Bad clients (%i): %s" % (len(parser.badClients), parser.badClients.keys()))
+    """
 
