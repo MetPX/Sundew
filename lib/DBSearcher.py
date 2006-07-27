@@ -72,6 +72,25 @@ class DBSearcher:
     FD['high']['bfr'][2] = 'FDUE03 KWBC'
     FD['high']['bfr'][3] = 'FDUE05 KWBC'
 
+    LOW = []
+    LOW1 = []
+    LOW2 = []
+    LOW3 = []
+    HIGH = []
+    HIGH1 = []
+    HIGH2 = []
+    HIGH3 = []
+
+    for height in ['low', 'high']:
+        for country in FD_COUNTRIES:
+            for number in FD_NUMBERS:
+                if height == 'low':
+                    LOW.append(FD[height][country][number])
+                    eval('LOW' + str(number)).append(FD[height][country][number])
+                elif height == 'high':
+                    HIGH.append(FD[height][country][number])
+                    eval('HIGH' + str(number)).append(FD[height][country][number])
+
     for country in FD_COUNTRIES:
         exec(country + 'List= []')
         for height in ['low', 'high']:
@@ -155,6 +174,7 @@ class DBSearcher:
                         results = self._findSA([station], date)
                         if results[0][1]:
                             #self.printResults(results, self.type)
+                            print 80 * '-'
                             for result in results:
                                 print self.formatResult(result, self.type)
                             break
@@ -162,15 +182,16 @@ class DBSearcher:
                         results = self._findTAF([station], date)
                         if results[0][1]:
                             #self.printResults(results, self.type)
+                            print 80 * '-'
                             for result in results:
                                 print self.formatResult(result, self.type)
                             break
 
-                    # Under construction
                     elif self.type in ['FD', 'FD1', 'FD2', 'FD3']:
                         results = self._findFD([station], self.type, date)
                         if results[0][1]:
-                            self.printResults(results)
+                            #self.printResults(results)
+                            print 80 * '-'
                             for result in results:
                                 print self.formatResult(result, self.type)
                             break
@@ -203,10 +224,10 @@ class DBSearcher:
                 print("Type: %s, Value: %s" % (type, value))
                 sys.exit()
     
-            print("Headers: %s" % headers)
-            print("ttaaiis: %s" % ttaaiis)
-            print("centers: %s" % centers)
-            print("sources: %s\n" % sources)
+            #print("Headers: %s" % headers)
+            #print("ttaaiis: %s" % ttaaiis)
+            #print("centers: %s" % centers)
+            #print("sources: %s\n" % sources)
     
             for source in sources:
                 for center in centers:    
@@ -235,57 +256,39 @@ class DBSearcher:
         sp = StationParser(PXPaths.ETC + 'stations_FD.conf')
         sp.parse()
 
+        if fdtype in ['FD1', 'FD2', 'FD3']:
+            number = fdtype[-1]
+        else:
+            number = '' 
+
         for station in stations:
-            countryCase = ''
             headers = sp.headers.get(station, [])
             headers.sort()
 
-            # We must find in which case we are ...
-            for country in DBSearcher.FD_COUNTRIES:
-                countryHeaders = eval('DBSearcher.' + country + 'List')
-                countryHeaders.sort()
-                if headers == countryHeaders:
-                    countryCase = country
-                    print "We are in the %s case" % country.upper()
-                    break
-            
-            if countryCase:
-                if fdtype in ['FD1', 'FD2', 'FD3']:
-                    number = fdtype[2]
-                    interestingHeaders = [DBSearcher.FD['low'][countryCase][int(number)], DBSearcher.FD['high'][countryCase][int(number)]]
-                    #print interestingHeaders
-                    for value in [0,1]:
-                        filesToParse = self._getFilesToParse(PXPaths.DB + date + '/FD/', [interestingHeaders[value]])
-                        #print("In findFD, len(filesToParse) = %d" % len(filesToParse))
-                        theLine, bestHeaderTime, theFile, bestFileTime = self._findMoreRecentStation(FDParser(''), filesToParse, station)
-                        if theLine:
-                            bigTitle = FDParser('').getFDTitle(theFile)
-                            #print("BIG TITLE: \n%s" % bigTitle)
-                            #print theFile
-                            #print "theLine: %s" % theLine
-                            theLine = bigTitle + theLine
+            lowHeaders = []
+            highHeaders = []
 
-                        results.append((station, theLine, bestHeaderTime, theFile, bestFileTime))
-                        
-                else:
-                    number = 0
-                    interestingHeaders = eval('DBSearcher.' + country + 'List')
-                    #print interestingHeaders
-                    for headers in [interestingHeaders[:3], interestingHeaders[3:]]:
-                        filesToParse = self._getFilesToParse(PXPaths.DB + date + '/FD/', headers)
-                        #print("In findFD, len(filesToParse) = %d" % len(filesToParse))
-                        theLine, bestHeaderTime, theFile, bestFileTime = self._findMoreRecentStation(FDParser(''), filesToParse, station)
-                        if theLine:
-                            bigTitle = FDParser('').getFDTitle(theFile)
-                            #print("BIG TITLE: \n%s" % bigTitle)
-                            #print theFile
-                            #print "theLine: %s" % theLine
-                            theLine = bigTitle + theLine
+            for header in headers:
+                if header in eval('DBSearcher.LOW' + number):
+                    lowHeaders.append(header)
+                elif header in eval('DBSearcher.HIGH' + number):
+                    highHeaders.append(header)
 
-                        results.append((station, theLine, bestHeaderTime, theFile, bestFileTime))
+            for header in lowHeaders + highHeaders:
+                filesToParse = self._getFilesToParse(PXPaths.DB + date + '/FD/', [header])
+                #print("In findFD, len(filesToParse) = %d" % len(filesToParse))
+                theLine, bestHeaderTime, theFile, bestFileTime = self._findMoreRecentStation(FDParser(''), filesToParse, station)
+                if theLine:
+                    bigTitle = FDParser('').getFDTitle(theFile)
+                    #print("BIG TITLE: \n%s" % bigTitle)
+                    #print theFile
+                    #print "theLine: %s" % theLine
+                    theLine = bigTitle + theLine
 
-            else:
-                print 'PROBLEM: We are unable to determine which headers to use for this station (%s)' % station
+                results.append((station, theLine, bestHeaderTime, theFile, bestFileTime))
+
+            if lowHeaders == highHeaders == []:
+                results.append((station, None, 0, None, 0))
 
         return results
 
@@ -395,7 +398,8 @@ class DBSearcher:
                 speciHeader = header[0] + 'P' + header[2:]
                 speciResult = speciHeader + ' ' + speciHeaderTime + '\n' + speciLine.strip() + '\n\n'
 
-        return speciResult + saResult  
+        banner = 80 * '-'
+        return speciResult + saResult + banner
 
     def printResults(self, results, type=None):
         print "%s RESULTS %s" % (30*'=', 30*'=')
@@ -645,9 +649,14 @@ if __name__ == '__main__':
 
     request = ' '.join(sys.argv[1:])
     dbs = DBSearcher(request)
- 
+
     """
     for country in DBSearcher.FD_COUNTRIES:
-    #    print '%s = %s' % (country, eval('DBSearcher.' + country + 'List'))
-        print DBSearcher.FD['low'][country]
+        print '%s = %s' % (country, eval('DBSearcher.' + country + 'List'))
+        #print DBSearcher.FD['low'][country][1]
+
+    for height in ['LOW', 'HIGH']:
+        for i in ['', '1', '2', '3']:
+            print("%s%s = %s" % (height, i, eval('DBSearcher.' + height + i)))
+
     """
