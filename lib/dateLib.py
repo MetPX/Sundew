@@ -47,9 +47,9 @@ def getSecondsSinceEpoch(date='08/30/05 20:06:59'):
         print date
     return time.mktime(timeStruct)
 """
-def getSecondsSinceEpoch(date='2005-08-30 20:06:59'):
+def getSecondsSinceEpoch(date='2005-08-30 20:06:59', format='%Y-%m-%d %H:%M:%S'):
     try:
-        timeStruct = time.strptime(date, '%Y-%m-%d %H:%M:%S')
+        timeStruct = time.strptime(date, format)
     except:
         print date
     return time.mktime(timeStruct)
