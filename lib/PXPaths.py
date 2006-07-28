@@ -46,7 +46,7 @@ def readConfig():
 def normalPaths():
 
     global ROOT, BIN, LIB, LOG, ETC, RXQ, TXQ, DB, RX_CONF, TX_CONF, TRX_CONF, LAT, LAT_RESULTS, LAT_TMP, \
-           COLLECTION_DB, COLLECTION_CONTROL, ROUTING_TABLE, STATION_TABLE, STATS, PICKLES, GRAPHS
+           COLLECTION_DB, COLLECTION_CONTROL, ROUTING_TABLE, STATION_TABLE, STATS, PICKLES, GRAPHS, SEARCH
 
     try:
         envVar = os.path.normpath(os.environ['PXROOT']) + '/'
@@ -55,7 +55,7 @@ def normalPaths():
 
     ROOT = envVar 
     BIN = ROOT + 'bin/'
-    LIB = ROOT + 'lib/'
+    LIB = ROOT + 'lib/' # This path was hardcoded in SafeCopy.py, see dominik_db or dlema for details
     LOG = ROOT + 'log/'
     ETC = ROOT + 'etc/'
     RXQ = ROOT + 'rxq/'
