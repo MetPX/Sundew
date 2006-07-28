@@ -79,6 +79,9 @@ def normalPaths():
     PICKLES = STATS + 'pickles/'
     GRAPHS = STATS + 'graphs/'
 
+    # Paths to the search directory
+    SEARCH = LIB + 'search/'
+
 def drbdPaths(rootPath):
 
     global ROOT, BIN, LIB, LOG, ETC, RXQ, TXQ, DB, RX_CONF, TX_CONF, TRX_CONF, LAT, LAT_RESULTS, LAT_TMP, \

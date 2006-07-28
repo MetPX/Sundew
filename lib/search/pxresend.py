@@ -52,11 +52,12 @@ def updateResendObject(ro, options, args):
             machine, bulletinHeader = parseRawLine(searchLine.strip())
             ro.addToMachineHeaderDict(machine, bulletinHeader)
     else:
-        pass
+        print "Not supported for now"
+        sys.exit(0)
         # TODO: Write something there
 
 def resend(ro):
-    commandList = ro.createCommandList()
+    commandList = ro.createAllArtifacts()
     for c in commandList:
         status, output = commands.getstatusoutput(c)
         if status:
@@ -64,11 +65,12 @@ def resend(ro):
             print "Command used was: %s" % (c)
             sys.exit(1)
         else:
-            print "Bulletins resent."
+            print "There was a problem resending certain bulletins."
+            print output
 
 def createParser(ro):
     usagemsg = "%prog [options] <machine:bulletin-file>\nResend one or more bulletins."
-    parser = OptionParser(usage=usagemsg, version="%prog 0.7-alpha")
+    parser = OptionParser(usage=usagemsg, version="%prog 0.8-alpha")
 
     parser.add_option("--ask", action = "store_true", dest = "prompt", help = "Ask for a resending confirmation for each bulletins.")
     parser.add_option("--all", action = "store_false", dest = "prompt", help = "Send all bulletins without confirmation (default).")

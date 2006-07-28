@@ -276,6 +276,7 @@ class SystemManager:
         except IOError:
             (type, value, tb) = sys.exc_info()
             print "Problem opening %s, Type: %s Value: %s" % (fileLog, type, value)
+            sys.exit(1)
 
         filesToCopy = flog.readlines()
         flog.close()
@@ -288,7 +289,7 @@ class SystemManager:
                 except IOError:
                     (type, value, tb) = sys.exc_info()
                     print "Problem copying %s to %s, Type: %s Value: %s" % (file, destination, type, value)
-        
+                   
 if __name__ == '__main__':
   
     manager = SystemManager()

@@ -42,26 +42,49 @@ class ResendObject(object):
         cccc = headerParts[2]
 
         return "%s%s/%s/%s/%s/%s" % (dbPath, date, tt, target, cccc, header)
-    
+
     def createDestinationPath(self, destination):
         return "%s%s/%s/" % (PXPaths.TXQ, destination, self.prio)
-    
-    def createCommandList(self):
+   
+    def createAllArtifacts(self):
         commandList = [] # List of command to execute
         
         for machine in self.machineHeaderDict.keys(): # For every machines with matching bulletins
+            try:
+                filelogname = "filelog.%s" % (machine)
+                filelog = open(filelogname, "w") # This file will need to be transfered to the remote machibe
+            except IOError:
+                print "Could not open filelog for writing!"
+                sys.exit(1)
+
+            destinationsString = ""
+            for destination in self.destinations:
+                destinationsString += "%s " % (self.creatDestinationPath(destination))
             
-            for destination in self.destinations: # One command per destination client
-                bulletins = self.machineHeaderDict[machine]
-                bstring = ""
-                
-                for bulletin in bulletins: # Construct a big string of all bulletins path for the "cp" command
-                    bstring += "%s " % (self.headerToLocation(bulletin))
+            bulletins = self.machineHeaderDict[machine]
+            for bulletin in bulletins:
+                filelog.write(bulletin)
                     
-                destinationPath = self.createDestinationPath(destination) # Get the destination path
-                commandList += ['ssh %s "cp %s %s"' % (machine, bstring, destinationPath)] # Add the complete command to the list
+            commandList += ['ssh %s "%sSafeCopy.py -h %s -f %s %s"' % (machine, PXPaths.SEARCH, machine, filelogname, destinationsString)]
         
         return commandList
+   
+    #def createCommandList(self):
+    #    commandList = [] # List of command to execute
+    #    
+    #    for machine in self.machineHeaderDict.keys(): # For every machines with matching bulletins
+    #        
+    #        for destination in self.destinations: # One command per destination client
+    #            bulletins = self.machineHeaderDict[machine]
+    #            bstring = ""
+    #            
+    #            for bulletin in bulletins: # Construct a big string of all bulletins path for the "cp" command
+    #                bstring += "%s " % (self.headerToLocation(bulletin))
+    #                
+    #            destinationPath = self.createDestinationPath(destination) # Get the destination path
+    #            commandList += ['ssh %s "cp %s %s"' % (machine, bstring, destinationPath)] # Add the complete command to the list
+    #    
+    #    return commandList
         
     def getPrompt(self):
         return self.prompt
