@@ -65,8 +65,10 @@ def resend(ro):
             print "Command used was: %s" % (c)
             sys.exit(1)
         else:
-            print "There was a problem resending certain bulletins."
-            print output
+            print "Bulletins resent"
+            if output.find("Problem copying"):
+                print "There was a problem resending certain bulletins."
+                print output
 
 def createParser(ro):
     usagemsg = "%prog [options] <machine:bulletin-file>\nResend one or more bulletins."

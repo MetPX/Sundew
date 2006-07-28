@@ -24,7 +24,7 @@ import commands
 from optparse import OptionParser
 
 # Local imports
-sys.path.append("../")
+sys.path.append("/apps/px/lib/")
 import PXManager
 import PXPaths; PXPaths.normalPaths()
 
@@ -67,17 +67,19 @@ class SafeCopy(object):
 # This part is useful if you want to use the class as a program. #
 ##################################################################
 def pullFile(host, filename):
-    saveTo = PXPaths.SEARCH
-    status, output = commands.getstatusoutput("scp %s:%s ./" % (host, filename))
+    cmdLine = "scp %s:%s ./" % (host, filename)
+    status, output = commands.getstatusoutput(cmdLine)
     if status:
         print "Could not pull file log from the server."
+        print "Command was: %s" % (cmdLine)
+        print "Command output: %s" % (output)
         sys.exit(1)
     else:
         return filename.split("/")[-1] # Just the name of the file, without the old path
 
      
 def validateUserInput(options, args):
-    if (options.file == "" or options.host == ""):
+    if (options.file == "" or options.machine == ""):
         print "You must specify a valid file and host!"
         sys.exit(1)
         
@@ -89,7 +91,7 @@ def createParser():
     usagemsg = "%prog [options] <destinations>\nCopies multiple files to multiple destinations."
     parser = OptionParser(usage=usagemsg, version="%prog 0.1-alpha")
     parser.add_option("-f", "--file", dest = "file", help = "Specify a file that contains a list of sources.", default = "")
-    parser.add_option("-h", "--host", dest = "host", help = "Specify the host on which the file resides.", default = "")
+    parser.add_option("-m", "--machine", dest = "machine", help = "Specify the machine on which the file resides.", default = "")
     
     return parser
 
@@ -97,12 +99,12 @@ def main():
     parser = createParser()
     options, args = parser.parse_args()    
     validateUserInput(options, args)
-    filename = pullFile(options.host, options.file)
-    destinations = formatDestinations(args)
+    filename = pullFile(options.machine, options.file)
     
-    sc = SafeCopy(filename, destinations) # args is the list of destinations
+    sc = SafeCopy(filename, args) # args is the list of destinations
 
     sc.copy()
     sc.deleteFile()
+
 if __name__ == "__main__":
     main()

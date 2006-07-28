@@ -51,7 +51,7 @@ class ResendObject(object):
         
         for machine in self.machineHeaderDict.keys(): # For every machines with matching bulletins
             try:
-                filelogname = "filelog.%s" % (machine)
+                filelogname = "%sfilelogs/filelog.%s" % (PXPaths.SEARCH, machine)
                 filelog = open(filelogname, "w") # This file will need to be transfered to the remote machibe
             except IOError:
                 print "Could not open filelog for writing!"
@@ -59,14 +59,15 @@ class ResendObject(object):
 
             destinationsString = ""
             for destination in self.destinations:
-                destinationsString += "%s " % (self.creatDestinationPath(destination))
+                destinationsString += "%s " % (self.createDestinationPath(destination))
             
             bulletins = self.machineHeaderDict[machine]
             for bulletin in bulletins:
-                filelog.write(bulletin)
+                filelog.write("%s\n" % (self.headerToLocation(bulletin)))
+            filelog.close()
                     
-            commandList += ['ssh %s "%sSafeCopy.py -h %s -f %s %s"' % (machine, PXPaths.SEARCH, machine, filelogname, destinationsString)]
-        
+            commandList += ['ssh %s "%sSafeCopy.py -m %s -f %s %s"' % (machine, PXPaths.SEARCH, machine, filelogname, destinationsString)]
+         
         return commandList
    
     #def createCommandList(self):
