@@ -114,22 +114,13 @@ class MyDateLib:
     
     
     
-    def getSecondsSinceEpoch( date='2005-08-30 20:06:59' ):
-        """
-            Takes a date in the iso format and returns the number of seconds since
-            epoch of that date. 
-        
-        """
-        
-#         try:
-
-        timeStruct = time.strptime( date, '%Y-%m-%d %H:%M:%S' )
-        return time.mktime( timeStruct )
-        
-#         except:
-#             print "Cannot convert %s in getSecondsSinceEpoch. " %date 
-#             sys.exit()
-        
+    def getSecondsSinceEpoch(date='2005-08-30 20:06:59', format='%Y-%m-%d %H:%M:%S'):
+        try:
+            timeStruct = time.strptime(date, format)
+        except:
+            print date
+        return time.mktime(timeStruct)
+            
     
     getSecondsSinceEpoch = staticmethod( getSecondsSinceEpoch )
     
@@ -245,7 +236,7 @@ class MyDateLib:
             
         """    
         
-        dashedDate = date[0:4] + "-" + date[4:6] + "-" + date[6:8] + " "  + date[8:10] + ":"  + date[10:12] + ":" + date[12:14]
+        dashedDate = '%Y-%m-%d %H:%M:%S' %date
           
         return dashedDate
         
@@ -405,7 +396,7 @@ class MyDateLib:
     
     
     
-    def getSeparatorsWithStartTime( startTime = 0, width=DAY, interval=60*MINUTE ):
+    def getSeparatorsWithStartTime( startTime = "2006-06-06 00:00:00", width=DAY, interval=60*MINUTE ):
         """
             This method works exactly like getSeparators but it uses a start time to set 
             the separators
@@ -414,10 +405,11 @@ class MyDateLib:
         
         separators = []
         
+        
         if interval <= width :
             
             for value in range( int(interval+startTime), int( width+interval+startTime ), int( interval ) ):
-                separators.append(value)
+                separators.append( MyDateLib.getIsoFromEpoch(value) )
             
             if separators[ len(separators)-1 ] > width+startTime :
                 separators[ len(separators)-1 ] = width+startTime    

@@ -62,7 +62,7 @@ def save( object, filename ):
             os.makedirs( directory, mode=0777 )    
             
         file = gzip.GzipFile( filename, 'wb' )
-        file.write( cPickle.dumps( object, -1 ) )
+        file.write( cPickle.dumps( object, True ) )
         file.close()
     
     else:
