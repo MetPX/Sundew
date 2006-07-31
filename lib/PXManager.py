@@ -41,6 +41,38 @@ class PXManager(SystemManager):
         SystemManager.__init__(self)
         self.LOG = PXPaths.LOG          # Will be used by DirCopier
 
+    def getFlowType(self, name):
+        from DirectRoutingParser import DirectRoutingParser
+        drp = DirectRoutingParser(PXPaths.ROUTING_TABLE, [], self.logger)
+        drp.printErrors = False
+        drp.parseAlias()
+        #print drp.aliasedClients
+
+        self.initNames()
+        clientNames =  self.getTxNames()
+        sourlientNames = self.getTRxNames()
+        sourceNames = self.getRxNames()
+
+        print clientNames, sourlientNames, sourceNames
+
+        # clientNames first, sourlientNames second, sourcesNames third and finally, aliases fourth
+        flowNames = [name]
+        if name in clientNames:
+            flowType = 'TX'
+        elif name in sourlientNames:
+            flowType = 'TRX'
+        elif name in sourceNames:
+            flowType = 'RX'
+        else:
+            flowNames = drp.getAliasClients(name)
+            if flowNames:
+                # For now, only TX aliases exist
+                flowType = 'TX'
+            else:
+                flowType = None
+
+        return  flowType, flowNames
+
     def afterInit(self):
         if not os.path.isdir(PXPaths.ROOT):
             self.logger.error("This directory: %s does not exist!" % (PXPaths.ROOT))
