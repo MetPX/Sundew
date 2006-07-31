@@ -57,10 +57,10 @@ class DirectRoutingParser(FileParser):
         return self.routingInfos[header]['subclients']
 
     def getClientSubClients(self, client):
-        return self.subClients[client]
+        return self.subClients.get(client, [])
 
     def getAliasClients(self, alias):
-        return self.aliasedClients[alias]
+        return self.aliasedClients.get(alias, [])
 
     def getGoodClients(self):
         return self.goodClients.keys()
@@ -79,6 +79,22 @@ class DirectRoutingParser(FileParser):
 
         return goodClientsForOneHeader.keys()
 
+    def parseAlias(self):
+        self.clearInfos()
+        file = self.openFile(self.filename)
+
+        for line in file:
+            line = line.strip().strip(':')
+            words = line.split(':')
+            if len(words) == 3: 
+                try:
+                    if words[0] == 'clientAlias':
+                        self.aliasedClients[words[1]] = self.removeDuplicate(words[2].split())
+                except:
+                    (type, value, tb) = sys.exc_info()
+                    self.logger.error("Type: %s, Value: %s" % (type, value))
+                    self.logger.error("Problem with this line (%s) in the direct routing file (%s)" % (words, self.filename))
+
     def reparse(self):
         routingInfosOld = self.routingInfos.copy()
         subClientsOld = self.subClients.copy()
@@ -94,9 +110,8 @@ class DirectRoutingParser(FileParser):
             #self.goodClients = goodClientsOld
             #self.badClients = badClientsOld
             self.logger.warning("DirectRoutingParser.reparse() has failed")
-            
-    def parse(self):
 
+    def parse(self):
         self.clearInfos()
         file = self.openFile(self.filename)
 
