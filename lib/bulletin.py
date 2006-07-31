@@ -653,7 +653,7 @@ class bulletin:
 
         if len(tokens[2]) > 6: # On enleve les ['z', 'Z'] ou ['utc', 'UTC'] s'ils sont presents dans le groupe JJHHMM
             tokens[2] = tokens[2][0:6]
-            self.logger.info("Entete corrigee: le groupe JJHHMM a ete tronque (plus de 6 caracteres)")
+            self.logger.info("Entete corrigee (%s): le groupe JJHHMM a ete tronque (plus de 6 caracteres)" % str(tokens))
             self.setHeader(' '.join(tokens))
             tokens = self.getHeader().split()
 
