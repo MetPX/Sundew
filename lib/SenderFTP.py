@@ -215,6 +215,7 @@ class SenderFTP(object):
             if not destName :
                os.unlink(file)
                self.logger.info('No destination name: %s has been erased' % file)
+               continue
 
             # check protocol
             if not self.client.protocol in ['file','ftp'] :
