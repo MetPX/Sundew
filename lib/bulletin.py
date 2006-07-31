@@ -645,14 +645,6 @@ class bulletin:
             self.setError('Entete vide')
             return
 
-        # Changement qui doit être fait avant de vérifier l'entête,
-        # le tandem enlève le 'z' ou 'Z' à la fin de l'entête
-        # s'il y a lieu.
-        if header[-1]  in ['z','Z'] :
-            if not header[-3:-2] not in ['CC','AA','RR']:
-               header = header[:-1]
-               self.setHeader(header)
-
         tokens = header.split()
 
         if len(tokens) < 3:
