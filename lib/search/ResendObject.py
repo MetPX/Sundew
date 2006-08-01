@@ -19,19 +19,29 @@ named COPYING in the root of the source directory tree.
 """
 
 import sys
+import time
 
 # Local imports
 sys.path.append("../")
+sys.path.insert(1, '/apps/px/lib/importedLibs')
 import PXPaths; PXPaths.normalPaths()
+import PXManager
+import Logger
 
 class ResendObject(object):
-    __slots__ = ["prompt", "destinations", "prio", "machineHeaderDict"]
+    __slots__ = ["prompt", "destinations", "prio", "machineHeaderDict", "logger", "manager"]
     
     def __init__(self):
         self.prompt = False
         self.destinations = ""
         self.prio = "3"
         self.machineHeaderDict = {}
+        
+        # Setting up Logger object and PXManager
+        logger = Logger.Logger("/apps/px/log/pxresend.log", "INFO", "DDB")
+        self.logger = logger.getLogger()
+        self.manager = PXManager.PXManager()
+        self.manager.setLogger(self.logger)
     
     def headerToLocation(self, header):
         headerParts = header.split(":")
@@ -44,11 +54,11 @@ class ResendObject(object):
         return "%s%s/%s/%s/%s/%s" % (dbPath, date, tt, target, cccc, header)
 
     def createDestinationPath(self, destination):
-        return "%s%s/%s/" % (PXPaths.TXQ, destination, self.prio)
+        stringTime = time.strftime("%Y%m%d%H", time.gmtime(time.time())) # Converts the current time to this string format YYYYMMDDHH
+        return "%s%s/%s/%s" % (PXPaths.TXQ, destination, self.prio, stringTime)
    
     def createAllArtifacts(self):
         commandList = [] # List of command to execute
-        
         for machine in self.machineHeaderDict.keys(): # For every machines with matching bulletins
             try:
                 filelogname = "%sfilelogs/filelog.%s" % (PXPaths.SEARCH, machine)
@@ -70,23 +80,6 @@ class ResendObject(object):
          
         return commandList
    
-    #def createCommandList(self):
-    #    commandList = [] # List of command to execute
-    #    
-    #    for machine in self.machineHeaderDict.keys(): # For every machines with matching bulletins
-    #        
-    #        for destination in self.destinations: # One command per destination client
-    #            bulletins = self.machineHeaderDict[machine]
-    #            bstring = ""
-    #            
-    #            for bulletin in bulletins: # Construct a big string of all bulletins path for the "cp" command
-    #                bstring += "%s " % (self.headerToLocation(bulletin))
-    #                
-    #            destinationPath = self.createDestinationPath(destination) # Get the destination path
-    #            commandList += ['ssh %s "cp %s %s"' % (machine, bstring, destinationPath)] # Add the complete command to the list
-    #    
-    #    return commandList
-        
     def getPrompt(self):
         return self.prompt
 
@@ -97,7 +90,21 @@ class ResendObject(object):
         return self.destinations
 
     def setDestinations(self, value):
-        self.destinations = value
+        """
+        This method receives a list of destination which we'll be checked for alias.
+        """
+        manager = self.getManager()
+        logger = self.getLogger()
+        
+        destinations = []
+        for v in value:
+            flowType = manager.getFlowType(v)
+            if flowType[0] == "TX" or flowType[0] == "TRX":
+                destinations += flowType[1]
+            else:
+                logger.warning("An RX was used as a destination. Discarded.")
+                
+        self.destinations = destinations
 
     def getPrio(self):
         return self.prio
@@ -112,4 +119,10 @@ class ResendObject(object):
         if machine in self.machineHeaderDict.keys():
             self.machineHeaderDict[machine] += [header]
         else:
-            self.machineHeaderDict[machine] = [header] 
+            self.machineHeaderDict[machine] = [header]
+
+    def getLogger(self):
+        return self.logger
+
+    def getManager(self):
+        return self.manager

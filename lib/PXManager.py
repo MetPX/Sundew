@@ -53,7 +53,7 @@ class PXManager(SystemManager):
         sourlientNames = self.getTRxNames()
         sourceNames = self.getRxNames()
 
-        print clientNames, sourlientNames, sourceNames
+        #print clientNames, sourlientNames, sourceNames
 
         # clientNames first, sourlientNames second, sourcesNames third and finally, aliases fourth
         flowNames = [name]

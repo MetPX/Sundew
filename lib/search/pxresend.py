@@ -42,6 +42,12 @@ def validateUserInput(options, args):
         print "Available priorities are 1 or 2 or 3 or 4 or 5."
         sys.exit(1)
 
+    if len(args) > 1:
+        if len(args.split(":")) < 2:
+            print "Input was not formatted correctly."
+            print "It should be machine:bulletin."
+            sys.exit(1)
+
 def updateResendObject(ro, options, args):
     ro.setPrompt(options.prompt)
     ro.setPrio(options.prio)
@@ -52,9 +58,11 @@ def updateResendObject(ro, options, args):
             machine, bulletinHeader = parseRawLine(searchLine.strip())
             ro.addToMachineHeaderDict(machine, bulletinHeader)
     else:
-        print "Not supported for now"
-        sys.exit(0)
-        # TODO: Write something there
+        for arg in args:
+            argParts = arg.split(":")
+            machine = argParts[0]
+            bulletinHeader = ":".join(argsParts[1:]) # A bulletin file header contains multiple ':'
+            ro.addToMachineHeaderDict(machine, bulletinHeader)
 
 def resend(ro):
     commandList = ro.createAllArtifacts()
@@ -71,7 +79,7 @@ def resend(ro):
                 print output
 
 def createParser(ro):
-    usagemsg = "%prog [options] <machine:bulletin-file>\nResend one or more bulletins."
+    usagemsg = "%prog [options] <machine:bulletin>\nResend one or more bulletins."
     parser = OptionParser(usage=usagemsg, version="%prog 0.8-alpha")
 
     parser.add_option("--ask", action = "store_true", dest = "prompt", help = "Ask for a resending confirmation for each bulletins.")

@@ -284,6 +284,8 @@ class SystemManager:
         for file in filesToCopy:
             file = file.strip()
             for destination in destinations:
+                if not os.path.exists(destination):
+                    os.mkdir(destination, 0755)
                 try:
                     shutil.copy(file, destination)
                 except IOError:
