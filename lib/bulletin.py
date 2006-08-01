@@ -410,7 +410,13 @@ class bulletin:
                     station = premiereLignePleine.split()[1]
 
             elif bulletin[0][0:2] in ["UE","UG","UK","UL","UQ","US"]:
-                station = premiereLignePleine.split()[2]
+                parts = premiereLignePleine.split()
+                if parts[0][:2] in ['EE', 'II', 'QQ', 'UU']:
+                    station = parts[1]
+                elif parts[0][:2] in ['PP', 'TT']: 
+                    station = parts[2]
+                else:
+                    station = None
 
             elif bulletin[0][0:2] in ["RA","MA","CA"]:
                 station = premiereLignePleine.split()[0].split('/')[0]
