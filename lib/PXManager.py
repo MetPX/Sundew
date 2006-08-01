@@ -41,14 +41,29 @@ class PXManager(SystemManager):
         SystemManager.__init__(self)
         self.LOG = PXPaths.LOG          # Will be used by DirCopier
 
-    def getFlowType(self, name):
-        from DirectRoutingParser import DirectRoutingParser
-        drp = DirectRoutingParser(PXPaths.ROUTING_TABLE, [], self.logger)
-        drp.printErrors = False
-        drp.parseAlias()
-        #print drp.aliasedClients
+    def getFlowQueueName(self, flow, drp, filename=None, priority=None):
+        types = {'TX': PXPaths.TXQ, 'RX':PXPaths.RXQ, 'TRX': PXPaths.TXQ}
+        type, flowNames = self.getFlowType(flow, drp)
 
-        self.initNames()
+        # No type or flow is an alias
+        if not type or len(flowNames) != 1: return None
+
+        if filename:
+            parts = filename.split(':')
+            if not priority:
+                priority = parts[4].split('.')[0]
+
+        flowQueueName = types[type] + flow 
+        if filename:
+            flowQueueName += '/' + str(priority) + '/' + time.strftime("%Y%m%d%H", time.gmtime()) + '/' + filename
+        
+        return flowQueueName
+
+    def getFlowType(self, name, drp):
+        """
+        The search will procede in the following order: clientNames -> sourlientNames -> sourceNames.
+        This can have an impact if a name is in more than one category.
+        """
         clientNames =  self.getTxNames()
         sourlientNames = self.getTRxNames()
         sourceNames = self.getRxNames()
