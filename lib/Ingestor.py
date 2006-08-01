@@ -110,14 +110,15 @@ class Ingestor(object):
         receptionNameParts = receptionNameParts + [time.strftime("%Y%m%d%H%M%S", time.gmtime())]
         return string.join(receptionNameParts,':')
 
-    def getClientQueueName(self, clientName, ingestName):
+    def getClientQueueName(self, clientName, ingestName, priority=None):
         """
         Return the directory into which a file of a given priority should be placed.
         Layout used is: /apps/px/txq/<client>/<priority>/YYYYmmddhh
         """
         parts = ingestName.split(':')
-        priority = parts[4].split('.')[0]
-        return PXPaths.TXQ + clientName + '/' + priority + '/' + time.strftime("%Y%m%d%H", time.gmtime()) + '/' + ingestName
+        if not priority:
+            priority = parts[4].split('.')[0]
+        return PXPaths.TXQ + clientName + '/' + str(priority) + '/' + time.strftime("%Y%m%d%H", time.gmtime()) + '/' + ingestName
 
     def getDBName(self, ingestName):
         """
