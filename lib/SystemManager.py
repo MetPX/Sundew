@@ -218,6 +218,17 @@ class SystemManager:
             os.chmod(copyLog, 0644)
             cpLog.close()
 
+    def createCachedDir(self, dir, cacheManager):
+        if cacheManager.find(dir) == None:
+            try:
+                os.makedirs(dir, 01775)
+            except OSError:
+                (type, value, tb) = sys.exc_info()
+                if self.logger is None:
+                    print("Problem when creating dir (%s) => Type: %s, Value: %s" % (dir, type, value))
+                else:
+                    self.logger.debug("Problem when creating dir (%s) => Type: %s, Value: %s" % (dir, type, value))
+
     def createDir(self, dir):
         oldUmask = os.umask(0022)
         if not os.path.isdir(dir):
