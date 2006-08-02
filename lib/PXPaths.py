@@ -55,7 +55,7 @@ def normalPaths():
 
     ROOT = envVar 
     BIN = ROOT + 'bin/'
-    LIB = ROOT + 'lib/' # This path was hardcoded in SafeCopy.py, see dominik_db or dlema for details
+    LIB = ROOT + 'lib/' # This path was hardcoded in PXCopy.py, see dominik_db or dlema for details
     LOG = ROOT + 'log/'
     ETC = ROOT + 'etc/'
     RXQ = ROOT + 'rxq/'

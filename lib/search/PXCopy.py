@@ -15,16 +15,22 @@ named COPYING in the root of the source directory tree.
 #
 # Date: 2006-08-02
 #
+# TODO: Let the user select the priority
+#       So add an option to optparse for that.
+#       Won't be necessary if all we need is 0
+#
 ###########################################################
 """
 
 import sys
 import os
 import commands
+import shutil
 from optparse import OptionParser
 
 # Local imports
 sys.path.append("/apps/px/lib/")
+sys.path.insert(1, '/apps/px/lib/importedLibs')
 import PXManager
 import DirectRoutingParser
 import CacheManager
@@ -38,18 +44,18 @@ class PXCopy(object):
         self.file = file
         self.destinations = destinations
 
-        logger = Logger.Logger("/apps/px/log/pxcopy.log", "INFO", "DDB")
-        self.logger = logger.getLogger()
-        self.manager = PXManager.PXManager(logger)
+        self.logger = Logger.Logger("/apps/px/log/pxcopy.log", "INFO", "DDB").getLogger()
+        self.manager = PXManager.PXManager()
+        self.manager.setLogger(self.logger)
         self.manager.initNames()
-        self.drp = DirectRoutingParser.DirectRoutingParser(PXPaths.ROUTING_TABLE, [], logger)
+        self.drp = DirectRoutingParser.DirectRoutingParser(PXPaths.ROUTING_TABLE, [], self.logger)
         self.drp.printErrors = False
         self.drp.parseAlias()
         self.flowDirsCache = CacheManager.CacheManager(maxEntries = 10000, timeout = 2*3600)
         
     def copy(self):
         try:
-            flog = self.getFile()
+            fileLog = self.getFile()
             destinations = self.getDestinations()
 
             try:
@@ -65,7 +71,7 @@ class PXCopy(object):
             for file in filesToCopy:
                 file = file.strip()
                 for destination in destinations:
-                    destination = createCompleteDestination(destination, file)
+                    destination = self.createCompleteDestination(destination, file.split("/")[-1])
                     try:
                         shutil.copy(file, destination)
                     except IOError:
@@ -74,7 +80,7 @@ class PXCopy(object):
 
         except:
             type, value, tb = sys.exc_info()
-            print "An error occured in the PXManager, Type: %s Value: %s" % (type, value)
+            print "An error occured in the PXCopy, Type: %s Value: %s" % (type, value)
             sys.exit(1)
     
     def createCompleteDestination(self, flow, filename):
@@ -83,16 +89,16 @@ class PXCopy(object):
         """
         manager = self.getManager()
         drp = self.getDrp()
-        flowDirsCache = self.flowDirsCache()
-        prio = self.prio
+        flowDirsCache = self.getFlowDirsCache()
+        prio = 3 # Enventually or user selected
         
-        if prio = -1:
-            flowQueueName = manager.getFlowQeueName(flow, drp, filename)
+        if prio == -1:
+            flowQueueName = manager.getFlowQueueName(flow, drp, filename)
         else:
-            flowQueueName = manager.getFlowQeueName(flow, drp, filename, prio)
+            flowQueueName = manager.getFlowQueueName(flow, drp, filename, prio)
 
         if flowQueueName:
-            pxManager.createCachedDir(os.path.dirname(flowQueueName), flowDirsCache)
+            manager.createCachedDir(os.path.dirname(flowQueueName), flowDirsCache)
 
         return flowQueueName
     
@@ -153,19 +159,6 @@ def pullFile(host, filename):
     else:
         return filename.split("/")[-1] # Just the name of the file, without the old path
 
-def makeFinalDestinations(destinations):
-    logger = Logger.Logger("/apps/px/log/pxresend.log", "INFO", "DDB")
-    logger = logger.getLogger()
-    manager = PXManager.PXManager(logger)
-    manager.initNames()
-    drp = DirectRoutingParser.DirectRoutingParser(PXPaths.ROUTING_TABLE, [], logger)
-    drp.printErrors = False
-    drp.parseAlias()
-    flowDirsCache = CacheManager.CacheManager(maxEntries = 10000, timeout = 2*3600)
-    
-    for destination in destinations:
-        
-     
 def validateUserInput(options, args):
     if (options.file == "" or options.machine == ""):
         print "You must specify a valid file and host!"
@@ -188,6 +181,7 @@ def main():
     options, args = parser.parse_args()    
     validateUserInput(options, args)
     filename = pullFile(options.machine, options.file)
+    print filename
     
     pxcp = PXCopy(filename, args) # args is the list of destinations
     pxcp.checkDestinationsForAlias()

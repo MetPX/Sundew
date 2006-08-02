@@ -20,6 +20,7 @@ named COPYING in the root of the source directory tree.
 
 import sys
 import time
+import os
 
 # Local imports
 sys.path.append("../")
@@ -30,23 +31,14 @@ import Logger
 import DirectRoutingParser
 
 class ResendObject(object):
-    __slots__ = ["prompt", "destinations", "prio", "machineHeaderDict", "logger", "manager", "drp"]
+    __slots__ = ["prompt", "destinations", "prio", "machineHeaderDict", "fileList"]
     
     def __init__(self):
         self.prompt = False
         self.destinations = ""
         self.prio = "3"
         self.machineHeaderDict = {}
-        
-        # Setting up Logger object and PXManager
-        logger = Logger.Logger("/apps/px/log/pxresend.log", "INFO", "DDB")
-        self.logger = logger.getLogger()
-        self.manager = PXManager.PXManager()
-        self.manager.setLogger(self.logger)
-        self.manager.initNames()
-        self.drp = DirectRoutingParser.DirectRoutingParser(PXPaths.ROUTING_TABLE, self.logger)
-        drp.printErrors = False
-        drp.parseAlias()
+        self.fileList = []
         
     def headerToLocation(self, header):
         headerParts = header.split(":")
@@ -64,6 +56,7 @@ class ResendObject(object):
             try:
                 filelogname = "%sfilelogs/filelog.%s" % (PXPaths.SEARCH, machine)
                 filelog = open(filelogname, "w") # This file will need to be transfered to the remote machibe
+                self.addToFileList(filelogname)        
             except IOError:
                 print "Could not open filelog for writing!"
                 sys.exit(1)
@@ -78,7 +71,16 @@ class ResendObject(object):
             commandList += ['ssh %s "%sPXCopy.py -m %s -f %s %s"' % (machine, PXPaths.SEARCH, machine, filelogname, destinations)]
          
         return commandList
-   
+    
+    def removeFiles(self):
+        fileList = self.getFileList()
+        for file in fileList:
+            try:
+                os.remove(file)
+            except OSError:
+                type, value, tb = sys.exc_info()
+                print "Problem deleting %s, Type: %s Value: %s" % (file, type, value)
+    
     def getPrompt(self):
         return self.prompt
 
@@ -89,22 +91,7 @@ class ResendObject(object):
         return self.destinations
 
     def setDestinations(self, value):
-        """
-        This method receives a list of destination which we'll be checked for alias.
-        """
-        manager = self.getManager()
-        logger = self.getLogger()
-        drp = self.getDrp()
-        
-        destinations = []
-        for v in value:
-            flowType = manager.getFlowType(v, drp)
-            if flowType[0] == "TX" or flowType[0] == "TRX":
-                destinations += flowType[1]
-            else:
-                logger.warning("An RX was used as a destination. Discarded.")
-                
-        self.destinations = destinations
+        self.destinations = value
 
     def getPrio(self):
         return self.prio
@@ -121,11 +108,8 @@ class ResendObject(object):
         else:
             self.machineHeaderDict[machine] = [header]
 
-    def getLogger(self):
-        return self.logger
+    def getFileList(self):
+        return self.fileList
 
-    def getManager(self):
-        return self.manager
-
-    def getDrp(self):
-        return self.drp
+    def addToFileList(self, value):
+        self.fileList += [value]

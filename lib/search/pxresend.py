@@ -78,6 +78,8 @@ def resend(ro):
                 print "There was a problem resending certain bulletins."
                 print output
 
+    ro.removeFiles()
+
 def createParser(ro):
     usagemsg = "%prog [options] <machine:bulletin>\nResend one or more bulletins."
     parser = OptionParser(usage=usagemsg, version="%prog 0.8-alpha")
