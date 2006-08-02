@@ -120,7 +120,7 @@ class SAParser(FileParser):
             # A third line is present?
             try:
                 thirdLineParts = lines[2].split()
-                if thirdLineParts:
+                if not thirdLineParts:
                     thirdLineParts = [False]
             except:
                 thirdLineParts = [False]
@@ -137,6 +137,8 @@ class SAParser(FileParser):
                     # We erase line like: METAR 221600Z
                     del lines[1]
             except:
+                #print secondLineParts 
+                #print thirdLineParts
                 print self.filename
                 print secondLineParts
                 print thirdLineParts
@@ -156,7 +158,8 @@ class SAParser(FileParser):
             for line in newLines:
                 #print line
                 parts = line.split()
-                if parts == []: continue  # Happens when the token '==' is in the bulletin
+                if parts == [] or len(parts) == 1: continue  # Happens when the token '==' is in the bulletin or when 
+                                                             # the line is in error
                 try: 
                     if parts[0] in ['METAR', 'SPECI', 'METAR/SPECI']:
                         #print 'TUPLE: ', parts[0], parts[1]
