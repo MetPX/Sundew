@@ -45,8 +45,8 @@ class DirectoryFileCollector:
        
        """
        
-       startTime = MyDateLib.getSecondsSinceEpoch( startTime )
-       endTime   = MyDateLib.getSecondsSinceEpoch ( endTime ) 
+       #startTime = MyDateLib.getSecondsSinceEpoch( startTime )
+       #endTime   = MyDateLib.getSecondsSinceEpoch ( endTime ) 
        
        self.directory    = directory    # Name of the directory where we collect entries 
        self.startTime    = startTime    # Starting time of the data wich interests us. 
@@ -77,19 +77,20 @@ class DirectoryFileCollector:
         
         if line != "":
             
-            departure =  FileStatsCollector.findValue( "departure" , line )       
-            
+            departure =  FileStatsCollector.findValues( ["departure"], line )["departure"]       
+            print "departure %s , self.endTime %s " %(departure, self.endTime)
             if departure <= self.endTime  :
-                
+                print "1 step good"
                 line == ""
                 fileSize = os.stat( fileName )[6]
                 
                 line,offset  = backwardReader.readLineBackwards( fileHandle, offset = -1, fileSize = fileSize  )
                 print "+-+- line : %s" %line
                 print "on filename : %s" %fileName
-                lastDeparture = FileStatsCollector.findValue( "departure" , line )        
+                lastDeparture = FileStatsCollector.findValues( ["departure"] , line )["departure"]       
 
                 if lastDeparture  >= self.startTime :
+                    print "step 2 good"
                     usefull = True
         
                          
@@ -111,14 +112,16 @@ class DirectoryFileCollector:
          
         if os.path.isdir( self.directory ):
             
-            filePattern = self.directory + "/%s_%s.log*" %( self.fileType, self.client )
+            filePattern = self.directory + "%s_%s.log*" %( self.fileType, self.client )
             
+            print "filePattern : %s" %filePattern
             fileNames = glob.glob( filePattern )            
                       
             for fileName in fileNames: #verify every entries.
                 usefull = self.containsUsefullInfo( fileName )
                 
                 if usefull == True :
+                    print  "usefull : %s" %fileName
                     self.entries.append( fileName )
 
         else:

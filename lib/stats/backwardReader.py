@@ -143,13 +143,14 @@ if __name__ == "__main__":
         Small test case. Tests if everything works plus gives an idea on proper usage.
     """
     
-    tail( nbLines =10, file = "/apps/px/lib/stats/vide",printIt = True )
-    tail( nbLines =10, file = "/apps/px/lib/stats/files/tx_amis-amec.log.old",printIt = True )
-    tail( nbLines =10, file = "/apps/px/lib/stats/files/existepas",printIt = True )
-    tail( nbLines =10, file = "/apps/px/lib/stats/onelinefile",printIt = True)        
+    print "tail tests :"
+    tail( nbLines =10, file = "/apps/px/lib/stats/testFiles/empty",printIt = True )
+    tail( nbLines =10, file = "/apps/px/lib/stats/testFiles/tx_amis.log",printIt = True )
+    tail( nbLines =10, file = "/apps/px/lib/stats/testFiles/onelinefile",printIt = True)        
     
-    fileName = "/apps/px/lib/stats/bob"
-    fileHandle = open( "/apps/px/lib/stats/bob", "r")
+    print "read lines backward test :"
+    fileName = "/apps/px/lib/stats/testFiles/bob"
+    fileHandle = open( "/apps/px/lib/stats/testFiles/bob", "r")
     
     fileSize = os.stat(fileName)[6]
     line,offset  = readLineBackwards( fileHandle, offset = -1, fileSize = fileSize  )
@@ -160,6 +161,7 @@ if __name__ == "__main__":
         line,offset = readLineBackwards( fileHandle = fileHandle, offset = offset , fileSize = fileSize )
         if line != "":
             print line 
-        
+    
+    tail( nbLines =10, file = "/apps/px/lib/stats/testFiles/nonexisting",printIt = True )    
     
     

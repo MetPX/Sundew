@@ -28,7 +28,7 @@ named COPYING in the root of the source directory tree.
 
 
 import os,sys
-import gzippickle
+import cpickleWrapper
 from MyDateLib import *
  
 def printPickle( pickle, outputFile = "" ):
@@ -50,17 +50,19 @@ def printPickle( pickle, outputFile = "" ):
         old_stdout = sys.stdout 
         sys.stdout = fileHandle 
     
-    statsCollection = gzippickle.load( pickle )
+    statsCollection = cpickleWrapper.load( pickle )
     
     print "Pickle used : %s" %pickle
     print "\n\nFiles used : %s" %statsCollection.files
-    print "Starting date: %s" % MyDateLib.getIsoFromEpoch(statsCollection.startTime)
+    print "Starting date: %s" % statsCollection.startTime
                                 
     print "Interval: %s" %statsCollection.interval
     print "End time : %s" %statsCollection.endTime
-
+    print "nbEntries : %s" %statsCollection.nbEntries
+    
     for j in range( statsCollection.nbEntries ):
-        print "\nEntry's interval : %s - %s " %( MyDateLib.getIsoFromEpoch(statsCollection.fileEntries[j].startTime), MyDateLib.getIsoFromEpoch(statsCollection.fileEntries[j].endTime ) )
+        print j
+        print "\nEntry's interval : %s - %s " %( statsCollection.fileEntries[j].startTime, statsCollection.fileEntries[j].endTime  )
         print "Values :"
         print statsCollection.fileEntries[j].values.dictionary
         print "Means :"
@@ -74,9 +76,9 @@ def printPickle( pickle, outputFile = "" ):
         print "Total"
         print statsCollection.fileEntries[j].totals
         
-
-    fileHandle.close()      
-    sys.stdout = old_stdout #resets standard output 
+    if outputFile != "":
+        fileHandle.close()      
+        sys.stdout = old_stdout #resets standard output 
     
     
 #     except:

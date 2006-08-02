@@ -115,10 +115,12 @@ class MyDateLib:
     
     
     def getSecondsSinceEpoch(date='2005-08-30 20:06:59', format='%Y-%m-%d %H:%M:%S'):
+        
         try:
             timeStruct = time.strptime(date, format)
         except:
-            print date
+            print "date tried : %s" %date
+            
         return time.mktime(timeStruct)
             
     
@@ -405,6 +407,7 @@ class MyDateLib:
         
         separators = []
         
+        startTime = MyDateLib.getSecondsSinceEpoch(startTime)
         
         if interval <= width :
             
@@ -412,7 +415,7 @@ class MyDateLib:
                 separators.append( MyDateLib.getIsoFromEpoch(value) )
             
             if separators[ len(separators)-1 ] > width+startTime :
-                separators[ len(separators)-1 ] = width+startTime    
+                separators[ len(separators)-1 ] = MyDateLib.getIsoFromEpoch(width+startTime)
             
         return separators 
         
@@ -425,7 +428,7 @@ class MyDateLib:
     
 if __name__ == "__main__":
 
-    print "MyDateLib.getIsoFromEpoch(1151532000) : %s" %MyDateLib.getIsoFromEpoch(1151532000)
+    print "MyDateLib.getIsoFromEpoch() : %s" %MyDateLib.getIsoFromEpoch()
     print "MyDateLib.getNumberOfDaysBetween( ) : %s" %MyDateLib.getNumberOfDaysBetween( '2005-08-31 00:00:01','2005-08-30 23:59:59' )
     
     

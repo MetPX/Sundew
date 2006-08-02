@@ -27,16 +27,21 @@ named COPYING in the root of the source directory tree.
 import sys 
 import MyDateLib
 from MyDateLib import *
-import ClientStatsCollector
+import ClientStatsPickler
 from Numeric import *
 import Gnuplot, Gnuplot.funcutils
 import copy 
+import PXPaths
+import logging 
+import PXPaths
+from   Logger  import *
+PXPaths.normalPaths()
 
 
 
 class StatsPlotter:
 
-    def __init__( self, timespan,  stats = None, clientNames = None, type='impulses', interval=1, imageName="gnuplotOutput", title = "Stats",currentTime = "",now = False, statsTypes = None, productType = "All" ):
+    def __init__( self, timespan,  stats = None, clientNames = None, type='impulses', interval=1, imageName="gnuplotOutput", title = "Stats",currentTime = "",now = False, statsTypes = None, productType = "All", logger = None ):
         """
             StatsPlotter constructor. 
             
@@ -45,7 +50,7 @@ class StatsPlotter:
         x = [ [0]*5  for x in range(5) ]
         
         self.now         = now                     # False means we round to the top of the hour, True we don't
-        self.stats       = stats or []             # ClientStatsCollector instance.
+        self.stats       = stats or []             # ClientStatsPickler instance.
         self.clientNames = clientNames or []       # Clients for wich we are producing the graphics. 
         self.timespan    = timespan                # Helpfull to build titles 
         self.currentTime = currentTime             # Time of call
@@ -53,7 +58,7 @@ class StatsPlotter:
         self.imageName   = imageName               # Name of the image file.
         self.nbFiles     = []                      # Number of files found in the data collected per server.
         self.nbErrors    = []                      # Number of errors found per server
-        self.xtics       = self.getXTics( )        # Seperarators on the x axis.
+        self.xtics       = self.getXTics( )        # Seperators on the x axis.
         self.graph       = Gnuplot.Gnuplot()       # The gnuplot graphic object itself. 
         self.timeOfMax   = [[]]                    # Time where the maximum value occured.  
         self.machines    = ""                      # List of machine where we collected info.
@@ -69,8 +74,15 @@ class StatsPlotter:
         self.const = len( self.stats ) -1          # Usefull constant
         self.productType = productType             # Type of product for wich the graph is being generated.  
         self.initialiseArrays()
-    
+        self.loggerName       = 'statsPlotter'
         
+        if logger is None: # Enable logging
+            self.logger = Logger( PXPaths.LOG + 'stats_' + self.loggerName + '.log', 'INFO', 'TX' + self.loggerName ) 
+            self.logger = self.logger.getLogger()
+            self.logger = logger
+        
+    
+    
     def initialiseArrays( self ):
         """
             Used to set the size of the numerous arrays needed in StatsPlotter
@@ -109,7 +121,7 @@ class StatsPlotter:
                 if name != self.clientNames[ len(self.clientNames) -1 ] :
                     clientName = clientName + "-"  
         
-        date = MyDateLib.getIsoFromEpoch( self.currentTime ).replace( " ", "_")
+        date = self.currentTime.replace( " ", "_")
         
         fileName = str( os.getcwd() ) #will probably need a better path eventually.... 
         fileName = fileName +  "/graphs/%s/%s-%s-For %s hours-%s.png" %( clientName, clientName,self.statsTypes,self.timespan, date ) 
@@ -129,7 +141,7 @@ class StatsPlotter:
         return fileName 
     
     
-    def getXTics(self):
+    def getXTics( self ):
         """
            
            This method builds all the xtics used to seperate data on the x axis.
@@ -143,25 +155,28 @@ class StatsPlotter:
             
         """
         
+        self.logger.debug( "Call to getXtics received" )
+        
         nbBuckets = ( len( self.stats[0].statsCollection.timeSeperators ) )
         xtics = ''
-       
+        startTime = MyDateLib.getSecondsSinceEpoch( self.stats[0].statsCollection.timeSeperators[0] )
+        
         if nbBuckets != 0 :
             
-            startTime = MyDateLib.getOriginalHour( self.stats[0].statsCollection.startTime )
-            xtics += '"%s" %i, ' % ( startTime, self.stats[0].statsCollection.startTime  )
-            
-            for i in range( 1, nbBuckets ):
-                
-                if ( ( self.stats[0].statsCollection.timeSeperators[i] - self.stats[0].statsCollection.startTime) %(60*60) == 0 ): 
+            for i in range(0, nbBuckets ):
+                 
+                   
+                if ( (  MyDateLib.getSecondsSinceEpoch(self.stats[0].statsCollection.timeSeperators[i]) - ( startTime  ) ) %(60*60)  == 0.0 ): 
                     
-                    hour = MyDateLib.getHoursFromIso( MyDateLib.getIsoFromEpoch( self.stats[0].statsCollection.timeSeperators[i] ) )
+                    hour = MyDateLib.getHoursFromIso( self.stats[0].statsCollection.timeSeperators[i] )
                     
-                    xtics += '"%s" %i, '%(  hour ,self.stats[0].statsCollection.timeSeperators[i] ) 
+                    xtics += '"%s" %i, '%(  hour , MyDateLib.getSecondsSinceEpoch(self.stats[0].statsCollection.timeSeperators[i] ) )
 
+        
         
         return xtics[:-2]
          
+        
         
     def getPairs( self, clientCount , statType, typeCount  ):
         """
@@ -178,61 +193,49 @@ class StatsPlotter:
         
         """
         
-        
+        self.logger.debug( "Call to getPairs received." )
         k = 0 
         pairs = []
         total = 0
         self.nbFiles[clientCount]  = 0
         self.nbErrors[clientCount] = 0
         self.nbFilesOverMaxLatency[clientCount] = 0
-        nbEntries = len( self.stats[clientCount].statsCollection.timeSeperators ) 
+        nbEntries = len( self.stats[clientCount].statsCollection.timeSeperators )-1 
+                
         
-        try:  
+        if nbEntries !=0:
             
+            total = 0
+                            
+            self.minimums[clientCount][typeCount] = 1000000
+            self.maximums[clientCount][typeCount] = 0
+            self.filesWhereMaxOccured[clientCount][typeCount] =  "" 
+            self.timeOfMax[clientCount][typeCount] = ""
+                    
+            print "nbEntries : %s" %nbEntries
+            print statType
             
-            if nbEntries !=0:
+            for k in range( 0, nbEntries ):
                 
-                #0 is special case since starttime isnt part of the gucket list 
-                if len( self.stats[clientCount].statsCollection.fileEntries[0].means ) >=1 :
-                    
-                    if statType == "errors":
-                        pairs.append( [self.stats[clientCount].statsCollection.startTime, self.stats[clientCount].statsCollection.fileEntries[0].totals[ statType ] ] )
-                        self.nbFiles[clientCount]  = self.stats[clientCount].statsCollection.fileEntries[0].nbFiles
-                        
-                    else:
-                        pairs.append( [self.stats[clientCount].statsCollection.startTime, self.stats[clientCount].statsCollection.fileEntries[0].means[statType]] )
-                        self.nbFiles[clientCount] = self.stats[clientCount].statsCollection.fileEntries[0].nbFiles  
-                
-                else:
-                    
-                    pairs.append( [self.stats[clientCount].statsCollection.startTime, 0.0] )
-                    
-                
-                total = pairs[0][1]
-                
-                self.minimums[clientCount][typeCount] = pairs[0][1]
-                self.maximums[clientCount][typeCount] = pairs[0][1] 
-                self.filesWhereMaxOccured[clientCount][typeCount] =  "" 
-                self.timeOfMax[clientCount][typeCount] = ""
-                        
-                
-                for k in range( 1, nbEntries ):
+                try :
                     
                     if len( self.stats[clientCount].statsCollection.fileEntries[k].means ) >=1 :
+                        #print self.stats[clientCount].statsCollection.timeSeperators[k]
                         
                         if statType == "latency":
                             self.nbFilesOverMaxLatency[clientCount] = self.nbFilesOverMaxLatency[ clientCount ] + self.stats[clientCount].statsCollection.fileEntries[k].filesOverMaxLatency    
                     
                         if statType == "errors":
-                            pairs.append( [self.stats[clientCount].statsCollection.timeSeperators[k], self.stats[clientCount].statsCollection.fileEntries[k].totals[statType]] )
+                            
+                            pairs.append( [MyDateLib.getSecondsSinceEpoch(self.stats[clientCount].statsCollection.timeSeperators[k]), self.stats[clientCount].statsCollection.fileEntries[k].totals[statType]] )
                         
                             #calculate total number of errors
                             self.nbErrors[clientCount] = self.nbErrors[clientCount] + self.stats[clientCount].statsCollection.fileEntries[k].totals[statType] 
                             
                             
                         else:
-                            pairs.append( [self.stats[clientCount].statsCollection.timeSeperators[k], self.stats[clientCount].statsCollection.fileEntries[k].means[statType]] )
-                           
+                            pairs.append( [ MyDateLib.getSecondsSinceEpoch(self.stats[clientCount].statsCollection.timeSeperators[k]), self.stats[clientCount].statsCollection.fileEntries[k].means[statType]] )
+                            
                         
                         if( self.stats[clientCount].statsCollection.fileEntries[k].maximums[statType]  > self.maximums[clientCount][typeCount] ) :
                             
@@ -247,33 +250,32 @@ class StatsPlotter:
                         
                             
                         self.nbFiles[clientCount]  = self.nbFiles[clientCount]  + self.stats[clientCount].statsCollection.fileEntries[k].nbFiles   
-                        
-    
-                
-                        
+                    
+
+            
+                    
                     else:
-                        pairs.append( [ self.stats[clientCount].statsCollection.timeSeperators[k], 0.0 ] )
-                        
-                        
-                    total = total + pairs[k][1]            
+                        pairs.append( [ MyDateLib.getSecondsSinceEpoch(self.stats[clientCount].statsCollection.timeSeperators[k]), 0.0 ] )
                 
-                self.means[clientCount][typeCount] = (total / (k+1) ) 
+                except KeyError:
+                    self.logger.error( "Error in getPairs." )
+                    self.logger.error( "The %s stat type was not found in previously collected data." %statType )    
+                    pairs.append( [ MyDateLib.getSecondsSinceEpoch(self.stats[clientCount].statsCollection.timeSeperators[k]), 0.0 ] )
+                    pass    
                 
-                
-                if self.nbFiles[clientCount] != 0 :
-                    self.ratioOverLatency[clientCount]  = float( float(self.nbFilesOverMaxLatency[clientCount]) / float(self.nbFiles[clientCount]) ) *100.0
+                total = total + pairs[k][1]            
             
-                       
+            self.means[clientCount][typeCount] = (total / (k+1) ) 
+            
+            
+            if self.nbFiles[clientCount] != 0 :
+                self.ratioOverLatency[clientCount]  = float( float(self.nbFilesOverMaxLatency[clientCount]) / float(self.nbFiles[clientCount]) ) *100.0
+            
+                                 
             return pairs    
-        
-        except KeyError:
-            print "Error. The %s stat type was not found in previously collected data." %statType
-            print "Make sure data type is collected prior to asking for a graphic of that type."
-            print "Program terminated."
-            sys.exit()         
-            
-            
-            
+
+
+
     def getMaxPairValue( self, pairs ):
         """
             Returns the maximum value of a list of pairs. 
@@ -305,7 +307,7 @@ class StatsPlotter:
         
         
       
-        title=  "%s for %s queried at %s for a span of %s hours \\n\\nMAX: %3.2f,  MEAN: %3.2f, MIN: %3.2f " %( statType, self.clientNames[i], MyDateLib.getIsoFromEpoch( self.currentTime ), self.timespan,  self.maximums[i][typeCount], self.means[i][typeCount], self.minimums[i][typeCount] )     
+        title=  "%s for %s queried at %s for a span of %s hours \\n\\nMAX: %3.2f,  MEAN: %3.2f, MIN: %3.2f " %( statType, self.clientNames[i],  self.currentTime , self.timespan,  self.maximums[i][typeCount], self.means[i][typeCount], self.minimums[i][typeCount] )     
         
         return title
         
@@ -318,7 +320,7 @@ class StatsPlotter:
             plot function. 
             
         """
-        
+        self.logger.debug( "Call to plot received" )
         #Set general settings for graphs 
         
         color = 1
@@ -359,9 +361,8 @@ class StatsPlotter:
             
             print self.statsTypes 
             
-            for j in range (len (self.statsTypes) ):
-            
-                pairs        = self.getPairs( i , self.statsTypes[j], j )
+            for j in range ( len ( self.statsTypes ) ):
+                pairs        = self.getPairs( clientCount =i , statType= self.statsTypes[j], typeCount = j )
                 maxPairValue = self.getMaxPairValue( pairs )
                 
                 if self.statsTypes[j] == "errors" :
@@ -376,11 +377,7 @@ class StatsPlotter:
                 self.graph.plot( Gnuplot.Data( pairs , with="%s %s 1" % ( self.type, color) ) )
                 
                 nbGraphs = nbGraphs + 1 
-        
-        
-#         self.graph.reset()
-#         
-#         self.graph = None
+
                     
         
          
@@ -391,7 +388,7 @@ class StatsPlotter:
         """            
         
         if self.maximums[i][j] !=0:
-            timeOfMax = MyDateLib.getIsoFromEpoch( self.timeOfMax[i][j] )
+            timeOfMax = self.timeOfMax[i][j] 
             if maxPairValue < 5 :
                 self.graph( 'set format y "%10.2f"' )
 
@@ -425,7 +422,8 @@ class StatsPlotter:
         
         ###End of method to build  
         
-        
+    
+            
     def addBytesLabelsToGraph( self, i , nbGraphs, j, maxPairValue ):
         """
             Used to set proper labels for a graph relating to bytes. 
@@ -433,7 +431,7 @@ class StatsPlotter:
         """            
         
         if self.maximums[i][j] !=0:
-            timeOfMax = MyDateLib.getIsoFromEpoch( self.timeOfMax[i][j] )
+            timeOfMax = self.timeOfMax[i][j] 
             if maxPairValue <5 :
                 self.graph( 'set format y "%10.2f"' )
         else:
@@ -470,7 +468,7 @@ class StatsPlotter:
         """   
                  
         if self.maximums[i][j] !=0:
-            timeOfMax = MyDateLib.getIsoWithRoundedSeconds( MyDateLib.getIsoFromEpoch( self.timeOfMax[i][j] ) )
+            timeOfMax = MyDateLib.getIsoWithRoundedSeconds( self.timeOfMax[i][j]  )
             if maxPairValue <5 :
                 self.graph( 'set format y "%10.2f"' )
         else:
