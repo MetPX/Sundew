@@ -129,20 +129,23 @@ class TAFParser(FileParser):
                                 # TAF AMD CYBG 231550Z ...
                                 self.stations.setdefault(header, []).append(parts[2])
                             else:
-                                print self.filename
-                                print("PROBLEM: %s" % line)
+                                if self.printErrors:
+                                    print self.filename
+                                    print("PROBLEM: %s" % line)
                                 countProblem += 1
                         else:
-                            print self.filename
-                            print("PROBLEM: %s" % line)
+                            if self.printErrors:
+                                print self.filename
+                                print("PROBLEM: %s" % line)
                             countProblem += 1
                     elif parts[0] in ['3D', '?', '20', 'CHECK', '//END', 'END....', 'MF']:
                         pass
                                 
                     else:
-                        print self.filename
-                        print("PROBLEM: %s" % line)
-                        print parts
+                        if self.printErrors:
+                            print self.filename
+                            print("PROBLEM: %s" % line)
+                            print parts
                         countProblem += 1
                         #sys.exit()
                 except:
@@ -160,33 +163,58 @@ class TAFParser(FileParser):
         pass
 
 if __name__ == '__main__':
-    import os, sys
+    """
+    A cron call this to create /apps/px/etc/stations_TAF.conf
+    """
 
+    import os, sys
+    import dateLib
     from StationFileCreator import StationFileCreator
 
-    root1 = '/apps/px/db/20060522/FC/'
-    root2 = '/apps/px/db/20060522/FT/'
-    root3 = '/apps/px/db/20060523/FC/'
-    root4 = '/apps/px/db/20060523/FT/'
+    #root1 = '/apps/px/db/20060522/FC/'
+    #root2 = '/apps/px/db/20060522/FT/'
+    #root3 = '/apps/px/db/20060523/FC/'
+    #root4 = '/apps/px/db/20060523/FT/'
 
-    receivers1 = os.listdir(root1)
-    receivers2 = os.listdir(root2)
-    receivers3 = os.listdir(root3)
-    receivers4 = os.listdir(root4)
+    root1 = '/apps/px/db/%s/FC/' % dateLib.getYesterdayFormatted() 
+    root2 = '/apps/px/db/%s/FT/' % dateLib.getYesterdayFormatted()
+    root3 = '/apps/px/db/%s/FC/' % dateLib.getTodayFormatted()
+    root4 = '/apps/px/db/%s/FT/' % dateLib.getTodayFormatted()
 
-    print receivers1
-    print receivers2
-    print receivers3
-    print receivers4
+    try:
+        receivers1 = os.listdir(root1)
+    except OSError:
+        receivers1 = []
+
+    try:
+        receivers2 = os.listdir(root2)
+    except OSError:
+        receivers2 = []
+
+    try:
+        receivers3 = os.listdir(root3)
+    except OSError:
+        receivers3 = []
+
+    try:
+        receivers4 = os.listdir(root4)
+    except OSError:
+        receivers4 = []
+
+    #print receivers1
+    #print receivers2
+    #print receivers3
+    #print receivers4
 
     receivers = [root1 + receiver for receiver in receivers1] + [ root2 + receiver for receiver in receivers2] + [ root3 + receiver for receiver in receivers3] + [ root4 + receiver for receiver in receivers4]
 
-    print receivers
+    #print receivers
 
     nbFiles = 0
     nbStations = 0
 
     sp = TAFParser('')
+    sp.printErrors = False
     sp.type = 'INT'
 
     for receiver in receivers:
@@ -207,13 +235,15 @@ if __name__ == '__main__':
         nbStations += len(sp.stations[header])
         #print "%s : %s" % (header, sp.stations[header])
     
+    """
     print "Number of files: %d" % nbFiles
     print "Number of headers: %d" % len(sp.stations)
     print "Number of stations: %d" % nbStations
 
-    #print sp.stations
+    print sp.stations
     headers = sp.stations.keys()
     headers.sort()
-    #print headers
+    print headers
+    """
 
-    #sfc = StationFileCreator('/apps/px/etc/stations_TAF.conf', stations=sp.stations)
+    sfc = StationFileCreator('/apps/px/etc/stations_TAF.conf', stations=sp.stations)

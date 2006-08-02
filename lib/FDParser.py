@@ -137,9 +137,10 @@ class FDParser(FileParser):
                         #FT  3000    6000   9000    12000   18000   24000  30000  34000  39000
                         pass
                     else:
-                        print self.filename
-                        print("PROBLEM: %s" % line)
-                        print parts
+                        if self.printErrors:
+                            print self.filename
+                            print("PROBLEM: %s" % line)
+                            print parts
                         countProblem += 1
                         #sys.exit()
                 except:
@@ -157,27 +158,42 @@ class FDParser(FileParser):
         pass
 
 if __name__ == '__main__':
-    import os, sys
+    """
+    A cron call this to create /apps/px/etc/stations_FD.conf
+    """
 
+    import os, sys
+    import dateLib
     from StationFileCreator import StationFileCreator
 
-    root1 = '/apps/px/db/20060522/FD/'
-    root2 = '/apps/px/db/20060523/FD/'
+    #root1 = '/apps/px/db/20060522/FD/'
+    #root2 = '/apps/px/db/20060523/FD/'
 
-    receivers1 = os.listdir(root1)
-    receivers2 = os.listdir(root2)
+    root1 = '/apps/px/db/%s/FD/' % dateLib.getYesterdayFormatted()
+    root2 = '/apps/px/db/%s/FD/' % dateLib.getTodayFormatted()
 
-    print receivers1
-    print receivers2
+    try:
+        receivers1 = os.listdir(root1)
+    except OSError:
+        receivers1 = []
+
+    try:
+        receivers2 = os.listdir(root2)
+    except OSError:
+        receivers2 = []
+
+    #print receivers1
+    #print receivers2
 
     receivers = [root1 + receiver for receiver in receivers1] + [ root2 + receiver for receiver in receivers2] 
 
-    print receivers
+    #print receivers
 
     nbFiles = 0
     nbStations = 0
 
     sp = FDParser('')
+    sp.printErrors = False
     sp.type = 'INT'
 
     for receiver in receivers:
@@ -198,13 +214,15 @@ if __name__ == '__main__':
         nbStations += len(sp.stations[header])
         #print "%s : %s" % (header, sp.stations[header])
     
+    """
     print "Number of files: %d" % nbFiles
     print "Number of headers: %d" % len(sp.stations)
     print "Number of stations: %d" % nbStations
 
-    #print sp.stations
+    print sp.stations
     headers = sp.stations.keys()
     headers.sort()
-    #print headers
+    print headers
+    """
 
-    sfc = StationFileCreator('/apps/px/etc/stations_FDDAN.conf', stations=sp.stations)
+    sfc = StationFileCreator('/apps/px/etc/stations_FD.conf', stations=sp.stations)

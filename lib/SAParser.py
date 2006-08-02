@@ -236,21 +236,35 @@ class SAParser(FileParser):
         pass
 
 if __name__ == '__main__':
+    """
+    A cron call this to create /apps/px/etc/stations_SA.conf
+    """
     import os, sys
+    import dateLib
     from StationFileCreator import StationFileCreator
+    
+    #root1 = '/apps/px/db/20060522/SA/'
+    #root2 = '/apps/px/db/20060523/SA/'
 
-    root1 = '/apps/px/db/20060522/SA/'
-    root2 = '/apps/px/db/20060523/SA/'
+    root1 = '/apps/px/db/%s/SA/' % dateLib.getYesterdayFormatted()
+    root2 = '/apps/px/db/%s/SA/' % dateLib.getTodayFormatted()
 
-    receivers1 = os.listdir(root1)
-    receivers2 = os.listdir(root2)
+    try:
+        receivers1 = os.listdir(root1)
+    except OSError:
+        receivers1 = []
 
-    print receivers1
-    print receivers2
+    try:
+        receivers2 = os.listdir(root2)
+    except OSError:
+        receivers2 = []
+
+    #print receivers1
+    #print receivers2
 
     receivers = [root1 + receiver for receiver in receivers1] + [ root2 + receiver for receiver in receivers2]
 
-    print receivers
+    #print receivers
 
     nbFiles = 0
     nbStations = 0
@@ -276,21 +290,15 @@ if __name__ == '__main__':
         nbStations += len(sp.stations[header])
         #print "%s : %s" % (header, sp.stations[header])
     
+    """
     print "Number of files: %d" % nbFiles
     print "Number of headers: %d" % len(sp.stations)
     print "Number of stations: %d" % nbStations
 
-    #print sp.stations
-
-    headers = sp.stations.keys()
-    headers.sort()
-    #print headers
-
     metars = sp.metars.keys()
     metars.sort()
-    print metars 
-
     canadianMetars = [metar for metar in metars if metar[:4]=='SACN']
     print canadianMetars
+    """
 
-    #sfc = StationFileCreator('/apps/px/etc/stations_SA.conf', stations=sp.stations)
+    sfc = StationFileCreator('/apps/px/etc/stations_SA.conf', stations=sp.stations)
