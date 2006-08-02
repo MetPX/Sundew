@@ -27,9 +27,10 @@ sys.path.insert(1, '/apps/px/lib/importedLibs')
 import PXPaths; PXPaths.normalPaths()
 import PXManager
 import Logger
+import DirectRoutingParser
 
 class ResendObject(object):
-    __slots__ = ["prompt", "destinations", "prio", "machineHeaderDict", "logger", "manager"]
+    __slots__ = ["prompt", "destinations", "prio", "machineHeaderDict", "logger", "manager", "drp"]
     
     def __init__(self):
         self.prompt = False
@@ -42,7 +43,11 @@ class ResendObject(object):
         self.logger = logger.getLogger()
         self.manager = PXManager.PXManager()
         self.manager.setLogger(self.logger)
-    
+        self.manager.initNames()
+        self.drp = DirectRoutingParser.DirectRoutingParser(PXPaths.ROUTING_TABLE, self.logger)
+        drp.printErrors = False
+        drp.parseAlias()
+        
     def headerToLocation(self, header):
         headerParts = header.split(":")
         dbPath = PXPaths.DB
@@ -53,10 +58,6 @@ class ResendObject(object):
 
         return "%s%s/%s/%s/%s/%s" % (dbPath, date, tt, target, cccc, header)
 
-    def createDestinationPath(self, destination):
-        stringTime = time.strftime("%Y%m%d%H", time.gmtime(time.time())) # Converts the current time to this string format YYYYMMDDHH
-        return "%s%s/%s/%s" % (PXPaths.TXQ, destination, self.prio, stringTime)
-   
     def createAllArtifacts(self):
         commandList = [] # List of command to execute
         for machine in self.machineHeaderDict.keys(): # For every machines with matching bulletins
@@ -67,16 +68,14 @@ class ResendObject(object):
                 print "Could not open filelog for writing!"
                 sys.exit(1)
 
-            destinationsString = ""
-            for destination in self.destinations:
-                destinationsString += "%s " % (self.createDestinationPath(destination))
+            destinations = " ".join(self.destinations)
             
             bulletins = self.machineHeaderDict[machine]
             for bulletin in bulletins:
                 filelog.write("%s\n" % (self.headerToLocation(bulletin)))
             filelog.close()
                     
-            commandList += ['ssh %s "%sSafeCopy.py -m %s -f %s %s"' % (machine, PXPaths.SEARCH, machine, filelogname, destinationsString)]
+            commandList += ['ssh %s "%sPXCopy.py -m %s -f %s %s"' % (machine, PXPaths.SEARCH, machine, filelogname, destinations)]
          
         return commandList
    
@@ -95,10 +94,11 @@ class ResendObject(object):
         """
         manager = self.getManager()
         logger = self.getLogger()
+        drp = self.getDrp()
         
         destinations = []
         for v in value:
-            flowType = manager.getFlowType(v)
+            flowType = manager.getFlowType(v, drp)
             if flowType[0] == "TX" or flowType[0] == "TRX":
                 destinations += flowType[1]
             else:
@@ -126,3 +126,6 @@ class ResendObject(object):
 
     def getManager(self):
         return self.manager
+
+    def getDrp(self):
+        return self.drp
