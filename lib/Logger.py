@@ -13,7 +13,7 @@ named COPYING in the root of the source directory tree.
 #
 #############################################################################################
 
-import sys, logging, logging.handlers
+import sys, logging, logging.handlers, fnmatch
 
 def funcToMethod(func, clas, method_name=None):
    setattr(clas, method_name or func.__name__, func)
@@ -33,7 +33,8 @@ class Logger:
        
       # Standard error is redirected in the log
       # FIXME: Potential problem when rotating occurs
-      sys.stderr = open(logname, 'a')
+      if not fnmatch.fnmatch(logname, '*.log.notb'):
+        sys.stderr = open(logname, 'a')
 
       # Custom levels
       logging.addLevelName(45, 'EXCEPTION')
