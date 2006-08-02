@@ -120,6 +120,8 @@ class SAParser(FileParser):
             # A third line is present?
             try:
                 thirdLineParts = lines[2].split()
+                if thirdLineParts:
+                    thirdLineParts = [False]
             except:
                 thirdLineParts = [False]
 
