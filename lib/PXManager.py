@@ -55,8 +55,11 @@ class PXManager(SystemManager):
 
         flowQueueName = types[type] + flow 
         if filename:
-            flowQueueName += '/' + str(priority) + '/' + time.strftime("%Y%m%d%H", time.gmtime()) + '/' + filename
-        
+            if types[type] == PXPaths.TXQ:
+                flowQueueName += '/' + str(priority) + '/' + time.strftime("%Y%m%d%H", time.gmtime()) + '/' + filename
+            elif types[type] == PXPaths.RXQ:
+                flowQueueName += '/' + filename
+
         return flowQueueName
 
     def getFlowType(self, name, drp):
