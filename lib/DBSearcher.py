@@ -172,7 +172,7 @@ class DBSearcher:
         elif self.requestType == 2:
             for station in self.stations:
                 for date in [DBSearcher.TODAY, DBSearcher.YESTERDAY]:
-                    print 'DATE: %s' % date
+                    #print 'DATE: %s' % date
                     if self.type == 'SA':
                         results = self._findSA([station], date)
                         if results[0][1]:
@@ -250,7 +250,7 @@ class DBSearcher:
                         if self.debug: print("Type: %s, Value: %s" % (type, value))
                         continue
     
-            print ("len(filesToParse) = %d\n" % len(filesToParse))
+            #print ("len(filesToParse) = %d\n" % len(filesToParse))
 
         return filesToParse
 
@@ -340,21 +340,21 @@ class DBSearcher:
             threeCharHeaders = []
 
             if len(station) == 3:
-                print ("%s => we will search for %s first, if we obtain no results, we will search for %s" % (station, 'C' + station, station))
+                #print ("%s => we will search for %s first, if we obtain no results, we will search for %s" % (station, 'C' + station, station))
                 threeCharHeaders = sp.headers.get(station, [])
                 station = 'C' + station
                 headers = sp.headers.get(station, [])
                 
             elif station[0] == 'C':
-                print("%s is a canadian station" % station)
+                #print("%s is a canadian station" % station)
                 headers = sp.headers.get(station, []) 
 
             elif station[0] == 'K':
-                print("%s is an american station" % station)
+                #print("%s is an american station" % station)
                 headers = sp.headers.get(station, [])
 
             else:
-                print("%s is an international station" % station)
+                #print("%s is an international station" % station)
                 headers = sp.headers.get(station, [])
 
             filesToParse = self._getFilesToParse(PXPaths.DB + date + '/SA/', headers)
@@ -447,6 +447,7 @@ class DBSearcher:
         #for file in files:
         #    print file
 
+        """
         surround = 30*'=' 
         print "%s SPECI INFOS %s" % (surround, surround)
         print "Number of files: %d" % len(filesToParse)
@@ -456,6 +457,8 @@ class DBSearcher:
         print "ttaaii: %s" % ttaaii
         print "center: %s" % center
         print "Now: %s\n" % now
+        print "%s%s%s" % (surround, len(' SPECI INFOS ') * '=', surround)
+        """
         
         return (theLine, bestHeaderTime, theFile, bestFileTime)
 
