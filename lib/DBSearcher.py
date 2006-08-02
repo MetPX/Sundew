@@ -11,7 +11,7 @@
 #############################################################################################
 """
 
-import os, os.path, sys, time, copy
+import os, os.path, sys, time, copy, pickle
 import PXPaths, dateLib
 from FileParser import FileParser
 
@@ -30,8 +30,8 @@ class DBSearcher:
     TODAY = dateLib.getTodayFormatted()
     YESTERDAY = dateLib.getYesterdayFormatted()
 
-    TODAY = '20060523'
-    YESTERDAY = '20060522'
+    #TODAY = '20060523'
+    #YESTERDAY = '20060522'
 
     FD_COUNTRIES = ['can', 'usa', 'ala', 'bfr']
     FD_NUMBERS = [1, 2, 3]
@@ -39,6 +39,9 @@ class DBSearcher:
     temp = dict(zip(FD_NUMBERS, ['', '', '']))
     temp = dict(zip(FD_COUNTRIES, [temp.copy() for x in range(4)]))
     FD = {'low': copy.deepcopy(temp), 'high': copy.deepcopy(temp)}
+
+    # Note: The country is not used in the logical of the search.
+    # The height (low or high) and number(1,2,3) are used.
 
     # Canada
     FD['low']['can'][1] = 'FDCN01 CWAO'
@@ -196,6 +199,10 @@ class DBSearcher:
                                 print self.formatResult(result, self.type)
                             break
 
+        #file = open(PXPaths.REQUEST_REPLY + 'results.pickle', 'w')
+        #pickle.dump(results, file)
+        #file.close()
+
     def _getFilesToParse(self, root, headers):
         """
         Given a root path (ex: PXPaths.DB + date + '/SA/') and a list of 
@@ -222,7 +229,7 @@ class DBSearcher:
             except:
                 (type, value, tb) = sys.exc_info()
                 print("Type: %s, Value: %s" % (type, value))
-                sys.exit()
+                return filesToParse
     
             #print("Headers: %s" % headers)
             #print("ttaaiis: %s" % ttaaiis)
