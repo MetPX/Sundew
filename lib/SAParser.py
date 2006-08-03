@@ -248,6 +248,8 @@ if __name__ == '__main__':
     import os, sys
     import dateLib
     from StationFileCreator import StationFileCreator
+
+    excludedSources = ['collecteur']
     
     #root1 = '/apps/px/db/20060522/SA/'
     #root2 = '/apps/px/db/20060523/SA/'
@@ -260,10 +262,18 @@ if __name__ == '__main__':
     except OSError:
         receivers1 = []
 
+    for source in excludedSources:
+        if source in receivers1:
+            receivers1.remove(source)
+
     try:
         receivers2 = os.listdir(root2)
     except OSError:
         receivers2 = []
+
+    for source in excludedSources:
+        if source in receivers2:
+            receivers2.remove(source)
 
     #print receivers1
     #print receivers2
