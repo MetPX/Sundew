@@ -20,6 +20,7 @@ named COPYING in the root of the source directory tree.
 import os, sys, os.path, re, commands, time, fnmatch
 import Client, Source
 from MultiKeysStringSorter import MultiKeysStringSorter
+from CacheManager import CacheManager
 from stat import *
 
 class _DirIterator(object):
@@ -52,7 +53,7 @@ class _DirIterator(object):
 
 class DiskReader:
 
-    def __init__(self, path, batch=20000, validation=False, patternMatching=False, mtime=0, prioTree=False, logger=None, sorterClass=None, client=None):
+    def __init__(self, path, batch=20000, validation=False, patternMatching=False, mtime=0, prioTree=False, logger=None, sorterClass=None, flow=None):
         """
         Set the root path and the sorter class used for sorting
 
@@ -70,7 +71,7 @@ class DiskReader:
 
         self.regex = re.compile(r'^.*?:.*?:.*?:.*?:(\d).*?:.*?:(\d{14})$')  # Regex used to validate filenames
         self.path = path                          # Path from where we ingest filenames
-        self.clientName = os.path.basename(path)  # Last part of the path correspond to client name 
+        self.flowName = os.path.basename(path)    # Last part of the path correspond to client/source name 
         self.validation = validation              # Name Validation active (True or False)
         self.patternMatching = patternMatching    # Pattern matching active (True or False)
         self.logger = logger                      # Use to log information
@@ -80,7 +81,8 @@ class DiskReader:
         self.data = []                            # Content of x filenames (x is set in getFilesContent())
         self.prioTree = prioTree                  # Boolean that determine if the "priorities" structure is enforced
         self.sorterClass = sorterClass            # Sorting algorithm that will be used by sort()
-        self.client = client                      # Client object, only used when patternMatching is True
+        self.flow = flow                          # Flow (Client, Source, Sourlient) object, only used when patternMatching is True
+        self.cacheManager = CacheManager(maxEntries=120000, timeout=12*3600) # Used to cache read entries
 
         #self.read()
 
@@ -110,16 +112,16 @@ class DiskReader:
     # Method augmented by MG ... proposed by DL
     def _matchPattern(self, basename):
         """
-        Verify if basename is matching one mask of a client
+        Verify if basename is matching one mask of a flow
         """
 
-        if self.client == None: return (True, 'RX')
+        if self.flow == None: return (True, 'RX')
 
-        if isinstance(self.client, Source.Source):
-            return (self.client.fileMatchMask(basename), 'RX')
+        if isinstance(self.flow, Source.Source):
+            return (self.flow.fileMatchMask(basename), 'RX')
 
-        elif isinstance(self.client, Client.Client):
-           for mask in self.client.masks:
+        elif isinstance(self.flow, Client.Client):
+           for mask in self.flow.masks:
                if fnmatch.fnmatch(basename, mask[0]):
                   try:
                        if mask[2]: return (True, 'TX')
@@ -220,7 +222,7 @@ class DiskReader:
             except:
                 self.logger.warning("DiskReader.getFilesContent(): " + file + " not on disk anymore")
                 # We don't raise the exception because we assume that this error has been created
-                # by a legitimate process that has cleared some client queue.
+                # by a legitimate process that has cleared some client/source queue.
         return self.data
 
     def getFilenamesAndContent(self, number=1000000):
@@ -238,7 +240,7 @@ class DiskReader:
             except:
                 self.logger.warning("DiskReader.getFilesContent(): " + file + " not on disk anymore")
                 # We don't raise the exception because we assume that this error has been created
-                # by a legitimate process that has cleared some client queue.
+                # by a legitimate process that has cleared some client/source queue.
         return self.data
 
     def sort(self):
