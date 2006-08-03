@@ -21,6 +21,11 @@ named COPYING in the root of the source directory tree.
 """
 
 import os,sys,pickle 
+import PXPaths
+
+PXPaths.normalPaths()
+
+
 
 def printPickledTimes( pickledTimes, fileName ):
     """
@@ -83,12 +88,12 @@ def main():
     """
     
     #standard use.
-    fileName = "/apps/px/lib/stats/PICKLED-TIMES"
+    fileName = PXPaths.STATS +"PICKLED-TIMES"
     pickledTimes = loadPickledTimes( fileName )
     printPickledTimes( pickledTimes, fileName  )
 
     #tests unexisting file 
-    fileName = "/apps/px/lib/stats/nonexistingfile"
+    fileName = PXPaths.STATS + "nonexistingfile"
     pickledTimes = loadPickledTimes( fileName )
     printPickledTimes( pickledTimes, fileName ) 
 

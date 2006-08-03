@@ -26,6 +26,9 @@ import os, time, sys
 from optparse import OptionParser
 from ConfigParser import ConfigParser
 from ClientGraphicProducer import *
+import PXPaths
+
+PXPaths.normalPaths()
 
 
 
@@ -114,7 +117,7 @@ def getOptionsFromParser( parser ):
         print "Program terminated."
         sys.exit()
     
-    directory = "/apps/px/lib/stats/files"
+    directory = PXPaths.LOG
     
 
    

@@ -667,7 +667,7 @@ if __name__ == "__main__":
     
     types = [ "latency", "errors","bytecount" ]
     
-    filename = '/apps/px/lib/stats/files/tx_amis.log'
+    filename = PXPaths.LOG +'tx_amis.log'
     
     startingHours=["00:00:00","01:00:00","02:00:00","03:00:00","04:00:00","05:00:00","06:00:00","07:00:00","08:00:00","09:00:00","10:00:00","11:00:00","12:00:00","13:00:00","14:00:00","15:00:00","16:00:00","17:00:00","18:00:00","19:00:00","20:00:00","21:00:00","22:00:00","23:00:00" ]
     
@@ -678,7 +678,7 @@ if __name__ == "__main__":
               
         stats = FileStatsCollector( files = [ filename ], statsTypes = types , startTime = '2006-08-01 %s' %startingHours[i], endTime = '2006-08-01 %s' %endingHours[i], interval = 1*MINUTE  )
         stats.collectStats()
-        saveFile = "/apps/px/lib/stats/test/startTime"
+        saveFile = PXPaths.STATS + "test/%s" %startingHours[i]
         del stats.logger
         cpickleWrapper.save( object = stats, filename = saveFile )
        

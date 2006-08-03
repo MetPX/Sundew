@@ -79,7 +79,7 @@ def fillWithEmptyEntries( nbEmptyEntries, entries ):
 
 
 
-def mergeHourlyPickles( logger, startTime = "2006-07-31 13:00:00", endTime = "2006-07-31 19:00:00", client = "satnet" ):
+def mergeHourlyPickles( logger = None , startTime = "2006-07-31 13:00:00", endTime = "2006-07-31 19:00:00", client = "satnet" ):
     """
         This method merges entire hourly pickles files. 
         
@@ -87,7 +87,8 @@ def mergeHourlyPickles( logger, startTime = "2006-07-31 13:00:00", endTime = "20
     
     """
     
-    logger.debug( "Call to mergeHourlyPickles received." )
+    if logger != None :
+        logger.debug( "Call to mergeHourlyPickles received." )
     
     pickles = []
     entries = []
@@ -120,7 +121,7 @@ def mergeHourlyPickles( logger, startTime = "2006-07-31 13:00:00", endTime = "20
 
 
 
-def mergePickles( logger, pickleNames = None, pickledTimes = None, clientName = ""  ):
+def mergePickles( logger = None , pickleNames = None, pickledTimes = None, clientName = ""  ):
     """
             This methods receives a list of filenames referring to 
             pickled FileStatsEntries.
@@ -132,10 +133,9 @@ def mergePickles( logger, pickleNames = None, pickledTimes = None, clientName = 
             Note : Should test if it would be somewhat faster not to recalculate everything 
             and just go with proportions 
     """
-    
-    logger.debug( "Call to mergePickles received." )
-    z = 0 
-       
+    if logger != None : 
+        logger.debug( "Call to mergePickles received." )
+              
     entryList = []
     
     for pickle in pickleNames:
@@ -166,7 +166,7 @@ def mergePickles( logger, pickleNames = None, pickledTimes = None, clientName = 
                     newFSC.fileEntries[j].times.append( entryList[i].fileEntries[j].times[k] )          
                                         
                     if entryList[i].fileEntries[j].values.productTypes[k] != "[ERROR]" :
-                        newFSC.fileEntries[ j ].nbFiles = newFSC.fileEntries[ j].nbFiles + 1
+                        newFSC.fileEntries[ j ].nbFiles = newFSC.fileEntries[ j ].nbFiles + 1
                     
                     for type in newFSC.statsTypes :
                         newFSC.fileEntries[j].values.dictionary[type].append( entryList[i].fileEntries[j].values.dictionary[type][k] ) 
@@ -195,18 +195,18 @@ def main():
     """
    
     #for this example to work these pickels need to exist. 
-    #fsc = mergeHourlyPickles( client = "satnet", startTime = "2006-07-19 01:00:00", endTime = "2006-07-19 04:00:00" )
+    fsc = mergeHourlyPickles( client = "satnet", startTime = "2006-07-19 01:00:00", endTime = "2006-07-19 04:00:00" )
     
     
     
     #join a pickle with itself to make it easier to see if data was merged or not. 
-    
-    pickleNames = ["/apps/px/lib/stats/pickles/tx/amis/2006081/03", "/apps/px/lib/stats/pickles/tx/amis/2006081/03" ]
-    pickledTimes = ["/apps/px/lib/stats/PICKLED-TIMES"]
-    pickle = "/apps/px/lib/stats/pickles/mergedpickle/amismerged"
-    
-    newFSC = mergePickles( pickleNames=pickleNames, pickledTimes=pickledTimes  )
-    cpickleWrapper.save ( object = newFSC, filename = pickle )     
+    #use pickleUpdater.py to create some hourly pickles to use this test
+#     pickleNames = [ PXPaths.PICKLES + "tx/amis/2006081/03", PXPaths.PICKLES + "tx/amis/2006081/03" ]
+#     pickledTimes = [PXPaths.PICKLES + "PICKLED-TIMES"]
+#     pickle = PXPaths.PICKLES + "mergedpickle/amismerged"
+#     
+#     newFSC = mergePickles( pickleNames=pickleNames, pickledTimes=pickledTimes  )
+#     cpickleWrapper.save ( object = newFSC, filename = pickle )     
 
     
 if __name__ == "__main__":

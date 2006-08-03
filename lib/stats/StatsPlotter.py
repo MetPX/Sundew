@@ -33,8 +33,8 @@ import Gnuplot, Gnuplot.funcutils
 import copy 
 import PXPaths
 import logging 
-import PXPaths
 from   Logger  import *
+
 PXPaths.normalPaths()
 
 
@@ -58,7 +58,6 @@ class StatsPlotter:
         self.imageName   = imageName               # Name of the image file.
         self.nbFiles     = []                      # Number of files found in the data collected per server.
         self.nbErrors    = []                      # Number of errors found per server
-        self.xtics       = self.getXTics( )        # Seperators on the x axis.
         self.graph       = Gnuplot.Gnuplot()       # The gnuplot graphic object itself. 
         self.timeOfMax   = [[]]                    # Time where the maximum value occured.  
         self.machines    = ""                      # List of machine where we collected info.
@@ -75,12 +74,13 @@ class StatsPlotter:
         self.productType = productType             # Type of product for wich the graph is being generated.  
         self.initialiseArrays()
         self.loggerName       = 'statsPlotter'
+        self.logger           = logger
         
-        if logger is None: # Enable logging
+        if self.logger == None: # Enable logging
             self.logger = Logger( PXPaths.LOG + 'stats_' + self.loggerName + '.log', 'INFO', 'TX' + self.loggerName ) 
             self.logger = self.logger.getLogger()
-            self.logger = logger
-        
+            
+        self.xtics       = self.getXTics( )        # Seperators on the x axis.
     
     
     def initialiseArrays( self ):
@@ -123,8 +123,8 @@ class StatsPlotter:
         
         date = self.currentTime.replace( " ", "_")
         
-        fileName = str( os.getcwd() ) #will probably need a better path eventually.... 
-        fileName = fileName +  "/graphs/%s/%s-%s-For %s hours-%s.png" %( clientName, clientName,self.statsTypes,self.timespan, date ) 
+    
+        fileName = PXPaths.GRAPHS + "%s/%s-%s-For %s hours-%s.png" %( clientName, clientName,self.statsTypes,self.timespan, date ) 
         
         splitName = fileName.split( "/" ) 
         directory = "/"

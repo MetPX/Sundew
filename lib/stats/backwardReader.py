@@ -23,6 +23,9 @@ named COPYING in the root of the source directory tree.
 ##############################################################################
 
 import os,sys 
+import PXPaths
+
+PXPaths.normalPaths() 
 
 def tail( nbLines = 1, file = "", printIt = False ):
     """
@@ -144,13 +147,13 @@ if __name__ == "__main__":
     """
     
     print "tail tests :"
-    tail( nbLines =10, file = "/apps/px/lib/stats/testFiles/empty",printIt = True )
-    tail( nbLines =10, file = "/apps/px/lib/stats/testFiles/tx_amis.log",printIt = True )
-    tail( nbLines =10, file = "/apps/px/lib/stats/testFiles/onelinefile",printIt = True)        
+    tail( nbLines =10, file = PXPaths.STATS + "testFiles/empty", printIt = True )
+    tail( nbLines =10, file = PXPaths.STATS + "testFiles/tx_amis.log", printIt = True )
+    tail( nbLines =10, file = PXPaths.STATS + "testFiles/onelinefile", printIt = True)        
     
     print "read lines backward test :"
-    fileName = "/apps/px/lib/stats/testFiles/bob"
-    fileHandle = open( "/apps/px/lib/stats/testFiles/bob", "r")
+    fileName = PXPaths.STATS + "testFiles/bob"
+    fileHandle = open(fileName, "r")
     
     fileSize = os.stat(fileName)[6]
     line,offset  = readLineBackwards( fileHandle, offset = -1, fileSize = fileSize  )
@@ -162,6 +165,6 @@ if __name__ == "__main__":
         if line != "":
             print line 
     
-    tail( nbLines =10, file = "/apps/px/lib/stats/testFiles/nonexisting",printIt = True )    
+    tail( nbLines =10, file = PXPaths.STATS + "testFiles/nonexisting", printIt = True )    
     
     

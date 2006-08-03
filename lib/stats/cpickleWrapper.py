@@ -28,6 +28,11 @@ named COPYING in the root of the source directory tree.
 import cPickle
 import os 
 import sys
+import PXPaths
+
+PXPaths.normalPaths()
+
+
 
 def save( object, filename ):
     """
@@ -98,12 +103,12 @@ if __name__ == "__main__":
     
     #standard test case 
     x = "Hello world!"
-    save( x, "/apps/px/lib/stats/x" )
-    x = load ("/apps/px/lib/stats/x") 
+    save( x, PXPaths.STATS +"x" )
+    x = load ( PXPaths.STATS +"x" ) 
     print x
     
     #trouble cases 
-    save (x,"y") 
-    y = load("/apps/px/lib/stats/nonexistingfile")
+    save (x,"y")#non absolute file name not yet implemented.... 
+    y = load( PXPaths.STATS + "nonexistingfile" )
     
     

@@ -64,11 +64,12 @@ class ClientStatsPickler:
         self.fileCollection   = DirectoryFileCollector( directory = directory ) #List of all the test files. 
         self.statsCollection  = statsCollection or FileStatsCollector()#All fileStats collected. 
         self.loggerName       = 'pickling'
+        self.logger = logger
         
         if logger is None: # Enable logging
             self.logger = Logger( PXPaths.LOG + 'stats_' + self.loggerName + '.log', 'INFO', 'TX' + self.loggerName ) 
             self.logger = self.logger.getLogger()
-            self.logger = logger
+           
 
 
     def buildThisHoursFileName(  client = "satnet", offset = 0, currentTime = "", fileType = "tx" ):
@@ -88,7 +89,7 @@ class ClientStatsPickler:
                 
         """    
         
-        fileName = "%s/pickles/%s/%s/" %( os.getcwd(), fileType, client ) #will need pxpath....
+        fileName = PXPaths.PICKLES + "%s/%s/" %( fileType, client ) 
         
         
         if currentTime == "":
@@ -181,7 +182,7 @@ class ClientStatsPickler:
         except:   
             (type, value, tb) = sys.exc_info()
             self.logger.error( "Error trying to save pickle named : %s" %self.pickleName )
-            self.logger.error("Type: %s, Value: %s, tb: %s ..." % (type, value,tb))        
+            self.logger.error( "Type: %s, Value: %s, tb: %s ..." % (type, value,tb) )        
         
     
              
@@ -193,7 +194,7 @@ class ClientStatsPickler:
             file is printed in currentWorkingDirectory/CSC_output_file
         """    
         
-        absoluteFilename = str( os.getcwd() ) + "/CSP_output_file "
+        absoluteFilename = str( PXPaths.STATS ) + "CSP_output_file "
         print "Absolute filename : %s" %absoluteFilename
         fileHandle = open( absoluteFilename , 'w' )
         old_stdout = sys.stdout 
@@ -235,9 +236,9 @@ def main():
         
     types = [ "latency","errors","bytecount" ]    
       
-    cs = ClientStatsPickler( client = "satnet", directory = "/apps/px/lib/stats/files/" )
+    cs = ClientStatsPickler( client = "satnet", directory = PXPaths.LOG )
     
-    cs.collectStats( types, directory = "/apps/px/lib/stats/files/", fileType = "tx", startTime = '2006-07-16 01:00:12', endTime = "2006-07-16 01:59:12", interval = 1*MINUTE )  
+    cs.collectStats( types, directory = PXPaths.LOG, fileType = "tx", startTime = '2006-07-16 01:00:12', endTime = "2006-07-16 01:59:12", interval = 1*MINUTE )  
             
     cs.printStats()        
     

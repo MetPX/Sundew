@@ -23,10 +23,14 @@ named COPYING in the root of the source directory tree.
 
 #important files 
 import os, pwd, sys,getopt, commands, fnmatch,pickle
+import PXPaths 
 from optparse import OptionParser
 from ConfigParser import ConfigParser
 from MyDateLib import *
 from ClientStatsPickler import ClientStatsPickler
+
+
+PXPaths.normalPaths()
 
 
 class _UpdaterInfos: 
@@ -66,7 +70,7 @@ def setLastCronJob( client, currentDate, collectUpToNow = False    ):
     
     times = {}
     lastCronJob = {}
-    fileName = str( os.getcwd() ) + "/" + "PICKLED-TIMES"  
+    fileName = PXPaths.STATS + "PICKLED-TIMES"  
     
     if collectUpToNow == False :
         currentDate = MyDateLib.getIsoWithRoundedHours( currentDate ) 
@@ -108,7 +112,7 @@ def getLastCronJob( client, currentDate, collectUpToNow = False ):
     
     times = {}
     lastCronJob = {}
-    fileName = str( os.getcwd() ) + "/" + "PICKLED-TIMES"  
+    fileName = PXPaths.STATS +  "PICKLED-TIMES"  
     
     if os.path.isfile( fileName ):
         
@@ -214,7 +218,7 @@ def getOptionsFromParser( parser ):
     
         
     for client in clients :
-        directories.append( "/apps/px/lib/stats/files" )
+        directories.append( PXPaths.LOG )
         startTimes.append( getLastCronJob( client = client, currentDate =  currentDate , collectUpToNow = collectUpToNow ) )
     
     infos = _UpdaterInfos( currentDate = currentDate, clients = clients, startTimes = startTimes, directories = directories ,types = types, collectUpToNow = collectUpToNow, fileType = fileType )
@@ -364,7 +368,7 @@ def updateHourlyPickles( infos ):
                 
                 cs.pickleName =  ClientStatsPickler.buildThisHoursFileName( client = infos.clients[i], currentTime =  startOfTheHour  )
                  
-                cs.collectStats( types = infos.types, startTime = startTime , endTime = endTime, interval = infos.interval * MyDateLib.MINUTE,  directory = "/apps/px/lib/stats/files/", fileType = "tx"  )                              
+                cs.collectStats( types = infos.types, startTime = startTime , endTime = endTime, interval = infos.interval * MyDateLib.MINUTE,  directory = PXPaths.LOG, fileType = "tx"  )                              
                     
         else:      
             
@@ -383,7 +387,7 @@ def updateHourlyPickles( infos ):
             print "pickles for this hour only !"
             cs.pickleName =   ClientStatsPickler.buildThisHoursFileName( client = infos.clients[i], currentTime = startOfTheHour )            
               
-            cs.collectStats( infos.types, startTime = startTime, endTime = endTime, interval = infos.interval * MyDateLib.MINUTE, directory = "/apps/px/lib/stats/files/", fileType = "tx"   )
+            cs.collectStats( infos.types, startTime = startTime, endTime = endTime, interval = infos.interval * MyDateLib.MINUTE, directory = PXPaths.LOG, fileType = "tx"   )
 
         
         setLastCronJob( client = infos.clients[i], currentDate = infos.currentDate, collectUpToNow = infos.collectUpToNow )

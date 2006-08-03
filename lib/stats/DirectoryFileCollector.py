@@ -38,7 +38,7 @@ class DirectoryFileCollector:
                  
     """
     
-    def __init__( self, startTime = "2006-06-06 01:00:00", endTime = "2006-06-06 02:00:00", directory = "/apps/px/log", lastLineRead = "", fileType = "tx", client = "satnet" ):
+    def __init__( self, startTime = "2006-06-06 01:00:00", endTime = "2006-06-06 02:00:00", directory = PXPaths.LOG, lastLineRead = "", fileType = "tx", client = "satnet" ):
        """ 
            Constructor.
            -Builds a directoryFileCollector with no entries.   
@@ -137,7 +137,7 @@ if __name__ == "__main__":
     
     """
    
-    dc = DirectoryFileCollector( startTime = "2006-07-20 01:00:00", endTime= "2006-07-20 02:00:00", directory = "/apps/px/lib/stats/files", lastLineRead = "", fileType = "tx", client = "satnet"  )
+    dc = DirectoryFileCollector( startTime = "2006-07-20 01:00:00", endTime= "2006-07-20 02:00:00", directory = PXPaths.LOG , lastLineRead = "", fileType = "tx", client = "satnet"  )
     dc.collectEntries() 
     
     print "Files returned : %s " %dc.entries            
