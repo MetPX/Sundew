@@ -413,7 +413,7 @@ class bulletin:
                 parts = premiereLignePleine.split()
                 if parts[0][:2] in ['EE', 'II', 'QQ', 'UU']:
                     station = parts[1]
-                elif parts[0][:2] in ['PP', 'TT']: 
+                elif parts[0][:2] in ['PP', 'TT']:
                     station = parts[2]
                 else:
                     station = None
@@ -659,7 +659,7 @@ class bulletin:
 
         if len(tokens[2]) > 6: # On enleve les ['z', 'Z'] ou ['utc', 'UTC'] s'ils sont presents dans le groupe JJHHMM
             tokens[2] = tokens[2][0:6]
-            self.logger.info("Entete corrigee (%s): le groupe JJHHMM a ete tronque (plus de 6 caracteres)" % str(tokens))
+            self.logger.info("Entete corrigee (%s): le groupe JJHHMM a ete tronque (plus de 6 caracteres)" % str(header))
             self.setHeader(' '.join(tokens))
             tokens = self.getHeader().split()
 
