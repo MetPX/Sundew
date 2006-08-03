@@ -381,9 +381,9 @@ class DBSearcher:
 
                 if speciHeaderTime and (speciHeaderTime < bestHeaderTime):
                     surround = 30*'=' 
-                    print 'Speci found has been rejected (%s < %s)' % (speciHeaderTime, bestHeaderTime)
+                    #print 'Speci found has been rejected (%s < %s)' % (speciHeaderTime, bestHeaderTime)
                     speciLine, speciHeaderTime, speciFile, speciFileTime = None, 0, None, 0
-                    print "%s END SPECI INFOS %s\n" % (surround, surround)
+                    #print "%s END SPECI INFOS %s\n" % (surround, surround)
 
             else:
                 speciLine, speciHeaderTime, speciFile, speciFileTime = None, 0, None, 0
