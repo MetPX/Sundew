@@ -27,6 +27,9 @@ class DBSearcher:
     """
     PXPaths.normalPaths()
     
+    EXCLUDED_SOURCES = ['collecteur']
+    #EXCLUDED_SOURCES = []
+    
     TYPES = ['SA', 'FC', 'FT', 'TAF', 'FD', 'FD1', 'FD2', 'FD3']    # bulletin's type for which a specialized search exists
     COUNTRIES = ['CA', 'US']
     INTERNATIONAL_SOURCES = ['nws-alpha', 'ukmetin', 'ukmet-bkp']   # sundew international sources
@@ -170,7 +173,7 @@ class DBSearcher:
             # Fully qualified header request
             if self.debug: print self.ttaaii, self.center, self.country
             for date in [DBSearcher.TODAY, DBSearcher.YESTERDAY]:
-                theFile = self._findFullHeader(True, self.ttaaii, self.center, self.country, date)
+                theFile = self._findFullHeader(True, self.ttaaii, self.center, self.country, date, DBSearcher.EXCLUDED_SOURCES)
                 if theFile:
                     print theFile
                     return
@@ -208,13 +211,12 @@ class DBSearcher:
         #pickle.dump(results, file)
         #file.close()
 
-    def _getFilesToParse(self, root, headers):
+    def _getFilesToParse(self, root, headers, excludedSources=None):
         """
         Given a root path (ex: PXPaths.DB + date + '/SA/') and a list of 
         headers (ex: ['SAAK31 KWBC', 'SAAK41 KNKA', 'SAUS20 KNKA', 'SAUS70 KWBC']),
         find the list of files matching these criterias.
         """
-
         filesToParse = [] 
         
         if headers == ['']:
@@ -230,7 +232,13 @@ class DBSearcher:
                ttaaiis.setdefault(header.split()[1], []).append(header.split()[0])
     
             try:
+                if not excludedSources: excludedSources = []
                 sources = os.listdir(root)
+
+                for source in excludedSources:
+                    if source in sources:
+                        sources.remove(source)
+
             except:
                 (type, value, tb) = sys.exc_info()
                 print("Type: %s, Value: %s" % (type, value))
@@ -362,7 +370,7 @@ class DBSearcher:
                 #print("%s is an international station" % station)
                 headers = sp.headers.get(station, [])
 
-            filesToParse = self._getFilesToParse(PXPaths.DB + date + '/SA/', headers)
+            filesToParse = self._getFilesToParse(PXPaths.DB + date + '/SA/', headers, DBSearcher.EXCLUDED_SOURCES)
             theLine, bestHeaderTime, theFile, bestFileTime = self._findMoreRecentStation(SAParser(''), filesToParse, station)
 
             if not theLine and threeCharHeaders:
@@ -370,7 +378,7 @@ class DBSearcher:
                 # we try the 3 chars case
                 print 'We are searching for the 3 chars station'
                 station = station[1:]
-                filesToParse = self._getFilesToParse(PXPaths.DB + date + '/SA/', threeCharHeaders)
+                filesToParse = self._getFilesToParse(PXPaths.DB + date + '/SA/', threeCharHeaders, DBSearcher.EXCLUDED_SOURCES)
                 theLine, bestHeaderTime, theFile, bestFileTime = self._findMoreRecentStation(SAParser(''), filesToParse, station)
 
             if theLine:
@@ -442,7 +450,7 @@ class DBSearcher:
         ttaaii, center = header.split()
         ttaaii = ttaaii[0] + 'P' + ttaaii[2:]
 
-        filesToParse = self._findFullHeader(False, ttaaii, center, 'INT',  DBDate)
+        filesToParse = self._findFullHeader(False, ttaaii, center, 'INT',  DBDate, DBSearcher.EXCLUDED_SOURCES)
 
         theLine, bestHeaderTime, theFile, bestFileTime = self._findMoreRecentStation(SAParser(''), filesToParse, station)
 
@@ -490,7 +498,7 @@ class DBSearcher:
         return (theLine, bestHeaderTime, theFile, bestFileTime)
         
 
-    def _findFullHeader(self, unique=True, ttaaii='SACN31', center='CWAO', country='CA', date=TODAY):
+    def _findFullHeader(self, unique=True, ttaaii='SACN31', center='CWAO', country='CA', date=TODAY, excludedSources=None):
         self.theFile = None           # The filename of the more recent header in a full qualified header search
         self.bestFileTime = 0         # More recent file
         self.bestHeaderTime = 0       # More recent header
@@ -533,7 +541,12 @@ class DBSearcher:
                 if dir in DBSearcher.CANADIAN_SOURCES:
                     dirs.remove(dir)
             dirs.sort()
- 
+
+        if not excludedSources: excludedSources = []
+        for source in excludedSources:
+            if source in dirs:
+                dirs.remove(source)
+
         for source in dirs:
             iterator = os.walk(pathBeforeSource + "/" + source)
             # We select only the "center" directory
