@@ -149,6 +149,10 @@ class PXCopy(object):
 # THESE ARE USED WHEN CALLED FROM THE COMMAND LINE #
 ####################################################
 def pullFile(host, filename):
+    """
+    Pulls the file list from another server (usually the frontend).
+    """
+    
     cmdLine = "scp %s:%s ./" % (host, filename)
     status, output = commands.getstatusoutput(cmdLine)
     if status:
@@ -169,8 +173,8 @@ def validateUserInput(options, args):
         sys.exit(1)
 
 def createParser():
-    usagemsg = "%prog [options] <destinations>\nCopies multiple files to multiple destinations."
-    parser = OptionParser(usage=usagemsg, version="%prog 0.1-alpha")
+    usagemsg = "%prog [options] <destinations>\nCopies multiple bulletins files to multiple flows."
+    parser = OptionParser(usage=usagemsg, version="%prog 0.99-rc1")
     parser.add_option("-f", "--file", dest = "file", help = "Specify a file that contains a list of sources.", default = "")
     parser.add_option("-m", "--machine", dest = "machine", help = "Specify the machine on which the file resides.", default = "")
     
@@ -181,7 +185,6 @@ def main():
     options, args = parser.parse_args()    
     validateUserInput(options, args)
     filename = pullFile(options.machine, options.file)
-    print filename
     
     pxcp = PXCopy(filename, args) # args is the list of destinations
     pxcp.checkDestinationsForAlias()

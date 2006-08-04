@@ -57,6 +57,10 @@ def updateResendObject(ro, options, args):
         for searchLine in sys.stdin:
             machine, bulletinHeader = parseRawLine(searchLine.strip())
             ro.addToMachineHeaderDict(machine, bulletinHeader)
+        
+        # We must rebind sys.stdin to the tty.
+        # This is ugly but this is the only solution after reading from a pipe
+        sys.stdin = open("/dev/tty")
     else:
         for arg in args:
             argParts = arg.split(":")
@@ -73,11 +77,13 @@ def resend(ro):
             print "Command used was: %s" % (c)
             sys.exit(1)
         else:
-            print "Bulletins resent"
-            if output.find("Problem copying"):
-                print "There was a problem resending certain bulletins."
-                print output
-
+            lines = output.split()
+            problemCount = 0
+            for line in lines:
+                if line.find("Problem copying") != -1:
+                    problemCount += 1
+            print "%s bulletins resent on %s (%s could not be found)." % (ro.getHeaderCount() - problemCount, ro.getHeaderCount(), problemCount)
+            print output # <---------------------------------- DEBUG
     ro.removeFiles()
 
 def createParser(ro):

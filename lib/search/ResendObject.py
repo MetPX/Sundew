@@ -31,13 +31,14 @@ import Logger
 import DirectRoutingParser
 
 class ResendObject(object):
-    __slots__ = ["prompt", "destinations", "prio", "machineHeaderDict", "fileList"]
+    __slots__ = ["prompt", "destinations", "prio", "machineHeaderDict", "headerCount", "fileList"]
     
     def __init__(self):
         self.prompt = False
         self.destinations = ""
         self.prio = "3"
         self.machineHeaderDict = {}
+        self.headerCount = 0
         self.fileList = []
         
     def headerToLocation(self, header):
@@ -60,9 +61,10 @@ class ResendObject(object):
         Gets user decision from sys.stdin
         """
         
-        print "Do you want to send %s on %s to the following flows: %s ?" % (bulletin, machine, destinations)
-        print "Yes (y) or No (n): ",
-        answer = sys.stdin.read(1).lower()
+        answer = ""
+        while answer not in ['y', 'n']:
+            answer = raw_input("Do you want to send %s on %s to the following flows: %s\nYes (y) or No (n): " % (bulletin, machine, destinations))
+            answer = answer.lower()
         if answer == 'y':
             return True
         else:
@@ -91,8 +93,12 @@ class ResendObject(object):
             prompt = self.getPrompt() 
             for bulletin in bulletins:
                 if prompt == True:
-                    decision = self.getDecision()
-                if decision == True:
+                    decision = self.getDecision(bulletin, machine, destinations)
+                    if decision == True:
+                        filelog.write("%s\n" % (self.headerToLocation(bulletin)))
+                    else:
+                        self.setHeaderCount(self.getHeaderCount() - 1)
+                else:
                     filelog.write("%s\n" % (self.headerToLocation(bulletin)))
                     
             filelog.close()
@@ -144,6 +150,14 @@ class ResendObject(object):
             self.machineHeaderDict[machine] += [header]
         else:
             self.machineHeaderDict[machine] = [header]
+
+        self.setHeaderCount(self.getHeaderCount() + 1) # One more header
+
+    def getHeaderCount(self):
+        return self.headerCount
+
+    def setHeaderCount(self, value):
+        self.headerCount = value
 
     def getFileList(self):
         return self.fileList
