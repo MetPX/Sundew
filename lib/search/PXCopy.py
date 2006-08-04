@@ -44,7 +44,7 @@ class PXCopy(object):
         self.file = file
         self.destinations = destinations
 
-        self.logger = Logger.Logger("/apps/px/log/pxcopy.log", "INFO", "DDB").getLogger()
+        self.logger = Logger.Logger("/apps/px/log/PXCopy.log", "INFO", "DDB").getLogger()
         self.manager = PXManager.PXManager()
         self.manager.setLogger(self.logger)
         self.manager.initNames()

@@ -8,7 +8,7 @@ named COPYING in the root of the source directory tree.
 
 """
 ###########################################################
-# Name: pxresend.py
+# Name: pxResend.py
 #
 # Author: Dominik Douville-Belanger
 #
@@ -69,6 +69,7 @@ def updateResendObject(ro, options, args):
             ro.addToMachineHeaderDict(machine, bulletinHeader)
 
 def resend(ro):
+    logger = ro.getLogger()
     commandList = ro.createAllArtifacts()
     for c in commandList:
         status, output = commands.getstatusoutput(c)
@@ -77,13 +78,15 @@ def resend(ro):
             print "Command used was: %s" % (c)
             sys.exit(1)
         else:
-            lines = output.split()
+            lines = output.splitlines()
             problemCount = 0
             for line in lines:
                 if line.find("Problem copying") != -1:
+                    logger.error(line)
                     problemCount += 1
+                else:
+                    logger.info(line)
             print "%s bulletins resent on %s (%s could not be found)." % (ro.getHeaderCount() - problemCount, ro.getHeaderCount(), problemCount)
-            print output # <---------------------------------- DEBUG
     ro.removeFiles()
 
 def createParser(ro):

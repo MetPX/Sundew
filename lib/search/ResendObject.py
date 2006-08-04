@@ -31,7 +31,7 @@ import Logger
 import DirectRoutingParser
 
 class ResendObject(object):
-    __slots__ = ["prompt", "destinations", "prio", "machineHeaderDict", "headerCount", "fileList"]
+    __slots__ = ["prompt", "destinations", "prio", "machineHeaderDict", "headerCount", "fileList", "logger"]
     
     def __init__(self):
         self.prompt = False
@@ -40,6 +40,8 @@ class ResendObject(object):
         self.machineHeaderDict = {}
         self.headerCount = 0
         self.fileList = []
+        logger = Logger('/apps/px/log/pxResend.log', 'ERROR', 'DDB')
+        self.logger = logger.getLogger()
         
     def headerToLocation(self, header):
         """
@@ -164,3 +166,6 @@ class ResendObject(object):
 
     def addToFileList(self, value):
         self.fileList += [value]
+
+    def getLogger(self):
+        return self.logger
