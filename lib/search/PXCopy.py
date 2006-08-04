@@ -26,6 +26,7 @@ import sys
 import os
 import commands
 import shutil
+import socket
 from optparse import OptionParser
 
 # Local imports
@@ -38,7 +39,7 @@ import PXPaths; PXPaths.normalPaths()
 import Logger
 
 class PXCopy(object):
-    __slots__ = ["file", "destinations", "logger", "manager", "drp", "flowDirsCache"]
+    __slots__ = ["file", "destinations", "logger", "manager", "drp", "flowDirsCache", "machine"]
 
     def __init__(self, file, destinations):
         self.file = file
@@ -52,8 +53,10 @@ class PXCopy(object):
         self.drp.printErrors = False
         self.drp.parseAlias()
         self.flowDirsCache = CacheManager.CacheManager(maxEntries = 10000, timeout = 2*3600)
+        self.machine = socket.gethostname()
         
     def copy(self):
+        machine = self.getMachine()
         try:
             fileLog = self.getFile()
             destinations = self.getDestinations()
@@ -74,9 +77,10 @@ class PXCopy(object):
                     destination = self.createCompleteDestination(destination, file.split("/")[-1])
                     try:
                         shutil.copy(file, destination)
+                        print "Resent %s to %s on %s" % (file, destination, machine)
                     except IOError:
                         (type, value, tb) = sys.exc_info()
-                        print "Problem copying %s to %s, Type: %s Value: %s" % (file, destination, type, value)
+                        print "Problem copying %s to %s on %s, Type: %s" % (file, destination, machine, type)
 
         except:
             type, value, tb = sys.exc_info()
@@ -144,6 +148,9 @@ class PXCopy(object):
 
     def getFlowDirsCache(self):
         return self.flowDirsCache
+
+    def getMachine(self):
+        return self.machine
 
 ####################################################
 # THESE ARE USED WHEN CALLED FROM THE COMMAND LINE #

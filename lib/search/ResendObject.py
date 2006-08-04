@@ -40,7 +40,7 @@ class ResendObject(object):
         self.machineHeaderDict = {}
         self.headerCount = 0
         self.fileList = []
-        logger = Logger('/apps/px/log/pxResend.log', 'ERROR', 'DDB')
+        logger = Logger.Logger('/apps/px/log/pxResend.log', 'INFO', 'DDB')
         self.logger = logger.getLogger()
         
     def headerToLocation(self, header):
