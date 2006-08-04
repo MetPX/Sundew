@@ -37,7 +37,7 @@ class _UpdaterInfos:
     
 
 
-    def __init__( self, clients, directories, types, startTimes,collectUpToNow, fileType, currentDate = '2005-06-27 13:15:00', interval = 1, hourlyPickling = True,   ):
+    def __init__( self, clients, directories, types, startTimes,collectUpToNow, fileType, currentDate = '2005-06-27 13:15:00', interval = 1, hourlyPickling = True, machine = ""   ):
         
         """
             Data structure used to contain all necessary info for a call to ClientStatsPickler. 
@@ -45,16 +45,17 @@ class _UpdaterInfos:
         """ 
         
         systemsCurrentDate  = MyDateLib.getIsoFromEpoch( time.time() )
-        self.clients        = clients                              # Client for wich the job is done.
-        self.types          = types                                # Data types to collect 
-        self.fileType       = fileType                             # file type to use  
-        self.directories    = directories                          # Get the directory containing files  
-        self.interval       = interval                             # Interval..... 
-        self.startTimes     = startTimes                           # Time of last crontab job.... 
-        self.currentDate    = currentDate or  systemsCurrentDate   # Time of the cron job.
-        self.collectUpToNow = collectUpToNow                       # Wheter or not we collect up to now or 
-        self.hourlyPickling = hourlyPickling                       # whether or not we create hourly pickles.
-        self.endTime        = self.currentDate                     # Will be currentDate if collectUpTo                                                                             now is true, start of the current                                                                              hour if not 
+        self.clients        = clients                            # Client for wich the job is done.
+        self.machine        = machine                            # Machine on wich update is made. 
+        self.types          = types                              # Data types to collect ex:latency 
+        self.fileType       = fileType                           # File type to use ex :tx,rx etc  
+        self.directories    = directories                        # Get the directory containing files  
+        self.interval       = interval                           # Interval.
+        self.startTimes     = startTimes                         # Time of last crontab job.... 
+        self.currentDate    = currentDate or  systemsCurrentDate # Time of the cron job.
+        self.collectUpToNow = collectUpToNow                     # Wheter or not we collect up to now or 
+        self.hourlyPickling = hourlyPickling                     # whether or not we create hourly pickles.
+        self.endTime        = self.currentDate                   # Will be currentDate if collectUpTo                                                                             now is true, start of the current                                                                               hour if not 
 
 
 
@@ -167,15 +168,15 @@ def getOptionsFromParser( parser ):
     startTimes   = []
     
     ( options, args ) = parser.parse_args()        
-     
-    clients         = options.clients.replace( ' ','' ).split(',')
-    types           = options.types.replace( ' ', '').split(',')
-    currentDate     = options.currentDate.replace('"','')
-    currentDate     = options.currentDate.replace("'",'')
-    fileType        = options.fileType.replace("'",'')
-    interval        = options.interval
-    collectUpToNow  = options.collectUpToNow
-         
+    
+    interval      = options.interval
+    collectUpToNow= options.collectUpToNow 
+    currentDate   = options.currentDate.replace( '"','' ).replace( "'",'' )
+    fileType      = options.fileType.replace( "'",'' )
+    machine       = options.machine.replace( " ","" )
+    clients       = options.clients.replace(' ','' ).split( ',' )
+    types         = options.types.replace( ' ', '' ).split( ',' )
+   
      
     try:    
         if int( interval ) < 1 :
@@ -220,13 +221,15 @@ def getOptionsFromParser( parser ):
     for client in clients :
         directories.append( PXPaths.LOG )
         startTimes.append( getLastCronJob( client = client, currentDate =  currentDate , collectUpToNow = collectUpToNow ) )
-    
-    infos = _UpdaterInfos( currentDate = currentDate, clients = clients, startTimes = startTimes, directories = directories ,types = types, collectUpToNow = collectUpToNow, fileType = fileType )
+        
+        
+    infos = _UpdaterInfos( currentDate = currentDate, clients = clients, startTimes = startTimes, directories = directories ,types = types, collectUpToNow = collectUpToNow, fileType = fileType, machine = machine )
     
     if collectUpToNow == False:
         infos.endTime = MyDateLib.getIsoWithRoundedHours( infos.currentDate ) 
     
     
+        
     return infos 
 
     
@@ -295,20 +298,24 @@ def addOptions( parser ):
         
     """
     
-    parser.add_option("-c", "--clients", action="store", type="string", dest="clients", default="satnet",
-                        help="Clients' names")
-
-    parser.add_option("-d", "--date", action="store", type="string", dest="currentDate", default=MyDateLib.getIsoFromEpoch( time.time() ), help="Decide current time. Usefull for testing.")
-                                            
-    parser.add_option("-i", "--interval", type="int", dest="interval", default=1,
-                        help="Interval (in minutes) for which a point will be calculated. Will 'smooth' the graph")
+    localMachine = os.uname()[1]
     
-    parser.add_option("-f", "--fileType", action="store", type="string", dest="fileType", default='tx', help="Type of log files wanted.")                     
+    parser.add_option( "-c", "--clients", action="store", type="string", dest="clients", default="satnet",
+                        help="Clients' names" )
+
+    parser.add_option( "-d", "--date", action="store", type="string", dest="currentDate", default=MyDateLib.getIsoFromEpoch( time.time() ), help="Decide current time. Usefull for testing." ) 
+                                            
+    parser.add_option( "-i", "--interval", type="int", dest="interval", default=1,
+                        help="Interval (in minutes) for which a point will be calculated. Will 'smooth' the graph" )
+    
+    parser.add_option( "-f", "--fileType", action="store", type="string", dest="fileType", default='tx', help="Type of log files wanted." )                     
    
-    parser.add_option("-n", "--now", action="store_true", dest = "collectUpToNow", default=False, help="Collect data up to current second.")
+    parser.add_option( "-m", "--machine", action="store", type="string", dest="machine", default=localMachine, help = "Machine on wich the update is run." ) 
+    
+    parser.add_option( "-n", "--now", action="store_true", dest = "collectUpToNow", default=False, help="Collect data up to current second." )
        
-    parser.add_option("-t", "--types", type="string", dest="types", default="latency,errors,bytecount",
-                        help="Types of data to look for.")          
+    parser.add_option( "-t", "--types", type="string", dest="types", default="latency,errors,bytecount",
+                        help="Types of data to look for." )          
 
 
 
@@ -340,7 +347,6 @@ def updateHourlyPickles( infos ):
         
         cs = ClientStatsPickler( client = infos.clients[i] )
         
-        #print "infos.endTime : %s, infos.startTimes[i] :%s " %( infos.endTime,infos.startTimes[i] )
         width = MyDateLib.getSecondsSinceEpoch(infos.endTime) - MyDateLib.getSecondsSinceEpoch( MyDateLib.getIsoWithRoundedHours(infos.startTimes[i] ) ) 
         
         if width > MyDateLib.HOUR :#In case pickling didnt happen for a few hours for some reason...   
@@ -348,13 +354,10 @@ def updateHourlyPickles( infos ):
             hours = [infos.startTimes[i]]
             hours.extend( MyDateLib.getSeparatorsWithStartTime( infos.startTimes[i], interval = MyDateLib.HOUR, width = width ))
             
-            
-            print "goes to hour where last pickle occured"
             for j in range( len(hours)-1 ): #Covers hours where no pickling was done.                               
                 
                 startOfTheHour = MyDateLib.getIsoWithRoundedHours( hours[j] )
-                if j == ( 0 ):#Hour where last pickle occured. No need to pickle all hour
-                              #so no rounding is made 
+                if j == ( 0 ):#Hour where last pickle occured. No need to pickle all hour no rounding is made 
                     startTime = infos.startTimes[j]  
                 else:
                     startTime = startOfTheHour
@@ -363,10 +366,11 @@ def updateHourlyPickles( infos ):
                 endTime = MyDateLib.getIsoFromEpoch( MyDateLib.getSecondsSinceEpoch( MyDateLib.getIsoWithRoundedHours(hours[j+1] ) ))
                 
                 if startTime >= endTime :
-                    raise Excception    
+                    raise Exception("Startime used in updateHourlyPickles was greater or equal to end time.")    
+                    
+                    
                 
-                
-                cs.pickleName =  ClientStatsPickler.buildThisHoursFileName( client = infos.clients[i], currentTime =  startOfTheHour  )
+                cs.pickleName =  ClientStatsPickler.buildThisHoursFileName( client = infos.clients[i], currentTime =  startOfTheHour, machine = infos.machine  )
                  
                 cs.collectStats( types = infos.types, startTime = startTime , endTime = endTime, interval = infos.interval * MyDateLib.MINUTE,  directory = PXPaths.LOG, fileType = "tx"  )                              
                     
@@ -377,15 +381,11 @@ def updateHourlyPickles( infos ):
             startOfTheHour = MyDateLib.getIsoWithRoundedHours( infos.startTimes[i] )
                             
             if startTime >= endTime :
-                print "Error trying to update %s." %infos.clients[i] 
-                print "Start time was greater or equal to endTime."
-                print "Please verify that files containing last cron job and parameters used are correct. "
-                print "Program terminated."
-                sys.exit()  
-            
-            #Collect todays data.
-            print "pickles for this hour only !"
-            cs.pickleName =   ClientStatsPickler.buildThisHoursFileName( client = infos.clients[i], currentTime = startOfTheHour )            
+                print "startTime : %s endTime : %s" %( startTime, endTime )
+                raise Exception("Startime used in updateHourlyPickles was greater or equal to end time.")    
+                
+                
+            cs.pickleName =   ClientStatsPickler.buildThisHoursFileName( client = infos.clients[i], currentTime = startOfTheHour, machine = infos.machine )            
               
             cs.collectStats( infos.types, startTime = startTime, endTime = endTime, interval = infos.interval * MyDateLib.MINUTE, directory = PXPaths.LOG, fileType = "tx"   )
 
@@ -398,6 +398,7 @@ def main():
     """
         Gathers options, then makes call to ClientStatsPickler to collect the stats based 
         on parameters received.  
+    
     """
     
    

@@ -38,19 +38,24 @@ def save( object, filename ):
     """
         Saves an object to disk using cpickle.
         
-        Filename needs to be an absolute filename ie
-        /apps/px/lib/PICKLES/SATNET/SATNET-PICKLE-2006-06-08
-    
+        Will create folder up to destination if folders don't exist. 
+   
         User must have permission to write to the specified folder. 
         
-        Raises exception if 
+        Raises exception if application is unable to save file.
+        
     """
     
-    if filename[0] == "/" : 
+    try: 
         
         splitName = filename.split( "/" ) 
-        directory = "/"
         
+        if filename[0] == "/":
+            directory = "/"
+        else:
+            directory = ""
+            
+            
         for i in range( 1, len(splitName)-1 ):
             directory = directory + splitName[i] + "/"
         
@@ -61,13 +66,12 @@ def save( object, filename ):
         file.write( cPickle.dumps( object, True ) )
         file.close()
     
-    else:
     
-        raise Exception( "Error occured in cpickleWrapper.save().Filename used : %s, needs to be an absolute path to the file." %filename )
-        
+    except:
     
-    
-        
+        raise Exception( "Error occured in cpickleWrapper.save(). Could not create : %s." %filename )
+
+
 
 def load( filename ):
     """
@@ -76,6 +80,7 @@ def load( filename ):
         
         Pre-condition : file must exist. File must have been created 
                         using cpickle. 
+                        
     """
     
     if os.path.isfile( filename ): 

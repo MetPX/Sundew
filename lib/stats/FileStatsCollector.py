@@ -101,7 +101,7 @@ class FileStatsCollector:
     
     """
     
-    def __init__(self, files = None , statsTypes = None, startTime = '2005-08-30 20:06:59', endTime = '2005-08-30 20:06:59', interval=20*MINUTE, totalWidth = 24*HOUR, firstFilledEntry = 0, lastFilledEntry = 0, lastReadPosition = 0, maxLatency = 15, fileEntries = None, logger = None ):
+    def __init__( self, files = None, statsTypes = [ "latency", "errors","bytecount" ], startTime = '2005-08-30 20:06:59', endTime = '2005-08-30 20:06:59', interval=1*MINUTE, totalWidth = HOUR, firstFilledEntry = 0, lastFilledEntry = 0, lastReadPosition = 0, maxLatency = 15, fileEntries = None, logger = None ):
         """ 
             Constructor. All values can be set from the constructor by the user but recommend usage
             is to set sourceFile and statsType. The class contains other methods to set the other values
@@ -137,7 +137,7 @@ class FileStatsCollector:
         self.nbEntries        = len ( self.timeSeperators ) -1 # Nb of entries or "buckets" 
         
         if self.logger == None: # Enable logging
-            print "goers to logger creation"
+           
             self.logger = Logger( PXPaths.LOG + 'stats_' + self.loggerName + '.log', 'DEBUG', 'TX' + self.loggerName ) 
             self.logger = self.logger.getLogger()
             
@@ -145,6 +145,8 @@ class FileStatsCollector:
         if fileEntries == []:
             self.createEmptyEntries()   # Create all empty buckets right away    
 
+            
+            
     def setMinMaxMeanMedians( self, productType = "", startingBucket = 0 , finishingBucket = 0  ):
         """
             This method takes all the values set in the values dictionary, finds the media for every
@@ -174,7 +176,7 @@ class FileStatsCollector:
         if finishingBucket !=0 : 
             self.lastFilledEntry = finishingBucket -1
         
-        self.logger.info( "setMinMaxMeanMedians received." )
+        self.logger.debug( "Call to setMinMaxMeanMedians received." )
         self.logger.debug( "ProductType : %s, firstFilledEntry : %s, lastFilledEntry : %s  ." %( productType, self.firstFilledEntry, self.lastFilledEntry ) )     
                    
         for i in xrange( self.firstFilledEntry , self.lastFilledEntry + 1 ): #for each entries we need to deal with 
@@ -414,7 +416,7 @@ class FileStatsCollector:
         startTimeinSec       = 0
         lastDepartureInSecs  = 0
         
-        self.logger.info( "Call to findFirstInterestingLine received." )
+        self.logger.debug( "Call to findFirstInterestingLine received." )
         self.logger.debug( "Parameters were self.lastReadPosition : %s, filesize : %s" %(self.lastReadPosition,fileSize)) 
         
         
@@ -468,7 +470,7 @@ class FileStatsCollector:
             line = lastLine 
             departure = lastDeparture
             
-            while line != "" and line != self.lastFilledLine and departure >= self.startTime :
+            while line != "" and departure >= self.startTime :
                 line,offset = backwardReader.readLineBackwards( fileHandle = fileHandle, offset = offset , fileSize = fileSize )
                 #print line 
                 if line != "":
@@ -513,7 +515,7 @@ class FileStatsCollector:
         baseTypes             = [ "fileName", "productType" ]
         neededTypes = baseTypes 
                 
-        self.logger.info( "Call to findFirstInterestingLine received." )
+        self.logger.debug( "Call to findFirstInterestingLine received." )
         self.logger.debug( "Parameters were self.lastReadPosition : %s, endTime : %s" %(self.lastReadPosition,endTime)) 
         
         

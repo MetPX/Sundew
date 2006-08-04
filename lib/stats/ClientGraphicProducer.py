@@ -48,7 +48,7 @@ class ClientGraphicProducer:
     
     
     
-    def __init__( self, directory, fileType, clientNames = None ,  timespan = 12, currentTime = None, productType = "All", logger = None  ):
+    def __init__( self, directory, fileType, clientNames = None ,  timespan = 12, currentTime = None, productType = "All", logger = None, machines = ["pds5"]  ):
         """
             ClientGraphicProducer constructor. 
             
@@ -69,11 +69,12 @@ class ClientGraphicProducer:
             
         self.directory    = directory         # Directory where log files are located. 
         self.fileType     = fileType          # Type of log files to be used.    
+        self.machines     = machines          #Machiens for wich to collect data. 
         self.clientNames  = clientNames or [] # Client name we need to get the data from.
         self.timespan     = timespan          # Number of hours we want to gather the data from. 
         self.currentTime  = currentTime       # Time when stats were queried.
         self.productType  = productType       # Specific data type on wich we'll collect the data.
-        self.loggerName   = 'graphs'
+        self.loggerName   = 'graphs'          #
         self.logger = logger
         
         if self.logger is None: # Enable logging
@@ -83,7 +84,7 @@ class ClientGraphicProducer:
 
     
 
-    def produceGraphicWithHourlyPickles( self, types , now = False):
+    def produceGraphicWithHourlyPickles( self, types , now = False ):
         """
             This higher-level method is used to produce a graphic based on the data found in log files
             concerning a certain client. Data will be searched according to the clientName and timespan
@@ -117,10 +118,10 @@ class ClientGraphicProducer:
             #Gather data from all previously creted pickles....
             print "Merging parameters  startTime : %s endTime %s" %(startTime,endTime ) 
             
-            self.logger.info( "Call to mergeHourlyPickles." )
+            self.logger.debug( "Call to mergeHourlyPickles." )
             self.logger.debug( " Parameters used : %s %s %s" %(startTime, endTime, client) )
             
-            statsCollection = pickleMerging.mergeHourlyPickles( self.logger, startTime = startTime, endTime = endTime, client =client )        
+            statsCollection = pickleMerging.mergePicklesFromDifferentMachines( logger = None , startTime = startTime, endTime = endTime, client = client, fileType = self.fileType, machines = self.machines )
             
             #print statsCollection.fileEntries[0].means      
             dataCollector =  ClientStatsPickler( client = client, statsTypes = types, directory = self.directory, statsCollection = statsCollection )
@@ -129,20 +130,17 @@ class ClientGraphicProducer:
              
         
         if self.productType != "All":
-            print "filtering product types"
+            
             for c in collectorsList: 
                 c.statsCollection.setMinMaxMeanMedians(  productType = self.productType, startingBucket = 0 , finishingBucket = len(c.statsCollection.fileEntries)  )
 #                     
+        self.logger.debug( "Call to StatsPlotter :Clients:%s, timespan:%s, currentTime:%s, statsTypes:%s, productType:%s :" %( self.clientNames, self.timespan, self.currentTime, types, self.productType ) )
         
-        print "self.currentTime : %s"  %self.currentTime
-        
-        self.logger.info( "Call to StatsPlotter :Clients:%s, timespan:%s, currentTime:%s, statsTypes:%s, productType:%s :" %( self.clientNames, self.timespan, self.currentTime, types, self.productType ) )
-        
-        plotter = StatsPlotter( stats = collectorsList, clientNames = self.clientNames, timespan = self.timespan, currentTime = self.currentTime, now = False, statsTypes = types, productType = self.productType, logger = None  )
+        plotter = StatsPlotter( stats = collectorsList, clientNames = self.clientNames, timespan = self.timespan, currentTime = endTime, now = False, statsTypes = types, productType = self.productType, logger = None  )
         
         plotter.plot()                          
         
-        self.logger.info( "Returns from StatsPlotter." )
+        self.logger.debug( "Returns from StatsPlotter." )
         
     
 

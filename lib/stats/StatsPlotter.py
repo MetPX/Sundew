@@ -41,7 +41,7 @@ PXPaths.normalPaths()
 
 class StatsPlotter:
 
-    def __init__( self, timespan,  stats = None, clientNames = None, type='impulses', interval=1, imageName="gnuplotOutput", title = "Stats",currentTime = "",now = False, statsTypes = None, productType = "All", logger = None ):
+    def __init__( self, timespan,  stats = None, clientNames = None, type='impulses', interval=1, imageName="gnuplotOutput", title = "Stats",currentTime = "",now = False, statsTypes = None, productType = "All", logger = None, fileType = "tx" ):
         """
             StatsPlotter constructor. 
             
@@ -55,6 +55,7 @@ class StatsPlotter:
         self.timespan    = timespan                # Helpfull to build titles 
         self.currentTime = currentTime             # Time of call
         self.type        = type                    # Must be in: ['linespoint', 'lines', 'boxes', 'impulses'].
+        self.fileType    = fileType                # Type of file for wich the data was collected
         self.imageName   = imageName               # Name of the image file.
         self.nbFiles     = []                      # Number of files found in the data collected per server.
         self.nbErrors    = []                      # Number of errors found per server
@@ -105,7 +106,7 @@ class StatsPlotter:
         
     def buildImageName( self ):
         """
-            Builds and returns the absolute fileName .
+            Builds and returns the absolute fileName so that it can be saved 
             
             If folder to file does not exists creates it.
         
@@ -121,13 +122,21 @@ class StatsPlotter:
                 if name != self.clientNames[ len(self.clientNames) -1 ] :
                     clientName = clientName + "-"  
         
-        date = self.currentTime.replace( " ", "_")
+        date = self.currentTime.replace( "-","" ).replace( " ", "_")
         
-    
-        fileName = PXPaths.GRAPHS + "%s/%s-%s-For %s hours-%s.png" %( clientName, clientName,self.statsTypes,self.timespan, date ) 
+        fileName = PXPaths.GRAPHS + "%s/%s_%s_%s_%s%s_%shours.png" %(clientName, self.fileType,clientName, date, self.machines, self.statsTypes, self.timespan )
+        
+        print "fileName avant : %s" %fileName
+        fileName = fileName.replace( '[', '').replace(']', '').replace(" ", "") 
+        print "fileName apres : %s" %fileName
+        
         
         splitName = fileName.split( "/" ) 
-        directory = "/"
+        
+        if filename[0] == "/":
+            directory = "/"
+        else:
+            directory = ""
         
         for i in range( 1, len(splitName)-1 ):
             directory = directory + splitName[i] + "/"

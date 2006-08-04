@@ -50,7 +50,7 @@ class ClientStatsPickler:
         Contains all the methods needed to pickle stats for a certain client.
     """
     
-    def __init__( self, client = "", directory = "", statsTypes = None, statsCollection = None, pickleName = "", logger = None  ):
+    def __init__( self, client = "", directory = "", statsTypes = None, statsCollection = None, pickleName = "", logger = None, machine = "pds5"  ):
         """ 
             Constructor.
             -Builds a ClientStatsPickler with no entries.   
@@ -61,10 +61,11 @@ class ClientStatsPickler:
         self.pickleName       = ""                                  #Pickle 
         self.directory        = directory                           #Name of the directory containing stats files.
         self.statsTypes       = statsTypes or []                    #Types we'll search for stats. 
+        self.machine          = machine                             #Machine on wich the data resides.
         self.fileCollection   = DirectoryFileCollector( directory = directory ) #List of all the test files. 
         self.statsCollection  = statsCollection or FileStatsCollector()#All fileStats collected. 
         self.loggerName       = 'pickling'
-        self.logger = logger
+        self.logger           = logger
         
         if logger is None: # Enable logging
             self.logger = Logger( PXPaths.LOG + 'stats_' + self.loggerName + '.log', 'INFO', 'TX' + self.loggerName ) 
@@ -72,7 +73,7 @@ class ClientStatsPickler:
            
 
 
-    def buildThisHoursFileName(  client = "satnet", offset = 0, currentTime = "", fileType = "tx" ):
+    def buildThisHoursFileName(  client = "satnet", offset = 0, currentTime = "", fileType = "tx", machine = "pds5" ):
         """ 
             Builds a filename using current currentTime.
             
@@ -89,7 +90,7 @@ class ClientStatsPickler:
                 
         """    
         
-        fileName = PXPaths.PICKLES + "%s/%s/" %( fileType, client ) 
+        fileName = PXPaths.PICKLES +  client + "/"
         
         
         if currentTime == "":
@@ -102,19 +103,18 @@ class ClientStatsPickler:
         
         for i in range( 3 ):
             
-            if i == 1 and int( splitTime[i] ) < 10 :
+            if int( splitTime[i] ) < 10 :
                 fileName = fileName + "0" + str( splitTime[i] )
             else:
-                fileName = fileName + str( splitTime[i] )     
+                fileName = fileName + str( splitTime[i] )          
         
-        fileName = fileName + "/"
                 
         hour = MyDateLib.getHoursFromIso( MyDateLib.getIsoFromEpoch( currentTime ) )
         
-        fileName = fileName + hour
+        fileName = fileName + "/" + fileType + "/" + machine + "_" + hour
+        
         
         return fileName 
-        
     
     buildThisHoursFileName = staticmethod( buildThisHoursFileName )    
     
@@ -169,7 +169,7 @@ class ClientStatsPickler:
             # start of the hour up till the end. 
             
             if self.pickleName == "":
-                self.pickleName = ClientStatsPickler.buildThisHoursFileName( client = self.client, currentTime = startTime )
+                self.pickleName = ClientStatsPickler.buildThisHoursFileName( client = self.client, currentTime = startTime, machine = self.machine )
             
             self.statsCollection = FileStatsCollector( files = self.fileCollection.entries, statsTypes = types, startTime = MyDateLib.getIsoWithRoundedHours( startTime ), endTime = endTime, interval = interval, totalWidth = 1*HOUR )
             
@@ -177,7 +177,10 @@ class ClientStatsPickler:
 
         try :    
             if save == True :
+                temp =  self.statsCollection.logger
+                del self.statsCollection.logger
                 cpickleWrapper.save ( object = self.statsCollection, filename = self.pickleName ) 
+                self.statsCollection = temp
         
         except:   
             (type, value, tb) = sys.exc_info()

@@ -34,18 +34,18 @@ PXPaths.normalPaths()
 
 class _GraphicsInfos:
 
-    def __init__( self, directory, fileType, types, collectUpToNow,  clientNames = None ,  timespan = 12, currentTime = None, productType = "All"  ):
+    def __init__( self, directory, fileType, types, collectUpToNow,  clientNames = None ,  timespan = 12, currentTime = None, productType = "All", machines = ["pds5"]  ):
 
             
         self.directory    = directory         # Directory where log files are located. 
         self.fileType     = fileType          # Type of log files to be used.    
         self.types        = types             # Type of graphics to produce. 
-        self.collectUpToNow          = collectUpToNow               # Whether we create graphic up to collectUpToNow or not.
+        self.collectUpToNow          = collectUpToNow # Whether we create graphic up to collectUpToNow or not.
         self.clientNames  = clientNames or [] # Client name we need to get the data from.
         self.timespan     = timespan          # Number of hours we want to gather the data from. 
         self.currentTime  = currentTime       # Time when stats were queried.
         self.productType  = productType       # Specific data type on wich we'll collect the data.
- 
+        self.machines     = machines          # Machine fro wich we want the data to be calculated.
         
         
 #################################################################
@@ -70,10 +70,10 @@ def getOptionsFromParser( parser ):
     ( options, args ) = parser.parse_args()        
     collectUpToNow  = options.collectUpToNow
     timespan        = options.timespan
+    machines        = options.machines.replace( ' ','').split(',')
     clientNames     = options.clients.replace( ' ','' ).split(',')
     types           = options.types.replace( ' ', '').split(',')
-    currentTime     = options.currentTime.replace('"','')
-    currentTime     = options.currentTime.replace("'",'')
+    currentTime     = options.currentTime.replace('"','').replace("'",'')
     fileType        = options.fileType.replace("'",'')
     collectUpToNow  = options.collectUpToNow
     productType     = options.productType.replace( ' ', '' )     
@@ -121,7 +121,7 @@ def getOptionsFromParser( parser ):
     
 
    
-    infos = _GraphicsInfos( collectUpToNow = collectUpToNow, currentTime = currentTime, clientNames = clientNames,  directory = directory , types = types, fileType = fileType, timespan = timespan, productType = productType )
+    infos = _GraphicsInfos( collectUpToNow = collectUpToNow, currentTime = currentTime, clientNames = clientNames,  directory = directory , types = types, fileType = fileType, timespan = timespan, productType = productType, machines = machines )
     
     if collectUpToNow == False:
         infos.endTime = MyDateLib.getIsoWithRoundedHours( infos.currentTime ) 
@@ -198,9 +198,11 @@ def addOptions( parser ):
     
     parser.add_option("-f", "--fileType", action="store", type="string", dest="fileType", default='tx', help="Type of log files wanted.")                     
    
+    parser.add_option( "-m", "--machines", action="store", type="string", dest="machines", default="pds5", help = "Machines for wich we want to collect data." ) 
+    
     parser.add_option("-n", "--collectUpToNow", action="store_true", dest = "collectUpToNow", default=False, help="Collect data up to current second.")
     
-    parser.add_option("-p", "--product", action="store", type = "string", dest = "productType", default="All", help="Product type to look for in the data collected..")
+    parser.add_option("-p", "--product", action="store", type = "string", dest = "productType", default="All", help="Product type to look for in the data collected.")
     
     parser.add_option("-s", "--span", action="store",type ="int", dest = "timespan", default=12, help="timespan( in hours) of the graphic.")
        
@@ -218,9 +220,10 @@ def main():
     infos = getOptionsFromParser( parser )      
     
     
-    gp = ClientGraphicProducer( clientNames = infos.clientNames, timespan = infos.timespan, currentTime = infos.currentTime ,productType = infos.productType, directory = infos.directory , fileType = infos.fileType )  
+    gp = ClientGraphicProducer( clientNames = infos.clientNames, timespan = infos.timespan, currentTime = infos.currentTime, productType = infos.productType, directory = infos.directory , fileType = infos.fileType, machines = infos.machines )  
     
     gp.produceGraphicWithHourlyPickles( types = infos.types, now = infos.collectUpToNow   )
+    
     print "Done."
 
 
