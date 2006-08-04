@@ -82,10 +82,10 @@ def resend(ro):
 
 def createParser(ro):
     usagemsg = "%prog [options] <machine:bulletin>\nResend one or more bulletins."
-    parser = OptionParser(usage=usagemsg, version="%prog 0.8-alpha")
+    parser = OptionParser(usage=usagemsg, version="%prog 0.9-beta")
 
-    parser.add_option("--ask", action = "store_true", dest = "prompt", help = "Ask for a resending confirmation for each bulletins.")
-    parser.add_option("--all", action = "store_false", dest = "prompt", help = "Send all bulletins without confirmation (default).")
+    parser.add_option("--ask", action = "store_true", dest = "prompt", help = "Ask for a resending confirmation for each bulletins.", default=True)
+    parser.add_option("--all", action = "store_false", dest = "prompt", help = "Send all bulletins without confirmation (default).", default=False)
     parser.add_option("-p", "--prio", dest = "prio", help = "Specify in which priority you want to put the bulletin in? (default 3).", default = ro.getPrio())
     parser.add_option("-d", "--destination", dest = "destination", help = "Specify comma-separated list of destinations (ex: ppp1,test,cmc2).", default = ro.getDestinations())
     
