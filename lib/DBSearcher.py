@@ -177,7 +177,8 @@ class DBSearcher:
                 theFile = self._findFullHeader(True, self.ttaaii, self.center, self.country, date, DBSearcher.EXCLUDED_SOURCES)
                 if theFile:
                     print theFile
-            return theFile
+                    return theFile
+            return None
         elif self.requestType == 2:
             allResults = []
             for station in self.stations:
@@ -185,8 +186,8 @@ class DBSearcher:
                     #print 'DATE: %s' % date
                     if self.type == 'SA':
                         results = self._findSA([station], date)
-                        allResults.extend(results)
                         if results[0][1]:
+                            allResults.extend(results)
                             #self.printResults(results, self.type)
                             print 80 * '-'
                             for result in results:
@@ -194,8 +195,8 @@ class DBSearcher:
                             break
                     elif self.type in ['FC', 'FT', 'TAF']:
                         results = self._findTAF([station], date)
-                        allResults.extend(results)
                         if results[0][1]:
+                            allResults.extend(results)
                             #self.printResults(results, self.type)
                             print 80 * '-'
                             for result in results:
@@ -204,19 +205,20 @@ class DBSearcher:
 
                     elif self.type in ['FD', 'FD1', 'FD2', 'FD3']:
                         results = self._findFD([station], self.type, date)
-                        allResults.extend(results)
                         if results[0][1]:
+                            allResults.extend(results)
                             #self.printResults(results)
                             print 80 * '-'
                             for result in results:
                                 print self.formatResult(result, self.type)
                             break
 
+            print allResults
+            return allResults
+
         #file = open(PXPaths.REQUEST_REPLY + 'results.pickle', 'w')
         #pickle.dump(results, file)
         #file.close()
-        print allResults
-        return allResults
 
     def _getFilesToParse(self, root, headers, excludedSources=None):
         """
