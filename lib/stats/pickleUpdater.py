@@ -381,7 +381,6 @@ def updateHourlyPickles( infos ):
             startOfTheHour = MyDateLib.getIsoWithRoundedHours( infos.startTimes[i] )
                             
             if startTime >= endTime :
-                print "startTime : %s endTime : %s" %( startTime, endTime )
                 raise Exception("Startime used in updateHourlyPickles was greater or equal to end time.")    
                 
                 

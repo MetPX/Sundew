@@ -115,9 +115,7 @@ class ClientGraphicProducer:
          
         for client in self.clientNames : # 
                
-            #Gather data from all previously creted pickles....
-            print "Merging parameters  startTime : %s endTime %s" %(startTime,endTime ) 
-            
+            #Gather data from all previously creted pickles....                       
             self.logger.debug( "Call to mergeHourlyPickles." )
             self.logger.debug( " Parameters used : %s %s %s" %(startTime, endTime, client) )
             

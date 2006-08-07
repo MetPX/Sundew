@@ -40,7 +40,7 @@ class _GraphicsInfos:
         self.directory    = directory         # Directory where log files are located. 
         self.fileType     = fileType          # Type of log files to be used.    
         self.types        = types             # Type of graphics to produce. 
-        self.collectUpToNow          = collectUpToNow # Whether we create graphic up to collectUpToNow or not.
+        self.collectUpToNow = collectUpToNow  # Whether we create graphic up to collectUpToNow or not.
         self.clientNames  = clientNames or [] # Client name we need to get the data from.
         self.timespan     = timespan          # Number of hours we want to gather the data from. 
         self.currentTime  = currentTime       # Time when stats were queried.
@@ -218,12 +218,12 @@ def main():
     parser = createParser( )  #will be used to parse options 
     
     infos = getOptionsFromParser( parser )      
-    
-    
+        
     gp = ClientGraphicProducer( clientNames = infos.clientNames, timespan = infos.timespan, currentTime = infos.currentTime, productType = infos.productType, directory = infos.directory , fileType = infos.fileType, machines = infos.machines )  
     
     gp.produceGraphicWithHourlyPickles( types = infos.types, now = infos.collectUpToNow   )
     
+    #add logging here 
     print "Done."
 
 

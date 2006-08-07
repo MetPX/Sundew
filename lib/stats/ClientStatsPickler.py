@@ -157,8 +157,7 @@ class ClientStatsPickler:
         self.fileCollection =  DirectoryFileCollector( startTime  = startTime , endTime = endTime, directory = directory, lastLineRead = "", fileType = fileType, client = self.client )   
         self.fileCollection.collectEntries()          #find all entries from the folder
         
-        print "self.fileCollection.entries %s" %self.fileCollection.entries
-        
+                
         if os.path.isfile( self.pickleName ): #We use whatever pickle the user specified.
             
             self.logger.warning( "User tried to modify allready filled pickle file." )

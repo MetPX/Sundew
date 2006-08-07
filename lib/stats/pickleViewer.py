@@ -45,7 +45,7 @@ def printPickle( pickle, outputFile = "" ):
 #     try :
         
     if outputFile != "":
-        print "allo"
+       
         fileHandle = open( outputFile , 'w' )
         old_stdout = sys.stdout 
         sys.stdout = fileHandle 

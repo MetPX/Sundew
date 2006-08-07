@@ -236,19 +236,15 @@ class FileStatsCollector:
                             maximum = values[k]
                             self.fileEntries[i].maximums[aType]= values[k]
                             self.fileEntries[i].filesWhereMaxOccured[aType] = files[k]    
-                            self.fileEntries[i].timesWhereMaxOccured[aType] = times[k]  
-   
-                    
+                            self.fileEntries[i].timesWhereMaxOccured[aType] = times[k]                      
                                         
-                    #median  = values[ int( int(self.fileEntries[i].values.rows) / 2 ) ]    
+                    
                     median  = 0 
                     try :
                         total   = sum( values )
                     except :
-                        print "exception"
-                        print "i: %s" %i
-                        print "type : %s" %aType
-                        print "values :%s " %values 
+                        total = 0
+                        self.logger.error("Could not compute sum in setMinMaxMeanMedians. Make sure values are numeric.")            
                         
                         
                     if len(values) != 0 :
@@ -315,23 +311,16 @@ class FileStatsCollector:
                         d1 = line[:19]
                         d2 = splitLine[6].split(":")[6] 
                         values[statsType]=(datetime.datetime( int(d1[0:4]), int(d1[5:7]), int(d1[8:10]), int(d1[11:13]), int(d1[14:16]), int(d1[17:19])) -datetime.datetime( int(d2[0:4]),int(d2[4:6]),int(d2[6:8]),int(d2[8:10]),int(d2[10:12]),int(d2[12:14]) ) ).seconds
-                        #print values[statsType]
-                            
-                    elif statsType == "arrival":
                         
-                        try : # for debugging....lines passed should always be valid in final versions.      
                             
-                            arrival   = MyDateLib.isoDateDashed( splitLine[6].split(":")[6] )    
-                        
-                        except Exception,e :
-                            print line 
-                            print e 
-                            sys.exit()
+                    elif statsType == "arrival":                  
+                    
+                        arrival   = MyDateLib.isoDateDashed( splitLine[6].split(":")[6] )    
+
                             
                     elif statsType == "bytecount":
                         values[statsType] = int( splitLine[3].replace( '(', '' ) )
                        
-                        
                     elif statsType == "fileName":
                         values[statsType] = splitLine[6].split( ":" )[0]
                     
@@ -435,12 +424,6 @@ class FileStatsCollector:
             lastLine,offset  = backwardReader.readLineBackwards( fileHandle, offset = -1, fileSize = fileSize  )
             lastDeparture    = FileStatsCollector.findValues( ["departure"] , lastLine )["departure"]
             
-            print "First line : %s" %firstLine 
-            print "lastline : %s"   %lastLine 
-            print "firstDeparture : %s" %firstDeparture
-            print "self.startTime : %s" %self.startTime
-            print "lastDeparture : %s " %lastDeparture
-            
             firstDepartureInSecs = MyDateLib.getSecondsSinceEpoch( firstDeparture )
             startTimeinSec       = MyDateLib.getSecondsSinceEpoch( self.startTime )
             lastDepartureInSecs  = MyDateLib.getSecondsSinceEpoch( lastDeparture )
@@ -448,9 +431,9 @@ class FileStatsCollector:
         
         if self.lastReadPosition != 0 or abs( firstDepartureInSecs - startTimeinSec ) < 2*(abs( lastDepartureInSecs - startTimeinSec)) :
             
-            fileHandle.seek(position,0)
+            fileHandle.seek( position,0 )
             line = firstLine 
-            #print "+++++find forwards++++++++"    
+               
             while lineFound == False :     
                 
                 departure =  FileStatsCollector.findValues( ["departure"] , line )["departure"]
@@ -465,14 +448,15 @@ class FileStatsCollector:
                     line = fileHandle.readline ()        
                         
         else:#read backwards till we are in the range we want 
+            #might want to log here....
             fileHandle.seek(0,0)
-            #print "***find backwards"
+            
             line = lastLine 
             departure = lastDeparture
             
             while line != "" and departure >= self.startTime :
                 line,offset = backwardReader.readLineBackwards( fileHandle = fileHandle, offset = offset , fileSize = fileSize )
-                #print line 
+                
                 if line != "":
                     departure =  FileStatsCollector.findValues( ["departure"] , line )["departure"]
                 if departure > self.startTime:#save line ,or else well lose it at last turn
@@ -486,7 +470,7 @@ class FileStatsCollector:
                     isInteresting,lineType = self.isInterestingLine( line )     
                     position = fileHandle.tell()
                     
-        #print "Temps apres find first line  : %s" %time.gmtime( time.time() )                  
+                        
        
         print "####line : %s" %line  
         
@@ -542,7 +526,7 @@ class FileStatsCollector:
                     
             departure   = self.findValues( ["departure"] ,  line, lineType )["departure"]
             
-            print "entryCount : %sdeparture : %s,endTime :%s" %(entryCount,departure,endTime)
+            
             while str(departure)[:-2] < str(endTime)[:-2] and line  != "" : #while in proper range 
                 
                 #print line 
@@ -575,7 +559,7 @@ class FileStatsCollector:
             
                     self.fileEntries[ entryCount ].values.dictionary[statType].append( neededValues[ statType ] )
                 
-                #print self.fileEntries[ entryCount ].values.dictionary          
+                      
                 
                 
                 if lineType != "[ERROR]" :
@@ -593,7 +577,7 @@ class FileStatsCollector:
                 
                 departure   = self.findValues( ["departure"] , line, lineType )["departure"]
                 
-                #print "entrycount : %s self.lastFilledEntry : %s" %(entryCount,self.lastFilledEntry )
+                
                 if entryCount > self.lastFilledEntry : # in case of numerous files....
                     
                     self.lastFilledEntry = entryCount                  

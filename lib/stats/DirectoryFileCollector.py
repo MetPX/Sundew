@@ -26,6 +26,8 @@ import backwardReader
 
 from FileStatsCollector import *
 
+
+
 class DirectoryFileCollector: 
     """ 
         This class' goal is to find all the interesting files within a certain directory. 
@@ -38,25 +40,29 @@ class DirectoryFileCollector:
                  
     """
     
-    def __init__( self, startTime = "2006-06-06 01:00:00", endTime = "2006-06-06 02:00:00", directory = PXPaths.LOG, lastLineRead = "", fileType = "tx", client = "satnet" ):
-       """ 
-           Constructor.
-           -Builds a directoryFileCollector with no entries.   
+    def __init__( self, startTime = "2006-06-06 01:00:00", endTime = "2006-06-06 02:00:00", directory = PXPaths.LOG, lastLineRead = "", fileType = "tx", client = "satnet",logger = None ):
+        """ 
+            Constructor.
+            -Builds a directoryFileCollector with no entries.   
+        
+        """
+
+        self.directory    = directory    # Name of the directory where we collect entries 
+        self.startTime    = startTime    # Starting time of the data wich interests us. 
+        self.endTime      = endTime      # Width of time for wich we are interested to collec data. 
+        self.lastLineRead = lastLineRead # Last line read during a previous collection of data.  
+        self.fileType     = fileType     # Type of file we will be searching for here. tx,rx etc...
+        self.client       = client       # Name of the client for wich we are searching files.  
+        self.entries      = []           # List containing filenames of all interesting files found. 
+        self.logger       = logger       # Used to log warning error infos etc.
+        self.loggerName   = 'fileCollector'
        
-       """
-       
-       #startTime = MyDateLib.getSecondsSinceEpoch( startTime )
-       #endTime   = MyDateLib.getSecondsSinceEpoch ( endTime ) 
-       
-       self.directory    = directory    # Name of the directory where we collect entries 
-       self.startTime    = startTime    # Starting time of the data wich interests us. 
-       self.endTime      = endTime      # Width of time for wich we are interested to collec data. 
-       self.lastLineRead = lastLineRead # Last line read during a previous collection of data.  
-       self.fileType     = fileType     # Type of file we will be searching for here. tx,rx etc...
-       self.client       = client       # Name of the client for wich we are searching files.  
-       self.entries      = []           # List containing filenames of all interesting files found. 
-  
-    
+        
+        if logger is None: # Enable logging
+            self.logger = Logger( PXPaths.LOG + 'stats_' + self.loggerName + '.log', 'INFO', 'TX' + self.loggerName ) 
+            self.logger = self.logger.getLogger()
+            
+            
     
     def containsUsefullInfo( self, fileName ):
         """
@@ -78,19 +84,15 @@ class DirectoryFileCollector:
         if line != "":
             
             departure =  FileStatsCollector.findValues( ["departure"], line )["departure"]       
-            print "departure %s , self.endTime %s " %(departure, self.endTime)
+            
             if departure <= self.endTime  :
-                print "1 step good"
                 line == ""
                 fileSize = os.stat( fileName )[6]
                 
                 line,offset  = backwardReader.readLineBackwards( fileHandle, offset = -1, fileSize = fileSize  )
-                print "+-+- line : %s" %line
-                print "on filename : %s" %fileName
                 lastDeparture = FileStatsCollector.findValues( ["departure"] , line )["departure"]       
 
                 if lastDeparture  >= self.startTime :
-                    print "step 2 good"
                     usefull = True
         
                          
@@ -114,22 +116,19 @@ class DirectoryFileCollector:
             
             filePattern = self.directory + "%s_%s.log*" %( self.fileType, self.client )
             
-            print "filePattern : %s" %filePattern
             fileNames = glob.glob( filePattern )            
                       
             for fileName in fileNames: #verify every entries.
                 usefull = self.containsUsefullInfo( fileName )
                 
                 if usefull == True :
-                    print  "usefull : %s" %fileName
                     self.entries.append( fileName )
 
         else:
-            
-            print "Error. Folder named %s does not exist." %self.directory 
-            print "Program terminated."
-            sys.exit()  
+            self.logger.warning("Warning in DirectoryFileCollector. Folder named %s does not exist."%self.directory )
+ 
 
+            
                     
 if __name__ == "__main__":
     """

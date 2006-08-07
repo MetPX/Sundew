@@ -126,10 +126,8 @@ class StatsPlotter:
         
         fileName = PXPaths.GRAPHS + "%s/%s_%s_%s_%s%s_%shours.png" %(clientName, self.fileType,clientName, date, self.machines, self.statsTypes, self.timespan )
         
-        print "fileName avant : %s" %fileName
-        fileName = fileName.replace( '[', '').replace(']', '').replace(" ", "") 
-        print "fileName apres : %s" %fileName
         
+        fileName = fileName.replace( '[', '').replace(']', '').replace(" ", "")               
         
         splitName = fileName.split( "/" ) 
         
@@ -150,6 +148,7 @@ class StatsPlotter:
         return fileName 
     
     
+        
     def getXTics( self ):
         """
            
@@ -220,17 +219,13 @@ class StatsPlotter:
             self.maximums[clientCount][typeCount] = 0
             self.filesWhereMaxOccured[clientCount][typeCount] =  "" 
             self.timeOfMax[clientCount][typeCount] = ""
-                    
-            print "nbEntries : %s" %nbEntries
-            print statType
             
             for k in range( 0, nbEntries ):
                 
                 try :
                     
                     if len( self.stats[clientCount].statsCollection.fileEntries[k].means ) >=1 :
-                        #print self.stats[clientCount].statsCollection.timeSeperators[k]
-                        
+                                                
                         if statType == "latency":
                             self.nbFilesOverMaxLatency[clientCount] = self.nbFilesOverMaxLatency[ clientCount ] + self.stats[clientCount].statsCollection.fileEntries[k].filesOverMaxLatency    
                     
@@ -309,13 +304,10 @@ class StatsPlotter:
             This method is used to build the title we'll print on the graphic.
             Title is built with the current time and the name of the client where
             we collected the data. Also contains the mean and absolute min and max found 
-            in the data used to build the graphic. 
-         
+            in the data used to build the graphic.          
                
-        """
-        
-        
-      
+        """      
+              
         title=  "%s for %s queried at %s for a span of %s hours \\n\\nMAX: %3.2f,  MEAN: %3.2f, MIN: %3.2f " %( statType, self.clientNames[i],  self.currentTime , self.timespan,  self.maximums[i][typeCount], self.means[i][typeCount], self.minimums[i][typeCount] )     
         
         return title
@@ -368,8 +360,7 @@ class StatsPlotter:
         
         for i in range( len( self.stats ) ) :
             
-            print self.statsTypes 
-            
+                       
             for j in range ( len ( self.statsTypes ) ):
                 pairs        = self.getPairs( clientCount =i , statType= self.statsTypes[j], typeCount = j )
                 maxPairValue = self.getMaxPairValue( pairs )
