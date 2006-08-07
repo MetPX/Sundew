@@ -169,6 +169,7 @@ class DBSearcher:
 
     def _search(self):
         # FIXME: Must select best result from multiple machines
+
         if self.requestType == 1:
             # Fully qualified header request
             if self.debug: print self.ttaaii, self.center, self.country
@@ -176,13 +177,15 @@ class DBSearcher:
                 theFile = self._findFullHeader(True, self.ttaaii, self.center, self.country, date, DBSearcher.EXCLUDED_SOURCES)
                 if theFile:
                     print theFile
-                    return
+            return theFile
         elif self.requestType == 2:
+            allResults = []
             for station in self.stations:
                 for date in [DBSearcher.TODAY, DBSearcher.YESTERDAY]:
                     #print 'DATE: %s' % date
                     if self.type == 'SA':
                         results = self._findSA([station], date)
+                        allResults.extend(results)
                         if results[0][1]:
                             #self.printResults(results, self.type)
                             print 80 * '-'
@@ -191,6 +194,7 @@ class DBSearcher:
                             break
                     elif self.type in ['FC', 'FT', 'TAF']:
                         results = self._findTAF([station], date)
+                        allResults.extend(results)
                         if results[0][1]:
                             #self.printResults(results, self.type)
                             print 80 * '-'
@@ -200,6 +204,7 @@ class DBSearcher:
 
                     elif self.type in ['FD', 'FD1', 'FD2', 'FD3']:
                         results = self._findFD([station], self.type, date)
+                        allResults.extend(results)
                         if results[0][1]:
                             #self.printResults(results)
                             print 80 * '-'
@@ -210,6 +215,8 @@ class DBSearcher:
         #file = open(PXPaths.REQUEST_REPLY + 'results.pickle', 'w')
         #pickle.dump(results, file)
         #file.close()
+        print allResults
+        return allResults
 
     def _getFilesToParse(self, root, headers, excludedSources=None):
         """
