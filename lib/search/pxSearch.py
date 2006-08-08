@@ -142,9 +142,13 @@ def search(so):
         machine = machine.strip()
         cmd = 'ssh %s "egrep -o %s %s"' % (machine, regex, logFileName)
         status, output = commands.getstatusoutput(cmd)
+        if status: # Something bad happened
+            print "The following error occured during the search process on host %s:" % (machine)
+            print output
+            sys.exit(1)
         lines = output.splitlines()
         results += ["%s:%s" % (machine, line) for line in lines] # We add the machine name to the start of the line 
-        
+
     # Validation was done in validateUserInput()
     if so.getSince() != 0 or so.getFrom() != "" or so.getTo() != "":
         results = filterTime(so, results)
@@ -159,7 +163,7 @@ def search(so):
     
 def createParser(so):
     usagemsg = "%prog [options] <name>\nSearch in the PX unified log for bulletins matching certain criterias."
-    parser = OptionParser(usage=usagemsg, version="%prog 1.0-rc1")
+    parser = OptionParser(usage=usagemsg, version="%prog 1.0-rc2")
     
     # These two only offer long option names and using one of them is mandatory
     parser.add_option("--rx", action = "store_true", dest = "rxtype", help = "Perform a search in the RX logs.", default = False)

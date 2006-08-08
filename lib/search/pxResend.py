@@ -63,9 +63,7 @@ def updateResendObject(ro, options, args):
         sys.stdin = open("/dev/tty")
     else:
         for arg in args:
-            argParts = arg.split(":")
-            machine = argParts[0]
-            bulletinHeader = ":".join(argsParts[1:]) # A bulletin file header contains multiple ':'
+            machine, bulletinHeader = parseRawLine(arg.strip())
             ro.addToMachineHeaderDict(machine, bulletinHeader)
 
 def resend(ro):
@@ -91,7 +89,7 @@ def resend(ro):
 
 def createParser(ro):
     usagemsg = "%prog [options] <machine:bulletin>\nResend one or more bulletins."
-    parser = OptionParser(usage=usagemsg, version="%prog 0.9-beta")
+    parser = OptionParser(usage=usagemsg, version="%prog 1.0-rc1")
 
     parser.add_option("--ask", action = "store_true", dest = "prompt", help = "Ask for a resending confirmation for each bulletins.", default=True)
     parser.add_option("--all", action = "store_false", dest = "prompt", help = "Send all bulletins without confirmation (default).", default=False)
