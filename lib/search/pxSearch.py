@@ -131,7 +131,7 @@ def search(so):
   
     # Temporary machine list storage
     try:
-        machines = open("%spxsearch.targets" % (PXPaths.ETC), "r").readlines()
+        machines = open("%spxSearch.targets" % (PXPaths.ETC), "r").readlines()
     except IOError:
         print "A file named pxsearch.targets must be located in %s!" % (PXPaths.ETC)
         print "Please write one with one machine name per line."
