@@ -187,31 +187,36 @@ def createParser(so):
     return parser
     
 def main():
-    ##############################
-    # 1. Create the search object
-    ##############################
-    so = SearchObject()
-    
-    #################################################################
-    # 2. Instantiate the parser and parse the command line arguments
-    #################################################################
-    parser = createParser(so)
-    options, args = parser.parse_args()
-    
-    #########################
-    # 3. Validate user input
-    #########################
-    validateUserInput(options,args)
+    try:
+        ##############################
+        # 1. Create the search object
+        ##############################
+        so = SearchObject()
+        
+        #################################################################
+        # 2. Instantiate the parser and parse the command line arguments
+        #################################################################
+        parser = createParser(so)
+        options, args = parser.parse_args()
+        
+        #########################
+        # 3. Validate user input
+        #########################
+        validateUserInput(options,args)
 
-    ##############################################################################
-    # 4. Since input is correct, update the SearchObject with user defined values
-    ##############################################################################
-    updateSearchObject(so, options, args)
-
-    ##############################
-    # 5. Begin the search process
-    ##############################
-    search(so)
+        ##############################################################################
+        # 4. Since input is correct, update the SearchObject with user defined values
+        ##############################################################################
+        updateSearchObject(so, options, args)
+         
+        ##############################
+        # 5. Begin the search process
+        ##############################
+        search(so)
+    except: # General catch all block.
+        (type, value, tb) = sys.exc_info()
+        print "Problems were encountered while performing your search request. Type: %s, Value: %s, Traceback" % (type, value, tb)
+        sys.exit(1)
     
 if __name__ == "__main__":
    main() 

@@ -103,27 +103,34 @@ def main():
     # 1. Create the resend object
     ##############################
     ro = ResendObject()
+    logger = ro.getLogger()
     
-    #################################################################
-    # 2. Instantiate the parser and parse the command line arguments
-    #################################################################
-    parser = createParser(ro)
-    options, args = parser.parse_args()
-    
-    #########################
-    # 3. Validate user input
-    #########################
-    validateUserInput(options, args)
-    
-    ##############################################################################
-    # 4. Since input is correct, update the ResendObject with user defined values
-    ##############################################################################
-    updateResendObject(ro, options, args)
-
-    #####################
-    # 5. Begin resending
-    #####################
-    resend(ro)
+    try:
+        #################################################################
+        # 2. Instantiate the parser and parse the command line arguments
+        #################################################################
+        parser = createParser(ro)
+        options, args = parser.parse_args()
+         
+        #########################
+        # 3. Validate user input
+        #########################
+        validateUserInput(options, args)
+        
+        ##############################################################################
+        # 4. Since input is correct, update the ResendObject with user defined values
+        ##############################################################################
+        updateResendObject(ro, options, args)
+        
+        #####################
+        # 5. Begin resending
+        #####################
+        resend(ro)
+    except:
+        (type, value, tb) = sys.exc_info()
+        errorMsg = "Problems were encountered while resending. Type: %s, Value: %s, Traceback: %s" % (type, value, tb)
+        logger.critical(errorMsg)
+        sys.exit(1)
 
 if __name__ == "__main__":
     main()
