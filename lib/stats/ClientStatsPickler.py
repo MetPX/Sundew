@@ -49,7 +49,7 @@ class ClientStatsPickler:
         Contains all the methods needed to pickle stats for a certain client.
     """
     
-    def __init__( self, client = "", directory = "", statsTypes = None, statsCollection = None, pickleName = "", logger = None, machine = "pds5"  ):
+    def __init__( self, client = "", directory = "", statsTypes = None, statsCollection = None, pickleName = "", logger = None, machine = "pdsCSP"  ):
         """ 
             Constructor.
             -Builds a ClientStatsPickler with no entries.   
@@ -67,12 +67,12 @@ class ClientStatsPickler:
         self.logger           = logger
         
         if logger is None: # Enable logging
-            self.logger = Logger( PXPaths.LOG + 'stats_' + self.loggerName + '.log', 'INFO', 'TX' + self.loggerName ) 
+            self.logger = Logger( PXPaths.LOG + 'stats_' + self.loggerName + '.log.notb', 'INFO', 'TX' + self.loggerName ) 
             self.logger = self.logger.getLogger()
            
 
 
-    def buildThisHoursFileName(  client = "satnet", offset = 0, currentTime = "", fileType = "tx", machine = "pds5" ):
+    def buildThisHoursFileName(  client = "satnet", offset = 0, currentTime = "", fileType = "tx", machine = "pdsCSP" ):
         """ 
             Builds a filename using current currentTime.
             
@@ -151,13 +151,14 @@ class ClientStatsPickler:
             
         """
 
+        filePickle = PXPaths.STATS + "PICKLED_FILE_POSITIONS" 
         
         #Find up to date file list. 
         self.fileCollection =  DirectoryFileCollector( startTime  = startTime , endTime = endTime, directory = directory, lastLineRead = "", fileType = fileType, client = self.client )   
         self.fileCollection.collectEntries()          #find all entries from the folder
         
                 
-        if os.path.isfile( self.pickleName ): #We use whatever pickle the user specified.
+        if os.path.isfile( self.pickleName ):
             
             self.logger.warning( "User tried to modify allready filled pickle file." )
             self.logger.warning( "Pickle was named : %s" %self.pickleName )      
@@ -169,22 +170,40 @@ class ClientStatsPickler:
             if self.pickleName == "":
                 self.pickleName = ClientStatsPickler.buildThisHoursFileName( client = self.client, currentTime = startTime, machine = self.machine )
             
-            self.statsCollection = FileStatsCollector( files = self.fileCollection.entries, statsTypes = types, startTime = MyDateLib.getIsoWithRoundedHours( startTime ), endTime = endTime, interval = interval, totalWidth = 1*HOUR )
+            positiona = {}
+            
+            if os.path.isfile( filePickle ):
+                positions = cpickleWrapper.load ( filePickle ) 
+            try :
+                lastReadPosition = positions[ fileType + "_" + self.client] 
+            except:
+                lastReadPosition = 0
+        
+                
+            self.statsCollection = FileStatsCollector( files = self.fileCollection.entries, statsTypes = types, startTime = MyDateLib.getIsoWithRoundedHours( startTime ), endTime = endTime, interval = interval, totalWidth = 1*HOUR, lastReadPosition = lastReadPosition )
             
             self.statsCollection.collectStats( endTime )    
 
-        try :    
-            if save == True :
-                temp =  self.statsCollection.logger
-                del self.statsCollection.logger
-                cpickleWrapper.save ( object = self.statsCollection, filename = self.pickleName ) 
-                self.statsCollection = temp
-                self.logger.info( "Saved pickle named : %s " %self.pickleName )  
-        
-        except:   
-            (type, value, tb) = sys.exc_info()
-            self.logger.error( "Error trying to save pickle named : %s" %self.pickleName )
-            self.logger.error( "Type: %s, Value: %s, tb: %s ..." % (type, value,tb) )        
+#         try :    
+        if save == True :
+            temp =  self.statsCollection.logger
+            del self.statsCollection.logger
+            cpickleWrapper.save ( object = self.statsCollection, filename = self.pickleName ) 
+            self.statsCollection.logger = temp
+            self.logger.info( "Saved pickle named : %s " %self.pickleName )
+            
+            positions = {}
+                
+            if os.path.isfile( filePickle ):
+                positions = cpickleWrapper.load ( filePickle ) 
+            
+            positions[ fileType + "_" + self.client] =  self.statsCollection.lastReadPosition
+            cpickleWrapper.save ( object = positions, filename = filePickle )     
+#         
+#         except:   
+#             (type, value, tb) = sys.exc_info()
+#             self.logger.error( "Error trying to save pickle named : %s" %self.pickleName )
+#             self.logger.error( "Type: %s, Value: %s, tb: %s ..." % (type, value,tb) )        
         
     
              

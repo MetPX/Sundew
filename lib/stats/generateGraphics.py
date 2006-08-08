@@ -34,7 +34,7 @@ PXPaths.normalPaths()
 
 class _GraphicsInfos:
 
-    def __init__( self, directory, fileType, types, collectUpToNow,  clientNames = None ,  timespan = 12, currentTime = None, productType = "All", machines = ["pds5"]  ):
+    def __init__( self, directory, fileType, types, collectUpToNow,  clientNames = None ,  timespan = 12, currentTime = None, productType = "All", machines = ["pdsGG"]  ):
 
             
         self.directory    = directory         # Directory where log files are located. 
@@ -81,6 +81,7 @@ def getOptionsFromParser( parser ):
     try:    
         if int( timespan ) < 1 :
             raise 
+            print "trouve lerreur"
     
     except:
         
@@ -108,7 +109,7 @@ def getOptionsFromParser( parser ):
         for t in types :
             if t not in validTypes:
                 raise 
-
+                print "trouve lerreur"
     except:    
         
         print "Error. With %s fileType, possible data types values are : %s." %(fileType,validTypes )
@@ -198,7 +199,7 @@ def addOptions( parser ):
     
     parser.add_option("-f", "--fileType", action="store", type="string", dest="fileType", default='tx', help="Type of log files wanted.")                     
    
-    parser.add_option( "-m", "--machines", action="store", type="string", dest="machines", default="pds5", help = "Machines for wich we want to collect data." ) 
+    parser.add_option( "-m", "--machines", action="store", type="string", dest="machines", default="pdsGGD", help = "Machines for wich we want to collect data." ) 
     
     parser.add_option("-n", "--collectUpToNow", action="store_true", dest = "collectUpToNow", default=False, help="Collect data up to current second.")
     

@@ -178,7 +178,7 @@ def buildLogger( output ):
     logger = None 
     
     if output != "":       
-        logger = Logger( PXPaths.LOG + 'stats_' + output + '.log', 'INFO', 'TX' + output ) 
+        logger = Logger( PXPaths.LOG + 'stats_' + output + '.log.notb', 'INFO', 'TX' + output ) 
         logger = logger.getLogger()    
     
     return logger 

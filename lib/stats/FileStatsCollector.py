@@ -93,6 +93,9 @@ class _FileStatsEntry:
         self.files     = []              # Files to be read for data collection. 
         self.times     = []              # Time of departure of an entry 
         
+        
+                                         
+                                            
 
 class FileStatsCollector:
     """
@@ -138,12 +141,27 @@ class FileStatsCollector:
         
         if self.logger == None: # Enable logging
            
-            self.logger = Logger( PXPaths.LOG + 'stats_' + self.loggerName + '.log', 'DEBUG', 'TX' + self.loggerName ) 
+            self.logger = Logger( PXPaths.LOG + 'stats_' + self.loggerName + '.log.notb', 'DEBUG', 'TX' + self.loggerName ) 
             self.logger = self.logger.getLogger()
             
         
         if fileEntries == []:
             self.createEmptyEntries()   # Create all empty buckets right away    
+        
+        # sortingneeds to be done to make sure first file we read is the oldest,thus makes sure
+        # that if we seek the last read position we do it in the right file. 
+           
+        self.files.sort()                
+        
+        if len( self.files ) > 1 and files[0].endswith("log"):
+            print 
+            firstItem     = self.files[ 0 ]
+            print "firstItem : %s" %firstItem
+            remainingList = self.files[ 1: ]
+            print "remainingList : %s" %remainingList
+            self.files    = remainingList
+            self.files.append( firstItem )                            
+            print "self.files has been modified to %s." %self.files
 
             
             
@@ -388,7 +406,7 @@ class FileStatsCollector:
         """
             Finds the first interesting line in a file.
             
-            If files were previously read,stops if we find
+            If files were previously read, stops if we find
             the last line we read the other time.
             
             Otherwise, we stop at the first interesting line within the range
@@ -406,7 +424,7 @@ class FileStatsCollector:
         lastDepartureInSecs  = 0
         
         self.logger.debug( "Call to findFirstInterestingLine received." )
-        self.logger.debug( "Parameters were self.lastReadPosition : %s, filesize : %s" %(self.lastReadPosition,fileSize)) 
+        self.logger.debug( "Parameters were self.lastReadPosition : %s, filesize : %s" %( self.lastReadPosition, fileSize )) 
         
         
         if self.lastReadPosition != 0:
@@ -428,7 +446,7 @@ class FileStatsCollector:
             startTimeinSec       = MyDateLib.getSecondsSinceEpoch( self.startTime )
             lastDepartureInSecs  = MyDateLib.getSecondsSinceEpoch( lastDeparture )
       
-        
+        print "self.lastReadPosition : %s" %self.lastReadPosition
         if self.lastReadPosition != 0 or abs( firstDepartureInSecs - startTimeinSec ) < 2*(abs( lastDepartureInSecs - startTimeinSec)) :
             
             fileHandle.seek( position,0 )
@@ -450,7 +468,7 @@ class FileStatsCollector:
         else:#read backwards till we are in the range we want 
             #might want to log here....
             fileHandle.seek(0,0)
-            
+            print "goes backwards!?"
             line = lastLine 
             departure = lastDeparture
             
@@ -497,9 +515,9 @@ class FileStatsCollector:
         self.firstFilledEntry = 0
         self.lastFilledEntry  = 0
         baseTypes             = [ "fileName", "productType" ]
-        neededTypes = baseTypes 
+        neededTypes           = baseTypes 
                 
-        self.logger.debug( "Call to findFirstInterestingLine received." )
+        self.logger.debug( "Call to setValues received."  )
         self.logger.debug( "Parameters were self.lastReadPosition : %s, endTime : %s" %(self.lastReadPosition,endTime)) 
         
         
@@ -578,14 +596,32 @@ class FileStatsCollector:
                 departure   = self.findValues( ["departure"] , line, lineType )["departure"]
                 
                 
-                if entryCount > self.lastFilledEntry : # in case of numerous files....
-                    
+                #print "file : %s,entryCount :%s,self.lastFilledEntry :%s " %( file, entryCount, self.lastFilledEntry)
+                #if entryCount > self.lastFilledEntry : # in case of numerous files....
+                
+                if line != "" :
                     self.lastFilledEntry = entryCount                  
                     self.lastReadPosition= fileHandle.tell() 
-
+                else:
+                    self.lastFilledEntry = entryCount                  
+                    self.lastReadPosition= 0
+                    print "found end of file "
+                         
                     
             self.logger.debug( "Last line read in setValues: %s" %line  )
-            self.logger.debug( "Departure of that line : %s endtime :%s " %( str(departure)[:-2], str(endTime)[:-2]) )         
+            self.logger.debug( "Departure of that line : %s endtime :%s " %( str(departure)[:-2], str(endTime)[:-2]) )  
+            
+            if line == "\n":       
+                print "last line read : %s" %line
+            elif line == "":
+                print "youve found it "
+            elif line.replace( " ","") == "":
+                print "you had to remove space"
+            elif line.replace( " ","") =="\n":
+                print "you need to rmeove space then you get backslash n"            
+            else:
+                print "line : %s" %line
+                print "you still need to find what that last line is !"    
             
             fileHandle.close()                 
               
@@ -633,15 +669,15 @@ class FileStatsCollector:
                
         """
         
-        try:
+#         try:
             
-            self.setValues( endTime )   #fill dictionary with values
-            self.setMinMaxMeanMedians() #use values to find these values.   
+        self.setValues( endTime )   #fill dictionary with values
+        self.setMinMaxMeanMedians() #use values to find these values.   
         
-        except:
-            (type, value, tb) = sys.exc_info()
-            self.logger.error( "Unexpected exception in FileStatsCollector.collectSats." ) 
-            self.logger.error("Type: %s, Value: %s, tb: %s ..." % (type, value,tb))                        
+#         except:
+#             (type, value, tb) = sys.exc_info()
+#             self.logger.error( "Unexpected exception in FileStatsCollector.collectSats." ) 
+#             self.logger.error("Type: %s, Value: %s, tb: %s ..." % (type, value,tb))                        
              
 
                          

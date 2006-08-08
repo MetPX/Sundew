@@ -46,30 +46,30 @@ def save( object, filename ):
         
     """
     
-    try: 
+#     try: 
         
-        splitName = filename.split( "/" ) 
+    splitName = filename.split( "/" ) 
+    
+    if filename[0] == "/":
+        directory = "/"
+    else:
+        directory = ""
         
-        if filename[0] == "/":
-            directory = "/"
-        else:
-            directory = ""
-            
-            
-        for i in range( 1, len(splitName)-1 ):
-            directory = directory + splitName[i] + "/"
         
-        if not os.path.isdir( directory ):
-            os.makedirs( directory, mode=0777 )    
-            
-        file = open( filename, 'wb' )
-        file.write( cPickle.dumps( object, True ) )
-        file.close()
+    for i in range( 1, len(splitName)-1 ):
+        directory = directory + splitName[i] + "/"
+    
+    if not os.path.isdir( directory ):
+        os.makedirs( directory, mode=0777 )    
+        
+    file = open( filename, 'wb' )
+    file.write( cPickle.dumps( object, True ) )
+    file.close()
     
     
-    except:
-    
-        raise Exception( "Error occured in cpickleWrapper.save(). Could not create : %s." %filename )
+#     except:
+#     
+#         raise Exception( "Error occured in cpickleWrapper.save(). Could not create : %s." %filename )
 
 
 

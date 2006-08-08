@@ -78,7 +78,7 @@ class StatsPlotter:
         self.logger           = logger
         
         if self.logger == None: # Enable logging
-            self.logger = Logger( PXPaths.LOG + 'stats_' + self.loggerName + '.log', 'INFO', 'TX' + self.loggerName ) 
+            self.logger = Logger( PXPaths.LOG + 'stats_' + self.loggerName + '.log.notb', 'INFO', 'TX' + self.loggerName ) 
             self.logger = self.logger.getLogger()
             
         self.xtics       = self.getXTics( )        # Seperators on the x axis.
@@ -131,7 +131,7 @@ class StatsPlotter:
         
         splitName = fileName.split( "/" ) 
         
-        if filename[0] == "/":
+        if fileName[0] == "/":
             directory = "/"
         else:
             directory = ""
@@ -162,7 +162,7 @@ class StatsPlotter:
             
             
         """
-        
+        print "get x tics"
         self.logger.debug( "Call to getXtics received" )
         
         nbBuckets = ( len( self.stats[0].statsCollection.timeSeperators ) )
@@ -321,6 +321,7 @@ class StatsPlotter:
             plot function. 
             
         """
+        print "plot method"
         self.logger.debug( "Call to plot received" )
         #Set general settings for graphs 
         

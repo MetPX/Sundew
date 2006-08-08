@@ -48,7 +48,7 @@ class ClientGraphicProducer:
     
     
     
-    def __init__( self, directory, fileType, clientNames = None ,  timespan = 12, currentTime = None, productType = "All", logger = None, machines = ["pds5"]  ):
+    def __init__( self, directory, fileType, clientNames = None ,  timespan = 12, currentTime = None, productType = "All", logger = None, machines = ["pds000"]  ):
         """
             ClientGraphicProducer constructor. 
             
@@ -78,7 +78,7 @@ class ClientGraphicProducer:
         self.logger = logger
         
         if self.logger is None: # Enable logging
-            self.logger = Logger( PXPaths.LOG + 'stats_' + self.loggerName + '.log', 'INFO', 'TX' + self.loggerName ) 
+            self.logger = Logger( PXPaths.LOG + 'stats_' + self.loggerName + '.log.notb', 'INFO', 'TX' + self.loggerName ) 
             self.logger = self.logger.getLogger()
                  
 
@@ -137,7 +137,7 @@ class ClientGraphicProducer:
         plotter = StatsPlotter( stats = collectorsList, clientNames = self.clientNames, timespan = self.timespan, currentTime = endTime, now = False, statsTypes = types, productType = self.productType, logger = None  )
         
         plotter.plot()                          
-        
+        print "Plotted graph"
         self.logger.debug( "Returns from StatsPlotter." )
         self.logger.info("Graphic(s) created.")
     
