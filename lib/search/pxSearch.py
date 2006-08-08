@@ -142,12 +142,9 @@ def search(so):
         machine = machine.strip()
         cmd = 'ssh %s "egrep -o %s %s"' % (machine, regex, logFileName)
         status, output = commands.getstatusoutput(cmd)
-        if status: # Something bad happened
-            print "The following error occured during the search process on host %s:" % (machine)
-            print output
-            sys.exit(1)
-        lines = output.splitlines()
-        results += ["%s:%s" % (machine, line) for line in lines] # We add the machine name to the start of the line 
+        if not status: # No errors
+            lines = output.splitlines()
+            results += ["%s:%s" % (machine, line) for line in lines] # We add the machine name to the start of the line 
 
     # Validation was done in validateUserInput()
     if so.getSince() != 0 or so.getFrom() != "" or so.getTo() != "":
