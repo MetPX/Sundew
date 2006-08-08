@@ -199,7 +199,9 @@ def main():
     
     print "Commands that will be executed : %s " %commands 
     synchronise( commands, verbose, logger )
-
+    
+    if logger != None :
+        logger.info( "This machine has been synchronised with the %s machines for %s clients. " %( machines,clients ) )
 
 
 

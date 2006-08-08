@@ -23,6 +23,7 @@ named COPYING in the root of the source directory tree.
 
 #important files 
 import os, pwd, sys,getopt, commands, fnmatch,pickle
+from   Logger             import * 
 import PXPaths 
 from optparse import OptionParser
 from ConfigParser import ConfigParser

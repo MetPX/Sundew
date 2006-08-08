@@ -32,7 +32,6 @@ import pickle
 import cPickle
 import DirectoryFileCollector
 import cpickleWrapper
-import logging 
 import PXPaths
 from   Logger                 import *
 from   Numeric                import *
@@ -180,6 +179,7 @@ class ClientStatsPickler:
                 del self.statsCollection.logger
                 cpickleWrapper.save ( object = self.statsCollection, filename = self.pickleName ) 
                 self.statsCollection = temp
+                self.logger.info( "Saved pickle named : %s " %self.pickleName )  
         
         except:   
             (type, value, tb) = sys.exc_info()

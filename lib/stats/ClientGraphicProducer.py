@@ -139,7 +139,7 @@ class ClientGraphicProducer:
         plotter.plot()                          
         
         self.logger.debug( "Returns from StatsPlotter." )
-        
+        self.logger.info("Graphic(s) created.")
     
 
 

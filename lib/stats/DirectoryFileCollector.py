@@ -23,8 +23,8 @@ named COPYING in the root of the source directory tree.
 
 import os,sys,glob #important files 
 import backwardReader 
-
-from FileStatsCollector import *
+from   Logger             import * 
+from   FileStatsCollector import *
 
 
 
