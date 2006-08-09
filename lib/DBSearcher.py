@@ -130,7 +130,7 @@ class DBSearcher:
 
         self._parseRequest()      # Will determine the request's type
         #self.printInfos()
-        self._search()            # Find what we search
+        self.results = self._search()  # Find what we search
 
     def _parseRequest(self):
         words = self.request.split()
@@ -176,7 +176,7 @@ class DBSearcher:
             for date in [DBSearcher.TODAY, DBSearcher.YESTERDAY]:
                 theFile = self._findFullHeader(True, self.ttaaii, self.center, self.country, date, DBSearcher.EXCLUDED_SOURCES)
                 if theFile:
-                    print theFile
+                    #print theFile
                     return theFile
             return None
         elif self.requestType == 2:
@@ -213,7 +213,7 @@ class DBSearcher:
                                 print self.formatResult(result, self.type)
                             break
 
-            print allResults
+            #print allResults
             return allResults
 
         #file = open(PXPaths.REQUEST_REPLY + 'results.pickle', 'w')
@@ -385,7 +385,7 @@ class DBSearcher:
             if not theLine and threeCharHeaders:
                 # If not successful at finding the 4 chars station when the original request was for a 3 chars station
                 # we try the 3 chars case
-                print 'We are searching for the 3 chars station'
+                #print 'We are searching for the 3 chars station'
                 station = station[1:]
                 filesToParse = self._getFilesToParse(PXPaths.DB + date + '/SA/', threeCharHeaders, DBSearcher.EXCLUDED_SOURCES)
                 theLine, bestHeaderTime, theFile, bestFileTime = self._findMoreRecentStation(SAParser(''), filesToParse, station)
@@ -686,6 +686,7 @@ if __name__ == '__main__':
 
     request = ' '.join(sys.argv[1:])
     dbs = DBSearcher(request)
+    print dbs.results
 
     """
     for country in DBSearcher.FD_COUNTRIES:
