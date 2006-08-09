@@ -53,27 +53,18 @@ def filterTime(so, lines):
     return result
 
 def validateUserInput(options, args):
-    # Validating the search type
-    if options.rxtype == True and options.txtype == True:
-        sys.exit("Cannot search both RX and TX at the same time.")
-
-    # Validating date arguments
-    if options.since != 0 and (options.todate != "" or options.fromdate != ""):
-        sys.exit("You cannot use --since with another date filtering mechanism.")
-    elif (options.todate != "" and options.fromdate == "") or (options.todate == "" and options.fromdate != ""):
-        sys.exit("You must use --from and --to together.")
-
+    pass # No validations for now
+    
 def updateSearchObject(so, options, args):
     # Setting the search type
-    if options.rxtype == True:
+    if options.type == True:
         so.setSearchType("rx")
     else:
         so.setSearchType("tx")
     
-    # If there is an argument to the program call, it replaces * with args*
-    # By default * means search in everything
+    # Search in the specified flows
     if len(args) > 0:
-        so.setSearchName(args[0])
+        so.setSearchNames(args)
     
     so.setHeaderRegex("ttaaii", options.ttaaii) 
     so.setHeaderRegex("ccccxx", options.ccccxx) 
@@ -119,10 +110,6 @@ def search(so):
     logFileName = so.getLogPath()
     regex = so.getSearchRegex()
 
-    # Debug infos
-    #print "Searching in: %s" % (logFileName)
-    #print "Using: %s" % (regex)
-  
     # Temporary machine list storage
     try:
         machines = open("%spxSearch.targets" % (PXPaths.ETC), "r").readlines()
@@ -138,8 +125,7 @@ def search(so):
             lines = output.splitlines()
             results += ["%s:%s" % (machine, line) for line in lines] # We add the machine name to the start of the line 
 
-    # Validation was done in validateUserInput()
-    if so.getSince() != 0 or so.getFrom() != "" or so.getTo() != "":
+    if so.getSince() != 0 or (so.getFrom() != "epoch" or so.getTo() != "now"):
         results = filterTime(so, results)
         results.sort(timeSort)
     elif so.getTimesort() == True:
@@ -151,12 +137,12 @@ def search(so):
         print result
     
 def createParser(so):
-    usagemsg = "%prog [options] <name>\nSearch in the PX logs for bulletins matching certain criterias."
+    usagemsg = "%prog [options] <names>\nSearch in the PX logs for bulletins matching certain criterias."
     parser = OptionParser(usage=usagemsg, version="%prog 1.0-rc2")
     
     # These two only offer long option names and using one of them is mandatory
-    parser.add_option("--rx", action = "store_true", dest = "rxtype", help = "Perform a search in the RX logs.", default = False)
-    parser.add_option("--tx", action = "store_true", dest = "txtype", help = "Perform a search in the TX logs (default).", default = True)
+    parser.add_option("--rx", action = "store_true", dest = "type", help = "Perform a search in the RX logs.", default = True)
+    parser.add_option("--tx", action = "store_false", dest = "type", help = "Perform a search in the TX logs (default).", default = False)
     
     # Optional. No short option.
     parser.add_option("--timesort", action = "store_true", dest = "timesort", help = "Sort output by timestamps.", default = False)
@@ -172,9 +158,9 @@ def createParser(so):
     parser.add_option("-p", "--prio", dest = "prio", help = "Specify the priority number <1|2|3|4|5>", default = so.getHeaderRegex("prio"))
     
     # Let the user sort matches based on their time field
-    parser.add_option("-i", "--since", dest = "since", help = "Only show matches since X hours ago to now", default = so.getSince())
-    parser.add_option("-f", "--from", dest = "fromdate", help = "Specify a start date <YYYYMMDDhhmmss> or <epoch>", default = so.getFrom())
-    parser.add_option("-o", "--to", dest = "todate", help = "Specify a end date <YYYYMMDDhhmmss> or <now>", default = so.getTo())
+    parser.add_option("-i", "--since", dest = "since", help = "Only show matches since X hours ago to now (has priority over --from and --to)", default = so.getSince())
+    parser.add_option("-f", "--from", dest = "fromdate", help = "Specify a start date <YYYYMMDDhhmmss> (defaults to epoch: fartest date away)", default = so.getFrom())
+    parser.add_option("-o", "--to", dest = "todate", help = "Specify a end date <YYYYMMDDhhmmss> (defaults to now)", default = so.getTo())
 
     return parser
     

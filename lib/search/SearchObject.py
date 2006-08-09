@@ -26,17 +26,17 @@ sys.path.append("../")
 import PXPaths; PXPaths.normalPaths()
 
 class SearchObject(object):
-    __slots__ = ["headerRegexes", "searchRegex", "searchType", "name", "logPath", "since", "fromdate", "todate", "timesort"]
+    __slots__ = ["headerRegexes", "searchRegex", "searchType", "names", "logPath", "since", "fromdate", "todate", "timesort"]
 
     def __init__(self):
         self.headerRegexes = {}
         self.searchRegex = ""
         self.searchType = ""
-        self.name = "*"
+        self.names = []
         self.logPath = ""
         self.since = 0
-        self.fromdate = ""
-        self.todate = ""
+        self.fromdate = "epoch"
+        self.todate = "now"
         self.timesort = False
 
         self.fillHeaderRegexes()
@@ -60,8 +60,10 @@ class SearchObject(object):
         """
         Refresh the object based on its updated attributes.
         """
-
-        self.logPath = "%s%s_%s.log*" % (PXPaths.LOG, self.getSearchType(), self.getSearchName())
+        
+        names = self.getSearchNames()
+        for name in names:
+            self.logPath += "%s%s_%s.log* " % (PXPaths.LOG, self.getSearchType(), name)
         self.searchRegex = "%s_%s_%s_%s_%s_%s:%s:%s:%s:%s:%s:%s" % (self.getHeaderRegex("ttaaii"), self.getHeaderRegex("ccccxx"), self.getHeaderRegex("ddhhmm"), self.getHeaderRegex("bbb"), self.getHeaderRegex("stn"), self.getHeaderRegex("seq"), self.getHeaderRegex("target"), self.getHeaderRegex("ccccxx"), "[[:alnum:]]{2}", self.getHeaderRegex("prio"), "[[:alnum:]]+", "[[:digit:]]{14}")
     
     def getSearchRegex(self):
@@ -99,11 +101,11 @@ class SearchObject(object):
     def setSearchType(self, value):
         self.searchType = value
 
-    def getSearchName(self):
-        return self.name
+    def getSearchNames(self):
+        return self.names
 
-    def setSearchName(self, value):
-        self.name = value
+    def setSearchNames(self, value):
+        self.names = value
 
     def getSince(self):
         return self.since
