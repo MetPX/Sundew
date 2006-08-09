@@ -38,15 +38,11 @@ def parseRawLine(line):
 def validateUserInput(options, args):
     # Priority number must be between 1 and 5
     if int(options.prio) < 1 or int(options.prio) > 5:
-        print "Incorrect priority number!"
-        print "Available priorities are 1 or 2 or 3 or 4 or 5."
-        sys.exit(1)
+        sys.exit("Incorrect priority number!\nShould be from 1 to 5 only.")
 
     if len(args) > 1:
-        if len(args.split(":")) < 2:
-            print "Input was not formatted correctly."
-            print "It should be machine:bulletin."
-            sys.exit(1)
+        if len(args.split(":")) < 3:
+            sys.exit("Input was not formatted correctly.\nIt should be machine:log:bulletin.\n'log' can be anything, it is a field returned by pxSearch")
 
 def updateResendObject(ro, options, args):
     ro.setPrompt(options.prompt)
@@ -57,7 +53,6 @@ def updateResendObject(ro, options, args):
         for searchLine in sys.stdin:
             machine, bulletinHeader = parseRawLine(searchLine.strip())
             ro.addToMachineHeaderDict(machine, bulletinHeader)
-        
         # We must rebind sys.stdin to the tty.
         # This is ugly but this is the only solution after reading from a pipe
         sys.stdin = open("/dev/tty")
@@ -72,9 +67,7 @@ def resend(ro):
     for c in commandList:
         status, output = commands.getstatusoutput(c)
         if status:
-            print "An error occured during the resending process!"
-            print "Command used was: %s" % (c)
-            sys.exit(1)
+            sys.exit("An error occured during the resending process!\nCommand used was: %s" % (c))
         else:
             lines = output.splitlines()
             problemCount = 0
@@ -88,10 +81,10 @@ def resend(ro):
     ro.removeFiles()
 
 def createParser(ro):
-    usagemsg = "%prog [options] <machine:bulletin>\nResend one or more bulletins."
+    usagemsg = "%prog [options] <machine:log:bulletin>\nResend one or more bulletins."
     parser = OptionParser(usage=usagemsg, version="%prog 1.0-rc1")
 
-    parser.add_option("--ask", action = "store_true", dest = "prompt", help = "Ask for a resending confirmation for each bulletins.", default=True)
+    parser.add_option("--ask", action = "store_true", dest = "prompt", help = "Ask for a confirmation for each bulletins.", default=True)
     parser.add_option("--all", action = "store_false", dest = "prompt", help = "Send all bulletins without confirmation (default).", default=False)
     parser.add_option("-p", "--prio", dest = "prio", help = "Specify in which priority you want to put the bulletin in? (default 3).", default = ro.getPrio())
     parser.add_option("-d", "--destination", dest = "destination", help = "Specify comma-separated list of destinations (ex: ppp1,test,cmc2).", default = ro.getDestinations())
@@ -128,9 +121,9 @@ def main():
         resend(ro)
     except:
         (type, value, tb) = sys.exc_info()
-        errorMsg = "Problems were encountered while resending. Type: %s, Value: %s, Traceback: %s" % (type, value, tb)
+        errorMsg = "Problems were encountered while resending.\nType: %s, Value: %s, Traceback: %s" % (type, value, tb)
         logger.critical(errorMsg)
-        sys.exit(1)
+        sys.exit(errorMsg)
 
 if __name__ == "__main__":
     main()

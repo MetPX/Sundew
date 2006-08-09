@@ -84,10 +84,12 @@ class SearchObject(object):
                 value = value.upper()
             
             # If user enters a wildcard card, replace it with a regex wildcard
-            # CAUTION: Does not distinguish between digits and alphanumeric field,
-            #          that means that 98* could be 988 or 98A
             if "*" in value:
-                value = value.replace("*", "[[:alnum:]-]*")
+                try:
+                    int(value) # If we can convert it to an integer it means it is one.
+                    value = value.reaplce("*", "[[:digit:]]+") # Then we can use a digit widlcard
+                except ValueError:
+                    value = value.replace("*", "[[:alnum:]-]*")
                 
         self.headerRegexes[key] = value
 

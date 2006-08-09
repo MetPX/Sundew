@@ -65,8 +65,7 @@ class PXCopy(object):
                 flog = open(fileLog, 'r')
             except IOError:
                 (type, value, tb) = sys.exc_info()
-                print "Problem opening %s, Type: %s Value: %s" % (fileLog, type, value)
-                sys.exit(1)
+                sys.exit("Problem opening %s, Type: %s Value: %s" % (fileLog, type, value))
 
             filesToCopy = flog.readlines()
             flog.close()
@@ -84,8 +83,7 @@ class PXCopy(object):
 
         except:
             type, value, tb = sys.exc_info()
-            print "An error occured in the PXCopy, Type: %s Value: %s" % (type, value)
-            sys.exit(1)
+            sys.exit("An error occured in the PXCopy, Type: %s Value: %s" % (type, value))
     
     def createCompleteDestination(self, flow, filename):
         """
@@ -163,21 +161,15 @@ def pullFile(host, filename):
     cmdLine = "scp %s:%s ./" % (host, filename)
     status, output = commands.getstatusoutput(cmdLine)
     if status:
-        print "Could not pull file log from the server."
-        print "Command was: %s" % (cmdLine)
-        print "Command output: %s" % (output)
-        sys.exit(1)
+        sys.exit("Could not pull file log from the server.\nCommand was: %s\nCommand output: %s" % (cmdLine, output))
     else:
         return filename.split("/")[-1] # Just the name of the file, without the old path
 
 def validateUserInput(options, args):
     if (options.file == "" or options.machine == ""):
-        print "You must specify a valid file and host!"
-        sys.exit(1)
-        
+        sys.exit("You must specify a valid file and host!")
     if len(args) < 1:
-        print "You must specify at least one destination!"
-        sys.exit(1)
+        sys.exit("You must specify at least one destination!")
 
 def createParser():
     usagemsg = "%prog [options] <destinations>\nCopies multiple bulletins files to multiple flows."

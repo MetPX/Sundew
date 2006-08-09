@@ -55,19 +55,13 @@ def filterTime(so, lines):
 def validateUserInput(options, args):
     # Validating the search type
     if options.rxtype == True and options.txtype == True:
-        print "Cannot search both RX and TX at the same time."
-        sys.exit(1)
-    elif options.rxtype == False and options.txtype == False:
-        print "You must specify a search type (--rx or --tx)."
-        sys.exit(1)
+        sys.exit("Cannot search both RX and TX at the same time.")
 
     # Validating date arguments
     if options.since != 0 and (options.todate != "" or options.fromdate != ""):
-        print "You cannot use --since with another date filtering mechanism."
-        sys.exit(1)
+        sys.exit("You cannot use --since with another date filtering mechanism.")
     elif (options.todate != "" and options.fromdate == "") or (options.todate == "" and options.fromdate != ""):
-        print "You must use --from and --to together."
-        sys.exit(1)
+        sys.exit("You must use --from and --to together.")
 
 def updateSearchObject(so, options, args):
     # Setting the search type
@@ -133,9 +127,7 @@ def search(so):
     try:
         machines = open("%spxSearch.targets" % (PXPaths.ETC), "r").readlines()
     except IOError:
-        print "A file named pxsearch.targets must be located in %s!" % (PXPaths.ETC)
-        print "Please write one with one machine name per line."
-        sys.exit(1)
+        sys.exit("A file named pxSearch.targets must be located in %s!\nPlease write one with one machine name per line." % (PXPaths.ETC))
     
     results = []
     for machine in machines:
@@ -159,12 +151,12 @@ def search(so):
         print result
     
 def createParser(so):
-    usagemsg = "%prog [options] <name>\nSearch in the PX unified log for bulletins matching certain criterias."
+    usagemsg = "%prog [options] <name>\nSearch in the PX logs for bulletins matching certain criterias."
     parser = OptionParser(usage=usagemsg, version="%prog 1.0-rc2")
     
     # These two only offer long option names and using one of them is mandatory
     parser.add_option("--rx", action = "store_true", dest = "rxtype", help = "Perform a search in the RX logs.", default = False)
-    parser.add_option("--tx", action = "store_true", dest = "txtype", help = "Perform a search in the TX logs.", default = False)
+    parser.add_option("--tx", action = "store_true", dest = "txtype", help = "Perform a search in the TX logs (default).", default = True)
     
     # Optional. No short option.
     parser.add_option("--timesort", action = "store_true", dest = "timesort", help = "Sort output by timestamps.", default = False)
@@ -215,7 +207,7 @@ def main():
         search(so)
     except: # General catch all block.
         (type, value, tb) = sys.exc_info()
-        print "Problems were encountered while performing your search request. Type: %s, Value: %s, Traceback" % (type, value, tb)
+        print "Problems were encountered while performing your search request.\nType: %s, Value: %s" % (type, value)
         sys.exit(1)
     
 if __name__ == "__main__":

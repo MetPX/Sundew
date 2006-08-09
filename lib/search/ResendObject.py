@@ -85,8 +85,7 @@ class ResendObject(object):
                 filelog = open(filelogname, "w") # This file will need to be transfered to the remote machibe
                 self.addToFileList(filelogname)        
             except IOError:
-                print "Could not open filelog for writing!"
-                sys.exit(1)
+                sys.exit("Could not open filelog for writing!")
 
             destinations = " ".join(self.destinations)
             bulletins = self.machineHeaderDict[machine]
