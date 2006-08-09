@@ -41,7 +41,7 @@ class PXManager(SystemManager):
         SystemManager.__init__(self)
         self.LOG = PXPaths.LOG          # Will be used by DirCopier
 
-    def getFlowQueueName(self, flow, drp, filename=None, priority=None):
+    def getFlowQueueName(self, flow, drp=None, filename=None, priority=None):
         types = {'TX': PXPaths.TXQ, 'RX':PXPaths.RXQ, 'TRX': PXPaths.TXQ}
         type, flowNames = self.getFlowType(flow, drp)
 
@@ -62,7 +62,7 @@ class PXManager(SystemManager):
 
         return flowQueueName
 
-    def getFlowType(self, name, drp):
+    def getFlowType(self, name, drp=None):
         """
         The search will procede in the following order: clientNames -> sourlientNames -> sourceNames.
         This can have an impact if a name is in more than one category.
@@ -71,24 +71,21 @@ class PXManager(SystemManager):
         sourlientNames = self.getTRxNames()
         sourceNames = self.getRxNames()
 
-        #print clientNames, sourlientNames, sourceNames
-
         # clientNames first, sourlientNames second, sourcesNames third and finally, aliases fourth
+        flowType = None
         flowNames = [name]
+
         if name in clientNames:
             flowType = 'TX'
         elif name in sourlientNames:
             flowType = 'TRX'
         elif name in sourceNames:
             flowType = 'RX'
-        else:
+        elif drp:
             flowNames = drp.getAliasClients(name)
             if flowNames:
                 # For now, only TX aliases exist
                 flowType = 'TX'
-            else:
-                flowType = None
-
         return  flowType, flowNames
 
     def afterInit(self):
