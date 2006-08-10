@@ -23,7 +23,7 @@ named COPYING in the root of the source directory tree.
 
 #important files 
 import os, pwd, sys,getopt, commands, fnmatch,pickle
-from   Logger             import * 
+from   Logger import * 
 import PXPaths 
 from optparse import OptionParser
 from ConfigParser import ConfigParser
@@ -60,7 +60,7 @@ class _UpdaterInfos:
 
 
 
-def setLastCronJob( client, currentDate, collectUpToNow = False    ):
+def setLastCronJob( client, fileType, currentDate, collectUpToNow = False    ):
     """
         This method set the clients lastcronjob to the date received in parameter. 
         Creates new key if key doesn't exist.
@@ -84,7 +84,7 @@ def setLastCronJob( client, currentDate, collectUpToNow = False    ):
         times       = pickle.load( fileHandle )
         fileHandle.close()
         
-        times[ client ] = currentDate
+        times[ fileType + "_" + client ] = currentDate
         
         fileHandle  = open( fileName, "w" )
         pickle.dump( times, fileHandle )
@@ -95,7 +95,7 @@ def setLastCronJob( client, currentDate, collectUpToNow = False    ):
          
         fileHandle  = open( fileName, "w" )
         
-        times[ client ] = currentDate          
+        times[ fileType + "_" + client ] = currentDate          
         
         pickle.dump( times, fileHandle )
         
@@ -103,7 +103,7 @@ def setLastCronJob( client, currentDate, collectUpToNow = False    ):
 
 
 
-def getLastCronJob( client, currentDate, collectUpToNow = False ):
+def getLastCronJob( client, fileType, currentDate, collectUpToNow = False ):
     """
         This method gets the dictionnary containing all the last cron job list.
         From that dictionnary it returns the right value. 
@@ -122,7 +122,7 @@ def getLastCronJob( client, currentDate, collectUpToNow = False ):
         times       = pickle.load( fileHandle )
         
         try :
-            lastCronJob = times[ client ]
+            lastCronJob = times[ fileType + "_" + client ]
         except:
             lastCronJob = MyDateLib.getIsoWithRoundedHours( MyDateLib.getIsoFromEpoch( MyDateLib.getSecondsSinceEpoch(currentDate ) - MyDateLib.HOUR) )
             
@@ -138,7 +138,7 @@ def getLastCronJob( client, currentDate, collectUpToNow = False ):
         lastCronJob = MyDateLib.getIsoWithRoundedHours( MyDateLib.getIsoFromEpoch( MyDateLib.getSecondsSinceEpoch(currentDate ) - MyDateLib.HOUR) )
 
 
-        times[ client ] = lastCronJob    
+        times[ fileType + "_" + client ] = lastCronJob    
          
         pickle.dump( times, fileHandle )
         fileHandle.close()
@@ -236,7 +236,7 @@ def getOptionsFromParser( parser ):
     for client in clients :
         directories.append( PXPaths.LOG )
         print "currentDate : %s" %currentDate
-        startTimes.append( getLastCronJob( client = client, currentDate =  currentDate , collectUpToNow = collectUpToNow ) )
+        startTimes.append( getLastCronJob( client = client, fileType= fileType, currentDate =  currentDate , collectUpToNow = collectUpToNow ) )
         
         
     infos = _UpdaterInfos( currentDate = currentDate, clients = clients, startTimes = startTimes, directories = directories ,types = types, collectUpToNow = collectUpToNow, fileType = fileType, machine = machine )
@@ -385,7 +385,7 @@ def updateHourlyPickles( infos ):
                     raise Exception("Startime used in updateHourlyPickles was greater or equal to end time.")    
                     
                     
-                print " client : %s " %infos.clients[i]
+                print " hours : %s " %hours[j]
                 
                 cs.pickleName =  ClientStatsPickler.buildThisHoursFileName( client = infos.clients[i], currentTime =  startOfTheHour, machine = infos.machine  )
                  
@@ -406,7 +406,7 @@ def updateHourlyPickles( infos ):
             cs.collectStats( infos.types, startTime = startTime, endTime = endTime, interval = infos.interval * MyDateLib.MINUTE, directory = PXPaths.LOG, fileType = "tx"   )
 
         
-        setLastCronJob( client = infos.clients[i], currentDate = infos.currentDate, collectUpToNow = infos.collectUpToNow )
+        setLastCronJob( client = infos.clients[i], fileType = infos.fileType, currentDate = infos.currentDate, collectUpToNow = infos.collectUpToNow )
                         
             
 
