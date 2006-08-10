@@ -159,9 +159,9 @@ class ClientStatsPickler:
         
                 
         if os.path.isfile( self.pickleName ):
-            
-            self.logger.warning( "User tried to modify allready filled pickle file." )
-            self.logger.warning( "Pickle was named : %s" %self.pickleName )      
+            if self.logger != None :
+                self.logger.warning( "User tried to modify allready filled pickle file." )
+                self.logger.warning( "Pickle was named : %s" %self.pickleName )      
             
         else: 
             # Creates a new FileStats collector wich spans from the very 
@@ -190,7 +190,8 @@ class ClientStatsPickler:
             del self.statsCollection.logger
             cpickleWrapper.save ( object = self.statsCollection, filename = self.pickleName ) 
             self.statsCollection.logger = temp
-            self.logger.info( "Saved pickle named : %s " %self.pickleName )
+            if self.logger != None :
+                self.logger.info( "Saved pickle named : %s " %self.pickleName )
             
             positions = {}
                 

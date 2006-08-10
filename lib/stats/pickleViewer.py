@@ -63,6 +63,8 @@ def printPickle( pickle, outputFile = "" ):
     for j in range( statsCollection.nbEntries ):
         print j
         print "\nEntry's interval : %s - %s " %( statsCollection.fileEntries[j].startTime, statsCollection.fileEntries[j].endTime  )
+        print "Products : "
+        print statsCollection.fileEntries[j].values.productTypes
         print "Values :"
         print statsCollection.fileEntries[j].values.dictionary
         print "Means :"

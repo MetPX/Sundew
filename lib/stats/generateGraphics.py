@@ -67,16 +67,16 @@ def getOptionsFromParser( parser ):
     
     currentTime   = []
     
-    ( options, args ) = parser.parse_args()        
-    collectUpToNow  = options.collectUpToNow
-    timespan        = options.timespan
-    machines        = options.machines.replace( ' ','').split(',')
-    clientNames     = options.clients.replace( ' ','' ).split(',')
-    types           = options.types.replace( ' ', '').split(',')
-    currentTime     = options.currentTime.replace('"','').replace("'",'')
-    fileType        = options.fileType.replace("'",'')
-    collectUpToNow  = options.collectUpToNow
-    productType     = options.productType.replace( ' ', '' )     
+    ( options, args )= parser.parse_args()        
+    collectUpToNow   = options.collectUpToNow
+    timespan         = options.timespan
+    machines         = options.machines.replace( ' ','').split(',')
+    clientNames      = options.clients.replace( ' ','' ).split(',')
+    types            = options.types.replace( ' ', '').split(',')
+    currentTime      = options.currentTime.replace('"','').replace("'",'')
+    fileType         = options.fileType.replace("'",'')
+    collectUpToNow   = options.collectUpToNow
+    productType      = options.productType.replace( ' ', '' )     
      
     try:    
         if int( timespan ) < 1 :
@@ -192,6 +192,8 @@ def addOptions( parser ):
         
     """
     
+    localMachine = os.uname()[1]
+    
     parser.add_option("-c", "--clients", action="store", type="string", dest="clients", default="satnet",
                         help="Clients' names")
 
@@ -199,7 +201,7 @@ def addOptions( parser ):
     
     parser.add_option("-f", "--fileType", action="store", type="string", dest="fileType", default='tx', help="Type of log files wanted.")                     
    
-    parser.add_option( "-m", "--machines", action="store", type="string", dest="machines", default="pdsGGD", help = "Machines for wich we want to collect data." ) 
+    parser.add_option( "-m", "--machines", action="store", type="string", dest="machines", default=localMachine, help = "Machines for wich you want to collect data." ) 
     
     parser.add_option("-n", "--collectUpToNow", action="store_true", dest = "collectUpToNow", default=False, help="Collect data up to current second.")
     

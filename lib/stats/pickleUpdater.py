@@ -29,7 +29,7 @@ from optparse import OptionParser
 from ConfigParser import ConfigParser
 from MyDateLib import *
 from ClientStatsPickler import ClientStatsPickler
-
+from PXManager import *
 
 PXPaths.normalPaths()
 
@@ -204,7 +204,8 @@ def getOptionsFromParser( parser ):
 
     else:
         validTypes = ["errors","bytecount"]
-           
+     
+              
     try :
         for t in types :
             if t not in validTypes:
@@ -218,9 +219,23 @@ def getOptionsFromParser( parser ):
         print "Program terminated."
         sys.exit()
     
+    
+    if clients[0] == "All" :
+    
+        pxManager = PXManager()
+        #pxManager.setLogger(logger)
+        pxManager.initNames() # Now you must call this method
         
+        if fileType == "tx": 
+            clients = pxManager.getTxNames()
+        else:
+            clients = pxManager.getRxNames()
+        
+             
+    
     for client in clients :
         directories.append( PXPaths.LOG )
+        print "currentDate : %s" %currentDate
         startTimes.append( getLastCronJob( client = client, currentDate =  currentDate , collectUpToNow = collectUpToNow ) )
         
         
@@ -301,7 +316,7 @@ def addOptions( parser ):
     
     localMachine = os.uname()[1]
     
-    parser.add_option( "-c", "--clients", action="store", type="string", dest="clients", default="satnet",
+    parser.add_option( "-c", "--clients", action="store", type="string", dest="clients", default="All",
                         help="Clients' names" )
 
     parser.add_option( "-d", "--date", action="store", type="string", dest="currentDate", default=MyDateLib.getIsoFromEpoch( time.time() ), help="Decide current time. Usefull for testing." ) 
@@ -370,6 +385,7 @@ def updateHourlyPickles( infos ):
                     raise Exception("Startime used in updateHourlyPickles was greater or equal to end time.")    
                     
                     
+                print " client : %s " %infos.clients[i]
                 
                 cs.pickleName =  ClientStatsPickler.buildThisHoursFileName( client = infos.clients[i], currentTime =  startOfTheHour, machine = infos.machine  )
                  

@@ -41,7 +41,7 @@ PXPaths.normalPaths()
 
 class StatsPlotter:
 
-    def __init__( self, timespan,  stats = None, clientNames = None, type='impulses', interval=1, imageName="gnuplotOutput", title = "Stats",currentTime = "",now = False, statsTypes = None, productType = "All", logger = None, fileType = "tx" ):
+    def __init__( self, timespan,  stats = None, clientNames = None, type='impulses', interval=1, imageName="gnuplotOutput", title = "Stats",currentTime = "",now = False, statsTypes = None, productType = "All", logger = None, fileType = "tx", machines = "" ):
         """
             StatsPlotter constructor. 
             
@@ -61,7 +61,7 @@ class StatsPlotter:
         self.nbErrors    = []                      # Number of errors found per server
         self.graph       = Gnuplot.Gnuplot()       # The gnuplot graphic object itself. 
         self.timeOfMax   = [[]]                    # Time where the maximum value occured.  
-        self.machines    = ""                      # List of machine where we collected info.
+        self.machines    = machines                # List of machine where we collected info.
         self.clientName  = ""                      # Name of the client we are dealing with 
         self.maximums    = [[]]                    # List of all maximum values 1 for each graphic.
         self.minimums    = [[]]                    # Minimum value of all pairs.
@@ -124,7 +124,7 @@ class StatsPlotter:
         
         date = self.currentTime.replace( "-","" ).replace( " ", "_")
         
-        fileName = PXPaths.GRAPHS + "%s/%s_%s_%s_%s%s_%shours.png" %(clientName, self.fileType,clientName, date, self.machines, self.statsTypes, self.timespan )
+        fileName = PXPaths.GRAPHS + "%s/%s_%s_%s_%s_%shours_on_%s.png" %(clientName, self.fileType, clientName, date, self.statsTypes, self.timespan, self.machines )
         
         
         fileName = fileName.replace( '[', '').replace(']', '').replace(" ", "")               

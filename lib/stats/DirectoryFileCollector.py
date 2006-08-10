@@ -125,7 +125,8 @@ class DirectoryFileCollector:
                     self.entries.append( fileName )
 
         else:
-            self.logger.warning("Warning in DirectoryFileCollector. Folder named %s does not exist."%self.directory )
+            if self.logger != None :
+                self.logger.warning("Warning in DirectoryFileCollector. Folder named %s does not exist."%self.directory )
  
 
             

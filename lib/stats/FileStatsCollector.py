@@ -61,7 +61,7 @@ class _ValuesDictionary:
         
         """
         self.columns      = columns  # Number of columns of the dictionary 
-        self.rows         = rows     # Number of rows 
+        self.rows         = rows     # Number of rows,interesting or not,that were collected.
         self.dictionary   = {}       # Contains value for each data type collected.
         self.productTypes = []       # For each line read, we save up what product type it was   
 
@@ -80,13 +80,13 @@ class _FileStatsEntry:
         self.endTime   = endTime         # End time of the entry.                  
         self.values    = values          # List of values from all the types. 
         self.minimums  = minimums or {}  # List of the minimums of all types.
-        self.nbFiles   = 0               # Number of files dealt with during this entry.
+        self.nbFiles   = 0               # Number of interesting files dealt with during this entry.
         self.filesWhereMinOccured =  {}  # Dict of files where min appened for each type  
         self.timesWhereMinOccured =  {}  # Dict of times where min appened for each type 
         self.maximums  = maximums or {}  # Maximum of all types.   
         self.filesWhereMaxOccured =  {}  # Dict of files where max appened for each type
         self.timesWhereMaxOccured =  {}  # Dict of times where max appened for each type 
-        self.filesOverMaxLatency  =  0   # Number of files per entry whos latency are too long.  
+        self.filesOverMaxLatency  =  0   # Number of interesting files per entry whos latency are too long.  
         self.means     = means    or {}  # Means for all the values of all the files.
         self.medians   = medians  or {}  # Medians for all the values of all the files.
         self.totals    = totals   or {}  # Total for all values of each files.                
@@ -194,8 +194,9 @@ class FileStatsCollector:
         if finishingBucket !=0 : 
             self.lastFilledEntry = finishingBucket -1
         
-        self.logger.debug( "Call to setMinMaxMeanMedians received." )
-        self.logger.debug( "ProductType : %s, firstFilledEntry : %s, lastFilledEntry : %s  ." %( productType, self.firstFilledEntry, self.lastFilledEntry ) )     
+        if self.logger != None :    
+            self.logger.debug( "Call to setMinMaxMeanMedians received." )
+            self.logger.debug( "ProductType : %s, firstFilledEntry : %s, lastFilledEntry : %s  ." %( productType, self.firstFilledEntry, self.lastFilledEntry ) )     
                    
         for i in xrange( self.firstFilledEntry , self.lastFilledEntry + 1 ): #for each entries we need to deal with 
             
@@ -203,6 +204,8 @@ class FileStatsCollector:
             self.fileEntries[i].medians  = {}
             self.fileEntries[i].minimums = {}
             self.fileEntries[i].maximums = {}
+            self.fileEntries[i].nbFiles  = 0  
+            self.fileEntries[i].filesOverMaxLatency = 0
             
             for aType in self.statsTypes :#for each datatype        
                 
@@ -222,17 +225,21 @@ class FileStatsCollector:
                     for row in xrange( 0, self.fileEntries[i].values.rows ) : # for each line in the entry 
                         
                         if productType in self.fileEntries[i].values.productTypes[row] :
+                        
+                            if aType == self.statsTypes[0] : #Lower number of file only if first time we check it.
+                                self.fileEntries[i].nbFiles = self.fileEntries[i].nbFiles +1
                             
+                            if aType == "latency":
+                                if self.fileEntries[i].values.dictionary[aType][row] > self.maxLatency:  
+                                    self.fileEntries[i].filesOverMaxLatency = self.fileEntries[i].filesOverMaxLatency + 1   
+                                  
                             values.append(self.fileEntries[i].values.dictionary[aType][row] )#add to new array
                             files.append( self.fileEntries[i].files[row]  )
                             times.append( self.fileEntries[i].times[row]  )
                         
-                        else:
-                            if aType == self.statsTypes[0] : #Lower number of file only if first time we check it.
-                                self.fileEntries[i].nbFiles = self.fileEntries[i].nbFiles -1
-                            if aType == "latency":
-                                if self.fileEntries[i].values.dictionary[aType][row] > self.maxLatency:  
-                                    self.fileEntries[i].filesOverMaxLatency = self.fileEntries[i].filesOverMaxLatency - 1  
+                        
+                            
+    
                      
                                            
                     if len( values ) != 0 :
@@ -262,7 +269,8 @@ class FileStatsCollector:
                         total   = sum( values )
                     except :
                         total = 0
-                        self.logger.error("Could not compute sum in setMinMaxMeanMedians. Make sure values are numeric.")            
+                        if self.logger != None :
+                            self.logger.error("Could not compute sum in setMinMaxMeanMedians. Make sure values are numeric.")            
                         
                         
                     if len(values) != 0 :
@@ -423,8 +431,9 @@ class FileStatsCollector:
         startTimeinSec       = 0
         lastDepartureInSecs  = 0
         
-        self.logger.debug( "Call to findFirstInterestingLine received." )
-        self.logger.debug( "Parameters were self.lastReadPosition : %s, filesize : %s" %( self.lastReadPosition, fileSize )) 
+        if self.logger != None :
+            self.logger.debug( "Call to findFirstInterestingLine received." )
+            self.logger.debug( "Parameters were self.lastReadPosition : %s, filesize : %s" %( self.lastReadPosition, fileSize )) 
         
         
         if self.lastReadPosition != 0:
@@ -509,129 +518,130 @@ class FileStatsCollector:
         """
         
              
-#         try:
+        try:
+                
+            filledAnEntry         = False
+            self.firstFilledEntry = 0
+            self.lastFilledEntry  = 0
+            baseTypes             = [ "fileName", "productType" ]
+            neededTypes           = baseTypes 
             
-        filledAnEntry         = False
-        self.firstFilledEntry = 0
-        self.lastFilledEntry  = 0
-        baseTypes             = [ "fileName", "productType" ]
-        neededTypes           = baseTypes 
+            if self.logger != None :        
+                self.logger.debug( "Call to setValues received."  )
+                self.logger.debug( "Parameters were self.lastReadPosition : %s, endTime : %s" %(self.lastReadPosition,endTime)) 
                 
-        self.logger.debug( "Call to setValues received."  )
-        self.logger.debug( "Parameters were self.lastReadPosition : %s, endTime : %s" %(self.lastReadPosition,endTime)) 
-        
-        
-        for statType in self.statsTypes :    
-            neededTypes.append(statType)
-        
-        if endTime == "" :                                        
-            endTime = self.endTime
-        else:
-            endTime = endTime 
-    
-        print "self.files : %s" %self.files
-
-        for file in self.files :#read everyfile and append data found to dictionaries
             
-            #print "currently used file : %s" %file              
-            nbErrors      = 0 
-            entryCount    = 0
+            for statType in self.statsTypes :    
+                neededTypes.append(statType)
             
-            fileHandle = open( file, "r" )
-            fileSize = os.stat(file)[6]
-            line, lineType, position  = self.findFirstInterestingLine( fileHandle, fileSize )                                        
-            fileHandle.seek( position )
-                    
-            departure   = self.findValues( ["departure"] ,  line, lineType )["departure"]
-            
-            
-            while str(departure)[:-2] < str(endTime)[:-2] and line  != "" : #while in proper range 
-                
-                #print line 
-                while departure[:-2] > self.timeSeperators[ entryCount ][:-2]:#find appropriate bucket
-                    entryCount = entryCount + 1                         
-                    #print "entryCount : %sdeparture : %s,endTime :%s" %(entryCount,departure,endTime)
-
-                neededValues = self.findValues( neededTypes, line, lineType )    
-                
-                #add values general to the line we are treating 
-                self.fileEntries[ entryCount ].files.append( neededValues[ "fileName" ] )
-                self.fileEntries[ entryCount ].times.append( departure )
-                self.fileEntries[ entryCount ].values.productTypes.append( neededValues[ "productType" ] )
-                self.fileEntries[ entryCount ].values.rows = self.fileEntries[ entryCount ].values.rows + 1
-                
-                
-                if filledAnEntry == False :
-                    self.firstFilledEntry = entryCount 
-                    filledAnEntry = True 
-                elif entryCount < self.firstFilledEntry:
-                    self.firstFilledEntry = entryCount    
-                
-                for statType in self.statsTypes : #append values for each specific data type needed  
-                    
-                    
-                    if statType == "latency":
-                    
-                        if neededValues[ statType ] > self.maxLatency :      
-                            self.fileEntries[ entryCount ].filesOverMaxLatency = self.fileEntries[entryCount ].filesOverMaxLatency + 1                          
-            
-                    self.fileEntries[ entryCount ].values.dictionary[statType].append( neededValues[ statType ] )
-                
-                      
-                
-                
-                if lineType != "[ERROR]" :
-                    self.fileEntries[ entryCount ].nbFiles = self.fileEntries[ entryCount ].nbFiles + 1        
-#                 
-#                 #Find next interesting line     
-                line    = fileHandle.readline()
-                isInteresting,lineType = self.isInterestingLine( line )
-                
-                while isInteresting == False and line != "":
-                        
-                    line = fileHandle.readline()# we read again 
-                    isInteresting,lineType = self.isInterestingLine( line )
-                
-                
-                departure   = self.findValues( ["departure"] , line, lineType )["departure"]
-                
-                
-                #print "file : %s,entryCount :%s,self.lastFilledEntry :%s " %( file, entryCount, self.lastFilledEntry)
-                #if entryCount > self.lastFilledEntry : # in case of numerous files....
-                
-                if line != "" :
-                    self.lastFilledEntry = entryCount                  
-                    self.lastReadPosition= fileHandle.tell() 
-                else:
-                    self.lastFilledEntry = entryCount                  
-                    self.lastReadPosition= 0
-                    print "found end of file "
-                         
-                    
-            self.logger.debug( "Last line read in setValues: %s" %line  )
-            self.logger.debug( "Departure of that line : %s endtime :%s " %( str(departure)[:-2], str(endTime)[:-2]) )  
-            
-            if line == "\n":       
-                print "last line read : %s" %line
-            elif line == "":
-                print "youve found it "
-            elif line.replace( " ","") == "":
-                print "you had to remove space"
-            elif line.replace( " ","") =="\n":
-                print "you need to rmeove space then you get backslash n"            
+            if endTime == "" :                                        
+                endTime = self.endTime
             else:
-                print "line : %s" %line
-                print "you still need to find what that last line is !"    
-            
-            fileHandle.close()                 
+                endTime = endTime 
+        
+            print "self.files : %s" %self.files
+    
+            for file in self.files :#read everyfile and append data found to dictionaries
+                
+                #print "currently used file : %s" %file              
+                nbErrors      = 0 
+                entryCount    = 0
+                
+                fileHandle = open( file, "r" )
+                fileSize = os.stat(file)[6]
+                line, lineType, position  = self.findFirstInterestingLine( fileHandle, fileSize )                                        
+                fileHandle.seek( position )
+                        
+                departure   = self.findValues( ["departure"] ,  line, lineType )["departure"]
+                
+                
+                while str(departure)[:-2] < str(endTime)[:-2] and line  != "" : #while in proper range 
+                    
+                    #print line 
+                    while departure[:-2] > self.timeSeperators[ entryCount ][:-2]:#find appropriate bucket
+                        entryCount = entryCount + 1                         
+                        #print "entryCount : %sdeparture : %s,endTime :%s" %(entryCount,departure,endTime)
+    
+                    neededValues = self.findValues( neededTypes, line, lineType )    
+                    
+                    #add values general to the line we are treating 
+                    self.fileEntries[ entryCount ].files.append( neededValues[ "fileName" ] )
+                    self.fileEntries[ entryCount ].times.append( departure )
+                    self.fileEntries[ entryCount ].values.productTypes.append( neededValues[ "productType" ] )
+                    self.fileEntries[ entryCount ].values.rows = self.fileEntries[ entryCount ].values.rows + 1
+                    
+                    
+                    if filledAnEntry == False :
+                        self.firstFilledEntry = entryCount 
+                        filledAnEntry = True 
+                    elif entryCount < self.firstFilledEntry:
+                        self.firstFilledEntry = entryCount    
+                    
+                    for statType in self.statsTypes : #append values for each specific data type needed  
+                        
+                        
+                        if statType == "latency":
+                        
+                            if neededValues[ statType ] > self.maxLatency :      
+                                self.fileEntries[ entryCount ].filesOverMaxLatency = self.fileEntries[entryCount ].filesOverMaxLatency + 1                          
+                
+                        self.fileEntries[ entryCount ].values.dictionary[statType].append( neededValues[ statType ] )
+                    
+                        
+                    
+                    
+                    if lineType != "[ERROR]" :
+                        self.fileEntries[ entryCount ].nbFiles = self.fileEntries[ entryCount ].nbFiles + 1        
+    #                 
+    #                 #Find next interesting line     
+                    line    = fileHandle.readline()
+                    isInteresting,lineType = self.isInterestingLine( line )
+                    
+                    while isInteresting == False and line != "":
+                            
+                        line = fileHandle.readline()# we read again 
+                        isInteresting,lineType = self.isInterestingLine( line )
+                    
+                    
+                    departure   = self.findValues( ["departure"] , line, lineType )["departure"]
+                    
+                    
+                    #print "file : %s,entryCount :%s,self.lastFilledEntry :%s " %( file, entryCount, self.lastFilledEntry)
+                    #if entryCount > self.lastFilledEntry : # in case of numerous files....
+                    
+                    if line != "" :
+                        self.lastFilledEntry = entryCount                  
+                        self.lastReadPosition= fileHandle.tell() 
+                    else:
+                        self.lastFilledEntry = entryCount                  
+                        self.lastReadPosition= 0
+                        print "found end of file "
+                            
+                if self.logger != None :        
+                    self.logger.debug( "Last line read in setValues: %s" %line  )
+                    self.logger.debug( "Departure of that line : %s endtime :%s " %( str(departure)[:-2], str(endTime)[:-2]) )  
+                
+                if line == "\n":       
+                    print "last line read : %s" %line
+                elif line == "":
+                    print "youve found it "
+                elif line.replace( " ","") == "":
+                    print "you had to remove space"
+                elif line.replace( " ","") =="\n":
+                    print "you need to rmeove space then you get backslash n"            
+                else:
+                    print "line : %s" %line
+                    print "you still need to find what that last line is !"    
+                
+                fileHandle.close()                 
               
         
-#         except:
-#             (type, value, tb) = sys.exc_info()
-#             self.logger.error( "Unexpected exception in FileStatsCollector.setValues." ) 
-#             self.logger.error( (type, value, tb) ) 
-#             self.logger.debug( "Line being read was : %s" %line )                    
-#             self.logger.debug( "Parameters were : endtime : %s entryCount : %s" %((endTime)[:-2], entryCount) ) 
+        except:
+            (type, value, tb) = sys.exc_info()
+            self.logger.error( "Unexpected exception in FileStatsCollector.setValues." ) 
+            self.logger.error( (type, value, tb) ) 
+            self.logger.debug( "Line being read was : %s" %line )                    
+            self.logger.debug( "Parameters were : endtime : %s entryCount : %s" %((endTime)[:-2], entryCount) ) 
             
     
             
@@ -642,9 +652,10 @@ class FileStatsCollector:
         
         """
         
-        self.logger.debug(" Call to createEmptyEntries received.")
-        self.logger.debug(" len ( self.timeSeperators )-1 = %s." %(len ( self.timeSeperators )-1 ) )
-        self.logger.debug(" Call to createEmptyEntries received.")
+        if self.logger != None :
+            self.logger.debug(" Call to createEmptyEntries received.")
+            self.logger.debug(" len ( self.timeSeperators )-1 = %s." %(len ( self.timeSeperators )-1 ) )
+            self.logger.debug(" Call to createEmptyEntries received.")
         
         if len ( self.timeSeperators ) > 1 : 
     
