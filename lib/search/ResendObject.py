@@ -21,6 +21,7 @@ named COPYING in the root of the source directory tree.
 import sys
 import time
 import os
+import socket
 
 # Local imports
 sys.path.append("../")
@@ -36,7 +37,7 @@ class ResendObject(object):
     def __init__(self):
         self.prompt = False
         self.destinations = ""
-        self.prio = "3"
+        self.prio = "2"
         self.machineHeaderDict = {}
         self.headerCount = 0
         self.fileList = []
@@ -103,7 +104,7 @@ class ResendObject(object):
                     filelog.write("%s\n" % (self.headerToLocation(bulletin)))
                     
             filelog.close()
-            commandList += ['ssh %s "%sPXCopy.py -m %s -f %s %s"' % (machine, PXPaths.SEARCH, machine, filelogname, destinations)]
+            commandList += ['ssh %s "%sPXCopy.py -m %s -f %s %s"' % (machine, PXPaths.SEARCH, socket.gethostname(), filelogname, destinations)]
         
         return commandList
     

@@ -92,7 +92,7 @@ class PXCopy(object):
         manager = self.getManager()
         drp = self.getDrp()
         flowDirsCache = self.getFlowDirsCache()
-        prio = 3 # Enventually or user selected
+        prio = 2 # Enventually or user selected
         
         if prio == -1:
             flowQueueName = manager.getFlowQueueName(flow, drp, filename)

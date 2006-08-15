@@ -86,7 +86,7 @@ def createParser(ro):
 
     parser.add_option("--ask", action = "store_true", dest = "prompt", help = "Ask for a confirmation for each bulletins.", default=True)
     parser.add_option("--all", action = "store_false", dest = "prompt", help = "Send all bulletins without confirmation (default).", default=False)
-    parser.add_option("-p", "--prio", dest = "prio", help = "Specify in which priority you want to put the bulletin in? (default 3).", default = ro.getPrio())
+    parser.add_option("-p", "--prio", dest = "prio", help = "Specify in which priority you want to put the bulletin in? (default 2).", default = ro.getPrio())
     parser.add_option("-d", "--destination", dest = "destination", help = "Specify comma-separated list of destinations (ex: ppp1,test,cmc2).", default = ro.getDestinations())
     
     return parser
