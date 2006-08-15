@@ -98,32 +98,26 @@ def main():
     ro = ResendObject()
     logger = ro.getLogger()
     
-    try:
-        #################################################################
-        # 2. Instantiate the parser and parse the command line arguments
-        #################################################################
-        parser = createParser(ro)
-        options, args = parser.parse_args()
-         
-        #########################
-        # 3. Validate user input
-        #########################
-        validateUserInput(options, args)
-        
-        ##############################################################################
-        # 4. Since input is correct, update the ResendObject with user defined values
-        ##############################################################################
-        updateResendObject(ro, options, args)
-        
-        #####################
-        # 5. Begin resending
-        #####################
-        resend(ro)
-    except:
-        (type, value, tb) = sys.exc_info()
-        errorMsg = "Problems were encountered while resending.\nType: %s, Value: %s, Traceback: %s" % (type, value, tb)
-        logger.critical(errorMsg)
-        sys.exit(errorMsg)
+    #################################################################
+    # 2. Instantiate the parser and parse the command line arguments
+    #################################################################
+    parser = createParser(ro)
+    options, args = parser.parse_args()
+     
+    #########################
+    # 3. Validate user input
+    #########################
+    validateUserInput(options, args)
+    
+    ##############################################################################
+    # 4. Since input is correct, update the ResendObject with user defined values
+    ##############################################################################
+    updateResendObject(ro, options, args)
+    
+    #####################
+    # 5. Begin resending
+    #####################
+    resend(ro)
 
 if __name__ == "__main__":
     main()
