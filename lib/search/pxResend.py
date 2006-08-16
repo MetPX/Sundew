@@ -70,15 +70,22 @@ def resend(ro):
             sys.exit("An error occured during the resending process!\nCommand used was: %s" % (c))
         else:
             lines = output.splitlines()
+            count = 0
             problemCount = 0
             for line in lines:
                 if line.find("Problem copying") != -1:
                     logger.error(line)
                     problemCount += 1
                 else:
+                    machine = line.split(":")[0]
+                    count += 1
                     logger.info(line)
-            print "%s bulletins resent on %s (%s could not be found)." % (ro.getHeaderCount() - problemCount, ro.getHeaderCount(), problemCount)
+            print "%s: %s bulletins resent on %s (%s could not be found)." % (machine, count - problemCount, count, problemCount)
     ro.removeFiles()
+
+############################################################################################
+# AHHHHHHHHHHHH CHECK COUNT ON MULTIPLE MACHINE!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+#############################################################################################
 
 def createParser(ro):
     usagemsg = "%prog [options] <machine:log:bulletin>\nResend one or more bulletins."

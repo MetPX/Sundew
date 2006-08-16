@@ -76,10 +76,10 @@ class PXCopy(object):
                     destination = self.createCompleteDestination(destination, file.split("/")[-1])
                     try:
                         shutil.copy(file, destination)
-                        print "Resent %s to %s on %s" % (file, destination, machine)
+                        print "%s: Resent %s to %s" % (machine, file, destination)
                     except IOError:
                         (type, value, tb) = sys.exc_info()
-                        print "Problem copying %s to %s on %s, Type: %s" % (file, destination, machine, type)
+                        print "%s: Problem copying %s to %s, Type: %s" % (machine, file, destination, type)
 
         except:
             type, value, tb = sys.exc_info()
