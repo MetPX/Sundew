@@ -20,6 +20,8 @@ named COPYING in the root of the source directory tree.
 ###########################################################
 """
 
+import sys
+
 sys.path.append("../")
 sys.path.insert(1, '/apps/px/lib/importedLibs')
 import PXPaths; PXPaths.normalPaths()
