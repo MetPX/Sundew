@@ -29,7 +29,7 @@ import time
 from optparse import OptionParser
 
 # Local imports
-sys.path.append("../")
+sys.path.append("/apps/px/lib/")
 import PXPaths; PXPaths.normalPaths()
 from SearchObject import SearchObject
 
