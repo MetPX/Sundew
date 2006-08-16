@@ -83,10 +83,6 @@ def resend(ro):
             print "%s: %s bulletins resent on %s (%s could not be found)." % (machine, count - problemCount, count, problemCount)
     ro.removeFiles()
 
-############################################################################################
-# AHHHHHHHHHHHH CHECK COUNT ON MULTIPLE MACHINE!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-#############################################################################################
-
 def createParser(ro):
     usagemsg = "%prog [options] <machine:log:bulletin>\nResend one or more bulletins."
     parser = OptionParser(usage=usagemsg, version="%prog 1.0-rc1")
