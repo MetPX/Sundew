@@ -30,6 +30,7 @@ import PXPaths; PXPaths.normalPaths()
 import PXManager
 import Logger
 import DirectRoutingParser
+import searchResendUtils
 
 class ResendObject(object):
     __slots__ = ["prompt", "destinations", "prio", "machineHeaderDict", "headerCount", "fileList", "logger"]
@@ -41,23 +42,9 @@ class ResendObject(object):
         self.machineHeaderDict = {}
         self.headerCount = 0
         self.fileList = []
-        logger = Logger.Logger('/apps/px/log/pxResend.log', 'INFO', 'DDB')
+        logger = Logger.Logger('%s/pxResend.log' % (PXPaths.LOG), 'INFO', 'DDB')
         self.logger = logger.getLogger()
         
-    def headerToLocation(self, header):
-        """
-        Transform a bulletin filename (header) into its location in the database.
-        """
-        
-        headerParts = header.split(":")
-        dbPath = PXPaths.DB
-        date = headerParts[-1][0:8] # First eight caracters of the timestamp 
-        tt = headerParts[0][0:2] # First two letters of the TTAAii
-        target = headerParts[1]
-        cccc = headerParts[2]
-
-        return "%s%s/%s/%s/%s/%s" % (dbPath, date, tt, target, cccc, header)
-
     def getDecision(self, bulletin, machine, destinations):
         """
         Return True or False depending on the user's decision on resending a bulletin or not.
@@ -97,11 +84,11 @@ class ResendObject(object):
                 if prompt == True:
                     decision = self.getDecision(bulletin, machine, destinations)
                     if decision == True:
-                        filelog.write("%s\n" % (self.headerToLocation(bulletin)))
+                        filelog.write("%s\n" % (searchResendUtils.headerToLocation(bulletin)))
                     else:
                         self.setHeaderCount(self.getHeaderCount() - 1)
                 else:
-                    filelog.write("%s\n" % (self.headerToLocation(bulletin)))
+                    filelog.write("%s\n" % (searchResendUtils.headerToLocation(bulletin)))
                     
             filelog.close()
             commandList += ['ssh %s "%sPXCopy.py -m %s -f %s %s"' % (machine, PXPaths.SEARCH, socket.gethostname(), filelogname, destinations)]
