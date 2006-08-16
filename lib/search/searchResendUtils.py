@@ -26,7 +26,7 @@ sys.path.append("../")
 sys.path.insert(1, '/apps/px/lib/importedLibs')
 import PXPaths; PXPaths.normalPaths()
 
-def headerToLocation(self, header):
+def headerToLocation(header):
     """
     Transform a bulletin filename (header) into its location in the database.
     """
