@@ -80,7 +80,6 @@ class PXCopy(object):
                     except IOError:
                         (type, value, tb) = sys.exc_info()
                         print "%s: Problem copying %s to %s, Type: %s" % (machine, file, destination, type)
-
         except:
             type, value, tb = sys.exc_info()
             sys.exit("An error occured in the PXCopy, Type: %s Value: %s" % (type, value))

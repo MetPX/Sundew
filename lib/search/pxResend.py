@@ -82,7 +82,6 @@ def resend(ro):
                     count += 1
                     logger.info(line)
             print "%s: %s bulletins resent on %s (%s could not be found)." % (machine, count - problemCount, count, problemCount)
-    ro.removeFiles()
 
 def createParser(ro):
     usagemsg = "%prog [options] <machine:log:bulletin>\nResend one or more bulletins."
@@ -122,6 +121,7 @@ def main():
     # 5. Begin resending
     #####################
     resend(ro)
+    #ro.removeFiles()
 
 if __name__ == "__main__":
     main()
