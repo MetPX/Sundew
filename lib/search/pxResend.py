@@ -73,11 +73,11 @@ def resend(ro):
             count = 0
             problemCount = 0
             for line in lines:
+                machine = line.split(":")[0]
                 if line.find("Problem copying") != -1:
                     logger.error(line)
                     problemCount += 1
                 else:
-                    machine = line.split(":")[0]
                     count += 1
                     logger.info(line)
             print "%s: %s bulletins resent on %s (%s could not be found)." % (machine, count - problemCount, count, problemCount)
