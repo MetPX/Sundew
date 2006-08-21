@@ -72,6 +72,7 @@ def resend(ro):
             lines = output.splitlines()
             count = 0
             problemCount = 0
+            machine = ""
             for line in lines:
                 machine = line.split(":")[0]
                 if line.find("Problem copying") != -1:
