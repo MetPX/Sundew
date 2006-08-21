@@ -60,6 +60,8 @@ class PXCopy(object):
         try:
             fileLog = self.getFile()
             destinations = self.getDestinations()
+            if len(destinations) < 1:
+                raise "Invalid destination list."
 
             try:
                 flog = open(fileLog, 'r')
