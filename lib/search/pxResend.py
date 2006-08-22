@@ -53,9 +53,13 @@ def updateResendObject(ro, options, args):
         for searchLine in sys.stdin:
             machine, bulletinHeader = parseRawLine(searchLine.strip())
             ro.addToMachineHeaderDict(machine, bulletinHeader)
-        # We must rebind sys.stdin to the tty.
+        # We must rebind sys.stdin to the tty if we want raw_input() later
         # This is ugly but this is the only solution after reading from a pipe
-        sys.stdin = open("/dev/tty")
+        try:
+            sys.stdin = open("/dev/tty")
+        except IOError:
+            pass # Without this the web interface will create an error
+                 # Anyway, we don't need raw_input() when using the web interface
     else:
         for arg in args:
             machine, bulletinHeader = parseRawLine(arg.strip())
