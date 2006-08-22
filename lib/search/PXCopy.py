@@ -102,6 +102,8 @@ class PXCopy(object):
 
         if flowQueueName:
             manager.createCachedDir(os.path.dirname(flowQueueName), flowDirsCache)
+        else:
+            raise "Invalid destination."
 
         return flowQueueName
     
