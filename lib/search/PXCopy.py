@@ -27,11 +27,11 @@ import os
 import commands
 import shutil
 import socket
-from optparse import OptionParser
 
 # Local imports
 sys.path.insert(1,sys.path[0] + '/../')
 sys.path.append(sys.path[1] + "/importedLibs")
+from optparse import OptionParser
 import PXManager
 import DirectRoutingParser
 import CacheManager
