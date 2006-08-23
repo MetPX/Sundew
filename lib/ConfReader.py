@@ -36,15 +36,18 @@ class ConfReader(object):
     def parseConfigFile(self):
         configFile = self.getConfigFileName()
         for line in open(configFile):
-            lineParts = line.split()
-            if lineParts < 2: # Line doesn't follow syntax: type value
-                raise ConfReaderException("The parser has found an invalid line: %s" % (line))
+            if line.strip() == "": # Ignore blank line
+                continue
             else:
-                key = lineParts[0]
-                if key.strip()[0] == '#': # Line is a comment, just skip over it
-                    continue
+                lineParts = line.split()
+                if lineParts < 2: # Line doesn't follow syntax: type value
+                    raise ConfReaderException("The parser has found an invalid line: %s" % (line))
                 else:
-                    self.addToConfigDict(key, lineParts[1:]) 
+                    key = lineParts[0]
+                    if key.strip()[0] == '#': # Line is a comment, just skip over it
+                        continue
+                    else:
+                        self.addToConfigDict(key, lineParts[1:]) 
 
     def getConfigFileName(self):
         return self.configFileName

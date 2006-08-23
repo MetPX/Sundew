@@ -32,6 +32,7 @@ from optparse import OptionParser
 sys.path.insert(1,sys.path[0] + '/../')
 import PXPaths; PXPaths.normalPaths()
 from SearchObject import SearchObject
+from ConfReader import ConfReader
 
 def filterTime(so, lines):
     HOURINSECONDS = 3600
@@ -109,13 +110,11 @@ def timeSort(lineA, lineB):
 def search(so):
     logFileName = so.getLogPath()
     regex = so.getSearchRegex()
-
-    # Temporary machine list storage
-    try:
-        machines = open("%spxSearch.targets" % (PXPaths.ETC), "r").readlines()
-    except IOError:
-        sys.exit("A file named pxSearch.targets must be located in %s!\nPlease write one with one machine name per line." % (PXPaths.ETC))
     
+    # We get the backends hostname with ConfReader
+    cr = ConfReader("%spx.conf" % (PXPaths.ETC))
+    machines = cr.getConfigValues("backend")
+   
     results = []
     for machine in machines:
         machine = machine.strip()
