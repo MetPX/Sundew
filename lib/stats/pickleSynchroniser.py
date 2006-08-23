@@ -23,6 +23,7 @@ named COPYING in the root of the source directory tree.
 #
 ##############################################################################################
 
+import os
 import commands
 import PXPaths
 from   optparse import OptionParser 
@@ -149,10 +150,13 @@ def synchronise( commandList, verbose, logger = None ):
     """
         Runs every commands passed in parameter.
         
-        Todo : split output form rsync so we get only the usefull part
+        Todo : split output from rsync so we get only the usefull part
     
     """
     
+    if not os.path.isdir( PXPaths.PICKLES ):
+        os.makedirs( PXPaths.PICKLES, mode=0777 )
+
     for command in commandList :     
 
         status, rsyncOutput = commands.getstatusoutput( command  )

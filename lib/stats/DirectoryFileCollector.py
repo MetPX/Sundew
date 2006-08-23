@@ -95,6 +95,7 @@ class DirectoryFileCollector:
                 if lastDeparture  >= self.startTime :
                     usefull = True
         
+        fileHandle.close()
                          
         return usefull                   
 

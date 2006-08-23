@@ -77,8 +77,11 @@ def tail( nbLines = 1, file = "", printIt = False ):
                 
                 if abs( offset) >  fileSize : # cant tail any more lines than the file pocess..
                     break   
+            
+            fileHandle.close()
         
         lines.reverse()            
+        
         if printIt == True :
             for line in lines:
                 print line 
@@ -136,7 +139,7 @@ def readLineBackwards( fileHandle, offset = -1 , fileSize =0 ) :
                     
         line = fileHandle.readline()
         
-        
+            
     return line, offset        
 
 
@@ -167,4 +170,5 @@ if __name__ == "__main__":
     
     tail( nbLines =10, file = PXPaths.STATS + "testFiles/nonexisting", printIt = True )    
     
+    fileHandle.close()
     

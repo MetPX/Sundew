@@ -33,7 +33,9 @@ import cPickle
 import DirectoryFileCollector
 import cpickleWrapper
 import PXPaths
-from   Logger                 import *
+import Logger
+from   Logger                 import Logger
+from   Logger import *
 from   Numeric                import *
 from   FileStatsCollector     import *
 from   random                 import *
@@ -199,7 +201,10 @@ class ClientStatsPickler:
                 positions = cpickleWrapper.load ( filePickle ) 
             
             positions[ fileType + "_" + self.client] =  self.statsCollection.lastReadPosition
-            cpickleWrapper.save ( object = positions, filename = filePickle )     
+            cpickleWrapper.save ( object = positions, filename = filePickle ) 
+            
+        if self.statsCollection.logger != None :
+            del self.statsCollection.logger                  
 #         
 #         except:   
 #             (type, value, tb) = sys.exc_info()
