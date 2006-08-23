@@ -8,7 +8,7 @@ named COPYING in the root of the source directory tree.
 
 """
 ###########################################################
-# Name: pxsearch.py
+# Name: pxSearch.py
 #
 # Author: Dominik Douville-Belanger
 #
@@ -29,7 +29,7 @@ import time
 from optparse import OptionParser
 
 # Local imports
-sys.path.append("/apps/px/lib/")
+sys.path.insert(1,sys.path[0] + '/../')
 import PXPaths; PXPaths.normalPaths()
 from SearchObject import SearchObject
 

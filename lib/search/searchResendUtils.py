@@ -21,9 +21,8 @@ named COPYING in the root of the source directory tree.
 """
 
 import sys
-
-sys.path.append("../")
-sys.path.insert(1, '/apps/px/lib/importedLibs')
+sys.path.insert(1,sys.path[0] + '/../')
+sys.path.append(sys.path[1] + "/importedLibs")
 import PXPaths; PXPaths.normalPaths()
 
 def headerToLocation(header):

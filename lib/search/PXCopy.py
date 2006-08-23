@@ -30,8 +30,8 @@ import socket
 from optparse import OptionParser
 
 # Local imports
-sys.path.append("/apps/px/lib/")
-sys.path.insert(1, '/apps/px/lib/importedLibs')
+sys.path.insert(1,sys.path[0] + '/../')
+sys.path.append(sys.path[1] + "/importedLibs")
 import PXManager
 import DirectRoutingParser
 import CacheManager

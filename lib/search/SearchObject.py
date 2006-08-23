@@ -22,7 +22,7 @@ import sys
 import time
 
 # Local imports
-sys.path.append("../")
+sys.path.insert(1,sys.path[0] + '/../')
 import PXPaths; PXPaths.normalPaths()
 
 class SearchObject(object):

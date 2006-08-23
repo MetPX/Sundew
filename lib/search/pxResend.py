@@ -25,7 +25,7 @@ import commands
 from optparse import OptionParser
 
 # Local imports
-sys.path.append("/apps/px/lib/")
+sys.path.insert(1,sys.path[0] + '/../')
 import PXPaths; PXPaths.normalPaths()
 from ResendObject import *
 
