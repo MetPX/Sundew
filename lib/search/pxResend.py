@@ -73,19 +73,22 @@ def resend(ro):
         if status:
             sys.exit("An error occured during the resending process!\nCommand used was: %s" % (c))
         else:
+            totalCount = 0 # Total number of bulletin processed
+            okCount = 0 # Number that were successfully resent
+            problemCount = 0 # Number that caused problem
+            machine = "" # The hostname on which the action occured
+
             lines = output.splitlines()
-            count = 0
-            problemCount = 0
-            machine = ""
             for line in lines:
                 machine = line.split(":")[0]
                 if line.find("Problem copying") != -1:
                     logger.error(line)
                     problemCount += 1
                 else:
-                    count += 1
+                    okCount += 1
                     logger.info(line)
-            print "%s: %s bulletins resent on %s (%s could not be found)." % (machine, count - problemCount, count, problemCount)
+                totalCount += 1
+            print "%s: %s bulletins resent on %s (%s could not be found)." % (machine, okCount, totalCount, problemCount)
 
 def createParser(ro):
     usagemsg = "%prog [options] <machine:log:bulletin>\nResend one or more bulletins."
