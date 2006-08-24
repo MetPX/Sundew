@@ -128,7 +128,7 @@ def main():
     # 5. Begin resending
     #####################
     resend(ro)
-    #ro.removeFiles()
+    ro.removeFiles()
 
 if __name__ == "__main__":
     main()

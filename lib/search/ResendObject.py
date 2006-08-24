@@ -24,7 +24,8 @@ import os
 import socket
 
 # Local imports
-sys.path.insert(1,sys.path[0] + '/../')
+sys.path.insert(1,sys.path[0] + '/../importedLibs')
+sys.path.append(sys.path[0] + "/../")
 import PXPaths; PXPaths.normalPaths()
 import PXManager
 import Logger
