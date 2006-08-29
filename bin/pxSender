@@ -144,7 +144,7 @@ example 2: %prog start       => will start all clients
                 logger.info("%d files will be sent" % len(sortedFiles))
                 sender = SenderFTP.SenderFTP(client, logger)
                 sender.send(sortedFiles)
-                sender.ftp.quit()
+                sender.close()
             else:
                 time.sleep(1)
 
