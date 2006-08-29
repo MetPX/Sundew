@@ -36,21 +36,23 @@ from ConfReader import ConfReader
 
 def filterTime(so, lines):
     HOURINSECONDS = 3600
-
-    if so.getSince() != 0:
-        upperBound = time.time()
-        lowerBound = upperBound - (so.getSince() * HOURINSECONDS)
-    else:
-        upperBound = time.mktime(time.strptime(so.getTo(), "%Y%m%d%H%M%S"))
-        lowerBound = time.mktime(time.strptime(so.getFrom(), "%Y%m%d%H%M%S"))
     
-    result = []
-    for line in lines:
-        stringTime = line.split(":")[-1]
-        timeInSec = time.mktime(time.strptime(stringTime, "%Y%m%d%H%M%S"))
-        if timeInSec >= lowerBound and timeInSec <= upperBound:
-            result.append(line)
-
+    try:
+        if so.getSince() != 0:
+            upperBound = time.time()
+            lowerBound = upperBound - (so.getSince() * HOURINSECONDS)
+        else:
+            upperBound = time.mktime(time.strptime(so.getTo(), "%Y%m%d%H%M%S"))
+            lowerBound = time.mktime(time.strptime(so.getFrom(), "%Y%m%d%H%M%S"))
+        
+        result = []
+        for line in lines:
+            stringTime = line.split(":")[-1]
+            timeInSec = time.mktime(time.strptime(stringTime, "%Y%m%d%H%M%S"))
+            if timeInSec >= lowerBound and timeInSec <= upperBound:
+                result.append(line)
+    except ValueError:
+        sys.exit(1)
     return result
 
 def validateUserInput(options, args):
@@ -120,10 +122,15 @@ def search(so):
         machine = machine.strip()
         cmd = 'ssh %s "egrep -o %s %s"' % (machine, regex, logFileName)
         status, output = commands.getstatusoutput(cmd)
-        if not status: # No errors
+        if output:
             lines = output.splitlines()
-            results += ["%s:%s" % (machine, line) for line in lines] # We add the machine name to the start of the line 
-
+            results += ["%s:%s" % (machine, line) for line in lines] # We add the machine name to the start of the line
+        elif output == "" and status:
+            sys.exit(1)
+        else: # This is only added for clarity. When grep doesn't find anything, he returns an error code. But this shouldn't be considered and error by our program.
+            pass
+            
+    print results
     if so.getSince() != 0 or (so.getFrom() != "epoch" or so.getTo() != "now"):
         results = filterTime(so, results)
         results.sort(timeSort)
