@@ -120,14 +120,13 @@ def search(so):
     results = []
     for machine in machines:
         machine = machine.strip()
-        cmd = 'ssh %s "egrep -o %s %s"' % (machine, regex, logFileName)
+        cmd = 'ssh %s "egrep -o -s %s %s"' % (machine, regex, logFileName)
         status, output = commands.getstatusoutput(cmd)
         if output:
             lines = output.splitlines()
             results += ["%s:%s" % (machine, line) for line in lines] # We add the machine name to the start of the line
-        else: # This is only added for clarity. When grep doesn't find anything, he returns an error code. But this shouldn't be considered and error by our program.
-            pass
-            
+        # When grep doesn't find anything, he returns an error code. But this shouldn't be considered and error by our program.
+    
     if so.getSince() != 0 or (so.getFrom() != "epoch" or so.getTo() != "now"):
         results = filterTime(so, results)
         results.sort(timeSort)
