@@ -125,12 +125,9 @@ def search(so):
         if output:
             lines = output.splitlines()
             results += ["%s:%s" % (machine, line) for line in lines] # We add the machine name to the start of the line
-        elif output == "" and status:
-            sys.exit(1)
         else: # This is only added for clarity. When grep doesn't find anything, he returns an error code. But this shouldn't be considered and error by our program.
             pass
             
-    print results
     if so.getSince() != 0 or (so.getFrom() != "epoch" or so.getTo() != "now"):
         results = filterTime(so, results)
         results.sort(timeSort)
