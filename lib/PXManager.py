@@ -41,6 +41,21 @@ class PXManager(SystemManager):
         SystemManager.__init__(self)
         self.LOG = PXPaths.LOG          # Will be used by DirCopier
 
+    def getAllFlowNames(self, tuple=False, drp=None):
+        clientNames =  self.getTxNames()
+        sourlientNames = self.getTRxNames()
+        sourceNames = self.getRxNames()
+
+        if drp:
+            aliases = drp.aliasedClients.keys()
+        else:
+            aliases = []
+
+        if tuple:
+            return clientNames, sourlientNames, sourceNames, aliases
+        else:
+            return clientNames + sourlientNames + sourceNames + aliases
+
     def getFlowQueueName(self, flow, drp=None, filename=None, priority=None):
         types = {'TX': PXPaths.TXQ, 'RX':PXPaths.RXQ, 'TRX': PXPaths.TXQ}
         type, flowNames = self.getFlowType(flow, drp)
