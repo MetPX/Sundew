@@ -254,12 +254,11 @@ class StatsPlotter:
                         
                             
                         self.nbFiles[clientCount]  = self.nbFiles[clientCount]  + self.stats[clientCount].statsCollection.fileEntries[k].nbFiles   
-                    
-
-            
-                    
+                   
+                              
                     else:
                         pairs.append( [ MyDateLib.getSecondsSinceEpoch(self.stats[clientCount].statsCollection.timeSeperators[k]), 0.0 ] )
+                
                 
                 except KeyError:
                     self.logger.error( "Error in getPairs." )
@@ -321,10 +320,10 @@ class StatsPlotter:
             plot function. 
             
         """
-        print "plot method"
+
         self.logger.debug( "Call to plot received" )
-        #Set general settings for graphs 
         
+        #Set general settings for graphs 
         color = 1
         nbGraphs = 0
          
@@ -405,7 +404,7 @@ class StatsPlotter:
         
         self.graph( 'set label "Client : %s" at screen .68, screen %3.2f' % ( self.clientNames[i],(.41+(nbGraphs) *.55)  ))
         
-        self.graph( 'set label "Machines :%s" at screen .68, screen %3.2f' % ( self.machines,(.37+(nbGraphs) *.55)  ) )
+        self.graph( 'set label "Machines : %s" at screen .68, screen %3.2f' % ( self.machines,(.37+(nbGraphs) *.55)  ) )
         
         self.graph( 'set label "Product Type : %s" at screen .68, screen %3.2f' % ( self.productType,(.33+(nbGraphs) *.55)  ) )
         
@@ -421,8 +420,7 @@ class StatsPlotter:
         
         self.graph( 'set label "%% of files over max latency: %3.2f %%" at screen .68, screen %3.2f' % ( self.ratioOverLatency[i] , ( .10 + (nbGraphs) *.55 ) ) )
         
-        ###End of method to build  
-        
+                
     
             
     def addBytesLabelsToGraph( self, i , nbGraphs, j, maxPairValue ):
@@ -451,9 +449,9 @@ class StatsPlotter:
         
         self.graph( 'set label "Product Type : %s" at screen .68, screen %3.2f' % ( self.productType,(.33+(nbGraphs) *.55)  ) )
         
-        self.graph( 'set label "Largest file :%s" at screen .68, screen %3.2f' % ( self.filesWhereMaxOccured[i][j], (.29+(nbGraphs) *.55) ))
+        self.graph( 'set label "Largest file : %s" at screen .68, screen %3.2f' % ( self.filesWhereMaxOccured[i][j], (.29+(nbGraphs) *.55) ))
         
-        self.graph( 'set label "Time of largest file: %s" at screen .68, screen %3.2f' % ( ( timeOfMax, (.25+(nbGraphs) *.55)  )))
+        self.graph( 'set label "Time of largest file : %s" at screen .68, screen %3.2f' % ( ( timeOfMax, (.25+(nbGraphs) *.55)  )))
         
         self.graph( 'set label "Size of file : %s" at screen .68, screen %3.2f' % ( self.maximums[i][j], (.21+(nbGraphs) *.55) ) )
         
@@ -484,14 +482,14 @@ class StatsPlotter:
         
         self.graph( 'set label "Client : %s" at screen .68, screen %3.2f' % ( self.clientNames[i],(.41+(nbGraphs) *.55)  ))
         
-        self.graph( 'set label "Machines :%s" at screen .68, screen %3.2f' % ( self.machines,(.37+(nbGraphs) *.55)  ) )
+        self.graph( 'set label "Machines : %s" at screen .68, screen %3.2f' % ( self.machines,(.37+(nbGraphs) *.55)  ) )
         
         self.graph( 'set label "Product Type : %s" at screen .68, screen %3.2f' % ( self.productType,(.33+(nbGraphs) *.55)  ) )
         
         self.graph( 'set label "Max error/bucket : %s" at screen .68, screen %3.2f' % ( self.maximums[i][j], (.29+(nbGraphs) *.55) ))
         
         
-        self.graph( 'set label "Time of maximum: %s" at screen .68, screen %3.2f' % ( ( timeOfMax, (.25+(nbGraphs) *.55)  )))
+        self.graph( 'set label "Time of maximum : %s" at screen .68, screen %3.2f' % ( ( timeOfMax, (.25+(nbGraphs) *.55)  )))
         
         self.graph( 'set label "Total of errors : %s" at screen .68, screen %3.2f' % ( self.nbErrors[i], (.21+(nbGraphs) *.55) ) )
       

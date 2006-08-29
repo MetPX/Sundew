@@ -148,20 +148,18 @@ class FileStatsCollector:
         if fileEntries == []:
             self.createEmptyEntries()   # Create all empty buckets right away    
         
-        # sortingneeds to be done to make sure first file we read is the oldest,thus makes sure
+        # sorting needs to be done to make sure first file we read is the oldest, thus makes sure
         # that if we seek the last read position we do it in the right file. 
            
         self.files.sort()                
         
         if len( self.files ) > 1 and files[0].endswith("log"):
-            print 
+             
             firstItem     = self.files[ 0 ]
-            print "firstItem : %s" %firstItem
             remainingList = self.files[ 1: ]
-            print "remainingList : %s" %remainingList
             self.files    = remainingList
             self.files.append( firstItem )                            
-            print "self.files has been modified to %s." %self.files
+            
 
             
             
@@ -196,7 +194,7 @@ class FileStatsCollector:
         
         if self.logger != None :    
             self.logger.debug( "Call to setMinMaxMeanMedians received." )
-            self.logger.debug( "ProductType : %s, firstFilledEntry : %s, lastFilledEntry : %s  ." %( productType, self.firstFilledEntry, self.lastFilledEntry ) )     
+            #self.logger.debug( "ProductType : %s, firstFilledEntry : %s, lastFilledEntry : %s  ." %( productType, self.firstFilledEntry, self.lastFilledEntry ) )     
                    
         for i in xrange( self.firstFilledEntry , self.lastFilledEntry + 1 ): #for each entries we need to deal with 
             
@@ -235,13 +233,9 @@ class FileStatsCollector:
                                   
                             values.append(self.fileEntries[i].values.dictionary[aType][row] )#add to new array
                             files.append( self.fileEntries[i].files[row]  )
-                            times.append( self.fileEntries[i].times[row]  )
-                        
-                        
-                            
-    
-                     
-                                           
+                            times.append( self.fileEntries[i].times[row]  )                     
+                    
+                    
                     if len( values ) != 0 :
                         minimum = values[0]
                         maximum = values[0]
@@ -325,7 +319,7 @@ class FileStatsCollector:
         if line != "" and line != "\n" :
             
             for statsType in statsTypes :   
-                #print statsType 
+                
                 if statsType == "departure" :
                     values[statsType] =  line.split( ",")[0]   
                     
@@ -401,10 +395,12 @@ class FileStatsCollector:
             if "errors" in self.statsTypes and "[ERROR]" in line:
                 isInteresting = True
                 lineType = "[ERROR]" 
-            
+                
+                
             elif "[INFO]" in line and "Bytes" in line and "/sec" not in line and " Segment " not in line : 
                 isInteresting = True             
                 lineType = "[INFO]"
+                
                 
         return isInteresting,lineType
     
@@ -423,6 +419,7 @@ class FileStatsCollector:
         """
         
         line = ""
+        lineType = None 
         backupLine = ""
         lineFound = False 
         firstDeparture = 0
@@ -433,7 +430,7 @@ class FileStatsCollector:
         
         if self.logger != None :
             self.logger.debug( "Call to findFirstInterestingLine received." )
-            self.logger.debug( "Parameters were self.lastReadPosition : %s, filesize : %s" %( self.lastReadPosition, fileSize )) 
+            #self.logger.debug( "Parameters were self.lastReadPosition : %s, filesize : %s" %( self.lastReadPosition, fileSize )) 
         
         
         if self.lastReadPosition != 0:
@@ -443,7 +440,7 @@ class FileStatsCollector:
             position = fileHandle.tell()
         
         else:
-            
+           
             firstLine      = fileHandle.readline()
             position       = fileHandle.tell()
             firstDeparture = FileStatsCollector.findValues( ["departure"] , firstLine )["departure"]
@@ -453,31 +450,44 @@ class FileStatsCollector:
             
             firstDepartureInSecs = MyDateLib.getSecondsSinceEpoch( firstDeparture )
             startTimeinSec       = MyDateLib.getSecondsSinceEpoch( self.startTime )
-            lastDepartureInSecs  = MyDateLib.getSecondsSinceEpoch( lastDeparture )
-      
-        print "self.lastReadPosition : %s" %self.lastReadPosition
-        if self.lastReadPosition != 0 or abs( firstDepartureInSecs - startTimeinSec ) < 2*(abs( lastDepartureInSecs - startTimeinSec)) :
-            
-            fileHandle.seek( position,0 )
-            line = firstLine 
+            lastDepartureInSecs  = MyDateLib.getSecondsSinceEpoch( lastDeparture )     
                
-            while lineFound == False :     
+        
+        # backward reading is much slower so we make sure its worthwhile to read backwards.
+        if self.lastReadPosition != 0 or abs( firstDepartureInSecs - startTimeinSec ) < 2*( abs( lastDepartureInSecs - startTimeinSec ) ) :
+            
+            fileHandle.seek( position, 0 )
+            line = firstLine 
+           
+            
+            while lineFound == False and line != "":     
                 
                 departure =  FileStatsCollector.findValues( ["departure"] , line )["departure"]
-                if departure >= self.startTime and departure <=  self.endTime :
-                    isInteresting, lineType = self.isInterestingLine( line )
+                
+                if departure <=  self.endTime : #were still can keep on reading range 
                     
-                    if isInteresting == True :
-                        position = fileHandle.tell()
-                        lineFound = True 
-                   
-                if lineFound == False :
-                    line = fileHandle.readline ()        
+                    if departure >= self.startTime :# if we are within range
+                        isInteresting, lineType = self.isInterestingLine( line )
                         
+                        if isInteresting == True :
+                            position = fileHandle.tell()
+                            lineFound = True 
+                                                                         
+                    if lineFound == False :
+                        line = fileHandle.readline ()        
+                
+                        
+                else:# there was no interesting data in that file
+                    isInteresting, lineType = self.isInterestingLine( line )
+                    lineFound = True 
+  
+                        
+        
         else:#read backwards till we are in the range we want 
-            #might want to log here....
+             
+            
             fileHandle.seek(0,0)
-            print "goes backwards!?"
+            
             line = lastLine 
             departure = lastDeparture
             
@@ -497,10 +507,7 @@ class FileStatsCollector:
                     isInteresting,lineType = self.isInterestingLine( line )     
                     position = fileHandle.tell()
                     
-                        
-       
-        print "####line : %s" %line  
-        
+             
         return line, lineType, position 
 
 
@@ -516,10 +523,7 @@ class FileStatsCollector:
         
             - performance bottleneck...needs to be optimized badly.   
         """
-        
-             
-#         try:
-            
+                         
         filledAnEntry         = False
         self.firstFilledEntry = 0
         self.lastFilledEntry  = 0
@@ -528,7 +532,7 @@ class FileStatsCollector:
         
         if self.logger != None :        
             self.logger.debug( "Call to setValues received."  )
-            self.logger.debug( "Parameters were self.lastReadPosition : %s, endTime : %s" %(self.lastReadPosition,endTime)) 
+            #self.logger.debug( "Parameters were self.lastReadPosition : %s, endTime : %s" %(self.lastReadPosition,endTime)) 
             
         
         for statType in self.statsTypes :    
@@ -539,29 +543,29 @@ class FileStatsCollector:
         else:
             endTime = endTime 
     
-        print "self.files : %s" %self.files
+        
 
         for file in self.files :#read everyfile and append data found to dictionaries
-            
-            #print "currently used file : %s" %file              
+                                  
             nbErrors      = 0 
             entryCount    = 0
             
             fileHandle = open( file, "r" )
             fileSize = os.stat(file)[6]
-            line, lineType, position  = self.findFirstInterestingLine( fileHandle, fileSize )                                        
+            
+            line, lineType, position  = self.findFirstInterestingLine( fileHandle, fileSize )
+            
+                                                    
             fileHandle.seek( position )
                     
-            departure   = self.findValues( ["departure"] ,  line, lineType )["departure"]
-            
+            departure   = self.findValues( ["departure"] ,  line, lineType )["departure"]           
             
             while str(departure)[:-2] < str(endTime)[:-2] and line  != "" : #while in proper range 
                 
-                #print line 
+                
                 while departure[:-2] > self.timeSeperators[ entryCount ][:-2]:#find appropriate bucket
                     entryCount = entryCount + 1                         
-                    #print "entryCount : %sdeparture : %s,endTime :%s" %(entryCount,departure,endTime)
-
+                    
                 neededValues = self.findValues( neededTypes, line, lineType )    
                 
                 #add values general to the line we are treating 
@@ -592,8 +596,8 @@ class FileStatsCollector:
                 
                 if lineType != "[ERROR]" :
                     self.fileEntries[ entryCount ].nbFiles = self.fileEntries[ entryCount ].nbFiles + 1        
-#                 
-#                 #Find next interesting line     
+                 
+                #Find next interesting line     
                 line    = fileHandle.readline()
                 isInteresting,lineType = self.isInterestingLine( line )
                 
@@ -603,49 +607,22 @@ class FileStatsCollector:
                     isInteresting,lineType = self.isInterestingLine( line )
                 
                 
-                departure   = self.findValues( ["departure"] , line, lineType )["departure"]
+                departure   = self.findValues( ["departure"] , line, lineType )["departure"]               
                 
                 
-                #print "file : %s,entryCount :%s,self.lastFilledEntry :%s " %( file, entryCount, self.lastFilledEntry)
-                #if entryCount > self.lastFilledEntry : # in case of numerous files....
-                
-                if line != "" :
-                    self.lastFilledEntry = entryCount                  
-                    self.lastReadPosition= fileHandle.tell() 
-                else:
-                    self.lastFilledEntry = entryCount                  
-                    self.lastReadPosition= 0
-                    print "found end of file "
-                        
-            if self.logger != None :        
-                self.logger.debug( "Last line read in setValues: %s" %line  )
-                self.logger.debug( "Departure of that line : %s endtime :%s " %( str(departure)[:-2], str(endTime)[:-2]) )  
-            
-            if line == "\n":       
-                print "last line read : %s" %line
-            elif line == "":
-                print "youve found it "
-            elif line.replace( " ","") == "":
-                print "you had to remove space"
-            elif line.replace( " ","") =="\n":
-                print "you need to rmeove space then you get backslash n"            
+            if line == "" :
+                self.lastFilledEntry  = entryCount                  
+                self.lastReadPosition = 0
+
             else:
-                print "line : %s" %line
-                print "you still need to find what that last line is !"    
+                self.lastFilledEntry  = entryCount                  
+                self.lastReadPosition = fileHandle.tell() 
+
             
-            fileHandle.close()                 
+            fileHandle.close()             
               
-        
-#         except:
-#             (type, value, tb) = sys.exc_info()
-#             self.logger.error( "Unexpected exception in FileStatsCollector.setValues." ) 
-#             self.logger.error( (type, value, tb) ) 
-#             self.logger.debug( "Line being read was : %s" %line )                    
-#             self.logger.debug( "Parameters were : endtime : %s entryCount : %s" %((endTime)[:-2], entryCount) ) 
-            
     
-            
-            
+    
     def createEmptyEntries( self ):    
         """
             We fill up fileEntries with empty entries with proper time labels 
@@ -654,8 +631,8 @@ class FileStatsCollector:
         
         if self.logger != None :
             self.logger.debug(" Call to createEmptyEntries received.")
-            self.logger.debug(" len ( self.timeSeperators )-1 = %s." %(len ( self.timeSeperators )-1 ) )
-            self.logger.debug(" Call to createEmptyEntries received.")
+            #self.logger.debug(" len ( self.timeSeperators )-1 = %s." %(len ( self.timeSeperators )-1 ) )
+            #self.logger.debug(" Call to createEmptyEntries received.")
         
         if len ( self.timeSeperators ) > 1 : 
     

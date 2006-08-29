@@ -78,11 +78,24 @@ def getOptionsFromParser( parser ):
     collectUpToNow   = options.collectUpToNow
     productType      = options.productType.replace( ' ', '' )     
      
+    
+    try: # Makes sure date is of valid format. 
+         # Makes sure only one space is kept between date and hour.
+        t =  time.strptime( currentTime, '%Y-%m-%d %H:%M:%S' )
+        split = currentTime.split()
+        currentTime = "%s %s" %( split[0], split[1] )
+
+    except:    
+        print "Error. The date format must be YYYY-MM-DD HH:MM:SS" 
+        print "Use -h for help."
+        print "Program terminated."
+        sys.exit()
+    
+    
     try:    
         if int( timespan ) < 1 :
             raise 
-            print "trouve lerreur"
-    
+                
     except:
         
         print "Error. The timespan value needs to be an integer one above 0." 

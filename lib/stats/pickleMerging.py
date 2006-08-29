@@ -215,7 +215,7 @@ def mergePicklesFromSameHour( logger = None , pickleNames = None, mergedPickleNa
     temp = newFSC.logger
     del newFSC.logger
     cpickleWrapper.save( newFSC, mergedPickleName )
-    newFSC.logger =temp
+    newFSC.logger = temp
     
     return newFSC
         
