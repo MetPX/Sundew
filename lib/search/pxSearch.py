@@ -13,7 +13,7 @@ named COPYING in the root of the source directory tree.
 # Author: Dominik Douville-Belanger
 #
 # Description: Search in the PX logs for bulletins 
-#              matching certain criterias.
+#              and files matching certain criterias.
 #
 # Date: 2006-05-08
 #

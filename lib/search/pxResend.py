@@ -12,7 +12,7 @@ named COPYING in the root of the source directory tree.
 #
 # Author: Dominik Douville-Belanger
 #
-# Description: Resend a bulletin file.
+# Description: Resend a PX file.
 #
 # Date: 2006-07-07
 #
@@ -36,13 +36,9 @@ def parseRawLine(line):
     return machine, header
 
 def validateUserInput(options, args):
-    # Priority number must be between 1 and 5
-    if int(options.prio) < 1 or int(options.prio) > 5:
-        sys.exit("Incorrect priority number!\nShould be from 1 to 5 only.")
-
     if len(args) > 1:
         if len(args.split(":")) < 3:
-            sys.exit("Input was not formatted correctly.\nIt should be machine:log:bulletin.\n'log' can be anything, it is a field returned by pxSearch")
+            sys.exit("Input was not formatted correctly.\nIt should be machine:log:header\n'log' can be anything, it is a field returned by pxSearch")
 
 def updateResendObject(ro, options, args):
     ro.setPrompt(options.prompt)
@@ -88,15 +84,15 @@ def resend(ro):
                     okCount += 1
                     logger.info(line)
                 totalCount += 1
-            print "%s: %s bulletins resent on %s (%s could not be found)." % (machine, okCount, totalCount, problemCount)
+            print "%s: %s bulletins resent (%s were not found in the database)." % (machine, okCount, problemCount)
 
 def createParser(ro):
     usagemsg = "%prog [options] <machine:log:bulletin>\nResend one or more bulletins."
     parser = OptionParser(usage=usagemsg, version="%prog 1.0-rc1")
 
-    parser.add_option("--ask", action = "store_true", dest = "prompt", help = "Ask for a confirmation for each bulletins.", default=True)
-    parser.add_option("--all", action = "store_false", dest = "prompt", help = "Send all bulletins without confirmation (default).", default=False)
-    parser.add_option("-p", "--prio", dest = "prio", help = "Specify in which priority you want to put the bulletin in? (default 2).", default = ro.getPrio())
+    parser.add_option("--ask", action = "store_true", dest = "prompt", help = "Ask for a confirmation for each file", default=True)
+    parser.add_option("--all", action = "store_false", dest = "prompt", help = "Send all files without confirmation (default).", default=False)
+    parser.add_option("-p", "--prio", dest = "prio", help = "Specify in which priority you want to put the file in? (default 2).", default = ro.getPrio())
     parser.add_option("-d", "--destination", dest = "destination", help = "Specify comma-separated list of destinations (ex: ppp1,test,cmc2).", default = ro.getDestinations())
     
     return parser

@@ -28,12 +28,14 @@ import PXPaths; PXPaths.normalPaths()
 def headerToLocation(header):
     """
     Transform a bulletin filename (header) into its location in the database.
+    ex: SACN31_CWAO_151300__CYXX_75340    ncp2    CWAO    SA    3    Direct    20060815130152
+                    [0]                    [1]     [2]   [3]   [4]     [5]       [6] or [-1]
     """
     
     headerParts = header.split(":")
     dbPath = PXPaths.DB
     date = headerParts[-1][0:8] # First eight caracters of the timestamp 
-    tt = headerParts[0][0:2] # First two letters of the TTAAii
+    tt = headerParts[3]
     target = headerParts[1]
     cccc = headerParts[2]
 
