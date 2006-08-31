@@ -59,15 +59,19 @@ class PXChecker:
             print "*************** All names (.conf) **************"
             print self.manager.getRxNames()
             print self.manager.getTxNames()
+            print self.manager.getTRxNames()
             print "*************** Should run names (.conf + .lock) **************"
             print self.manager.getShouldRunRxNames()
             print self.manager.getShouldRunTxNames()
+            print self.manager.getShouldRunTRxNames()
             print "************** Running names (.conf + .lock + ps -p pid) *************"
             print self.manager.getRunningRxNames()
             print self.manager.getRunningTxNames()
+            print self.manager.getRunningTRxNames()
             print "************** Should  run but not running names *************"
             print self.manager.getNotRunningRxNames()
             print self.manager.getNotRunningTxNames()
+            print self.manager.getNotRunningTRxNames()
 
         # Restart receivers
         for name in self.manager.getNotRunningRxNames():
@@ -80,6 +84,12 @@ class PXChecker:
             self.logger.info("Sender %s has been restarted by pxChecker" % name)
             if os.fork() == 0:
                 os.execl(PXPaths.BIN + "pxSender" , "pxSender", name, "restart")
+
+        # Restart transceivers
+        for name in self.manager.getNotRunningTRxNames():
+            self.logger.info("Transceiver %s has been restarted by pxChecker" % name)
+            if os.fork() == 0:
+                os.execl(PXPaths.BIN + "pxTransceiver" , "pxTransceiver", name, "restart")
 
         time.sleep(1)
 
