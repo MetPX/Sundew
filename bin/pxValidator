@@ -169,17 +169,19 @@ class PXValidator:
         print "# Routing Table Errors (%s)" % PXValidator.routingFilename
         print "################################################################"
         self.drp.parseAndShowErrors()
-        if os.path.isfile(PXValidator.routingFilename + '.pxv'):
-            self.routingDiff(PXValidator.routingFilename + '.pxv', self.drp)
-        RoutingFileCreator(self.drp, PXValidator.routingFilename + '.pxv', self.logger)
+        if not PXValidator.menu:
+            if os.path.isfile(PXValidator.routingFilename + '.pxv'):
+                self.routingDiff(PXValidator.routingFilename + '.pxv', self.drp)
+            RoutingFileCreator(self.drp, PXValidator.routingFilename + '.pxv', self.logger)
         print "################################################################"
         print "# Station Table Errors (%s) " % PXValidator.stationsFilename
         print "################################################################"
         self.sp.printErrors = True
         self.sp.parse()
-        if os.path.isfile(PXValidator.stationsFilename + '.pxv'):
-            self.stationsDiff(PXValidator.stationsFilename + '.pxv', self.sp)
-        StationFileCreator(PXValidator.stationsFilename + '.pxv', self.logger, self.sp.stations, self.sp.stationsColl)
+        if not PXValidator.menu:
+            if os.path.isfile(PXValidator.stationsFilename + '.pxv'):
+                self.stationsDiff(PXValidator.stationsFilename + '.pxv', self.sp)
+            StationFileCreator(PXValidator.stationsFilename + '.pxv', self.logger, self.sp.stations, self.sp.stationsColl)
         #self.sp.printInfos()
         print "##########################END###################################"
         
@@ -238,8 +240,9 @@ if __name__ == '__main__':
      
     #print findChange([1,2,3,4,5], [2,5,6,7,8])
     validator =  PXValidator()
-    validator.validate()
 
+    validator.validate()
     if validator.menu:
         validator.interrogate()
     #print "The program successfully ended"
+   
