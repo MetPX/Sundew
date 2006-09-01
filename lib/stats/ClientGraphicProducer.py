@@ -32,7 +32,7 @@ import pickleUpdater
 import pickleMerging
 import logging 
 import PXPaths
-from   Logger                 import *
+from   Logger import *
 
 
 from MyDateLib import MyDateLib
@@ -94,7 +94,7 @@ class ClientGraphicProducer:
         
             Now option not yet implemented.
             
-            Every pickle necessary for graphic production eeds to be there. Filling holes with empty data not yet implemented.  
+            Every pickle necessary for graphic production needs to be there. Filling holes with empty data not yet implemented.  
             
             
         """ 
@@ -109,24 +109,28 @@ class ClientGraphicProducer:
         else :
             endTime = MyDateLib.getIsoWithRoundedHours( self.currentTime )
             
-        startTime = MyDateLib.getIsoFromEpoch( MyDateLib.getSecondsSinceEpoch( endTime ) - (self.timespan * MyDateLib.HOUR) )
-        
+        startTime = MyDateLib.getIsoFromEpoch( MyDateLib.getSecondsSinceEpoch( endTime ) - (self.timespan * MyDateLib.HOUR) )        
         
          
         for client in self.clientNames : # 
                
-            #Gather data from all previously creted pickles....      
+            #Gather data from all previously created pickles....      
             if self.logger != None :                 
                 self.logger.debug( "Call to mergeHourlyPickles." )
-                self.logger.debug( " Parameters used : %s %s %s" %(startTime, endTime, client) )
+                self.logger.debug( "Parameters used : %s %s %s" %( startTime, endTime, client ) )
             
-            statsCollection = pickleMerging.mergePicklesFromDifferentMachines( logger = None , startTime = startTime, endTime = endTime, client = client, fileType = self.fileType, machines = self.machines )
+            if len( self.machines ) > 1 :    
+                statsCollection = pickleMerging.mergePicklesFromDifferentMachines( logger = None , startTime = startTime, endTime = endTime, client = client, fileType = self.fileType, machines = self.machines )
+                                    
+            else:#only one machine,only merge different hours together
+               
+                statsCollection = pickleMerging.mergePicklesFromDifferentHours( logger = None , startTime = startTime, endTime = endTime, client = client, fileType = self.fileType, machine = self.machines[0] )
+                
             
             combinedMachineName = ""
             for machine in self.machines:
                 combinedMachineName = combinedMachineName + machine
                 
-            print "combinedMachineName = %s" %combinedMachineName   
             dataCollector =  ClientStatsPickler( client = client, statsTypes = types, directory = self.directory, statsCollection = statsCollection, machine = combinedMachineName )
             
             collectorsList.append( dataCollector )         
@@ -140,10 +144,13 @@ class ClientGraphicProducer:
         if self.logger != None :         
             self.logger.debug( "Call to StatsPlotter :Clients:%s, timespan:%s, currentTime:%s, statsTypes:%s, productType:%s :" %( self.clientNames, self.timespan, self.currentTime, types, self.productType ) )
         
-        plotter = StatsPlotter( stats = collectorsList, clientNames = self.clientNames, timespan = self.timespan, currentTime = endTime, now = False, statsTypes = types, productType = self.productType, logger = None,machines = combinedMachineName  )
+        print "Call to StatsPlotter :Clients:%s, timespan:%s, currentTime:%s, statsTypes:%s, productType:%s :" %( self.clientNames, self.timespan, self.currentTime, types, self.productType )
+        
+        plotter = StatsPlotter( stats = collectorsList, clientNames = self.clientNames, timespan = self.timespan, currentTime = endTime, now = False, statsTypes = types, productType = self.productType, logger = None, machines = combinedMachineName  )
         
         plotter.plot()                          
         print "Plotted graph"
+        
         if self.logger != None :
             self.logger.debug( "Returns from StatsPlotter." )
             self.logger.info("Graphic(s) created.")

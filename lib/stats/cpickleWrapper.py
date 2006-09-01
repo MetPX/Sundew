@@ -45,8 +45,6 @@ def save( object, filename ):
         Raises exception if application is unable to save file.
         
     """
-    
-#     try: 
         
     splitName = filename.split( "/" ) 
     
@@ -65,11 +63,6 @@ def save( object, filename ):
     file = open( filename, 'wb' )
     file.write( cPickle.dumps( object, True ) )
     file.close()
-    
-    
-#     except:
-#     
-#         raise Exception( "Error occured in cpickleWrapper.save(). Could not create : %s." %filename )
 
 
 

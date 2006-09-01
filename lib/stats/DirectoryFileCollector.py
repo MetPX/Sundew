@@ -85,16 +85,19 @@ class DirectoryFileCollector:
             
             departure =  FileStatsCollector.findValues( ["departure"], line )["departure"]       
             
+            #print "looking for data between start : %s end : %s " %(self.startTime, self.endTime ) 
+                                  
             if departure <= self.endTime  :
+                
                 line == ""
                 fileSize = os.stat( fileName )[6]
                 
                 line,offset  = backwardReader.readLineBackwards( fileHandle, offset = -1, fileSize = fileSize  )
-                lastDeparture = FileStatsCollector.findValues( ["departure"] , line )["departure"]       
-
+                lastDeparture = FileStatsCollector.findValues( ["departure"] , line )["departure"]     
+                                                
                 if lastDeparture  >= self.startTime :
                     usefull = True
-        
+                    
         fileHandle.close()
                          
         return usefull                   
@@ -115,22 +118,23 @@ class DirectoryFileCollector:
          
         if os.path.isdir( self.directory ):
             
-            filePattern = self.directory + "%s_%s.log*" %( self.fileType, self.client )
+             
+            filePattern = self.directory + "%s_%s.log*" %( self.fileType, self.client )           
             
             fileNames = glob.glob( filePattern )            
+            
                       
             for fileName in fileNames: #verify every entries.
                 usefull = self.containsUsefullInfo( fileName )
                 
                 if usefull == True :
                     self.entries.append( fileName )
-
+                
         else:
             if self.logger != None :
-                self.logger.warning("Warning in DirectoryFileCollector. Folder named %s does not exist."%self.directory )
- 
+                self.logger.warning( "Warning in DirectoryFileCollector. Folder named %s does not exist."%self.directory )
 
-            
+                          
                     
 if __name__ == "__main__":
     """

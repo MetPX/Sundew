@@ -88,14 +88,15 @@ def main():
     """
     
     #standard use.
+    os.system( 'clear' )
     fileName = PXPaths.STATS +"PICKLED-TIMES"
     pickledTimes = loadPickledTimes( fileName )
     printPickledTimes( pickledTimes, fileName  )
 
-    #tests unexisting file 
-    fileName = PXPaths.STATS + "nonexistingfile"
-    pickledTimes = loadPickledTimes( fileName )
-    printPickledTimes( pickledTimes, fileName ) 
+#     #tests unexisting file 
+#     fileName = PXPaths.STATS + "nonexistingfile"
+#     pickledTimes = loadPickledTimes( fileName )
+#     printPickledTimes( pickledTimes, fileName ) 
 
 if __name__ == "__main__":
     main()

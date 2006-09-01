@@ -125,7 +125,7 @@ def getLastCronJob( client, fileType, currentDate, collectUpToNow = False ):
             lastCronJob = times[ fileType + "_" + client ]
         except:
             lastCronJob = MyDateLib.getIsoWithRoundedHours( MyDateLib.getIsoFromEpoch( MyDateLib.getSecondsSinceEpoch(currentDate ) - MyDateLib.HOUR) )
-            
+            pass
             
         fileHandle.close()      
             
@@ -170,13 +170,13 @@ def getOptionsFromParser( parser ):
     
     ( options, args ) = parser.parse_args()        
     
-    interval      = options.interval
-    collectUpToNow= options.collectUpToNow 
-    currentDate   = options.currentDate.replace( '"','' ).replace( "'",'' )
-    fileType      = options.fileType.replace( "'",'' )
-    machine       = options.machine.replace( " ","" )
-    clients       = options.clients.replace(' ','' ).split( ',' )
-    types         = options.types.replace( ' ', '' ).split( ',' )
+    interval       = options.interval
+    collectUpToNow = options.collectUpToNow 
+    currentDate    = options.currentDate.replace( '"','' ).replace( "'",'' )
+    fileType       = options.fileType.replace( "'",'' )
+    machine        = options.machine.replace( " ","" )
+    clients        = options.clients.replace(' ','' ).split( ',' )
+    types          = options.types.replace( ' ', '' ).split( ',' )
     
     
     try: # Makes sure date is of valid format. 
@@ -248,7 +248,8 @@ def getOptionsFromParser( parser ):
             clients = pxManager.getRxNames()          
        
            
-    print clients            
+    #print clients   
+             
     # Verify that each client needs to be updated. 
     # If not we add a warning to the logger and removwe the client from the list
     # since it's not needed, but other clients might be.
@@ -256,6 +257,7 @@ def getOptionsFromParser( parser ):
     for client in clients :
         startTime = getLastCronJob( client = client, fileType= fileType, currentDate =  currentDate , collectUpToNow = collectUpToNow )
         
+        print "currentDate : %s   startTime : %s" %( currentDate, startTime )
         if  currentDate > startTime:
             directories.append( PXPaths.LOG )
             startTimes.append( startTime )
@@ -265,7 +267,8 @@ def getOptionsFromParser( parser ):
 
         
         
-                        
+    #print "usefullClients : %s " %usefullClients
+    
     infos = _UpdaterInfos( currentDate = currentDate, clients = usefullClients, startTimes = startTimes, directories = directories ,types = types, collectUpToNow = collectUpToNow, fileType = fileType, machine = machine )
     
     if collectUpToNow == False:
@@ -386,9 +389,12 @@ def updateHourlyPickles( infos ):
         
     """  
     
+    cs = ClientStatsPickler( )
+    
+    
     for i in range( len (infos.clients) ) :
         
-        cs = ClientStatsPickler( client = infos.clients[i] )
+        cs.client = infos.clients[i]
         
         width = MyDateLib.getSecondsSinceEpoch(infos.endTime) - MyDateLib.getSecondsSinceEpoch( MyDateLib.getIsoWithRoundedHours(infos.startTimes[i] ) ) 
         
@@ -414,12 +420,10 @@ def updateHourlyPickles( infos ):
                 print " client : %s " %infos.clients[i]
                 print " hours : %s " %hours[j]
                 
-                cs.pickleName =  ClientStatsPickler.buildThisHoursFileName( client = infos.clients[i], currentTime =  startOfTheHour, machine = infos.machine  )
+                cs.pickleName =  ClientStatsPickler.buildThisHoursFileName( client = infos.clients[i], currentTime =  startOfTheHour, machine = infos.machine, fileType = infos.fileType )
                  
-                cs.collectStats( types = infos.types, startTime = startTime , endTime = endTime, interval = infos.interval * MyDateLib.MINUTE,  directory = PXPaths.LOG, fileType = "tx"  )                         
-                
-             
- 
+                cs.collectStats( types = infos.types, startTime = startTime , endTime = endTime, interval = infos.interval * MyDateLib.MINUTE,  directory = PXPaths.LOG, fileType = infos.fileType )                     
+                           
                     
         else:      
             
@@ -430,15 +434,13 @@ def updateHourlyPickles( infos ):
             if startTime >= endTime :
                 print "startTime : %s" %startTime
                 print "endTime : %s " %endTime
-                raise Exception("Startime used in updateHourlyPickles was greater or equal to end time.")    
+                raise Exception( "Startime used in updateHourlyPickles was greater or equal to end time." )    
  
                 
-            cs.pickleName =   ClientStatsPickler.buildThisHoursFileName( client = infos.clients[i], currentTime = startOfTheHour, machine = infos.machine )            
+            cs.pickleName =   ClientStatsPickler.buildThisHoursFileName( client = infos.clients[i], currentTime = startOfTheHour, machine = infos.machine, fileType = infos.fileType )            
               
-            cs.collectStats( infos.types, startTime = startTime, endTime = endTime, interval = infos.interval * MyDateLib.MINUTE, directory = PXPaths.LOG, fileType = "tx"   )
-
-        
-        del cs # makes sure loggers left opened are closed.
+            cs.collectStats( infos.types, startTime = startTime, endTime = endTime, interval = infos.interval * MyDateLib.MINUTE, directory = PXPaths.LOG, fileType = infos.fileType   )        
+       
                          
         setLastCronJob( client = infos.clients[i], fileType = infos.fileType, currentDate = infos.currentDate, collectUpToNow = infos.collectUpToNow )
         

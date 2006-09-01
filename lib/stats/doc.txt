@@ -534,8 +534,6 @@ To be completed....
 TODO list 
 ----------------------------------------------------------------------------------------------------
 
--Add rsync implementation that downloads all the pickles to the central, graphic producing server. 
-
 -Make more local tests.
 
 -Engage in real tests.

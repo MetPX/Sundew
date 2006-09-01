@@ -46,34 +46,35 @@ def tail( nbLines = 1, file = "", printIt = False ):
         fileSize = os.stat(file)[6]
         
         if fileSize >=2 : 
+            
             fileHandle = open( file ,"r" )
             fileHandle.seek( offset,2 )
             
-            for lineNumber in range( nbLines +1 ) :
+            for lineNumber in range( nbLines + 1 ) :
                 
-                while abs( offset) <=  fileSize and fileHandle.read(1) == "\n" :
+                while abs( offset ) <=  fileSize and fileHandle.read(1) == "\n" :
                     
-                    offset = offset- 1
+                    offset = offset - 1
                     if abs( offset) <=  fileSize :
                         fileHandle.seek( offset,2 )
                     else:
-                        fileHandle.seek( (fileSize - ( 2*fileSize ) ),2 )  
+                        fileHandle.seek( (fileSize - ( 2*fileSize ) ), 2 )  
                             
                 
                 while abs( offset) <=  fileSize and fileHandle.read(1) != "\n" :
                     
-                    offset = offset- 1
+                    offset = offset - 1
                     
                     if abs( offset) <=  fileSize :
-                        fileHandle.seek( offset,2 )
+                        fileHandle.seek( offset, 2 )
                     else:
-                        fileHandle.seek( (fileSize - ( 2 * fileSize) ),2 )    
+                        fileHandle.seek( (fileSize - ( 2 * fileSize) ), 2 )    
                 
                     
                 line = fileHandle.readline()
                 
                 if line != "" : #might not be usefull
-                    lines.append(line)
+                    lines.append( line )
                 
                 if abs( offset) >  fileSize : # cant tail any more lines than the file pocess..
                     break   
@@ -102,7 +103,8 @@ def readLineBackwards( fileHandle, offset = -1 , fileSize =0 ) :
         line backwards. 
         
         It will prove to be much faster and much less demanding on memory when 
-        using large files.  
+        using large files than reading an entire file form the top with either 
+        readline or readlines.  
     
     """
 
@@ -122,12 +124,12 @@ def readLineBackwards( fileHandle, offset = -1 , fileSize =0 ) :
             if abs( offset ) <=  fileSize :
                 fileHandle.seek( offset,2 )
             else:
-                fileHandle.seek( ( fileSize - (2*fileSize) ), 2 ) 
+                fileHandle.seek( ( fileSize - ( 2*fileSize ) ), 2 ) 
                 
-        if abs( offset) <=  fileSize :
+        if abs( offset ) <=  fileSize :
             fileHandle.seek( offset, 2 )
         else:
-            fileHandle.seek( ( fileSize - ( 2*fileSize) ), 2 ) 
+            fileHandle.seek( ( fileSize - ( 2 * fileSize ) ), 2 ) 
                 
         while abs( offset ) <=  fileSize and fileHandle.read(1) != "\n" : 
             offset = offset- 1

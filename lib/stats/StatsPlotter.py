@@ -162,7 +162,7 @@ class StatsPlotter:
             
             
         """
-        print "get x tics"
+        #print "get x tics"
         self.logger.debug( "Call to getXtics received" )
         
         nbBuckets = ( len( self.stats[0].statsCollection.timeSeperators ) )
@@ -202,6 +202,7 @@ class StatsPlotter:
         """
         
         self.logger.debug( "Call to getPairs received." )
+        
         k = 0 
         pairs = []
         total = 0
@@ -209,7 +210,7 @@ class StatsPlotter:
         self.nbErrors[clientCount] = 0
         self.nbFilesOverMaxLatency[clientCount] = 0
         nbEntries = len( self.stats[clientCount].statsCollection.timeSeperators )-1 
-                
+               
         
         if nbEntries !=0:
             
@@ -238,8 +239,9 @@ class StatsPlotter:
                             
                             
                         else:
+                            #print "goes to bytecount"
                             pairs.append( [ MyDateLib.getSecondsSinceEpoch(self.stats[clientCount].statsCollection.timeSeperators[k]), self.stats[clientCount].statsCollection.fileEntries[k].means[statType]] )
-                            
+                            #print self.stats[clientCount].statsCollection.fileEntries[k].means
                         
                         if( self.stats[clientCount].statsCollection.fileEntries[k].maximums[statType]  > self.maximums[clientCount][typeCount] ) :
                             
@@ -249,6 +251,7 @@ class StatsPlotter:
                             
                             self.filesWhereMaxOccured[clientCount][typeCount] = self.stats[clientCount].statsCollection.fileEntries[k].filesWhereMaxOccured[statType]
                         
+                            
                         elif self.stats[clientCount].statsCollection.fileEntries[k].minimums[statType] < self.minimums[clientCount][typeCount] :         
                             self.minimums[clientCount][typeCount] = pairs[k][1]
                         
@@ -257,6 +260,7 @@ class StatsPlotter:
                    
                               
                     else:
+                    #    print "we might have a problem"
                         pairs.append( [ MyDateLib.getSecondsSinceEpoch(self.stats[clientCount].statsCollection.timeSeperators[k]), 0.0 ] )
                 
                 
@@ -274,7 +278,13 @@ class StatsPlotter:
             if self.nbFiles[clientCount] != 0 :
                 self.ratioOverLatency[clientCount]  = float( float(self.nbFilesOverMaxLatency[clientCount]) / float(self.nbFiles[clientCount]) ) *100.0
             
-                                 
+            #print "statType : %s" %statType     
+            #print "*****pairs: %s" %pairs
+            #print
+            #print
+            #print
+            #print 
+            
             return pairs    
 
 
@@ -307,7 +317,7 @@ class StatsPlotter:
                
         """      
               
-        title=  "%s for %s queried at %s for a span of %s hours \\n\\nMAX: %3.2f,  MEAN: %3.2f, MIN: %3.2f " %( statType, self.clientNames[i],  self.currentTime , self.timespan,  self.maximums[i][typeCount], self.means[i][typeCount], self.minimums[i][typeCount] )     
+        title =  "%s for %s queried at %s for a span of %s hours \\n\\nMAX: %3.2f,  MEAN: %3.2f, MIN: %3.2f " %( statType, self.clientNames[i],  self.currentTime , self.timespan,  self.maximums[i][typeCount], self.means[i][typeCount], self.minimums[i][typeCount] )     
         
         return title
         
@@ -391,7 +401,8 @@ class StatsPlotter:
             timeOfMax = self.timeOfMax[i][j] 
             if maxPairValue < 5 :
                 self.graph( 'set format y "%10.2f"' )
-
+            else:
+                self.graph( 'set format y "%12.0f"' )
         else:
             timeOfMax = ""
                 
@@ -433,6 +444,9 @@ class StatsPlotter:
             timeOfMax = self.timeOfMax[i][j] 
             if maxPairValue <5 :
                 self.graph( 'set format y "%10.2f"' )
+            else:
+                self.graph( 'set format y "%12.0f"' )    
+                
         else:
             timeOfMax = ""
                 
@@ -468,8 +482,10 @@ class StatsPlotter:
                  
         if self.maximums[i][j] !=0:
             timeOfMax = MyDateLib.getIsoWithRoundedSeconds( self.timeOfMax[i][j]  )
-            if maxPairValue <5 :
+            if maxPairValue < 5 :
                 self.graph( 'set format y "%10.2f"' )
+            else:
+                self.graph( 'set format y "%12.0f"' )
         else:
             timeOfMax = ""
                 

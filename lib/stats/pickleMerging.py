@@ -27,10 +27,10 @@ named COPYING in the root of the source directory tree.
 
 
 import cpickleWrapper
-from   ClientStatsPickler import *
+from   ClientStatsPickler   import *
 import FileStatsCollector
-from   FileStatsCollector import _FileStatsEntry, FileStatsCollector
-from  PickleVersionChecker import *
+from   FileStatsCollector   import _FileStatsEntry, FileStatsCollector
+from   PickleVersionChecker import *
 
   
 def entryListIsValid( entryList ):
@@ -51,6 +51,7 @@ def entryListIsValid( entryList ):
         statsTypes = entryList[0].statsTypes  
         
         while i < len(entryList) and isValid == True  :  
+            
             if startTime != entryList[i].startTime or totalWidth != entryList[i].totalWidth or interval != entryList[i].interval :
                 isValid = False 
             
@@ -73,8 +74,7 @@ def fillWithEmptyEntries( nbEmptyEntries, entries ):
     """
         Append certain number of empty entries to the entry list. 
     
-    """
-    
+    """    
     
     for i in range( nbEmptyEntries ):
         entries.append( _FileStatsEntry() )       
@@ -83,7 +83,7 @@ def fillWithEmptyEntries( nbEmptyEntries, entries ):
 
 
 
-def mergePicklesFromDifferentHours( logger = None , startTime = "2006-07-31 13:00:00", endTime = "2006-07-31 19:00:00", client = "satnet", machine = "pdsPM" ):
+def mergePicklesFromDifferentHours( logger = None , startTime = "2006-07-31 13:00:00", endTime = "2006-07-31 19:00:00", client = "satnet", machine = "pdsPM", fileType = "tx" ):
     """
         This method merges entire hourly pickles files. 
         
@@ -104,35 +104,38 @@ def mergePicklesFromDifferentHours( logger = None , startTime = "2006-07-31 13:0
     
     
     for seperator in seperators :
-        pickles.append( ClientStatsPickler.buildThisHoursFileName(  client = client, offset = 0, currentTime = seperator,machine = machine ) )        
+        pickles.append( ClientStatsPickler.buildThisHoursFileName(  client = client, offset = 0, currentTime = seperator, machine = machine, fileType = fileType ) )        
     
     
     for pickle in pickles : 
-        #print "pickle being added:%s " %pickle      
+    
         if os.path.isfile( pickle ) :
+                 
             tempCollection = cpickleWrapper.load( pickle )
             entries.extend( tempCollection.fileEntries )
             
         else:
+            
             emptyEntries = fillWithEmptyEntries( nbEmptyEntries = 60, entries = [] )
             entries.extend( emptyEntries )
      
             
     statsCollection = FileStatsCollector(  startTime = startTime , endTime = endTime, interval = MyDateLib.MINUTE, totalWidth = width, fileEntries = entries )
     
-    statsCollection = statsCollection.setMinMaxMeanMedians( startingBucket = 0 , finishingBucket = statsCollection.nbEntries )      
+#     statsCollection = statsCollection.setMinMaxMeanMedians( startingBucket = 0 , finishingBucket = statsCollection.nbEntries )      
     
-    statsCollection.logger = None
-    cpickleWrapper.save( object = statsCollection, filename = "/apps/px/stats/mergedData") 
-    #print "statsCollection.nbEntries %s" %statsCollection.nbEntries
+#     statsCollection.logger = None
+#     cpickleWrapper.save( object = statsCollection, filename = "/apps/px/stats/mergedData") 
+#     #print "statsCollection.nbEntries %s" %statsCollection.nbEntries
+    
     return statsCollection        
 
 
 
 
-def mergePicklesFromSameHour( logger = None , pickleNames = None, mergedPickleName = "", clientName = "" , combinedMachineName = "", currentTime ="" ):
+def mergePicklesFromSameHour( logger = None , pickleNames = None, mergedPickleName = "", clientName = "" , combinedMachineName = "", currentTime = "", fileType = "tx" ):
     """
-            This methods receives a list of filenames referring t/apps/px/lib/o 
+            This methods receives a list of filenames referring to /apps/px/lib/o 
             pickled FileStatsEntries.
             
             Saves pickles since they might be reused somewhere else...
@@ -154,14 +157,13 @@ def mergePicklesFromSameHour( logger = None , pickleNames = None, mergedPickleNa
     entryList = []
     
     
-    for pickle in pickleNames:
-        #print "pickle in for : %s" %pickle
+    for pickle in pickleNames:#for every pickle we eneed to merge
+        
         if os.path.isfile( pickle ):
             
             entryList.append( cpickleWrapper.load( pickle ) )
-            
-            
-        else:
+                        
+        else:#Use empty entry if there is no existing pickle of that name
             
             endTime = MyDateLib.getIsoFromEpoch( MyDateLib.getSecondsSinceEpoch( currentTime ) + MyDateLib.HOUR ) 
             entryList.append( FileStatsCollector( startTime = currentTime, endTime = endTime  ) )         
@@ -169,21 +171,23 @@ def mergePicklesFromSameHour( logger = None , pickleNames = None, mergedPickleNa
             if logger != None :
                 logger.warning( "Pickle named %s did not exist. Empty entry was used instead." %pickle )    
     
-    #start off with a carbon copy of entryList[0]
+    
+    #start off with a carbon copy of first pickle in list.
     newFSC = FileStatsCollector( files = entryList[0].files , statsTypes =  entryList[0].statsTypes, startTime = entryList[0].startTime, endTime = entryList[0].endTime, interval=entryList[0].interval, totalWidth = entryList[0].totalWidth, firstFilledEntry = entryList[0].firstFilledEntry, lastFilledEntry = entryList[0].lastFilledEntry, maxLatency = entryList[0].maxLatency, fileEntries = entryList[0].fileEntries )
     
+     
     if entryListIsValid( entryList ) == True :
         
-        for i in range ( 1 , len(entryList) ): #add other entries 
+        for i in range ( 1 , len( entryList ) ): #add other entries 
             
             for file in entryList[i].files :
                 if file not in newFSC.files :
                     newFSC.files.append( file ) 
             
-            for j in range( len(newFSC.fileEntries ) ) : 
+            for j in range( len( newFSC.fileEntries ) ) : # add all entries
                     
             
-                for k in range( entryList[i].fileEntries[j].values.rows ):#Add all new value
+                for k in range( entryList[i].fileEntries[j].values.rows ):#Add all new value for each entry
                     
                     newFSC.fileEntries[j].values.productTypes.append( entryList[i].fileEntries[j].values.productTypes[k] ) 
                     
@@ -194,16 +198,16 @@ def mergePicklesFromSameHour( logger = None , pickleNames = None, mergedPickleNa
                         newFSC.fileEntries[ j ].nbFiles = newFSC.fileEntries[ j ].nbFiles + 1
                     
                     for type in newFSC.statsTypes :
+                         
                         newFSC.fileEntries[j].values.dictionary[type].append( entryList[i].fileEntries[j].values.dictionary[type][k] ) 
-                        
+                    
+                    #print entryList[i].fileEntries[j].values.dictionary[type][k]        
                     newFSC.fileEntries[j].values.rows = newFSC.fileEntries[j].values.rows + 1
 
         
-        newFSC = newFSC.setMinMaxMeanMedians( startingBucket = 0 , finishingBucket = newFSC.nbEntries )
-    
-    else:
-#         print "Did not merge pickles named. Pickle list was not valid."
-#         print "entrylist : %s " %pickleNames
+        newFSC = newFSC.setMinMaxMeanMedians( productType = "", startingBucket = 0 , finishingBucket = newFSC.nbEntries )
+                
+    else:#Did not merge pickles named. Pickle list was not valid."
         
         if logger != None :
             logger.warning( "Did not merge pickles named : %s. Pickle list was not valid." %pickleNames )
@@ -212,6 +216,7 @@ def mergePicklesFromSameHour( logger = None , pickleNames = None, mergedPickleNa
         newFSC.fileEntries = fillWithEmptyEntries( nbEmptyEntries = 60 , entries = [] )    
     
     
+        
     temp = newFSC.logger
     del newFSC.logger
     cpickleWrapper.save( newFSC, mergedPickleName )
@@ -223,6 +228,7 @@ def mergePicklesFromSameHour( logger = None , pickleNames = None, mergedPickleNa
 
 def createNonMergedPicklesList( currentTime, machines, fileType, client ):
     """
+        Create a list of all pickles names concerning different machines for a certain hour.
     """    
     
     pickleList = []
@@ -252,6 +258,7 @@ def createMergedPicklesList( startTime, endTime, client, fileType, machines, sep
     for seperator in seperators:
         pickleList.append( ClientStatsPickler.buildThisHoursFileName(  client = client, currentTime = seperator, fileType = fileType, machine = combinedMachineName ) )
 
+        
     return pickleList
     
     
@@ -265,6 +272,8 @@ def mergePicklesFromDifferentMachines( logger = None , startTime = "2006-07-31 1
         remote locations.
         
     """ 
+    
+    
     vc  = PickleVersionChecker()
     vc.getCurrentFileList()
     vc.getSavedList()
@@ -282,39 +291,35 @@ def mergePicklesFromDifferentMachines( logger = None , startTime = "2006-07-31 1
     seperators = [startTime]
     seperators.extend( MyDateLib.getSeparatorsWithStartTime( startTime = startTime , width=width, interval=60*MINUTE )[:-1])
     
-    mergedPickleNames = createMergedPicklesList(  startTime = startTime, endTime = endTime, machines = machines, fileType = fileType, client = client, seperators = seperators )
     
-#     print "mergedPickleNames : %s" %mergedPickleNames
-#     print "****************************"
-#     print "width  : %s" %width
-#     print "startTime : %s" %startTime
-#     print "endTime : %s" %endTime
+    mergedPickleNames = createMergedPicklesList(  startTime = startTime, endTime = endTime, machines = machines, fileType = fileType, client = client, seperators = seperators ) #Resulting list of the merger.
     
-    for i in range( len( mergedPickleNames) ) :
+    
+    for i in range( len( mergedPickleNames ) ) : #for every merger needed
             
             needToMergeSameHoursPickle = False 
             pickleNames = createNonMergedPicklesList( currentTime = seperators[i], machines = machines, fileType = fileType, client = client )
             
-            for pickle in pickleNames :
+            for pickle in pickleNames : #Verify every pickle implicated in merger.
                 
-                if vc.isDifferentFile( pickle ) == True :
-                    print  "This pickle caused a same hour merger : %s" %pickle
+                if vc.isDifferentFile( pickle ) == True : # if for some reason pickel has changed since last time
+                    #print  "This pickle caused a same hour merger : %s" %pickle
                     needToMergeSameHoursPickle = True 
                     break 
             
-            if needToMergeSameHoursPickle == True :  
+            if needToMergeSameHoursPickle == True :#First time or one eleement has changed   
                  
-                mergePicklesFromSameHour( logger = None , pickleNames = pickleNames , clientName = client, combinedMachineName = combinedMachineName, currentTime = seperators[i], mergedPickleName = mergedPickleNames[i]  )
+                mergePicklesFromSameHour( logger = None , pickleNames = pickleNames , clientName = client, combinedMachineName = combinedMachineName, currentTime = seperators[i], mergedPickleName = mergedPickleNames[i], fileType = fileType  )
                 
                 for pickle in pickleNames :
                     vc.updateFileInList(pickle)
             
                 vc.saveList()
-                print "saves list?"
+                
                         
-    # One all machines have merges the necessary pickles we merge all pickles 
+    # Once all machines have merges the necessary pickles we merge all pickles 
     # into a single file stats entry. 
-    newFSC = mergePicklesFromDifferentHours( logger = None , startTime = startTime, endTime = endTime, client = client, machine = combinedMachineName  )
+    newFSC = mergePicklesFromDifferentHours( logger = None , startTime = startTime, endTime = endTime, client = client, machine = combinedMachineName,fileType = fileType  )
    
     return newFSC
 

@@ -61,7 +61,7 @@ How to use the stats library, step by step :
             update a certain tx client up to a certain date :
             pickleUpdater.py -f tx -c satnet -d "2006-08-08 12:15:00"
             
-            Very usefull to start off a new client. At first, you use pickleUpdater with  
+            ***Very usefull to start off a new client. At first, you use pickleUpdater with  
             the first hour where the client started as parameter. 
             
             Once this has been done, you update it up to now using : pickleUpdater.py -f tx -c satnet
@@ -223,9 +223,6 @@ How to use the stats library, step by step :
 | Step 4 - Utilities |
  --------------------
        
-     ------------------
-    |Preliminary steps |
-     ------------------
     4.1 pickled times
     
         To see the content of pickled-times file wich contain the time 

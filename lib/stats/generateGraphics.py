@@ -111,25 +111,36 @@ def getOptionsFromParser( parser ):
         print "Program terminated."
         sys.exit()    
         
+#     try :
     
     if fileType == "tx":       
-        validTypes = ["errors","latency","bytecount"]
-
-    else:
-        validTypes = ["errors","bytecount"]
-           
-    try :
-        for t in types :
-            if t not in validTypes:
-                raise 
-                print "trouve lerreur"
-    except:    
+        validTypes = [ "errors","latency","bytecount" ]
         
-        print "Error. With %s fileType, possible data types values are : %s." %(fileType,validTypes )
-        print 'For multiple types use this syntax : -t "type1,type2"' 
-        print "Use -h for additional help."
-        print "Program terminated."
-        sys.exit()
+        if types[0] == "All":
+            types = validTypes
+        else :
+            for t in types :
+                if t not in validTypes:
+                    raise Exception("")
+    else:
+        print "Types : %s" %types
+        validTypes = [ "errors","bytecount" ]
+        
+        if types[0] == "All":
+            types = validTypes
+        
+        else :
+            for t in types :
+                if t not in validTypes:
+                    raise Exception("")
+
+#     except:    
+#         
+#         print "Error. With %s fileType, possible data types values are : %s." %(fileType,validTypes )
+#         print 'For multiple types use this syntax : -t "type1,type2"' 
+#         print "Use -h for additional help."
+#         print "Program terminated."
+#         sys.exit()
     
     directory = PXPaths.LOG
     
@@ -222,8 +233,7 @@ def addOptions( parser ):
     
     parser.add_option("-s", "--span", action="store",type ="int", dest = "timespan", default=12, help="timespan( in hours) of the graphic.")
        
-    parser.add_option("-t", "--types", type="string", dest="types", default="latency,errors,bytecount",
-                        help="Types of data to look for.")   
+    parser.add_option("-t", "--types", type="string", dest="types", default="All",help="Types of data to look for.")   
 
 
 
@@ -234,7 +244,10 @@ def main():
     parser = createParser( )  #will be used to parse options 
     
     infos = getOptionsFromParser( parser )      
-        
+    
+    print "parameters in generate graphics: %s %s %s %s %s %s %s" %( infos.clientNames, infos.timespan, infos.currentTime, infos.productType, infos.directory , infos.fileType,  infos.machines)
+    
+    
     gp = ClientGraphicProducer( clientNames = infos.clientNames, timespan = infos.timespan, currentTime = infos.currentTime, productType = infos.productType, directory = infos.directory , fileType = infos.fileType, machines = infos.machines )  
     
     gp.produceGraphicWithHourlyPickles( types = infos.types, now = infos.collectUpToNow   )

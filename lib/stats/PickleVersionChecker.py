@@ -29,6 +29,7 @@ class PickleVersionChecker :
 
     def __init__( self ):
         """
+            Constructor.
         """
         
         self.currentFileList = {}
@@ -37,6 +38,7 @@ class PickleVersionChecker :
         
     def getCurrentFileList( self ):
         """
+            Returns the checksum of files currently found on the disk.
         """    
         
         status, md5Output = commands.getstatusoutput( "md5sum `find %s -name '*_??'` " % PXPaths.PICKLES )
@@ -48,7 +50,7 @@ class PickleVersionChecker :
                 sum,file = line.split()      
                 self.currentFileList[file] = sum
             
-            print self.currentFileList     
+            #print self.currentFileList     
     
         return  self.currentFileList       
             
@@ -56,6 +58,7 @@ class PickleVersionChecker :
         
     def getSavedList( self ):
         """
+            Returns the checksum of the files when we last used them.
         """
         
         try :

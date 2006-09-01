@@ -61,7 +61,7 @@ def printPickle( pickle, outputFile = "" ):
     print "nbEntries : %s" %statsCollection.nbEntries
     
     for j in range( statsCollection.nbEntries ):
-        print j
+        
         print "\nEntry's interval : %s - %s " %( statsCollection.fileEntries[j].startTime, statsCollection.fileEntries[j].endTime  )
         print "Products : "
         print statsCollection.fileEntries[j].values.productTypes
@@ -78,6 +78,7 @@ def printPickle( pickle, outputFile = "" ):
         print "Total"
         print statsCollection.fileEntries[j].totals
         
+        
     if outputFile != "":
         fileHandle.close()      
         sys.stdout = old_stdout #resets standard output 
@@ -89,6 +90,8 @@ def printPickle( pickle, outputFile = "" ):
 #         print "Program terminated."
 #         sys.exit()
 #         
+
+
 
 def main(): 
     """
@@ -109,7 +112,8 @@ def main():
             printPickle( pickle, outputFileName )      
                     
         else:
-            print "Error. Invalid picklename. Use absolutefilename please."
+            print "Error. Invalid picklename."
+            print "***Note : Pickle name ust be an absolute file name."
             sys.exit()        
     
     else:

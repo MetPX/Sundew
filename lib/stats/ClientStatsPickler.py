@@ -49,30 +49,29 @@ PXPaths.normalPaths()
 class ClientStatsPickler:
     """
         Contains all the methods needed to pickle stats for a certain client.
+        
     """
     
     def __init__( self, client = "", directory = "", statsTypes = None, statsCollection = None, pickleName = "", logger = None, machine = "pdsCSP"  ):
         """ 
             Constructor.
-            -Builds a ClientStatsPickler with no entries.   
-        
+            -Builds a ClientStatsPickler with no entries.           
         """
         
-        self.client           = client                              #Name of the lcient for whom were collecting data 
-        self.pickleName       = ""                                  #Pickle 
-        self.directory        = directory                           #Name of the directory containing stats files.
-        self.statsTypes       = statsTypes or []                    #Types we'll search for stats. 
-        self.machine          = machine                             #Machine on wich the data resides.
-        self.loggerName       = 'pickling'
-        self.logger           = logger
+        self.client           = client                 # Name of the lcient for whom were collecting data 
+        self.pickleName       = ""                     # Pickle 
+        self.directory        = directory              # Name of the directory containing stats files.
+        self.statsTypes       = statsTypes or []       # Types we'll search for stats. 
+        self.machine          = machine                # Machine on wich the data resides.
+        self.loggerName       = 'pickling'             # Name of the logger.             
+        self.logger           = logger                 # Permits a logging system for this object.
         
         if logger is None: # Enable logging
             self.logger = Logger( PXPaths.LOG + 'stats_' + self.loggerName + '.log.notb', 'INFO', 'TX' + self.loggerName ) 
             self.logger = self.logger.getLogger()
            
         self.statsCollection  = statsCollection or FileStatsCollector( logger = self.logger )
-        self.fileCollection   = DirectoryFileCollector( directory = directory, logger = self.logger )#List of all the test files. 
-       
+        self.fileCollection   = DirectoryFileCollector( directory = directory, logger = self.logger )       
         
         
         
@@ -158,11 +157,20 @@ class ClientStatsPickler:
         filePickle = PXPaths.STATS + "PICKLED_FILE_POSITIONS" 
         
         #Find up to date file list. 
-        self.fileCollection =  DirectoryFileCollector( startTime  = startTime , endTime = endTime, directory = directory, lastLineRead = "", fileType = fileType, client = self.client,logger = self.logger )   
-        self.fileCollection.collectEntries()          #find all entries from the folder
+        self.fileCollection =  DirectoryFileCollector( startTime  = startTime , endTime = endTime, directory = directory, lastLineRead = "", fileType = fileType, client = self.client, logger = self.logger )   
         
+        
+        temp  = self.logger#Need to remove current logger temporarily
+        del self.logger
+        self.fileCollection.collectEntries()          #find all entries from the folder
+        self.logger = temp 
+        
+        
+        if self.fileCollection.logger != None : #No longer need the logger 
+            self.fileCollection.logger = None  
                 
         if os.path.isfile( self.pickleName ):
+            
             if self.logger != None :
                 self.logger.warning( "User tried to modify allready filled pickle file." )
                 self.logger.warning( "Pickle was named : %s" %self.pickleName )      
@@ -172,7 +180,7 @@ class ClientStatsPickler:
             # start of the hour up till the end. 
             
             if self.pickleName == "":
-                self.pickleName = ClientStatsPickler.buildThisHoursFileName( client = self.client, currentTime = startTime, machine = self.machine )
+                self.pickleName = ClientStatsPickler.buildThisHoursFileName( client = self.client, currentTime = startTime, machine = self.machine, fileType = fileType )
             
             positions = {}
             
@@ -184,41 +192,41 @@ class ClientStatsPickler:
                 lastReadPosition = 0
         
                 
-            self.statsCollection = FileStatsCollector( files = self.fileCollection.entries, statsTypes = types, startTime = MyDateLib.getIsoWithRoundedHours( startTime ), endTime = endTime, interval = interval, totalWidth = 1*HOUR, lastReadPosition = lastReadPosition, logger = self.logger )
+            self.statsCollection = FileStatsCollector( files = self.fileCollection.entries, fileType = fileType, statsTypes = types, startTime = MyDateLib.getIsoWithRoundedHours( startTime ), endTime = endTime, interval = interval, totalWidth = 1*HOUR, lastReadPosition = lastReadPosition, logger = self.logger )
             
             #Temporarily delete logger to make sure no duplicated lines appears in log file.
-            temp = self.logger
+            temp  = self.logger
             del self.logger
             self.statsCollection.collectStats( endTime )    
             self.logger = temp
             
         
+        
         if save == True :# must remove logger temporarily. Cannot saved opened files.
             
-            temp = self.statsCollection.logger
-            del self.statsCollection.logger
+            if self.statsCollection.logger != None:     
+                temp = self.statsCollection.logger
+                del self.statsCollection.logger
+                loggerNeedsToBeReplaced = True 
+            
             cpickleWrapper.save ( object = self.statsCollection, filename = self.pickleName ) 
-            self.statsCollection.logger = temp
             
-            if self.logger != None :
-                print  "Saved pickle named : %s " %self.pickleName
+            
+            if loggerNeedsToBeReplaced :  
+                self.statsCollection.logger = temp
+            
+            if self.logger != None:
                 self.logger.info( "Saved pickle named : %s " %self.pickleName )
-            
+                         
             positions = {}
                 
             if os.path.isfile( filePickle ):
                 positions = cpickleWrapper.load ( filePickle ) 
             
             positions[ fileType + "_" + self.client] =  self.statsCollection.lastReadPosition
-            cpickleWrapper.save ( object = positions, filename = filePickle ) 
-            
-        
-        if self.statsCollection.logger != None :
-            del self.statsCollection.logger 
-        
-        if self.fileCollection.logger != None :
-            del self.fileCollection.logger     
-
+            cpickleWrapper.save ( object = positions, filename = filePickle )  
+                 
+                
     
              
     def printStats( self ) :       
