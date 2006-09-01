@@ -71,14 +71,14 @@ class PickleVersionChecker :
         
         
                     
-    def isDifferentFile( self, file):
+    def isDifferentFile( self, file, user = "pds5pds6" ):
         """
         
         """
         
         isDifferent = True  
         
-        #if user did not update both lsit we try and do it for him....
+        #if user did not update both list we try and do it for him....
         if self.currentFileList == {}:
             self.getCurrentFileList()
     
@@ -87,7 +87,7 @@ class PickleVersionChecker :
     
         try:
         
-            if self.savedFileList[file] == self.currentFileList[file] :
+            if self.savedFileList[user][file] == self.currentFileList[file] :
                 isDifferent = False         
             
         except:#key doesnt exist on one of the lists
@@ -98,12 +98,13 @@ class PickleVersionChecker :
             
     
     
-    def updateFileInList( self, file) :
+    def updateFileInList( self, file, user ) :
         """
         """ 
 
         if file in self.currentFileList.keys(): 
-            self.savedFileList[file] = self.currentFileList[file]
+            self.savedFileList[user] = {}
+            self.savedFileList[user][file] = self.currentFileList[file]
         
     
     
@@ -121,6 +122,14 @@ def main():
     """
     
     """
+    
+    vc  = PickleVersionChecker()
+    vc.getCurrentFileList()
+    vc.getSavedList()
+    vc.updateFileInList( file = "/apps/px/stats/pickles/pds5/20060831/rx/lvs1-dev_15" , user = "pds5pds6" ) 
+    
+    print vc.savedFileList["pds5pds6"]["/apps/px/stats/pickles/pds5/20060831/rx/lvs1-dev_15"]
+    
     
     
 if __name__ == "__main__" :

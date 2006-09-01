@@ -302,7 +302,7 @@ def mergePicklesFromDifferentMachines( logger = None , startTime = "2006-07-31 1
             
             for pickle in pickleNames : #Verify every pickle implicated in merger.
                 
-                if vc.isDifferentFile( pickle ) == True : # if for some reason pickel has changed since last time
+                if vc.isDifferentFile( file = pickle, user = combinedMachineName ) == True : # if for some reason pickel has changed since last time
                     #print  "This pickle caused a same hour merger : %s" %pickle
                     needToMergeSameHoursPickle = True 
                     break 
@@ -312,7 +312,7 @@ def mergePicklesFromDifferentMachines( logger = None , startTime = "2006-07-31 1
                 mergePicklesFromSameHour( logger = None , pickleNames = pickleNames , clientName = client, combinedMachineName = combinedMachineName, currentTime = seperators[i], mergedPickleName = mergedPickleNames[i], fileType = fileType  )
                 
                 for pickle in pickleNames :
-                    vc.updateFileInList(pickle)
+                    vc.updateFileInList( file = pickle, user = combinedMachineName )
             
                 vc.saveList()
                 
