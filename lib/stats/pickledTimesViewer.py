@@ -31,7 +31,7 @@ def printPickledTimes( pickledTimes, fileName ):
     """
         This method prints the content of the pickled-times file. 
         
-        pre condition :pickledTimes must be a dictionary instance. 
+        pre condition : pickledTimes must be a dictionary instance. 
     
     """
     

@@ -206,7 +206,8 @@ def mergePicklesFromSameHour( logger = None , pickleNames = None, mergedPickleNa
 
         
         newFSC = newFSC.setMinMaxMeanMedians( productType = "", startingBucket = 0 , finishingBucket = newFSC.nbEntries )
-                
+             
+           
     else:#Did not merge pickles named. Pickle list was not valid."
         
         if logger != None :
@@ -216,7 +217,7 @@ def mergePicklesFromSameHour( logger = None , pickleNames = None, mergedPickleNa
         newFSC.fileEntries = fillWithEmptyEntries( nbEmptyEntries = 60 , entries = [] )    
     
     
-        
+    #prevents us from having ro remerge file later on.    
     temp = newFSC.logger
     del newFSC.logger
     cpickleWrapper.save( newFSC, mergedPickleName )
@@ -303,11 +304,10 @@ def mergePicklesFromDifferentMachines( logger = None , startTime = "2006-07-31 1
             for pickle in pickleNames : #Verify every pickle implicated in merger.
                 
                 if vc.isDifferentFile( file = pickle, user = combinedMachineName ) == True : # if for some reason pickel has changed since last time
-                    #print  "This pickle caused a same hour merger : %s" %pickle
                     needToMergeSameHoursPickle = True 
                     break 
             
-            if needToMergeSameHoursPickle == True :#First time or one eleement has changed   
+            if needToMergeSameHoursPickle == True :#First time or one element has changed   
                  
                 mergePicklesFromSameHour( logger = None , pickleNames = pickleNames , clientName = client, combinedMachineName = combinedMachineName, currentTime = seperators[i], mergedPickleName = mergedPickleNames[i], fileType = fileType  )
                 

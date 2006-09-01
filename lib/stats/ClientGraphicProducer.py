@@ -122,7 +122,7 @@ class ClientGraphicProducer:
             if len( self.machines ) > 1 :    
                 statsCollection = pickleMerging.mergePicklesFromDifferentMachines( logger = None , startTime = startTime, endTime = endTime, client = client, fileType = self.fileType, machines = self.machines )
                                     
-            else:#only one machine,only merge different hours together
+            else:#only one machine, only merge different hours together
                
                 statsCollection = pickleMerging.mergePicklesFromDifferentHours( logger = None , startTime = startTime, endTime = endTime, client = client, fileType = self.fileType, machine = self.machines[0] )
                 

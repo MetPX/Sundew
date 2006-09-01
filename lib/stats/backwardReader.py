@@ -15,7 +15,7 @@ named COPYING in the root of the source directory tree.
 ## Date   : 06-07-2006 
 ##
 ##
-## Description : Samll utility that can be used to read files backward. 
+## Description : Small utility that can be used to read files backward. 
 ##
 ##  Has a readlineBackwards method that is similar to readline 
 ##  and a tail method that is similar to the tail used in linux 

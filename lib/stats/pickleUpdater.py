@@ -257,7 +257,7 @@ def getOptionsFromParser( parser ):
     for client in clients :
         startTime = getLastCronJob( client = client, fileType= fileType, currentDate =  currentDate , collectUpToNow = collectUpToNow )
         
-        print "currentDate : %s   startTime : %s" %( currentDate, startTime )
+        #print "currentDate : %s   startTime : %s" %( currentDate, startTime )
         if  currentDate > startTime:
             directories.append( PXPaths.LOG )
             startTimes.append( startTime )

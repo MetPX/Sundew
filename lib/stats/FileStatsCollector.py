@@ -132,8 +132,8 @@ class FileStatsCollector:
         self.firstFilledEntry = firstFilledEntry          # Last entry for wich we calculated mean max etc....
         self.lastFilledEntry  = lastFilledEntry           # Last entry we filled with data. 
         self.lastReadPosition = lastReadPosition          # Last line filled in this stats collection.
-        self.loggerName       = 'fileStatsCollector'      #
-        self.logger           = logger                    #
+        self.loggerName       = 'fileStatsCollector'      # Name of the logger if none is specified.
+        self.logger           = logger                    # Logger
         
         timeSeperators = [ startTime ]
         timeSeperators.extend( MyDateLib.getSeparatorsWithStartTime( startTime, self.totalWidth, self.interval ) ) 
@@ -147,7 +147,7 @@ class FileStatsCollector:
             
         
         if fileEntries == []:
-            #print "Destroying data?"
+            
             self.createEmptyEntries()   # Create all empty buckets right away    
         
         # sorting needs to be done to make sure first file we read is the oldest, thus makes sure
@@ -198,7 +198,7 @@ class FileStatsCollector:
         
         if self.logger != None :    
             self.logger.debug( "Call to setMinMaxMeanMedians received." )
-            #self.logger.debug( "ProductType : %s, firstFilledEntry : %s, lastFilledEntry : %s  ." %( productType, self.firstFilledEntry, self.lastFilledEntry ) )     
+   
                    
         for i in xrange( self.firstFilledEntry , self.lastFilledEntry + 1 ): #for each entries we need to deal with 
             
@@ -209,7 +209,6 @@ class FileStatsCollector:
             self.fileEntries[i].nbFiles  = 0  
             self.fileEntries[i].filesOverMaxLatency = 0
             
-            #print "self.statsTypes : %s" %self.statsTypes
             for aType in self.statsTypes :#for each datatype        
                 
                 self.fileEntries[i].minimums[aType] =  0.0    
@@ -551,8 +550,7 @@ class FileStatsCollector:
         
         if self.logger != None :        
             self.logger.debug( "Call to setValues received."  )
-            #self.logger.debug( "Parameters were self.lastReadPosition : %s, endTime : %s" %(self.lastReadPosition,endTime)) 
-            
+           
         
         for statType in self.statsTypes :    
             neededTypes.append(statType)
@@ -573,8 +571,7 @@ class FileStatsCollector:
             fileSize = os.stat(file)[6]
             
             line, lineType, position  = self.findFirstInterestingLine( fileHandle, fileSize )
-            #print "line returned : %s" %line
-            
+                        
             if line != "" :                                        
                 fileHandle.seek( position )
                 departure   = self.findValues( ["departure"] ,  line, lineType, fileType = self.fileType )["departure"]
@@ -608,9 +605,7 @@ class FileStatsCollector:
                             self.fileEntries[ entryCount ].filesOverMaxLatency = self.fileEntries[entryCount ].filesOverMaxLatency + 1                          
             
                     self.fileEntries[ entryCount ].values.dictionary[statType].append( neededValues[ statType ] )
-                
-                    
-                
+                                                 
                 
                 if lineType != "[ERROR]" :
                     self.fileEntries[ entryCount ].nbFiles = self.fileEntries[ entryCount ].nbFiles + 1        
@@ -650,8 +645,6 @@ class FileStatsCollector:
         
         if self.logger != None :
             self.logger.debug( " Call to createEmptyEntries received." )
-            #self.logger.debug(" len ( self.timeSeperators )-1 = %s." %(len ( self.timeSeperators )-1 ) )
-            #self.logger.debug(" Call to createEmptyEntries received.")
         
         if len ( self.timeSeperators ) > 1 : 
     
@@ -691,7 +684,7 @@ class FileStatsCollector:
 
 if __name__ == "__main__":
     """
-            small test case. Tests if everything works plus gives an idea on proper usage.
+        small test case. Tests if everything works plus gives an idea on proper usage.
     """
     
     types = [ "latency", "errors","bytecount" ]

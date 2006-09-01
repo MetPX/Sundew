@@ -235,6 +235,7 @@ class ClientStatsPickler:
             Mostly usefull for debugging.
             
             file is printed in currentWorkingDirectory/CSC_output_file
+            
         """    
         
         absoluteFilename = str( PXPaths.STATS ) + "CSP_output_file "

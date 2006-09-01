@@ -45,7 +45,7 @@ class _GraphicsInfos:
         self.timespan     = timespan          # Number of hours we want to gather the data from. 
         self.currentTime  = currentTime       # Time when stats were queried.
         self.productType  = productType       # Specific data type on wich we'll collect the data.
-        self.machines     = machines          # Machine fro wich we want the data to be calculated.
+        self.machines     = machines          # Machine from wich we want the data to be calculated.
         
         
 #################################################################
@@ -111,41 +111,40 @@ def getOptionsFromParser( parser ):
         print "Program terminated."
         sys.exit()    
         
-#     try :
+    try :
     
-    if fileType == "tx":       
-        validTypes = [ "errors","latency","bytecount" ]
-        
-        if types[0] == "All":
-            types = validTypes
-        else :
-            for t in types :
-                if t not in validTypes:
-                    raise Exception("")
-    else:
-        print "Types : %s" %types
-        validTypes = [ "errors","bytecount" ]
-        
-        if types[0] == "All":
-            types = validTypes
-        
-        else :
-            for t in types :
-                if t not in validTypes:
-                    raise Exception("")
+        if fileType == "tx":       
+            validTypes = [ "errors","latency","bytecount" ]
+            
+            if types[0] == "All":
+                types = validTypes
+            else :
+                for t in types :
+                    if t not in validTypes:
+                        raise Exception("")
+        else:
+            print "Types : %s" %types
+            validTypes = [ "errors","bytecount" ]
+            
+            if types[0] == "All":
+                types = validTypes
+            
+            else :
+                for t in types :
+                    if t not in validTypes:
+                        raise Exception("")
 
-#     except:    
-#         
-#         print "Error. With %s fileType, possible data types values are : %s." %(fileType,validTypes )
-#         print 'For multiple types use this syntax : -t "type1,type2"' 
-#         print "Use -h for additional help."
-#         print "Program terminated."
-#         sys.exit()
+    except:    
+        
+        print "Error. With %s fileType, possible data types values are : %s." %(fileType,validTypes )
+        print 'For multiple types use this syntax : -t "type1,type2"' 
+        print "Use -h for additional help."
+        print "Program terminated."
+        sys.exit()
     
     directory = PXPaths.LOG
     
-
-   
+       
     infos = _GraphicsInfos( collectUpToNow = collectUpToNow, currentTime = currentTime, clientNames = clientNames,  directory = directory , types = types, fileType = fileType, timespan = timespan, productType = productType, machines = machines )
     
     if collectUpToNow == False:
@@ -240,6 +239,10 @@ def addOptions( parser ):
 
 
 def main():
+    """
+        Creates graphics based on parameters used.
+        
+    """
     
     parser = createParser( )  #will be used to parse options 
     
@@ -252,8 +255,7 @@ def main():
     
     gp.produceGraphicWithHourlyPickles( types = infos.types, now = infos.collectUpToNow   )
     
-    #add logging here 
-    print "Done."
+    print "Done." # replace by logging later.
 
 
 if __name__ == "__main__" :

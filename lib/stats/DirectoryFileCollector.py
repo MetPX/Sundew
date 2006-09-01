@@ -40,22 +40,22 @@ class DirectoryFileCollector:
                  
     """
     
-    def __init__( self, startTime = "2006-06-06 01:00:00", endTime = "2006-06-06 02:00:00", directory = PXPaths.LOG, lastLineRead = "", fileType = "tx", client = "satnet",logger = None ):
+    def __init__( self, startTime = "2006-06-06 01:00:00", endTime = "2006-06-06 02:00:00", directory = PXPaths.LOG, lastLineRead = "", fileType = "tx", client = "satnet", logger = None ):
         """ 
             Constructor.
             -Builds a directoryFileCollector with no entries.   
         
         """
 
-        self.directory    = directory    # Name of the directory where we collect entries 
-        self.startTime    = startTime    # Starting time of the data wich interests us. 
-        self.endTime      = endTime      # Width of time for wich we are interested to collec data. 
-        self.lastLineRead = lastLineRead # Last line read during a previous collection of data.  
-        self.fileType     = fileType     # Type of file we will be searching for here. tx,rx etc...
-        self.client       = client       # Name of the client for wich we are searching files.  
-        self.entries      = []           # List containing filenames of all interesting files found. 
-        self.logger       = logger       # Used to log warning error infos etc.
-        self.loggerName   = 'fileCollector'
+        self.directory    = directory       # Name of the directory where we collect entries 
+        self.startTime    = startTime       # Starting time of the data wich interests us. 
+        self.endTime      = endTime         # Width of time for wich we are interested to collec data. 
+        self.lastLineRead = lastLineRead    # Last line read during a previous collection of data.  
+        self.fileType     = fileType        # Type of file we will be searching for here. tx,rx etc...
+        self.client       = client          # Name of the client for wich we are searching files.  
+        self.entries      = []              # List containing filenames of all interesting files found. 
+        self.logger       = logger          # Used to log warning error infos etc.
+        self.loggerName   = 'fileCollector' # Name used for the logger if none was specified.
        
         
         if logger is None: # Enable logging
@@ -85,8 +85,7 @@ class DirectoryFileCollector:
             
             departure =  FileStatsCollector.findValues( ["departure"], line )["departure"]       
             
-            #print "looking for data between start : %s end : %s " %(self.startTime, self.endTime ) 
-                                  
+                                             
             if departure <= self.endTime  :
                 
                 line == ""

@@ -302,7 +302,7 @@ How to use the stats library, step by step :
         EX 15:00:00 if requested at 15:38:16
         
         If data doesnt exist for a certain hour it will be repalced by empty data 
-        for that hour. This will show up as a warning in te log files.
+        for that hour. This will show up as a warning in the log files.
         
         If data was not synchronised at the time of the graphics production and 
         lets say hours 7 was missing. 

@@ -278,12 +278,6 @@ class StatsPlotter:
             if self.nbFiles[clientCount] != 0 :
                 self.ratioOverLatency[clientCount]  = float( float(self.nbFilesOverMaxLatency[clientCount]) / float(self.nbFiles[clientCount]) ) *100.0
             
-            #print "statType : %s" %statType     
-            #print "*****pairs: %s" %pairs
-            #print
-            #print
-            #print
-            #print 
             
             return pairs    
 
