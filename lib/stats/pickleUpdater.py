@@ -173,10 +173,12 @@ def getOptionsFromParser( parser ):
     interval       = options.interval
     collectUpToNow = options.collectUpToNow 
     currentDate    = options.currentDate.replace( '"','' ).replace( "'",'' )
+    currentDate    = MyDateLib.getIsoWithRoundedHours( currentDate ) 
     fileType       = options.fileType.replace( "'",'' )
     machine        = options.machine.replace( " ","" )
     clients        = options.clients.replace(' ','' ).split( ',' )
     types          = options.types.replace( ' ', '' ).split( ',' )
+    
     
     
     try: # Makes sure date is of valid format. 
@@ -256,9 +258,9 @@ def getOptionsFromParser( parser ):
     usefullClients = []
     for client in clients :
         startTime = getLastCronJob( client = client, fileType= fileType, currentDate =  currentDate , collectUpToNow = collectUpToNow )
-        
-        #print "currentDate : %s   startTime : %s" %( currentDate, startTime )
-        if  currentDate > startTime:
+               
+        if currentDate > startTime:
+            #print " client : %s currentDate : %s   startTime : %s" %( client, currentDate, startTime )
             directories.append( PXPaths.LOG )
             startTimes.append( startTime )
             usefullClients.append( client )
@@ -267,7 +269,7 @@ def getOptionsFromParser( parser ):
 
         
         
-    #print "usefullClients : %s " %usefullClients
+    print "usefullClients : %s " %usefullClients
     
     infos = _UpdaterInfos( currentDate = currentDate, clients = usefullClients, startTimes = startTimes, directories = directories ,types = types, collectUpToNow = collectUpToNow, fileType = fileType, machine = machine )
     
@@ -413,12 +415,10 @@ def updateHourlyPickles( infos ):
                 
                 
                 endTime = MyDateLib.getIsoFromEpoch( MyDateLib.getSecondsSinceEpoch( MyDateLib.getIsoWithRoundedHours(hours[j+1] ) ))
-                
-                if startTime >= endTime :
+                print " client : %s startTime : %s endTime : %s" %(infos.clients[i], startTime, endTime )
+                if startTime >= endTime :# to be removed                                 
                     raise Exception("Startime used in updateHourlyPickles was greater or equal to end time.")    
-                    
-                print " client : %s " %infos.clients[i]
-                print " hours : %s " %hours[j]
+
                 
                 cs.pickleName =  ClientStatsPickler.buildThisHoursFileName( client = infos.clients[i], currentTime =  startOfTheHour, machine = infos.machine, fileType = infos.fileType )
                  
@@ -426,14 +426,12 @@ def updateHourlyPickles( infos ):
                            
                     
         else:      
-            
+           
             startTime = infos.startTimes[i]
             endTime   = infos.endTime             
             startOfTheHour = MyDateLib.getIsoWithRoundedHours( infos.startTimes[i] )
-                            
-            if startTime >= endTime :
-                print "startTime : %s" %startTime
-                print "endTime : %s " %endTime
+            print " client : %s startTime : %s endTime : %s" %(infos.clients[i], startTime, endTime )               
+            if startTime >= endTime :#to be removed                
                 raise Exception( "Startime used in updateHourlyPickles was greater or equal to end time." )    
  
                 

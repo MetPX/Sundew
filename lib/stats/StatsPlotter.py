@@ -405,7 +405,7 @@ class StatsPlotter:
              
         """            
         
-        if self.maximums[i][j] !=None:
+        if self.maximums[i][j] != None:
             timeOfMax = self.timeOfMax[i][j] 
             if maxPairValue < 5 :
                 self.graph( 'set format y "%10.2f"' )
@@ -450,7 +450,7 @@ class StatsPlotter:
         
         if self.maximums[i][j] !=None:
             timeOfMax = self.timeOfMax[i][j] 
-            if maxPairValue <5 :
+            if maxPairValue < 5 :
                 self.graph( 'set format y "%10.2f"' )
             else:
                 self.graph( 'set format y "%12.0f"' )    
@@ -489,7 +489,7 @@ class StatsPlotter:
         """   
                  
         if self.maximums[i][j] !=None:
-            timeOfMax = MyDateLib.getIsoWithRoundedSeconds( self.timeOfMax[i][j]  )
+            timeOfMax =  self.timeOfMax[i][j]
             if maxPairValue < 5 :
                 self.graph( 'set format y "%10.2f"' )
             else:

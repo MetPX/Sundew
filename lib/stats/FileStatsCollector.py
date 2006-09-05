@@ -243,10 +243,21 @@ class FileStatsCollector:
                     if len( values ) != 0 :
                         minimum = values[0]
                         maximum = values[0]
+                        
+                        self.fileEntries[i].minimums[aType] = values[0]
+                        self.fileEntries[i].filesWhereMinOccured[aType] = files[0]    
+                        self.fileEntries[i].timesWhereMinOccured[aType] = times[0]
+                        
+                        self.fileEntries[i].maximums[aType]= values[0]
+                        self.fileEntries[i].filesWhereMaxOccured[aType] = files[0]    
+                        self.fileEntries[i].timesWhereMaxOccured[aType] = times[0]  
+                                            
                     else:
                         minimum =0
                         maximum =0
                     
+                        
+                        
                     for k in xrange( len( values ) ) :
                         
                         if values[k] < minimum:
@@ -263,6 +274,7 @@ class FileStatsCollector:
                                         
                     
                     median  = 0 
+                    
                     try :
                         total   = sum( values )
                     except :
@@ -327,7 +339,7 @@ class FileStatsCollector:
             
             for statsType in statsTypes :   
                 
-                if statsType == "departure" :
+                if statsType == "departure" : #is at the same place for every lineType 
                     values[statsType] =  line.split( ",")[0]   
                     
                 
@@ -349,8 +361,13 @@ class FileStatsCollector:
                         values[statsType] = int( splitLine[3].replace( '(', '' ) )
                        
                     elif statsType == "fileName":
-                        values[statsType] = splitLine[6].split( ":" )[0]
-                    
+                        if fileType == "tx" :
+                            values[statsType] = splitLine[6].split( ":" )[0]
+                        else:
+                            split     = line.split( "/" )
+                            lastPart  = split[ len( split ) -1 ]
+                            values[ statsType ] = lastPart.split( ":" )[0] #in case something is added after line ends.
+                        
                     elif statsType == "productType":
                         
                         if fileType == "tx":
@@ -361,7 +378,8 @@ class FileStatsCollector:
                             values[ statsType ] = lastPart.split( ":" )[0] #in case something is added after line ends.
                             
                     elif statsType == "errors" :
-                        values[statsType] = 0    
+                        values[statsType] = 0  
+                          
                     
                 elif lineType == "[ERROR]":
                 
@@ -388,10 +406,10 @@ class FileStatsCollector:
     
     
         
-    def isInterestingLine( self, line ):
-        """
+    def isInterestingLine( self, line, usage = "stats"):
+        """ 
             This method returns whether or not the line is interesting 
-            according to the types ask for in parameters. 
+            according to the types asked for in parameters. 
             
             Also returns for what type it's interesting.   
             
@@ -413,7 +431,11 @@ class FileStatsCollector:
             elif "[INFO]" in line and "Bytes" in line and "/sec" not in line and " Segment " not in line : 
                 isInteresting = True             
                 lineType = "[INFO]"
-                
+            
+            elif usage != "stats" and ( "[WARNING]" in line or "[INFO]" in line ) :
+                isInteresting = True 
+                lineType = "[WARNING]"
+                    
                 
         return isInteresting,lineType
     
@@ -451,15 +473,41 @@ class FileStatsCollector:
             fileHandle.seek( self.lastReadPosition, 0 )
             firstLine = fileHandle.readline()
             position = fileHandle.tell()
+            
+            #In case of traceback line
+            isInteresting,flineType = self.isInterestingLine( line, usage = "departure" )
+            while isInteresting == False and firstLine != "":
+                firstLine = fileHandle.readline()
+                position = fileHandle.tell()
+                isInteresting,lineType = self.isInterestingLine( firstLine, usage = "departure" )
+        
         
         else:
            
             firstLine      = fileHandle.readline()
             position       = fileHandle.tell()
-            firstDeparture = FileStatsCollector.findValues( ["departure"] , firstLine, fileType = self.fileType )["departure"]
             
-            lastLine,offset  = backwardReader.readLineBackwards( fileHandle, offset = -1, fileSize = fileSize  )
-            lastDeparture    = FileStatsCollector.findValues( ["departure"] , lastLine, fileType = self.fileType )["departure"]
+            #In case of traceback line
+            isInteresting, linetype = self.isInterestingLine( firstLine, usage = "departure" ) 
+            while isInteresting == False and firstLine != "" :  
+                firstLine = fileHandle.readline()
+                position  = fileHandle.tell()
+                isInteresting, linetype = self.isInterestingLine( firstLine, usage = "departure" )               
+            
+            firstDeparture = FileStatsCollector.findValues( ["departure"] , firstLine, lineType = lineType, fileType = self.fileType )["departure"]
+            
+            
+            lastLine, offset  = backwardReader.readLineBackwards( fileHandle, offset = -1, fileSize = fileSize  )
+            
+            isInteresting, lineType = self.isInterestingLine( lastLine,usage = "departure" ) 
+            while isInteresting == False and lastLine != "" : #in case of traceback
+                print lastLine 
+                lastLine, offset  = backwardReader.readLineBackwards(fileHandle, offset = offset, fileSize = fileSize )
+                isInteresting, lineType = self.isInterestingLine( lastLine, usage = "departure" ) 
+                
+            
+            #print "lastLine to be used in call : %s" %lastLine
+            lastDeparture    = FileStatsCollector.findValues( ["departure"] , lastLine, lineType= lineType,  fileType = self.fileType )["departure"]
             
             firstDepartureInSecs = MyDateLib.getSecondsSinceEpoch( firstDeparture )
             startTimeinSec       = MyDateLib.getSecondsSinceEpoch( self.startTime )
@@ -475,7 +523,7 @@ class FileStatsCollector:
             
             while lineFound == False and line != "":     
                 
-                departure =  FileStatsCollector.findValues( ["departure"] , line,fileType = self.fileType )["departure"]
+                departure =  FileStatsCollector.findValues( ["departure"] , line, fileType = self.fileType )["departure"]
                 
                 if departure <=  self.endTime : #were still can keep on reading range 
                     
@@ -497,7 +545,7 @@ class FileStatsCollector:
                         
         
         else:#read backwards till we are in the range we want 
-             
+            nbLinesRead = 0 
             #print "reads backwards"
             fileHandle.seek(0,0)
             
@@ -505,14 +553,17 @@ class FileStatsCollector:
             departure = lastDeparture
             
             while line != "" and departure >= self.startTime :
+                
+                backupLine = line             
+
                 line,offset = backwardReader.readLineBackwards( fileHandle = fileHandle, offset = offset , fileSize = fileSize )
-                #print line 
+                
                 if line != "":
                     departure =  FileStatsCollector.findValues( ["departure"] , line, fileType = self.fileType )["departure"]
-                if departure > self.startTime:#save line ,or else well lose it at last turn
-                    backupLine = line             
-            
-            if backupLine != "" :        
+                
+
+                    
+            if line != "" :# while condition makes us read one too far...        
                 line = backupLine      
                 isInteresting,lineType = self.isInterestingLine( line ) #go back the other way and find first of the good type 
                 while isInteresting == False and line != "" :
@@ -575,7 +626,10 @@ class FileStatsCollector:
             if line != "" :                                        
                 fileHandle.seek( position )
                 departure   = self.findValues( ["departure"] ,  line, lineType, fileType = self.fileType )["departure"]
-                          
+            
+            #print "line returned : %s" %line 
+            #print "coming from file named : %s" %file
+            
             while line  != "" and str(departure)[:-2] < str(endTime)[:-2]: #while in proper range 
                                 
                 while departure[:-2] > self.timeSeperators[ entryCount ][:-2]:#find appropriate bucket
@@ -583,6 +637,8 @@ class FileStatsCollector:
                     
                 neededValues = self.findValues( neededTypes, line, lineType,fileType = self.fileType )    
                 
+                #print "neededValues : %s" %neededValues
+                #print 
                 #add values general to the line we are treating 
                 self.fileEntries[ entryCount ].files.append( neededValues[ "fileName" ] )
                 self.fileEntries[ entryCount ].times.append( departure )
@@ -624,10 +680,12 @@ class FileStatsCollector:
                 
                 
             if line == "" :
+                #print "read the entire file allready"
                 self.lastFilledEntry  = entryCount                  
                 self.lastReadPosition = 0
 
             else:
+                #print "last line read : %s " %line
                 self.lastFilledEntry  = entryCount                  
                 self.lastReadPosition = previousPosition #If we haven't met eof we don't wana loose an interesting 
 
