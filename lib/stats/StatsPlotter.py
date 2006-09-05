@@ -216,8 +216,8 @@ class StatsPlotter:
             
             total = 0
                             
-            self.minimums[clientCount][typeCount] = 1000000
-            self.maximums[clientCount][typeCount] = 0
+            self.minimums[clientCount][typeCount] = 100000000000000000000 #huge integer
+            self.maximums[clientCount][typeCount] = None
             self.filesWhereMaxOccured[clientCount][typeCount] =  "" 
             self.timeOfMax[clientCount][typeCount] = ""
             
@@ -260,7 +260,7 @@ class StatsPlotter:
                    
                               
                     else:
-                    #    print "we might have a problem"
+                   
                         pairs.append( [ MyDateLib.getSecondsSinceEpoch(self.stats[clientCount].statsCollection.timeSeperators[k]), 0.0 ] )
                 
                 
@@ -278,7 +278,9 @@ class StatsPlotter:
             if self.nbFiles[clientCount] != 0 :
                 self.ratioOverLatency[clientCount]  = float( float(self.nbFilesOverMaxLatency[clientCount]) / float(self.nbFiles[clientCount]) ) *100.0
             
-            
+            if self.minimums[clientCount][typeCount] == 100000000000000000000 :
+                self.minimums[clientCount][typeCount] = None
+                   
             return pairs    
 
 
@@ -309,9 +311,21 @@ class StatsPlotter:
             we collected the data. Also contains the mean and absolute min and max found 
             in the data used to build the graphic.          
                
-        """      
+        """  
+        
+        if self.maximums[i][typeCount] !=None :
+            maximum =("%3.2f") %self.maximums[i][typeCount]
+        
+        else:
+            maximum = None
+                 
+        if self.minimums[i][typeCount] != None :
+            minimum = ("%3.2f") %self.minimums[i][typeCount]
+        else:
+            minimum = None
+        
               
-        title =  "%s for %s queried at %s for a span of %s hours \\n\\nMAX: %3.2f,  MEAN: %3.2f, MIN: %3.2f " %( statType, self.clientNames[i],  self.currentTime , self.timespan,  self.maximums[i][typeCount], self.means[i][typeCount], self.minimums[i][typeCount] )     
+        title =  "%s for %s queried at %s for a span of %s hours \\n\\nMAX: %s,  MEAN: %3.2f, MIN: %s " %( statType, self.clientNames[i],  self.currentTime , self.timespan,  maximum, self.means[i][typeCount], minimum )     
         
         return title
         
@@ -391,7 +405,7 @@ class StatsPlotter:
              
         """            
         
-        if self.maximums[i][j] !=0:
+        if self.maximums[i][j] !=None:
             timeOfMax = self.timeOfMax[i][j] 
             if maxPairValue < 5 :
                 self.graph( 'set format y "%10.2f"' )
@@ -434,7 +448,7 @@ class StatsPlotter:
              
         """            
         
-        if self.maximums[i][j] !=0:
+        if self.maximums[i][j] !=None:
             timeOfMax = self.timeOfMax[i][j] 
             if maxPairValue <5 :
                 self.graph( 'set format y "%10.2f"' )
@@ -474,7 +488,7 @@ class StatsPlotter:
              
         """   
                  
-        if self.maximums[i][j] !=0:
+        if self.maximums[i][j] !=None:
             timeOfMax = MyDateLib.getIsoWithRoundedSeconds( self.timeOfMax[i][j]  )
             if maxPairValue < 5 :
                 self.graph( 'set format y "%10.2f"' )
