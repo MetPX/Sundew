@@ -48,6 +48,8 @@ class StatsPlotter:
         """
         
         x = [ [0]*5  for x in range(5) ]
+        machines = "%s" %machines
+        machines = machines.replace( "[","").replace( "]","" ).replace( "'", "" )
         
         self.now         = now                     # False means we round to the top of the hour, True we don't
         self.stats       = stats or []             # ClientStatsPickler instance.
@@ -124,10 +126,10 @@ class StatsPlotter:
         
         date = self.currentTime.replace( "-","" ).replace( " ", "_")
         
-        fileName = PXPaths.GRAPHS + "%s/%s_%s_%s_%s_%shours_on_%s.png" %(clientName, self.fileType, clientName, date, self.statsTypes, self.timespan, self.machines )
+        fileName = PXPaths.GRAPHS + "%s/%s_%s_%s_%s_%shours_on_%s.png" %( clientName, self.fileType, clientName, date, self.statsTypes, self.timespan, self.machines )
         
         
-        fileName = fileName.replace( '[', '').replace(']', '').replace(" ", "")               
+        fileName = fileName.replace( '[', '').replace(']', '').replace(" ", "").replace( "'","" )               
         
         splitName = fileName.split( "/" ) 
         
@@ -265,10 +267,12 @@ class StatsPlotter:
                 
                 
                 except KeyError:
+                    
                     self.logger.error( "Error in getPairs." )
                     self.logger.error( "The %s stat type was not found in previously collected data." %statType )    
                     pairs.append( [ MyDateLib.getSecondsSinceEpoch(self.stats[clientCount].statsCollection.timeSeperators[k]), 0.0 ] )
                     pass    
+                
                 
                 total = total + pairs[k][1]            
             
@@ -405,12 +409,15 @@ class StatsPlotter:
              
         """            
         
-        if self.maximums[i][j] != None:
+        if self.maximums[i][j] != None and self.maximums[i][j] !=None :
+            
             timeOfMax = self.timeOfMax[i][j] 
+            
             if maxPairValue < 5 :
                 self.graph( 'set format y "%10.2f"' )
             else:
                 self.graph( 'set format y "%12.0f"' )
+        
         else:
             timeOfMax = ""
                 
@@ -448,8 +455,10 @@ class StatsPlotter:
              
         """            
         
-        if self.maximums[i][j] !=None:
+        if self.maximums[i][j] !=None and self.maximums[i][j] !=0 :
+            
             timeOfMax = self.timeOfMax[i][j] 
+            
             if maxPairValue < 5 :
                 self.graph( 'set format y "%10.2f"' )
             else:
@@ -488,12 +497,15 @@ class StatsPlotter:
              
         """   
                  
-        if self.maximums[i][j] !=None:
+        if self.maximums[i][j] !=None and self.maximums[i][j] != 0 :
+            
             timeOfMax =  self.timeOfMax[i][j]
+            
             if maxPairValue < 5 :
                 self.graph( 'set format y "%10.2f"' )
             else:
                 self.graph( 'set format y "%12.0f"' )
+        
         else:
             timeOfMax = ""
                 

@@ -146,7 +146,7 @@ class ClientGraphicProducer:
         
         print "Call to StatsPlotter :Clients:%s, timespan:%s, currentTime:%s, statsTypes:%s, productType:%s :" %( self.clientNames, self.timespan, self.currentTime, types, self.productType )
         
-        plotter = StatsPlotter( stats = collectorsList, clientNames = self.clientNames, timespan = self.timespan, currentTime = endTime, now = False, statsTypes = types, productType = self.productType, logger = None, machines = combinedMachineName  )
+        plotter = StatsPlotter( stats = collectorsList, clientNames = self.clientNames, timespan = self.timespan, currentTime = endTime, now = False, statsTypes = types, productType = self.productType, logger = None, machines = self.machines  )
         
         plotter.plot()                          
         print "Plotted graph"
