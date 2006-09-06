@@ -153,10 +153,9 @@ class ClientGraphicProducer:
         
         if self.logger != None :
             self.logger.debug( "Returns from StatsPlotter." )
-            self.logger.info("Graphic(s) created.")
-    
-
-
+            
+            self.logger.info ("Created Graphics for following call : Clients : %s, timespan : %s, currentTime : %s, statsTypes : %s, productType : %s :" %( self.clientNames, self.timespan, self.currentTime, types, self.productType ) )         
+            
         
 
 if __name__ == "__main__":

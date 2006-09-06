@@ -92,10 +92,19 @@ class DirectoryFileCollector:
                 fileSize = os.stat( fileName )[6]
                 
                 line,offset  = backwardReader.readLineBackwards( fileHandle, offset = -1, fileSize = fileSize  )
-                lastDeparture = FileStatsCollector.findValues( ["departure"] , line )["departure"]     
-                                                
+                
+                isInteresting, lineType = FileStatsCollector.isInterestingLine( line, usage = "departure" ) 
+                while isInteresting == False and line != "" : #in case of traceback found in file
+                    line, offset  = backwardReader.readLineBackwards( fileHandle, offset = offset, fileSize = fileSize )
+                    isInteresting, lineType = FileStatsCollector.isInterestingLine( line, usage = "departure" ) 
+                
+                lastDeparture = FileStatsCollector.findValues( ["departure"] , line )["departure"]
+                
+                print "lastLine read in %s is %s" %( fileName, line )
+                                                                              
                 if lastDeparture  >= self.startTime :
                     usefull = True
+                    
                     
         fileHandle.close()
                          
