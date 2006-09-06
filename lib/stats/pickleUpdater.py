@@ -153,7 +153,7 @@ def getLastCronJob( client, fileType, currentDate, collectUpToNow = False ):
 #############################PARSER##############################
 #                                                               #
 #################################################################   
-def getOptionsFromParser( parser ):
+def getOptionsFromParser( parser, logger = None  ):
     """
         
         This method parses the argv received when the program was called
@@ -265,7 +265,9 @@ def getOptionsFromParser( parser ):
             startTimes.append( startTime )
             usefullClients.append( client )
         else:
-            print "This client was not updated since it's last update was more recent than specified date : %s" %client           
+            print "This client was not updated since it's last update was more recent than specified date : %s" %client
+            if logger != None :
+                logger.warning("This client was not updated since it's last update was more recent than specified date : %s" %client)          
 
         
         
@@ -369,7 +371,7 @@ def addOptions( parser ):
 
 
 
-def updateHourlyPickles( infos ):
+def updateHourlyPickles( infos, logger = None ):
     """
         This method is to be used when hourly pickling is done. -1 pickle per hour per client. 
         
@@ -391,7 +393,7 @@ def updateHourlyPickles( infos ):
         
     """  
     
-    cs = ClientStatsPickler( )
+    cs = ClientStatsPickler( logger = logger )
     
     
     for i in range( len (infos.clients) ) :
@@ -416,8 +418,9 @@ def updateHourlyPickles( infos ):
                 
                 endTime = MyDateLib.getIsoFromEpoch( MyDateLib.getSecondsSinceEpoch( MyDateLib.getIsoWithRoundedHours(hours[j+1] ) ))
                 print " client : %s startTime : %s endTime : %s" %(infos.clients[i], startTime, endTime )
-                if startTime >= endTime :# to be removed                                 
-                    raise Exception("Startime used in updateHourlyPickles was greater or equal to end time.")    
+                
+                if startTime >= endTime and logger != None :                                
+                    logger.warning("Startime used in updateHourlyPickles was greater or equal to end time.")    
 
                 
                 cs.pickleName =  ClientStatsPickler.buildThisHoursFileName( client = infos.clients[i], currentTime =  startOfTheHour, machine = infos.machine, fileType = infos.fileType )
@@ -431,8 +434,8 @@ def updateHourlyPickles( infos ):
             endTime   = infos.endTime             
             startOfTheHour = MyDateLib.getIsoWithRoundedHours( infos.startTimes[i] )
             print " client : %s startTime : %s endTime : %s" %(infos.clients[i], startTime, endTime )               
-            if startTime >= endTime :#to be removed                
-                raise Exception( "Startime used in updateHourlyPickles was greater or equal to end time." )    
+            if startTime >= endTime and logger != None :#to be removed                
+                logger.warning( "Startime used in updateHourlyPickles was greater or equal to end time." )    
  
                 
             cs.pickleName =   ClientStatsPickler.buildThisHoursFileName( client = infos.clients[i], currentTime = startOfTheHour, machine = infos.machine, fileType = infos.fileType )            
@@ -451,11 +454,13 @@ def main():
         on parameters received.  
     
     """
-    
+
+    logger = Logger( PXPaths.LOG + 'stats_' + 'pickling' + '.log.notb', 'INFO', 'TX' + 'pickling' ) 
+    logger = logger.getLogger()
    
     parser = createParser( )  #will be used to parse options 
-    infos = getOptionsFromParser( parser )
-    updateHourlyPickles( infos )
+    infos = getOptionsFromParser( parser, logger = logger )
+    updateHourlyPickles( infos,logger = logger )
      
 
 
