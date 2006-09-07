@@ -313,7 +313,7 @@ class SenderFTP(object):
                                       self.client.host, destDirString, ldestName))
 
                except FtpTimeoutException :
-                      self.logger.info("SEND TIMEOUT (%i Bytes) File %s going to %s://%s@%s%s%s" % \
+                      self.logger.warning("SEND TIMEOUT (%i Bytes) File %s going to %s://%s@%s%s%s" % \
                                       (nbBytes, file, self.client.protocol, self.client.user, \
                                       self.client.host, destDirString, ldestName))
 

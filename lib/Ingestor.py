@@ -226,7 +226,6 @@ class Ingestor(object):
             #    self.logger.error("Unable to link %s %s, Type: %s, Value: %s" % (dbName, clientQueueName, type, value))
             os.link(dbName, clientQueueName)
 
-
         feedNames = []
         if len(self.feedNames) > 0 :
            feedNames = self.getMatchingFeedNamesFromMasks(ingestName, self.feedNames )
@@ -266,17 +265,33 @@ class Ingestor(object):
                 self.logger.info("Receiver has been reloaded")
                 igniter.reloadMode = False
             reader.read()
-            if len(reader.sortedFiles) >= 1:
-                sortedFiles = reader.sortedFiles[:self.source.batch]
-                self.logger.info("%d files will be ingested" % len(sortedFiles))
-                for file in sortedFiles:
-                    ingestName = self.getIngestName(os.path.basename(file)) 
-                    matchingClients = self.getMatchingClientNamesFromMasks(ingestName, self.clientNames)
-                    self.logger.debug("Matching (from patterns) client names: %s" % matchingClients)
-                    self.ingest(file, ingestName, matchingClients )
-                    os.unlink(file)
-            else:
-                time.sleep(1)
+            if len(reader.sortedFiles) <= 0:
+               time.sleep(1)
+	       continue
+
+            sortedFiles = reader.sortedFiles[:self.source.batch]
+            self.logger.info("%d files will be ingested" % len(sortedFiles))
+	    fileList = sortedFiles
+
+	    # applying the fx_script if defined
+            if self.source.execfile != None :
+	       fileList = []
+               for file in sortedFiles:
+                   fxfile = self.source.run_fx_script(file,self.source.logger)
+                   os.unlink(file)
+                   if fxfile == None :
+                      self.logger.info("Unable to apply FX on file %s ... file ignored" % file )
+                      continue
+                   fileList.append(fxfile)
+                   self.logger.info("File %s modified to %s " % (file,fxfile) )
+
+	    # ingesting files
+            for file in fileList:
+                ingestName = self.getIngestName(os.path.basename(file)) 
+                matchingClients = self.getMatchingClientNamesFromMasks(ingestName, self.clientNames)
+                self.logger.debug("Matching (from patterns) client names: %s" % matchingClients)
+                self.ingest(file, ingestName, matchingClients )
+                os.unlink(file)
 
     def ingestBulletinFile(self, igniter):
         from DiskReader import DiskReader

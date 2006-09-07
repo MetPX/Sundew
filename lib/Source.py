@@ -79,9 +79,23 @@ class Source(object):
         self.future        = 40   # time in minutes to consider a valid report even if "future" minutes too soon
 
         #-----------------------------------------------------------------------------------------
+        # Setting file transformations/conversions... etc...
+        #-----------------------------------------------------------------------------------------
+
+        self.fx_script = None           # a script to convert/modify received files for clients
+        self.execfile  = None
+
+        #-----------------------------------------------------------------------------------------
         # Parse the configuration file
         #-----------------------------------------------------------------------------------------
         self.readConfig()
+
+        #-----------------------------------------------------------------------------------------
+        # instantiate the fx script in source class
+        #-----------------------------------------------------------------------------------------
+
+        if self.execfile != None :
+           execfile(PXPaths.ETC + self.execfile )
 
         #-----------------------------------------------------------------------------------------
         # Make sure the collection params are valid
@@ -164,6 +178,7 @@ class Source(object):
                     elif words[0] == 'cycle': self.issue_cycle.append(words[1])
                     elif words[0] == 'feed': self.feeds.append(words[1])
                     elif words[0] == 'routingTable': self.routingTable = words[1]
+                    elif words[0] == 'fx_script': self.execfile = words[1]
 
                     if   self.type == 'collector' :
                          if   words[0] == 'history': self.history = int(words[1])
@@ -187,6 +202,10 @@ class Source(object):
         if len(self.masks) > 0 : self.patternMatching = True
 
         self.logger.debug("Configuration file of source  %s has been read" % (self.name))
+
+    def run_fx_script(self, filename, logger):
+        if self.fx_script == None : return filename
+        return self.fx_script(filename, logger)
 
     def getTransformation(self, filename):
         for mask in self.tmasks:
@@ -227,6 +246,7 @@ class Source(object):
         print("mtime: %s" % source.mtime)
         print("Sorter: %s" % source.sorter)
         print("Routing table: %s" % source.routingTable)
+        print("FX script: %s" % source.execfile)
         
         print("******************************************")
         print("*       Source Masks                     *")
