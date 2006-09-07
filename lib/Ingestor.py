@@ -267,15 +267,15 @@ class Ingestor(object):
             reader.read()
             if len(reader.sortedFiles) <= 0:
                time.sleep(1)
-	       continue
+               continue
 
             sortedFiles = reader.sortedFiles[:self.source.batch]
             self.logger.info("%d files will be ingested" % len(sortedFiles))
-	    fileList = sortedFiles
+            fileList = sortedFiles
 
-	    # applying the fx_script if defined
+            # applying the fx_script if defined
             if self.source.execfile != None :
-	       fileList = []
+               fileList = []
                for file in sortedFiles:
                    fxfile = self.source.run_fx_script(file,self.source.logger)
                    os.unlink(file)
@@ -285,7 +285,7 @@ class Ingestor(object):
                    fileList.append(fxfile)
                    self.logger.info("File %s modified to %s " % (file,fxfile) )
 
-	    # ingesting files
+            # ingesting files
             for file in fileList:
                 ingestName = self.getIngestName(os.path.basename(file)) 
                 matchingClients = self.getMatchingClientNamesFromMasks(ingestName, self.clientNames)
