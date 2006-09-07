@@ -94,14 +94,14 @@ class DirectoryFileCollector:
                 line,offset  = backwardReader.readLineBackwards( fileHandle, offset = -1, fileSize = fileSize  )
                 
                 isInteresting, lineType = FileStatsCollector.isInterestingLine( line, usage = "departure" ) 
+                
                 while isInteresting == False and line != "" : #in case of traceback found in file
                     line, offset  = backwardReader.readLineBackwards( fileHandle, offset = offset, fileSize = fileSize )
                     isInteresting, lineType = FileStatsCollector.isInterestingLine( line, usage = "departure" ) 
                 
                 lastDeparture = FileStatsCollector.findValues( ["departure"] , line )["departure"]
-                
-                print "lastLine read in %s is %s" %( fileName, line )
-                                                                              
+               
+                                                                                            
                 if lastDeparture  >= self.startTime :
                     usefull = True
                     
@@ -124,8 +124,7 @@ class DirectoryFileCollector:
               
         entries = []
          
-        if os.path.isdir( self.directory ):
-            
+        if os.path.isdir( self.directory ):            
              
             filePattern = self.directory + "%s_%s.log*" %( self.fileType, self.client )           
             
@@ -139,6 +138,7 @@ class DirectoryFileCollector:
                     self.entries.append( fileName )
                 
         else:
+            
             if self.logger != None :
                 self.logger.warning( "Warning in DirectoryFileCollector. Folder named %s does not exist."%self.directory )
 

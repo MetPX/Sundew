@@ -123,7 +123,6 @@ def getOptionsFromParser( parser ):
                     if t not in validTypes:
                         raise Exception("")
         else:
-            print "Types : %s" %types
             validTypes = [ "errors","bytecount" ]
             
             if types[0] == "All":
@@ -136,7 +135,7 @@ def getOptionsFromParser( parser ):
 
     except:    
         
-        print "Error. With %s fileType, possible data types values are : %s." %(fileType,validTypes )
+        print "Error. With %s fileType, possible data types values are : %s." %( fileType,validTypes )
         print 'For multiple types use this syntax : -t "type1,type2"' 
         print "Use -h for additional help."
         print "Program terminated."

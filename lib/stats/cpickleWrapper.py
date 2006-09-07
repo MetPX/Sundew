@@ -44,6 +44,9 @@ def save( object, filename ):
         
         Raises exception if application is unable to save file.
         
+        Warning : Objects containing opened files, such as log files,
+                  cannot be saved. Remember to close file or delete
+                  file property from object prior to saving. 
     """
         
     splitName = filename.split( "/" ) 

@@ -146,18 +146,15 @@ class FileStatsCollector:
             self.logger = self.logger.getLogger()
             
         
-        if fileEntries == []:
-            
+        if fileEntries == []:            
             self.createEmptyEntries()   # Create all empty buckets right away    
         
+            
         # sorting needs to be done to make sure first file we read is the oldest, thus makes sure
-        # that if we seek the last read position we do it in the right file. 
-        #print "self.files  : %s" %self.files 
-        
-        
+        # that if we seek the last read position we do it in the right file.           
         self.files.sort()                
         
-        if len( self.files ) > 1 and files[0].endswith("log"):
+        if len( self.files ) > 1 and files[0].endswith("log"):#.log file is always newest.
              
             firstItem     = self.files[ 0 ]
             remainingList = self.files[ 1: ]
@@ -284,10 +281,8 @@ class FileStatsCollector:
                         
                         
                     if len(values) != 0 :
-                        mean    = float( float( total ) / float( len( values ) ) )
-                        
+                        mean    = float( float( total ) / float( len( values ) ) )                        
                     else:
-                        #print "found it here"
                         mean = 0
                         
                         
@@ -300,7 +295,6 @@ class FileStatsCollector:
                             
                          
                 else: #this entry has no values 
-                    #print "found it there :%s " %aType
                     minimum = 0
                     median  = 0
                     maximum = 0
@@ -308,21 +302,16 @@ class FileStatsCollector:
                     mean    = 0
                     
                 self.fileEntries[i].medians[aType]= median     # appending values to a list   
-                self.fileEntries[i].means[aType] = mean
-                #if aType  == "latency":
-                    #print "latency mean : %s" %mean
-      
+                self.fileEntries[i].means[aType] = mean     
                 self.fileEntries[i].totals[aType] =  float(total)
-                
-
-                    
+                                    
         self.lastEntryCalculated = self.lastFilledEntry
         
         return self
     
     
         
-    def findValues( statsTypes, line = "", lineType = "[INFO]", fileType = "tx" ):
+    def findValues( statsTypes, line = "", lineType = "[INFO]", fileType = "tx",logger = None ):
         """
             This method is used to find a particular entry within a line. 
             Used with line format used in tx_satnet.logxxxxxxxxxx
@@ -330,7 +319,7 @@ class FileStatsCollector:
             To be modified once line format is decided upon. 
             
         """
-        
+       
         values = {} #in case of an unknown type
         
         splitLine = line.split( " " )
@@ -339,60 +328,88 @@ class FileStatsCollector:
             
             for statsType in statsTypes :   
                 
-                if statsType == "departure" : #is at the same place for every lineType 
-                    values[statsType] =  line.split( ",")[0]   
-                    
-                
-                elif lineType == "[INFO]" :
-                    
-                    if statsType == "latency":
+                try:
+                    if statsType == "departure" : #is at the same place for every lineType 
+                        values[ statsType ] =  line.split( "," )[0]   
                         
-                        d1 = line[:19]
-                        d2 = splitLine[6].split(":")[6] 
-                        values[statsType]=(datetime.datetime( int(d1[0:4]), int(d1[5:7]), int(d1[8:10]), int(d1[11:13]), int(d1[14:16]), int(d1[17:19])) -datetime.datetime( int(d2[0:4]),int(d2[4:6]),int(d2[6:8]),int(d2[8:10]),int(d2[10:12]),int(d2[12:14]) ) ).seconds
+                    
+                    elif lineType == "[INFO]" :
+                        
+                        if statsType == "latency":
+                            
+                            if "TIMEOUT" not in line:     
+                                d1 = line[:19]
+                                d2 = splitLine[6].split(":")[6] 
+                            else:
+                                d1 = line[:19]
+                                d2 = line.split(":")
+                                d2 = d2[len(d2) -2 ]
+                                d2 = d2.split()
+                                d2 = d2[0]    
+                                    
+                            values[statsType]=(datetime.datetime( int(d1[0:4]), int(d1[5:7]), int(d1[8:10]), int(d1[11:13]), int(d1[14:16]), int(d1[17:19])) -datetime.datetime( int(d2[0:4]),int(d2[4:6]),int(d2[6:8]),int(d2[8:10]),int(d2[10:12]),int(d2[12:14]) ) ).seconds
+                            
+                            
+                                    
+                                
+                        elif statsType == "arrival":                  
+                        
+                            arrival = MyDateLib.isoDateDashed( splitLine[6].split( ":" )[6] )    
+    
+                                
+                        elif statsType == "bytecount":
+                            start = line.find( "(" )
+                            end   = line.find( "Bytes" )  
+                            start = start +1
+                            end = end -1                           
+                            
+                            values[statsType] = int( line[start:end] )
                         
                             
-                    elif statsType == "arrival":                  
-                    
-                        arrival   = MyDateLib.isoDateDashed( splitLine[6].split(":")[6] )    
-
+                        elif statsType == "fileName":
                             
-                    elif statsType == "bytecount":
-                        values[statsType] = int( splitLine[3].replace( '(', '' ) )
-                       
-                    elif statsType == "fileName":
-                        if fileType == "tx" :
-                            values[statsType] = splitLine[6].split( ":" )[0]
+                            if fileType == "tx" :
+                                values[statsType] = splitLine[6].split( ":" )[0]
+                            else:
+                                split     = line.split( "/" )
+                                lastPart  = split[ len( split ) -1 ]
+                                values[ statsType ] = lastPart.split( ":" )[0] #in case something is added after line ends.
+                            
+                        elif statsType == "productType":
+                            
+                            if fileType == "tx":
+                                values[statsType] = splitLine[6].split( ":" )[0]
+                            else: # rx has a very different format for product.
+                                split     = line.split( "/" )
+                                lastPart  = split[ len( split ) -1 ]
+                                values[ statsType ] = lastPart.split( ":" )[0] #in case something is added after line ends.
+                                
+                        elif statsType == "errors" :
+                            values[statsType] = 0  
+                            
+                        
+                    elif lineType == "[ERROR]":
+                    
+                        if statsType == "errors" :
+                            values[statsType] = 1                   
+            
+                        
+                        elif statsType == "productType" :     
+                            values[statsType] = ""
                         else:
-                            split     = line.split( "/" )
-                            lastPart  = split[ len( split ) -1 ]
-                            values[ statsType ] = lastPart.split( ":" )[0] #in case something is added after line ends.
+                            values[statsType] = 0
                         
-                    elif statsType == "productType":
-                        
-                        if fileType == "tx":
-                            values[statsType] = splitLine[6].split( ":" )[0]
-                        else: # rx has a very different format for product.
-                            split     = line.split( "/" )
-                            lastPart  = split[ len( split ) -1 ]
-                            values[ statsType ] = lastPart.split( ":" )[0] #in case something is added after line ends.
-                            
-                    elif statsType == "errors" :
-                        values[statsType] = 0  
-                          
-                    
-                elif lineType == "[ERROR]":
+                        #elif lineType == "[OTHER]" :               
+                except:
                 
-                    if statsType == "errors" :
-                        values[statsType] = 1                   
+                    print "could not find %s value in line %s." %( statstype,line )
+                    if logger != none :
+                        logger.error("could not find %s value in line %s." %( statstype,line ) ) 
+                        logger.error("value was replaced by 0.")
+                    
+                    values[statstype] = 0    
+                    pass
         
-                    
-                    elif statsType == "productType" :     
-                        values[statsType] = ""
-                    else:
-                        values[statsType] = 0
-                
-                #elif lineType == "[OTHER]" :               
         else:
             for type in statsTypes :
                 values[type] = 0
@@ -456,19 +473,18 @@ class FileStatsCollector:
         
         """
         
-        line = ""
-        lineType = None 
-        backupLine = ""
-        lineFound = False 
-        firstDeparture = 0
-        lastDeparture  = 0 
+        line                 = ""
+        lineType             = None 
+        backupLine           = ""
+        lineFound            = False 
+        firstDeparture       = 0
+        lastDeparture        = 0 
         firstDepartureInSecs = 0
         startTimeinSec       = 0
         lastDepartureInSecs  = 0
         
         if self.logger != None :
             self.logger.debug( "Call to findFirstInterestingLine received." )
-            #self.logger.debug( "Parameters were self.lastReadPosition : %s, filesize : %s" %( self.lastReadPosition, fileSize )) 
         
         
         if self.lastReadPosition != 0:
@@ -497,7 +513,7 @@ class FileStatsCollector:
                 position  = fileHandle.tell()
                 isInteresting, linetype = FileStatsCollector.isInterestingLine( firstLine, usage = "departure", types = self.statsTypes )               
             
-            firstDeparture = FileStatsCollector.findValues( ["departure"] , firstLine, lineType = lineType, fileType = self.fileType )["departure"]
+            firstDeparture = FileStatsCollector.findValues( ["departure"] , firstLine, lineType = lineType, fileType = self.fileType,logger= self.logger )["departure"]
             
             
             lastLine, offset  = backwardReader.readLineBackwards( fileHandle, offset = -1, fileSize = fileSize  )
@@ -510,7 +526,7 @@ class FileStatsCollector:
                 
             
             #print "lastLine to be used in call : %s" %lastLine
-            lastDeparture    = FileStatsCollector.findValues( ["departure"] , lastLine, lineType= lineType,  fileType = self.fileType )["departure"]
+            lastDeparture    = FileStatsCollector.findValues( ["departure"] , lastLine, lineType= lineType,  fileType = self.fileType, logger= self.logger )["departure"]
             
             firstDepartureInSecs = MyDateLib.getSecondsSinceEpoch( firstDeparture )
             startTimeinSec       = MyDateLib.getSecondsSinceEpoch( self.startTime )
@@ -520,13 +536,10 @@ class FileStatsCollector:
         fileHandle.seek( position, 0 )
         line = firstLine 
         
-        # backward reading is much slower so we make sure its worthwhile to read backwards.
-#         if self.lastReadPosition != 0 or abs( firstDepartureInSecs - startTimeinSec ) < 2*( abs( lastDepartureInSecs - startTimeinSec ) ) :
-
-    
+   
         while lineFound == False and line != "":     
             
-            departure =  FileStatsCollector.findValues( ["departure"] , line, fileType = self.fileType )["departure"]
+            departure =  FileStatsCollector.findValues( ["departure"] , line, fileType = self.fileType,logger= self.logger )["departure"]
             
             if departure <=  self.endTime : #were still can keep on reading range 
                 
@@ -545,39 +558,7 @@ class FileStatsCollector:
                 isInteresting, lineType = FileStatsCollector.isInterestingLine( line, types = self.statsTypes )
                 lineFound = True   
      
-        
-#         else:#read backwards till we are in the range we want
-#             nbLinesRead = 0
-#             print "reads backwards"
-#             fileHandle.seek(0,0)
-# 
-#             line = lastLine
-#             departure = lastDeparture
-# 
-#             while line != "" and departure >= self.startTime :
-# 
-#                 backupLine = line
-# 
-#                 line,offset = backwardReader.readLineBackwards( fileHandle = fileHandle, offset = offset , fileSize = fileSize )
-# 
-#                 if line != "":
-#                     departure =  FileStatsCollector.findValues( ["departure"] , line, fileType = self.fileType )["departure"]
-# 
-# 
-# 
-#             if line != "" :# while condition makes us read one too far...
-#                 line = backupLine
-#                 isInteresting,lineType = self.isInterestingLine( line ) #go back the other way and find first of the good type
-#                 while isInteresting == False and line != "" :
-#                     line = fileHandle.readline()
-#                     isInteresting,lineType = self.isInterestingLine( line )
-#                     position = fileHandle.tell()
-
-
- 
-                
-                                
-        #print "first interesting line : %s" %line             
+            
         return line, lineType, position 
 
 
@@ -593,15 +574,14 @@ class FileStatsCollector:
         
             - performance bottleneck...needs to be optimized badly.   
         """
-                         
+        
+        line                  = ""                 
         filledAnEntry         = False
-        self.firstFilledEntry = 0
-        self.lastFilledEntry  = 0
-        previousPosition      = 0
-        line = ""
+        previousPosition      = 0        
         baseTypes             = [ "fileName", "productType" ]
         neededTypes           = baseTypes        
-        
+        self.firstFilledEntry = 0 # resets values 
+        self.lastFilledEntry  = 0
         
         if self.logger != None :        
             self.logger.debug( "Call to setValues received."  )
@@ -629,7 +609,7 @@ class FileStatsCollector:
                         
             if line != "" :                                        
                 fileHandle.seek( position )
-                departure   = self.findValues( ["departure"] ,  line, lineType, fileType = self.fileType )["departure"]
+                departure   = self.findValues( ["departure"] ,  line, lineType, fileType = self.fileType,logger= self.logger )["departure"]
             
             #print "line returned : %s" %line 
             #print "coming from file named : %s" %file
@@ -639,7 +619,7 @@ class FileStatsCollector:
                 while departure[:-2] > self.timeSeperators[ entryCount ][:-2]:#find appropriate bucket
                     entryCount = entryCount + 1                         
                     
-                neededValues = self.findValues( neededTypes, line, lineType,fileType = self.fileType )    
+                neededValues = self.findValues( neededTypes, line, lineType,fileType = self.fileType,logger= self.logger )    
                 
                 #print "neededValues : %s" %neededValues
                 #print 
@@ -680,7 +660,7 @@ class FileStatsCollector:
                     isInteresting,lineType = FileStatsCollector.isInterestingLine( line, types = self.statsTypes )
                 
                 
-                departure   = self.findValues( ["departure"] , line, lineType, fileType = self.fileType )["departure"]               
+                departure   = self.findValues( ["departure"] , line, lineType, fileType = self.fileType,logger= self.logger )["departure"]               
                 
                 
             if line == "" :
@@ -706,7 +686,7 @@ class FileStatsCollector:
         """
         
         if self.logger != None :
-            self.logger.debug( " Call to createEmptyEntries received." )
+            self.logger.debug( "Call to createEmptyEntries received." )
         
         if len ( self.timeSeperators ) > 1 : 
     

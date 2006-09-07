@@ -455,7 +455,7 @@ class StatsPlotter:
              
         """            
         
-        if self.maximums[i][j] !=None and self.maximums[i][j] !=0 :
+        if self.maximums[i][j] != None and self.maximums[i][j] != 0 :
             
             timeOfMax = self.timeOfMax[i][j] 
             

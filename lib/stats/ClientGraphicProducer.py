@@ -69,13 +69,13 @@ class ClientGraphicProducer:
             
         self.directory    = directory         # Directory where log files are located. 
         self.fileType     = fileType          # Type of log files to be used.    
-        self.machines     = machines          #Machiens for wich to collect data. 
+        self.machines     = machines          # Machines for wich to collect data. 
         self.clientNames  = clientNames or [] # Client name we need to get the data from.
         self.timespan     = timespan          # Number of hours we want to gather the data from. 
         self.currentTime  = currentTime       # Time when stats were queried.
         self.productType  = productType       # Specific data type on wich we'll collect the data.
-        self.loggerName   = 'graphs'          #
-        self.logger       = logger
+        self.loggerName   = 'graphs'          # Name of the logger
+        self.logger       = logger            # Enable logging
         
         if self.logger is None: # Enable logging
             self.logger = Logger( PXPaths.LOG + 'stats_' + self.loggerName + '.log.notb', 'INFO', 'TX' + self.loggerName ) 
