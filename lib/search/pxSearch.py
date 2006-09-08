@@ -65,6 +65,8 @@ def updateSearchObject(so, options, args):
     else:
         so.setSearchType("tx")
     
+    so.setFTP(options.ftp)
+    
     # Search in the specified flows
     if len(args) > 0:
         so.setSearchNames(args)
@@ -77,6 +79,7 @@ def updateSearchObject(so, options, args):
     so.setHeaderRegex("seq", options.seq) 
     so.setHeaderRegex("target", options.target) 
     so.setHeaderRegex("prio", options.prio)
+    so.setHeaderRegex("ftpname", options.ftpname)
    
     so.setSince(options.since)
     
@@ -120,7 +123,7 @@ def search(so):
     results = []
     for machine in machines:
         machine = machine.strip()
-        cmd = 'ssh %s "egrep -o -s %s %s"' % (machine, regex, logFileName)
+        cmd = 'ssh %s "egrep -o -s -H %s %s"' % (machine, regex, logFileName)
         status, output = commands.getstatusoutput(cmd)
         if output:
             lines = output.splitlines()
@@ -155,6 +158,12 @@ def createParser(so):
     parser.add_option("-d", "--ddhhmm", dest = "ddhhmm", help = "Specify the Day/Hour/Minute", default = so.getHeaderRegex("ddhhmm"))
     parser.add_option("-b", "--bbb", dest = "bbb", help = "Specify the BBB", default = so.getHeaderRegex("bbb"))
     parser.add_option("-s", "--stn", dest = "stn", help = "Specify the station code", default = so.getHeaderRegex("stn"))
+    
+    # File name content specifier
+    parser.add_option("--ftp", action = "store_true", dest = "ftp", help = "Search for FTP files instead of bulletin file. Cannot be used with the t,c,d,b,s options.", default = False)
+    parser.add_option("-n", "--ftpname", dest = "ftpname", help = "Specify the name of an FTP file (Use only with --ftp).", default = so.getHeaderRegex("ftpname"))
+    
+    # Those fields are common to both type of file
     parser.add_option("-g", "--target", dest = "target", help = "Specify the source or the destination", default = so.getHeaderRegex("target"))
     parser.add_option("-q", "--seq", dest = "seq", help = "Specify the sequence number", default = so.getHeaderRegex("seq"))
     parser.add_option("-p", "--prio", dest = "prio", help = "Specify the priority number <1|2|3|4|5>", default = so.getHeaderRegex("prio"))
