@@ -75,15 +75,18 @@ class SearchObject(object):
         oneOrMore = self.getOneOrMoreRegex()
         
         names = self.getSearchNames()
-        ftp = self.getFTP()
-        if ftp:
-            for name in names:
-                self.logPath += "%s%s_%s.log* " % (PXPaths.LOG, self.getSearchType(), name)
-                self.searchRegex = "%s:%s:%s:%s:%s:%s:%s" % (self.getHeaderRegex("ftpname"), self.getHeaderRegex("target"), alphanumeric + oneOrMore, alphanumeric + oneOrMore, self.getHeaderRegex("prio"), alphanumeric + oneOrMore, digit + "{14}")
-        else:
-            for name in names:
-                self.logPath += "%s%s_%s.log* " % (PXPaths.LOG, self.getSearchType(), name)
-            self.searchRegex = "%s_%s_%s_%s_%s_%s:%s:%s:%s:%s:%s:%s" % (self.getHeaderRegex("ttaaii"), self.getHeaderRegex("ccccxx"), self.getHeaderRegex("ddhhmm"), self.getHeaderRegex("bbb"), self.getHeaderRegex("stn"), self.getHeaderRegex("seq"), self.getHeaderRegex("target"), self.getHeaderRegex("ccccxx"), alphanumeric + oneOrMore, self.getHeaderRegex("prio"), alphanumeric + oneOrMore, digit + "{14}")
+        #ftp = self.getFTP()
+        #if ftp:
+        #    for name in names:
+        #        self.logPath += "%s%s_%s.log* " % (PXPaths.LOG, self.getSearchType(), name)
+        #    self.searchRegex = "%s:%s:%s:%s:%s:%s:%s" % (self.getHeaderRegex("ftpname"), self.getHeaderRegex("target"), alphanumeric + oneOrMore, alphanumeric + oneOrMore, self.getHeaderRegex("prio"), alphanumeric + oneOrMore, digit + "{14}")
+        #else:
+        #    for name in names:
+        #        self.logPath += "%s%s_%s.log* " % (PXPaths.LOG, self.getSearchType(), name)
+        #    self.searchRegex = "%s_%s_%s_%s_%s_%s:%s:%s:%s:%s:%s:%s" % (self.getHeaderRegex("ttaaii"), self.getHeaderRegex("ccccxx"), self.getHeaderRegex("ddhhmm"), self.getHeaderRegex("bbb"), self.getHeaderRegex("stn"), self.getHeaderRegex("seq"), self.getHeaderRegex("target"), self.getHeaderRegex("ccccxx"), alphanumeric + oneOrMore, self.getHeaderRegex("prio"), alphanumeric + oneOrMore, digit + "{14}")
+        for name in names:
+            self.logPath += "%s%s_%s.log* " % (PXPaths.LOG, self.getSearchType(), name)
+        self.searchRegex = "%s_%s_%s_%s_%s_%s:%s:%s:%s:%s:%s:%s" % (self.getHeaderRegex("ttaaii"), self.getHeaderRegex("ccccxx"), self.getHeaderRegex("ddhhmm"), self.getHeaderRegex("bbb"), self.getHeaderRegex("stn"), self.getHeaderRegex("seq"), self.getHeaderRegex("target"), self.getHeaderRegex("ccccxx"), alphanumeric + oneOrMore, self.getHeaderRegex("prio"), alphanumeric + oneOrMore, digit + "{14}")
     
     def getSearchRegex(self):
         return self.searchRegex

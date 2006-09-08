@@ -65,7 +65,7 @@ def updateSearchObject(so, options, args):
     else:
         so.setSearchType("tx")
     
-    so.setFTP(options.ftp)
+    #so.setFTP(options.ftp)
     
     # Search in the specified flows
     if len(args) > 0:
@@ -79,7 +79,7 @@ def updateSearchObject(so, options, args):
     so.setHeaderRegex("seq", options.seq) 
     so.setHeaderRegex("target", options.target) 
     so.setHeaderRegex("prio", options.prio)
-    so.setHeaderRegex("ftpname", options.ftpname)
+    #so.setHeaderRegex("ftpname", options.ftpname)
    
     so.setSince(options.since)
     
@@ -160,8 +160,8 @@ def createParser(so):
     parser.add_option("-s", "--stn", dest = "stn", help = "Specify the station code", default = so.getHeaderRegex("stn"))
     
     # File name content specifier
-    parser.add_option("--ftp", action = "store_true", dest = "ftp", help = "Search for FTP files instead of bulletin file. Cannot be used with the t,c,d,b,s options.", default = False)
-    parser.add_option("-n", "--ftpname", dest = "ftpname", help = "Specify the name of an FTP file (Use only with --ftp).", default = so.getHeaderRegex("ftpname"))
+    #parser.add_option("--ftp", action = "store_true", dest = "ftp", help = "Search for FTP files instead of bulletin file. Cannot be used with the t,c,d,b,s options.", default = False)
+    #parser.add_option("-n", "--ftpname", dest = "ftpname", help = "Specify the name of an FTP file (Use only with --ftp).", default = so.getHeaderRegex("ftpname"))
     
     # Those fields are common to both type of file
     parser.add_option("-g", "--target", dest = "target", help = "Specify the source or the destination", default = so.getHeaderRegex("target"))
