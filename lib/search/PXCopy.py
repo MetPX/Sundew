@@ -40,7 +40,7 @@ import Logger
 from ConfReader import ConfReader
 
 class PXCopy(object):
-    __slots__ = ["file", "destinations", "logger", "manager", "drp", "flowDirsCache", "machine", "limit"]
+    __slots__ = ["file", "destinations", "logger", "manager", "drp", "flowDirsCache", "machine", "resendLimit"]
 
     def __init__(self, file, destinations):
         self.file = file
@@ -57,7 +57,7 @@ class PXCopy(object):
         self.machine = socket.gethostname()
 
         cr = ConfReader("%spx.conf" % (PXPaths.ETC))
-        self.limit = cr.getConfigValues("resendLimit")
+        self.resendLimit = int(cr.getConfigValues("resendLimit")[0])
         
     def copy(self):
         machine = self.getMachine()
@@ -77,7 +77,7 @@ class PXCopy(object):
             flog.close()
 
             nbFiles = len(filesToCopy)
-            if nbFiles > self.getLimit():
+            if nbFiles > self.getResendLimit():
                 prio = -1
             else:
                 prio = 2
@@ -162,8 +162,8 @@ class PXCopy(object):
     def getMachine(self):
         return self.machine
 
-    def getLimit(self):
-        return self.limit
+    def getResendLimit(self):
+        return self.resendLimit
 
 ####################################################
 # THESE ARE USED WHEN CALLED FROM THE COMMAND LINE #
