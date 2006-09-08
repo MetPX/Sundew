@@ -26,6 +26,8 @@ import backwardReader
 from   Logger             import * 
 from   FileStatsCollector import *
 
+localMachine = os.uname()[1]
+
 
 
 class DirectoryFileCollector: 
@@ -40,7 +42,7 @@ class DirectoryFileCollector:
                  
     """
     
-    def __init__( self, startTime = "2006-06-06 01:00:00", endTime = "2006-06-06 02:00:00", directory = PXPaths.LOG, lastLineRead = "", fileType = "tx", client = "satnet", logger = None ):
+    def __init__( self, startTime = "2006-06-06 01:00:00", endTime = "2006-06-06 02:00:00", directory = PXPaths.LOG + localMachine + '/', lastLineRead = "", fileType = "tx", client = "satnet", logger = None ):
         """ 
             Constructor.
             -Builds a directoryFileCollector with no entries.   
@@ -59,7 +61,7 @@ class DirectoryFileCollector:
        
         
         if logger is None: # Enable logging
-            self.logger = Logger( PXPaths.LOG + 'stats_' + self.loggerName + '.log.notb', 'INFO', 'TX' + self.loggerName ) 
+            self.logger = Logger( PXPaths.LOG + localMachine + '/', 'stats_' + self.loggerName + '.log.notb', 'INFO', 'TX' + self.loggerName ) 
             self.logger = self.logger.getLogger()
             
             
@@ -123,14 +125,13 @@ class DirectoryFileCollector:
         """      
               
         entries = []
-         
+                
         if os.path.isdir( self.directory ):            
              
             filePattern = self.directory + "%s_%s.log*" %( self.fileType, self.client )           
-            
             fileNames = glob.glob( filePattern )            
             
-                      
+                                  
             for fileName in fileNames: #verify every entries.
                 usefull = self.containsUsefullInfo( fileName )
                 
@@ -150,7 +151,7 @@ if __name__ == "__main__":
     
     """
    
-    dc = DirectoryFileCollector( startTime = "2006-07-20 01:00:00", endTime= "2006-07-20 02:00:00", directory = PXPaths.LOG , lastLineRead = "", fileType = "tx", client = "satnet"  )
+    dc = DirectoryFileCollector( startTime = "2006-07-20 01:00:00", endTime= "2006-07-20 02:00:00", directory = PXPaths.LOG  + localMachine + '/', lastLineRead = "", fileType = "tx", client = "satnet"  )
     dc.collectEntries() 
     
     print "Files returned : %s " %dc.entries            

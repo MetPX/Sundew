@@ -41,6 +41,8 @@ from   Logger                 import *
 
 PXPaths.normalPaths()
 
+localMachine = os.uname()[1]
+
 
 MINUTE = 60
 HOUR   = 60 * MINUTE
@@ -142,7 +144,7 @@ class FileStatsCollector:
         
         if self.logger == None: # Enable logging
            
-            self.logger = Logger( PXPaths.LOG + 'stats_' + self.loggerName + '.log.notb', 'DEBUG', 'TX' + self.loggerName ) 
+            self.logger = Logger( PXPaths.LOG + localMachine + '/' + 'stats_' + self.loggerName + '.log.notb', 'DEBUG', 'TX' + self.loggerName ) 
             self.logger = self.logger.getLogger()
             
         
@@ -336,19 +338,12 @@ class FileStatsCollector:
                     elif lineType == "[INFO]" :
                         
                         if statsType == "latency":
-                            
-                            if "TIMEOUT" not in line:     
-                                d1 = line[:19]
-                                d2 = splitLine[6].split(":")[6] 
-                            else:
-                                d1 = line[:19]
-                                d2 = line.split(":")
-                                d2 = d2[len(d2) -2 ]
-                                d2 = d2.split()
-                                d2 = d2[0]    
+                                                            
+                            d1 = line[:19]
+                            d2 = splitLine[6].split(":")[6] 
+    
                                     
-                            values[statsType]=(datetime.datetime( int(d1[0:4]), int(d1[5:7]), int(d1[8:10]), int(d1[11:13]), int(d1[14:16]), int(d1[17:19])) -datetime.datetime( int(d2[0:4]),int(d2[4:6]),int(d2[6:8]),int(d2[8:10]),int(d2[10:12]),int(d2[12:14]) ) ).seconds
-                            
+                            values[statsType]= (datetime.datetime( int(d1[0:4]), int(d1[5:7]), int(d1[8:10]), int(d1[11:13]), int(d1[14:16]), int(d1[17:19])) - datetime.datetime( int(d2[0:4]),int(d2[4:6]),int(d2[6:8]),int(d2[8:10]),int(d2[10:12]),int(d2[12:14]) ) ).seconds                           
                             
                                     
                                 
@@ -400,9 +395,8 @@ class FileStatsCollector:
                             values[statsType] = 0
                         
                         #elif lineType == "[OTHER]" :               
-                except:
-                
-                    print "could not find %s value in line %s." %( statstype,line )
+                except:                
+                    
                     if logger != none :
                         logger.error("could not find %s value in line %s." %( statstype,line ) ) 
                         logger.error("value was replaced by 0.")
@@ -442,7 +436,7 @@ class FileStatsCollector:
         
         if line != "" :
             
-            if "[INFO]" in line and "Bytes" in line and "/sec" not in line and " Segment " not in line : 
+            if "[INFO]" in line and "Bytes" in line and "/sec" not in line and " Segment " not in line and "SEND TIMEOUT" not in line : 
                 isInteresting = True             
                 lineType = "[INFO]"
             
@@ -453,6 +447,10 @@ class FileStatsCollector:
             elif usage != "stats" and ( "[WARNING]" in line or "[INFO]" in line or "[ERROR]" in line ) :
                 isInteresting = True 
                 lineType = "[OTHER]"
+            
+            elif usage != "stats" and ( "[INFO]" in line and "SEND TIMEOUT" in line ):
+                isInteresting = True 
+                lineType = "[OTHER]"  
                     
                 
         return isInteresting,lineType
@@ -520,7 +518,6 @@ class FileStatsCollector:
             
             isInteresting, lineType = FileStatsCollector.isInterestingLine( lastLine,usage = "departure",types = self.statsTypes ) 
             while isInteresting == False and lastLine != "" : #in case of traceback
-                print lastLine 
                 lastLine, offset  = backwardReader.readLineBackwards(fileHandle, offset = offset, fileSize = fileSize )
                 isInteresting, lineType = FileStatsCollector.isInterestingLine( lastLine, usage = "departure", types = self.statsTypes ) 
                 
@@ -731,7 +728,7 @@ if __name__ == "__main__":
     
     types = [ "latency", "errors","bytecount" ]
     
-    filename = PXPaths.LOG +'tx_amis.log'
+    filename = PXPaths.LOG + localMachine + '/' + 'tx_amis.log'
     
     startingHours=["00:00:00","01:00:00","02:00:00","03:00:00","04:00:00","05:00:00","06:00:00","07:00:00","08:00:00","09:00:00","10:00:00","11:00:00","12:00:00","13:00:00","14:00:00","15:00:00","16:00:00","17:00:00","18:00:00","19:00:00","20:00:00","21:00:00","22:00:00","23:00:00" ]
     

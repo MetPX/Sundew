@@ -1,3 +1,4 @@
+#! /usr/bin/env python
 """
 MetPX Copyright (C) 2004-2006  Environment Canada
 MetPX comes with ABSOLUTELY NO WARRANTY; For details type see the file 
@@ -33,6 +34,7 @@ from PXManager import *
 
 PXPaths.normalPaths()
 
+localMachine = os.uname()[1]
 
 class _UpdaterInfos: 
     
@@ -261,18 +263,15 @@ def getOptionsFromParser( parser, logger = None  ):
                
         if currentDate > startTime:
             #print " client : %s currentDate : %s   startTime : %s" %( client, currentDate, startTime )
-            directories.append( PXPaths.LOG )
+            directories.append( PXPaths.LOG + localMachine + "/")
             startTimes.append( startTime )
             usefullClients.append( client )
         else:
             print "This client was not updated since it's last update was more recent than specified date : %s" %client
             if logger != None :
-                logger.warning("This client was not updated since it's last update was more recent than specified date : %s" %client)          
-
-        
-        
-    print "usefullClients : %s " %usefullClients
-    
+                logger.warning("This client was not updated since it's last update was more recent than specified date : %s" %client)      
+       
+                
     infos = _UpdaterInfos( currentDate = currentDate, clients = usefullClients, startTimes = startTimes, directories = directories ,types = types, collectUpToNow = collectUpToNow, fileType = fileType, machine = machine )
     
     if collectUpToNow == False:
@@ -417,7 +416,7 @@ def updateHourlyPickles( infos, logger = None ):
                 
                 
                 endTime = MyDateLib.getIsoFromEpoch( MyDateLib.getSecondsSinceEpoch( MyDateLib.getIsoWithRoundedHours(hours[j+1] ) ))
-                print " client : %s startTime : %s endTime : %s" %(infos.clients[i], startTime, endTime )
+                #print " client : %s startTime : %s endTime : %s" %(infos.clients[i], startTime, endTime )
                 
                 if startTime >= endTime and logger != None :                                
                     logger.warning("Startime used in updateHourlyPickles was greater or equal to end time.")    
@@ -425,7 +424,7 @@ def updateHourlyPickles( infos, logger = None ):
                 
                 cs.pickleName =  ClientStatsPickler.buildThisHoursFileName( client = infos.clients[i], currentTime =  startOfTheHour, machine = infos.machine, fileType = infos.fileType )
                  
-                cs.collectStats( types = infos.types, startTime = startTime , endTime = endTime, interval = infos.interval * MyDateLib.MINUTE,  directory = PXPaths.LOG, fileType = infos.fileType )                     
+                cs.collectStats( types = infos.types, startTime = startTime , endTime = endTime, interval = infos.interval * MyDateLib.MINUTE,  directory = PXPaths.LOG + localMachine + "/" , fileType = infos.fileType )                     
                            
                     
         else:      
@@ -433,14 +432,14 @@ def updateHourlyPickles( infos, logger = None ):
             startTime = infos.startTimes[i]
             endTime   = infos.endTime             
             startOfTheHour = MyDateLib.getIsoWithRoundedHours( infos.startTimes[i] )
-            print " client : %s startTime : %s endTime : %s" %(infos.clients[i], startTime, endTime )               
+            #print " client : %s startTime : %s endTime : %s" %(infos.clients[i], startTime, endTime )               
             if startTime >= endTime and logger != None :#to be removed                
                 logger.warning( "Startime used in updateHourlyPickles was greater or equal to end time." )    
  
                 
             cs.pickleName =   ClientStatsPickler.buildThisHoursFileName( client = infos.clients[i], currentTime = startOfTheHour, machine = infos.machine, fileType = infos.fileType )            
               
-            cs.collectStats( infos.types, startTime = startTime, endTime = endTime, interval = infos.interval * MyDateLib.MINUTE, directory = PXPaths.LOG, fileType = infos.fileType   )        
+            cs.collectStats( infos.types, startTime = startTime, endTime = endTime, interval = infos.interval * MyDateLib.MINUTE, directory = PXPaths.LOG + localMachine + "/", fileType = infos.fileType   )        
        
                          
         setLastCronJob( client = infos.clients[i], fileType = infos.fileType, currentDate = infos.currentDate, collectUpToNow = infos.collectUpToNow )
@@ -455,7 +454,7 @@ def main():
     
     """
 
-    logger = Logger( PXPaths.LOG + 'stats_' + 'pickling' + '.log.notb', 'INFO', 'TX' + 'pickling' ) 
+    logger = Logger( PXPaths.LOG + localMachine + "/" + 'stats_' + 'pickling' + '.log.notb', 'INFO', 'TX' + 'pickling' ) 
     logger = logger.getLogger()
    
     parser = createParser( )  #will be used to parse options 

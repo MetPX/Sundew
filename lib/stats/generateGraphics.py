@@ -1,3 +1,4 @@
+#! /usr/bin/env python
 """
 MetPX Copyright (C) 2004-2006  Environment Canada
 MetPX comes with ABSOLUTELY NO WARRANTY; For details type see the file
@@ -30,7 +31,7 @@ import PXPaths
 
 PXPaths.normalPaths()
 
-
+localMachine = os.uname()[1]
 
 class _GraphicsInfos:
 
@@ -141,7 +142,7 @@ def getOptionsFromParser( parser ):
         print "Program terminated."
         sys.exit()
     
-    directory = PXPaths.LOG
+    directory = PXPaths.LOG + localMachine + "/"
     
        
     infos = _GraphicsInfos( collectUpToNow = collectUpToNow, currentTime = currentTime, clientNames = clientNames,  directory = directory , types = types, fileType = fileType, timespan = timespan, productType = productType, machines = machines )

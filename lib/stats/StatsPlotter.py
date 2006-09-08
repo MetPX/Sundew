@@ -37,6 +37,7 @@ from   Logger  import *
 
 PXPaths.normalPaths()
 
+localMachine = os.uname()[1]
 
 
 class StatsPlotter:
@@ -79,8 +80,9 @@ class StatsPlotter:
         self.loggerName       = 'statsPlotter'
         self.logger           = logger
         
+        
         if self.logger == None: # Enable logging
-            self.logger = Logger( PXPaths.LOG + 'stats_' + self.loggerName + '.log.notb', 'INFO', 'TX' + self.loggerName ) 
+            self.logger = Logger( PXPaths.LOG + localMachine + '/' + 'stats_' + self.loggerName + '.log.notb', 'INFO', 'TX' + self.loggerName ) 
             self.logger = self.logger.getLogger()
             
         self.xtics       = self.getXTics( )        # Seperators on the x axis.

@@ -1,3 +1,4 @@
+#! /usr/bin/env python
 """
 MetPX Copyright (C) 2004-2006  Environment Canada
 MetPX comes with ABSOLUTELY NO WARRANTY; For details type see the file 
@@ -30,6 +31,8 @@ from   optparse import OptionParser
 from   Logger import *
 
 PXPaths.normalPaths()
+
+localMachine = os.uname()[1]
 
 MACHINE_LIST = 'cmisx-spare1'
 
@@ -182,7 +185,7 @@ def buildLogger( output ):
     logger = None 
     
     if output != "":       
-        logger = Logger( PXPaths.LOG + 'stats_' + output + '.log.notb', 'INFO', 'TX' + output ) 
+        logger = Logger( PXPaths.LOG + localMachine + '/' + 'stats_' + output + '.log.notb', 'INFO', 'TX' + output ) 
         logger = logger.getLogger()    
     
     return logger 

@@ -282,18 +282,17 @@ How to use the stats library, step by step :
         We recommend sychronising data only once its been updated. 
         
         The sooner the better since it will be available to the user who wants 
-        to produce graphs. 
-        
-        However, running an update at a time too close to the data collection might 
-        be counter-productive.
-        
-        If data collection takes longer than expected, data will not be totally 
-        collected during the time of the synchronisation. In that case it will not 
-        be avaiable to the destination machine untill the next update.
+        to produce graphs. If data collection takes longer than expected, data 
+        will not be totally collected during the time of the synchronisation.
+        In that case it will not be avaiable to the destination machine untill
+        the next update.
         
         Since we recommend collecting data hourly, it is also recommended to synchronise
         files hourly.
         
+        This command is to be added on every mirror machine containing log files. 
+        
+        15 0-24 * * * rsync -avzr -e ssh pds@pds6:/apps/px/log/ /apps/px/log/machineName/;/apps/px/lib/stats/pickleUpdater.py -rx >> /tmp/puOutput;/apps/px/lib/stats/pickleUpdater.py -tx >> /tmp/puOutput; ssh login@machine '/apps/px/lib/stats/pickleSynchroniser.py -l login -m machine'
          
         
     Step 5.3 - Produce graphics based on synchronised data.
@@ -309,8 +308,7 @@ How to use the stats library, step by step :
         
         If a later data synchronisation occurs and retreives data for hour 7 on the client producing machine, 
         the graphic should be remade by the user as to have the right graphic...
-
-
-
+ 
+ 
 
 

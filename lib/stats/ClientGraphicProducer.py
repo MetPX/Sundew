@@ -42,7 +42,7 @@ from FileStatsCollector import FileStatsCollector, _FileStatsEntry
 
 PXPaths.normalPaths()
 
-
+localMachine = os.uname()[1]
 
 class ClientGraphicProducer:
     
@@ -78,7 +78,7 @@ class ClientGraphicProducer:
         self.logger       = logger            # Enable logging
         
         if self.logger is None: # Enable logging
-            self.logger = Logger( PXPaths.LOG + 'stats_' + self.loggerName + '.log.notb', 'INFO', 'TX' + self.loggerName ) 
+            self.logger = Logger( PXPaths.LOG + localMachine + '/' + 'stats_' + self.loggerName + '.log.notb', 'INFO', 'TX' + self.loggerName ) 
             self.logger = self.logger.getLogger()
                  
 
@@ -164,7 +164,7 @@ if __name__ == "__main__":
         
     """
     
-    gp = ClientGraphicProducer( clientNames = [ 'amis' ], timespan = 24, currentTime = "2006-08-01 18:15:00",productType = "All", directory = PXPaths.LOG , fileType = "tx" )  
+    gp = ClientGraphicProducer( clientNames = [ 'amis' ], timespan = 24, currentTime = "2006-08-01 18:15:00",productType = "All", directory = PXPaths.LOG + localMachine + '/', fileType = "tx" )  
     
     gp.produceGraphicWithHourlyPickles( types = [ "bytecount","latency","errors" ], now = False   )
     
