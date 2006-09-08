@@ -37,9 +37,10 @@ import DirectRoutingParser
 import CacheManager
 import PXPaths; PXPaths.normalPaths()
 import Logger
+from ConfReader import ConfReader
 
 class PXCopy(object):
-    __slots__ = ["file", "destinations", "logger", "manager", "drp", "flowDirsCache", "machine"]
+    __slots__ = ["file", "destinations", "logger", "manager", "drp", "flowDirsCache", "machine", "limit"]
 
     def __init__(self, file, destinations):
         self.file = file
@@ -54,6 +55,9 @@ class PXCopy(object):
         self.drp.parseAlias()
         self.flowDirsCache = CacheManager.CacheManager(maxEntries = 10000, timeout = 2*3600)
         self.machine = socket.gethostname()
+
+        cr = ConfReader("%spx.conf" % (PXPaths.ETC))
+        self.limit = cr.getConfigValues("resendLimit")
         
     def copy(self):
         machine = self.getMachine()
@@ -72,10 +76,16 @@ class PXCopy(object):
             filesToCopy = flog.readlines()
             flog.close()
 
+            nbFiles = len(filesToCopy)
+            if nbFiles > self.getLimit():
+                prio = -1
+            else:
+                prio = 2
+            
             for file in filesToCopy:
                 file = file.strip()
                 for destination in destinations:
-                    destination = self.createCompleteDestination(destination, file.split("/")[-1])
+                    destination = self.createCompleteDestination(destination, file.split("/")[-1], prio)
                     try:
                         shutil.copy(file, destination)
                         print "%s: Resent %s to %s" % (machine, file, destination)
@@ -86,14 +96,13 @@ class PXCopy(object):
             type, value, tb = sys.exc_info()
             sys.exit("An error occured in the PXCopy, Type: %s Value: %s" % (type, value))
     
-    def createCompleteDestination(self, flow, filename):
+    def createCompleteDestination(self, flow, filename, prio):
         """
         Converts a flow name to a path on the hard drive.
         """
         manager = self.getManager()
         drp = self.getDrp()
         flowDirsCache = self.getFlowDirsCache()
-        prio = 2 # Enventually or user selected
         
         if prio == -1:
             flowQueueName = manager.getFlowQueueName(flow, drp, filename)
@@ -152,6 +161,9 @@ class PXCopy(object):
 
     def getMachine(self):
         return self.machine
+
+    def getLimit(self):
+        return self.limit
 
 ####################################################
 # THESE ARE USED WHEN CALLED FROM THE COMMAND LINE #
