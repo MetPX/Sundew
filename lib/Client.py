@@ -82,10 +82,16 @@ class Client(object):
         self.destfn_script = None           # a script to rename the file for client
         self.execfile      = None
 
+        self.fx_script     = None           # a script to convert the file for client
+        self.execfile2     = None
+
         self.readConfig()
 
         if self.execfile != None :
            execfile(PXPaths.ETC + self.execfile )
+
+        if self.execfile2 != None :
+           execfile(PXPaths.ETC + self.execfile2 )
 
         #self.printInfos(self)
 
@@ -152,6 +158,7 @@ class Client(object):
                     elif words[0] == 'dir_pattern': self.dir_pattern =  isTrue(words[1])
                     elif words[0] == 'dir_mkdir': self.dir_mkdir =  isTrue(words[1])
                     elif words[0] == 'destfn_script': self.execfile = words[1]
+                    elif words[0] == 'fx_script': self.execfile2 = words[1]
                 except:
                     self.logger.error("Problem with this line (%s) in configuration file of client %s" % (words, self.name))
 
@@ -165,6 +172,10 @@ class Client(object):
     def run_destfn_script(self, filename): 
         if self.destfn_script == None : return filename
         return self.destfn_script(filename)
+
+    def run_fx_script(self, filename, logger): 
+        if self.fx_script == None : return filename
+        return self.fx_script(filename, logger)
 
     def _getMatchingMask(self, filename): 
         for mask in self.masks:
