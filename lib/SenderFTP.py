@@ -226,6 +226,7 @@ class SenderFTP(object):
                   continue
                fileList.append(fxfile)
                self.logger.info("File %s modified to %s " % (os.path.basename(file),fxfile) )
+           self.logger.info("%d converted files will be sent" % len(fileList))
 
         # process with file sending
 
