@@ -142,13 +142,21 @@ class SenderFTP(object):
         count = 0
         while count < maxCount:
             try:
+                # gives 15 seconds to open the connection
+                timex = AlarmFTP('FTP connection timeout')
+                timex.alarm(15)
                 ftp = ftplib.FTP(self.client.host, self.client.user, self.client.passwd)
+                timex.cancel()
                 if self.client.ftp_mode == 'active':
                     ftp.set_pasv(False)
                 else:
                     ftp.set_pasv(True)
                 self.originalDir = ftp.pwd()
                 return ftp
+
+            except FtpTimeoutException :
+                self.logger.error("FTP connection timed out after 15 seconds... retrying" )
+
             except:
                 count +=  1
                 (type, value, tb) = sys.exc_info()
