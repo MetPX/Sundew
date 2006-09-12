@@ -33,12 +33,11 @@ import DirectRoutingParser
 import searchResendUtils
 
 class ResendObject(object):
-    __slots__ = ["prompt", "destinations", "prio", "machineHeaderDict", "headerCount", "fileList", "logger"]
+    __slots__ = ["prompt", "destinations", "machineHeaderDict", "headerCount", "fileList", "logger"]
     
     def __init__(self):
         self.prompt = False
         self.destinations = ""
-        self.prio = "2"
         self.machineHeaderDict = {}
         self.headerCount = 0
         self.fileList = []
@@ -119,12 +118,6 @@ class ResendObject(object):
 
     def setDestinations(self, value):
         self.destinations = value
-
-    def getPrio(self):
-        return self.prio
-
-    def setPrio(self, value):
-        self.prio = value
 
     def getMachineHeaderDict(self):
         return self.machineHeaderDict

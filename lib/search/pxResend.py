@@ -42,7 +42,6 @@ def validateUserInput(options, args):
 
 def updateResendObject(ro, options, args):
     ro.setPrompt(options.prompt)
-    ro.setPrio(options.prio)
     ro.setDestinations(options.destination.split(","))
     
     if len(args) == 0: # Get bulletin list from stdin
@@ -92,7 +91,6 @@ def createParser(ro):
 
     parser.add_option("--ask", action = "store_true", dest = "prompt", help = "Ask for a confirmation for each file", default=True)
     parser.add_option("--all", action = "store_false", dest = "prompt", help = "Send all files without confirmation (default).", default=False)
-    parser.add_option("-p", "--prio", dest = "prio", help = "Specify in which priority you want to put the file in? (default 2).", default = ro.getPrio())
     parser.add_option("-d", "--destination", dest = "destination", help = "Specify comma-separated list of destinations (ex: ppp1,test,cmc2).", default = ro.getDestinations())
     
     return parser
