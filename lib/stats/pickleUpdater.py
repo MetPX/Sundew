@@ -25,15 +25,20 @@ named COPYING in the root of the source directory tree.
 #important files 
 import os,time, pwd, sys,getopt, commands, fnmatch,pickle
 from   Logger import * 
-import PXPaths 
+
 from optparse import OptionParser
 from ConfigParser import ConfigParser
 from MyDateLib import *
 from ClientStatsPickler import ClientStatsPickler
+import PXManager
 from PXManager import *
-
+import PXPaths 
+from PXPaths import *
 PXPaths.normalPaths()
-
+PXPaths.RX_CONF  = '/apps/px/stats/rx/'
+PXPaths.TX_CONF  = '/apps/px/stats/tx/'
+PXPaths.TRX_CONF = '/apps/px/stats/trx/'
+print PXPaths.TX_CONF
 localMachine = os.uname()[1]
 
 class _UpdaterInfos: 
@@ -241,16 +246,21 @@ def getOptionsFromParser( parser, logger = None  ):
     
     
     if clients[0] == "All" :
-    
+        print PXPaths.TX_CONF
         pxManager = PXManager()
         #pxManager.setLogger(logger)
+        PXPaths.RX_CONF  = '/apps/px/stats/rx/'
+        PXPaths.TX_CONF  = '/apps/px/stats/tx/'
+        PXPaths.TRX_CONF = '/apps/px/stats/trx/'
         pxManager.initNames() # Now you must call this method
         
         if fileType == "tx": 
-            clients = pxManager.getTxNames()                  
+            clients = pxManager.getTxNames()                      
         else:
             clients = pxManager.getRxNames()          
-       
+        
+        print PXPaths.TX_CONF     
+        print "clients : %s"   %clients 
            
     #print clients   
              

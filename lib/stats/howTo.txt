@@ -292,7 +292,7 @@ How to use the stats library, step by step :
         
         This command is to be added on every mirror machine containing log files. 
         
-        15 0-24 * * * rsync -avzr -e ssh pds@pds6:/apps/px/log/ /apps/px/log/machineName/;/apps/px/lib/stats/pickleUpdater.py -rx >> /tmp/puOutput;/apps/px/lib/stats/pickleUpdater.py -tx >> /tmp/puOutput; ssh login@machine '/apps/px/lib/stats/pickleSynchroniser.py -l login -m machine'
+        15 0-24 * * * rsync -avzr -e ssh pds@pds5:/apps/px/log/ /apps/px/log/pds3-dev/; python /apps/px/lib/stats/pickleUpdater.py -f rx >> /tmp/puOutput; python /apps/px/lib/stats/pickleUpdater.py -f tx >> /tmp/puOutput; ssh pds@lvs1-dev 'cd /apps/px/lib/stats/; python /apps/px/lib/stats/pickleSynchroniser.py -l pds -m pds3-dev' ; ssh pds@lvs1-dev 'cd /apps/px/lib/stats/; python /apps/px/lib/stats/testGraphics.py'
          
         
     Step 5.3 - Produce graphics based on synchronised data.
@@ -306,7 +306,7 @@ How to use the stats library, step by step :
         If data was not synchronised at the time of the graphics production and 
         lets say hours 7 was missing. 
         
-        If a later data synchronisation occurs and retreives data for hour 7 on the client producing machine, 
+        If a later data synchronisation occurs and retrieves data for hour 7 on the client producing machine, 
         the graphic should be remade by the user as to have the right graphic...
  
  
