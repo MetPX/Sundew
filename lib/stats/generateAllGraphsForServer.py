@@ -14,12 +14,16 @@ named COPYING in the root of the source directory tree.
 #
 # Date  : 2006-09-12
 #
-# Description: 
+# Description: This program is to be used to create graphics of the same timespan for 
+#              one or many machines and for all their respective clients.
+#                           
+#              Graphics can also be produce by merging the data from different machines.
 #
-# Usage:   This program can be called from command-line.
+# Usage:   This program can be called from command-line. Use -h for usage.
 #
 #
 ##############################################################################################
+
 import os,time, pwd, sys,getopt, commands, fnmatch,pickle
 from optparse import OptionParser
 import PXPaths 
@@ -28,11 +32,15 @@ from PXManager import *
 from  MyDateLib import *
 PXPaths.normalPaths()
 
+
 class _Infos:
 
-    def __init__( self, date, machines, timespan, logins,combinedName, combine ):
-
-            
+    def __init__( self, date, machines, timespan, logins, combinedName, combine ):
+        """
+            Data structure to be used to store parameters within parser.
+        
+        """
+                    
         self.logins      = logins       # Logins for all machines. 
         self.timespan    = timespan     # Number of hours we want to gather the data from. 
         self.date        = date         # Time when graphs were queried.
@@ -56,13 +64,16 @@ def createParser( ):
    
 
 Defaults :
-- Default Date is current system time.  
+- Default combine value is false.
+- Default Date is current system time.
+- Default logins is pds.  
+- Default machines value is pxatx.
 - Default span is 12 hours.
 
 Options:
     - With -c|--combine you specify that graphic produced must also be a combination of numerous machines.  
     - With -d|--date you can specify the time of the request.( Usefull for past days and testing. )
-    - With -l|--logins you can specifuy wich login must be used for each of the enumerated machines.
+    - With -l|--logins you can specify wich login must be used for each of the enumerated machines.
     - With -m|--machines you can specify the list of machines to be used.
     - With -s|--span you can specify the time span to be used to create the graphic 
     
@@ -95,6 +106,7 @@ def addOptions( parser ):
     parser.add_option("-c", "--combine", action="store_true", dest = "combine", default=False, help="Combine data from all specified machines.")
     
     parser.add_option("-d", "--date", action="store", type="string", dest="date", default=MyDateLib.getIsoFromEpoch( time.time() ), help="Decide current time. Usefull for testing.")                     
+    
     parser.add_option( "-l", "--logins", action="store", type="string", dest="logins", default="pds", help = "Logins to be used to connect to machines." ) 
     
     parser.add_option( "-m", "--machines", action="store", type="string", dest="machines", default="pxatx", help = "Machines for wich you want to collect data." ) 
@@ -120,7 +132,7 @@ def getOptionsFromParser( parser ):
     
     """ 
     
-    currentTime   = []
+    
     
     ( options, args )= parser.parse_args()        
     timespan         = options.timespan
@@ -134,8 +146,8 @@ def getOptionsFromParser( parser ):
     
     try: # Makes sure date is of valid format. 
          # Makes sure only one space is kept between date and hour.
-        t =  time.strptime( currentTime, '%Y-%m-%d %H:%M:%S' )
-        split = currentTime.split()
+        t =  time.strptime( date, '%Y-%m-%d %H:%M:%S' )#will raise exception if format is wrong.
+        split = date.split()
         currentTime = "%s %s" %( split[0], split[1] )
 
     except:    
@@ -172,7 +184,10 @@ def getOptionsFromParser( parser ):
   
     
 def main():
-    
+    """
+        Create graphics of the same timespan for 
+        one or many machines and for all their respective clients.
+    """    
 
     parser = createParser( )  #will be used to parse options 
     
@@ -180,54 +195,52 @@ def main():
        
     for i in range ( len( infos.machines ) ) :
         
+        #rsync .conf files. to make sure we're up to date.
         if not os.path.isdir( '/apps/px/stats/rx/%s/' %infos.machines[i] ):
             os.makedirs(  '/apps/px/stats/rx/%s/' %infos.machines[i], mode=0777 )
         if not os.path.isdir( '/apps/px/stats/tx/%s' %infos.machines[i]  ):
             os.makedirs( '/apps/px/stats/tx/%s/' %infos.machines[i]  , mode=0777 )
         if not os.path.isdir( '/apps/px/stats/trx/%s/' %infos.machines[i]  ):
             os.makedirs(  '/apps/px/stats/trx/%s/' %infos.machines[i], mode=0777 )
-        #rsync .conf files. to make sure we're up to date.
-        
+                
         status, output = commands.getstatusoutput( "rsync -avzr -e ssh %s@%s:/apps/px/etc/rx/* /apps/px/stats/rx/%s/"  %( infos.logins[i], infos.machines[i], infos.machines[i] ) ) 
-        print output
+        print output # for debugging only
         status, output = commands.getstatusoutput( "rsync -avzr -e ssh %s@%s:/apps/px/etc/tx/* /apps/px/stats/tx/%s/"  %( infos.logins[i], infos.machines[i], infos.machines[i] ) )  
-        print output
+        print output # for debugging only
         status, output = commands.getstatusoutput( "rsync -avzr -e ssh %s@%s:/apps/px/etc/trx/* /apps/px/stats/trx/%s/"  %( infos.logins[i], infos.machines[i], infos.machines[i] ) )         
-        print output
+        print output # for debugging only
+                   
         
- 
-            
-                        
+        #get all clients for wich we need to update the graphics.                
         pxManager = PXManager()#need to reset values afterwards.
         PXPaths.RX_CONF  = '/apps/px/stats/tx/%s/'  %infos.machines[i]
         PXPaths.TX_CONF  = '/apps/px/stats/rx/%s/'  %infos.machines[i]
         PXPaths.TRX_CONF = '/apps/px/stats/trx/%s/' %infos.machines[i]
         pxManager.initNames() # Now you must call this method  
         txNames = pxManager.getTxNames()               
-        rxNames = pxManager.getRxNames()  
-    
+        rxNames = pxManager.getRxNames()      
             
             
         for txName in txNames:
-            status, output = commands.getstatusoutput( "python generateGraphics.py -m '%s' -f tx -c '%s' -d '%s' " %( infos.machines[i],txName, infos.date) )
+            status, output = commands.getstatusoutput( "python generateGraphics.py -m '%s' -f tx -c '%s' -d '%s' -s %s " %( infos.machines[i],txName, infos.date, infos.timespan) )
             print output # for debugging only
             
         for rxName in rxNames:
-            status, output = commands.getstatusoutput( "python generateGraphics.py -m '%s' -f rx -c '%s' -d '%s' " %( infos.machines[i] , rxName, infos.date ) )     
+            status, output = commands.getstatusoutput( "python generateGraphics.py -m '%s' -f rx -c '%s' -d '%s' -s %s" %( infos.machines[i] , rxName, infos.date,infos.timespan ) )     
             print output #for debugging only
 
     
     if infos.combine == True and len(machines) > 1:
-        #no need to update list of lcient since it should be the same for all clients put in a merger.
+    #no need to update list of client since it should be the same for all clients put in a merger.
+        
         for txName in txNames:
-            status, output = commands.getstatusoutput( "python generateGraphics.py -m %s -f tx -c %s -d '2006-09-10 15:00:00' " %( infos.combinedName, txName, infos.date) )
+            status, output = commands.getstatusoutput( "python generateGraphics.py -m %s -f tx -c %s -d '%s' -s %s  " %( infos.combinedName, txName, infos.date,infos.timespan ) )
             print output # for debugging only
             
         for rxName in rxNames:
-            status, output = commands.getstatusoutput( "python generateGraphics.py -m %s -f rx -c %s -d '2006-09-10 15:00:00' " %( infos.combinedName, rxName,infos.date ) )     
+            status, output = commands.getstatusoutput( "python generateGraphics.py -m %s -f rx -c %s -d '%s' -s %s  " %( infos.combinedName, rxName, infos.date,infos.timespan ) )     
             print output #for debugging on  
     
-
 
 if __name__ == "__main__":
     main()    

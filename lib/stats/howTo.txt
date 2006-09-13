@@ -290,10 +290,13 @@ How to use the stats library, step by step :
         Since we recommend collecting data hourly, it is also recommended to synchronise
         files hourly.
         
-        This command is to be added on every mirror machine containing log files. 
+        This command is to be added onthe machine producing graphics... 
         
-        15 0-24 * * * rsync -avzr -e ssh pds@pds5:/apps/px/log/ /apps/px/log/pds3-dev/; python /apps/px/lib/stats/pickleUpdater.py -f rx >> /tmp/puOutput; python /apps/px/lib/stats/pickleUpdater.py -f tx >> /tmp/puOutput; ssh pds@lvs1-dev 'cd /apps/px/lib/stats/; python /apps/px/lib/stats/pickleSynchroniser.py -l pds -m pds3-dev' ; ssh pds@lvs1-dev 'cd /apps/px/lib/stats/; python /apps/px/lib/stats/testGraphics.py'
-         
+        15 0-24 * * * ssh pds@pds3-dev 'rsync -avzr -e ssh pds@pds5:/apps/px/log/ /apps/px/log/pds3-dev/'; ssh pds@pds3-dev 'python /apps/px/lib/stats/pickleUpdater.py -f rx >> /tmp/puOutput';ssh pds@pds3-dev 'python /apps/px/lib/stats/pickleUpdater.py -f tx' >> /tmp/puOutput;cd /apps/px/lib/stats/;python /apps/px/lib/stats/pickleSynchroniser.py -l pds -m 'pds3-dev';cd /apps/px/lib/stats/;python /apps/px/lib/stats/generateAllGraphsForServer.py
+        
+        This way we make sure all data is up to date and all the latest graphs are produced and ready to be consulted 
+        when users needs to.
+                
         
     Step 5.3 - Produce graphics based on synchronised data.
         
