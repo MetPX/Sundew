@@ -198,6 +198,7 @@ def main():
         different clients and machines received in parameter.  
     
     """
+    print "made it up to pickle synching"
     
     parser   = createParser( )  #will be used to parse options 
     machines, clients, login, verbose, output = getOptionsFromParser( parser )

@@ -46,7 +46,7 @@ class _Infos:
         self.date        = date         # Time when graphs were queried.
         self.machines    = machines     # Machine from wich the data comes.
         self.combinedName= combinedName # To be used if merges = True.
-        self.combine     = combine      # Whether or not the machines passes in parameter need to be combined to create
+        self.combine     = combine      # Whether or not the machines passed in parameter need to be combined to create
                                         # graphs     
 
 def createParser( ):
@@ -102,7 +102,6 @@ def addOptions( parser ):
         
     """
     
-    #localMachine = os.uname()[1]
     parser.add_option("-c", "--combine", action="store_true", dest = "combine", default=False, help="Combine data from all specified machines.")
     
     parser.add_option("-d", "--date", action="store", type="string", dest="date", default=MyDateLib.getIsoFromEpoch( time.time() ), help="Decide current time. Usefull for testing.")                     
@@ -137,7 +136,7 @@ def getOptionsFromParser( parser ):
     ( options, args )= parser.parse_args()        
     timespan         = options.timespan
     machines         = options.machines.replace( ' ','' ).split( ',' )
-    combinedName     = options.machines.replace( ' ','' )
+    combinedName     = options.machines.replace( ' ','' ).replace( '[','' ).replace( ']', '' )
     date             = options.date.replace( '"','' ).replace( "'",'')
     logins           = options.logins.replace( '"', '' ).replace( " ","" ).split( ',' )     
     combine          = options.combine
@@ -195,6 +194,15 @@ def main():
        
     for i in range ( len( infos.machines ) ) :
         
+        #small workaround for temporary test machines    
+        if infos.machines[i] == "pds5" :
+            machine = "pds3-dev"
+        elif infos.machines[i] == "pds6" :
+            machine = "pds4-dev"
+        else:
+            machine = infos.machines[i]
+            
+            
         #rsync .conf files. to make sure we're up to date.
         if not os.path.isdir( '/apps/px/stats/rx/%s/' %infos.machines[i] ):
             os.makedirs(  '/apps/px/stats/rx/%s/' %infos.machines[i], mode=0777 )
@@ -202,7 +210,9 @@ def main():
             os.makedirs( '/apps/px/stats/tx/%s/' %infos.machines[i]  , mode=0777 )
         if not os.path.isdir( '/apps/px/stats/trx/%s/' %infos.machines[i]  ):
             os.makedirs(  '/apps/px/stats/trx/%s/' %infos.machines[i], mode=0777 )
-                
+        
+
+            
         status, output = commands.getstatusoutput( "rsync -avzr -e ssh %s@%s:/apps/px/etc/rx/* /apps/px/stats/rx/%s/"  %( infos.logins[i], infos.machines[i], infos.machines[i] ) ) 
         print output # for debugging only
         status, output = commands.getstatusoutput( "rsync -avzr -e ssh %s@%s:/apps/px/etc/tx/* /apps/px/stats/tx/%s/"  %( infos.logins[i], infos.machines[i], infos.machines[i] ) )  
@@ -213,8 +223,8 @@ def main():
         
         #get all clients for wich we need to update the graphics.                
         pxManager = PXManager()#need to reset values afterwards.
-        PXPaths.RX_CONF  = '/apps/px/stats/tx/%s/'  %infos.machines[i]
-        PXPaths.TX_CONF  = '/apps/px/stats/rx/%s/'  %infos.machines[i]
+        PXPaths.RX_CONF  = '/apps/px/stats/rx/%s/'  %infos.machines[i]
+        PXPaths.TX_CONF  = '/apps/px/stats/tx/%s/'  %infos.machines[i]
         PXPaths.TRX_CONF = '/apps/px/stats/trx/%s/' %infos.machines[i]
         pxManager.initNames() # Now you must call this method  
         txNames = pxManager.getTxNames()               
@@ -222,25 +232,46 @@ def main():
             
             
         for txName in txNames:
-            status, output = commands.getstatusoutput( "python generateGraphics.py -m '%s' -f tx -c '%s' -d '%s' -s %s " %( infos.machines[i],txName, infos.date, infos.timespan) )
+            status, output = commands.getstatusoutput( "python /apps/px/lib/stats/generateGraphics.py -m '%s' -f tx -c '%s' -d '%s' -s %s " %( machine,txName, infos.date, infos.timespan) )
             print output # for debugging only
             
         for rxName in rxNames:
-            status, output = commands.getstatusoutput( "python generateGraphics.py -m '%s' -f rx -c '%s' -d '%s' -s %s" %( infos.machines[i] , rxName, infos.date,infos.timespan ) )     
+            status, output = commands.getstatusoutput( "python /apps/px/lib/stats/generateGraphics.py -m '%s' -f rx -c '%s' -d '%s' -s %s" %( machine , rxName, infos.date,infos.timespan ) )     
             print output #for debugging only
 
+    print "infos.combine : %s" %infos.combine
+    print "len( machines ) : %s" %len( infos.machines )
     
-    if infos.combine == True and len(machines) > 1:
+    
+    if infos.combine == True and len( infos.machines ) > 1:
     #no need to update list of client since it should be the same for all clients put in a merger.
         
+        #workaround to be removed after its installed on real machines
+        for i in range ( len( infos.machines ) ) :
+        
+            #small workaround for temporary test machines    
+            if infos.machines[i] == "pds5" :
+                infos.machines[i] = "pds3-dev"
+            elif infos.machines[i] == "pds6" :
+                infos.machines[i] = "pds4-dev"
+            else:#case for pxatx?
+                infos.machines[i] = infos.machines[i]
+        
+        infos.combinedName= str(infos.machines).replace( ' ','' ).replace( '[','' ).replace( ']', '' )        
+        print "infos.combinedName : %s" %infos.combinedName
+        #end of workaround
+
+        
         for txName in txNames:
-            status, output = commands.getstatusoutput( "python generateGraphics.py -m %s -f tx -c %s -d '%s' -s %s  " %( infos.combinedName, txName, infos.date,infos.timespan ) )
+            status, output = commands.getstatusoutput( "python /apps/px/lib/stats/generateGraphics.py -m %s -f tx -c %s -d '%s' -s %s  " %( infos.combinedName, txName, infos.date,infos.timespan ) )
             print output # for debugging only
             
         for rxName in rxNames:
-            status, output = commands.getstatusoutput( "python generateGraphics.py -m %s -f rx -c %s -d '%s' -s %s  " %( infos.combinedName, rxName, infos.date,infos.timespan ) )     
+            status, output = commands.getstatusoutput( "python /apps/px/lib/stats/generateGraphics.py -m %s -f rx -c %s -d '%s' -s %s  " %( infos.combinedName, rxName, infos.date,infos.timespan ) )     
             print output #for debugging on  
     
 
 if __name__ == "__main__":
-    main()    
+    main()   
+    
+    
