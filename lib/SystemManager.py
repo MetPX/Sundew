@@ -39,6 +39,22 @@ class SystemManager:
         self.rxPaths = []                      # Receivers (input directories in PDS parlance) paths
         self.txPaths = []                      # Transmitters (clients in PDS parlance, senders in PX parlance) paths
 
+    def removeDuplicate(list):
+        set = {}
+        for item in list:
+            set[item] = 1
+        return set.keys()
+    removeDuplicate = staticmethod(removeDuplicate)
+
+    def identifyDuplicate(list):
+        duplicate = {}
+        list.sort()
+        for index in range(len(list)-1):
+            if list[index] == list[index+1]:
+                duplicate[list[index]]=1
+        return duplicate.keys()
+    identifyDuplicate = staticmethod(identifyDuplicate)
+
     def setLogger(self, logger):
         self.logger = logger
 
