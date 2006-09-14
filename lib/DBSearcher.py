@@ -110,8 +110,9 @@ class DBSearcher:
                     eval(country + 'List').append(FD[height][country][number])
                     #eval(country + 'List').sort()
 
-    def __init__(self, request):
+    def __init__(self, request, printout=True):
         
+        self.printout = printout
         self.request = request    # Request before being parsed
         self.requestType = None   # 1 for fully qualified header, 2 for type + station(s)
 
@@ -189,18 +190,20 @@ class DBSearcher:
                         if results[0][1]:
                             allResults.extend(results)
                             #self.printResults(results, self.type)
-                            print 80 * '-'
-                            for result in results:
-                                print self.formatResult(result, self.type)
+                            if self.printout:
+                                print 80 * '-'
+                                for result in results:
+                                    print self.formatResult(result, self.type)
                             break
                     elif self.type in ['FC', 'FT', 'TAF']:
                         results = self._findTAF([station], date)
                         if results[0][1]:
                             allResults.extend(results)
                             #self.printResults(results, self.type)
-                            print 80 * '-'
-                            for result in results:
-                                print self.formatResult(result, self.type)
+                            if self.printout:
+                                print 80 * '-'
+                                for result in results:
+                                    print self.formatResult(result, self.type)
                             break
 
                     elif self.type in ['FD', 'FD1', 'FD2', 'FD3']:
@@ -208,9 +211,10 @@ class DBSearcher:
                         if results[0][1]:
                             allResults.extend(results)
                             #self.printResults(results)
-                            print 80 * '-'
-                            for result in results:
-                                print self.formatResult(result, self.type)
+                            if self.printout:
+                                print 80 * '-'
+                                for result in results:
+                                    print self.formatResult(result, self.type)
                             break
 
             #print allResults
@@ -250,7 +254,8 @@ class DBSearcher:
 
             except:
                 (type, value, tb) = sys.exc_info()
-                print("Type: %s, Value: %s" % (type, value))
+                if self.printout:
+                    print("Type: %s, Value: %s" % (type, value))
                 return filesToParse
     
             #print("Headers: %s" % headers)
@@ -269,7 +274,8 @@ class DBSearcher:
                                     break
                     except:
                         (type, value, tb) = sys.exc_info()
-                        if self.debug: print("Type: %s, Value: %s" % (type, value))
+                        if self.printout:
+                            if self.debug: print("Type: %s, Value: %s" % (type, value))
                         continue
     
             #print ("len(filesToParse) = %d\n" % len(filesToParse))
@@ -519,9 +525,9 @@ class DBSearcher:
             if self.debug: print path, dirs, files
         except:
             (type, value, tb) = sys.exc_info()
-            print("Type: %s, Value: %s" % (type, value))
+            print("In _findFullHeader: Type = %s, Value = %s" % (type, value))
             print("The request (%s) has been stopped at the date (%s) level" % (self.request, date))
-            sys.exit()
+            return self.theFile
 
         # We select only the "tt" directory
         for dir in dirs[:]:
@@ -538,7 +544,7 @@ class DBSearcher:
             (type, value, tb) = sys.exc_info()
             print("Type: %s, Value: %s" % (type, value))
             print("The request (%s) has been stopped at the source(s) level" % (self.request))
-            sys.exit()
+            return self.theFile
 
         if country=='CA':
             for dir in dirs[:]:
