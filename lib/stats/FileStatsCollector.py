@@ -190,18 +190,20 @@ class FileStatsCollector:
         files   = [] # Used to browse all files of an entry
         times   = [] # Used to browse all times of an entry 
         
-        if startingBucket != 0 :
-            self.firstFilledEntry  = startingBucket
-        if finishingBucket !=0 : 
-            self.lastFilledEntry = finishingBucket -1
+#         if startingBucket != 0 :
+#             self.firstFilledEntry  = startingBucket
+#         
+#         if finishingBucket !=0 : 
+#             self.lastFilledEntry = finishingBucket -1
+        if finishingBucket == 0 :
+            finishingBucket = -1
         
         if self.logger != None :    
             self.logger.debug( "Call to setMinMaxMeanMedians received." )
    
                    
-        for i in xrange( self.firstFilledEntry , self.lastFilledEntry + 1 ): #for each entries we need to deal with 
-            
-            
+        for i in xrange( startingBucket , finishingBucket + 1 ): #for each entries we need to deal with 
+                        
             self.fileEntries[i].medians  = {}
             self.fileEntries[i].minimums = {}
             self.fileEntries[i].maximums = {}
@@ -711,7 +713,7 @@ class FileStatsCollector:
 #         try:
             
         self.setValues( endTime )   #fill dictionary with values
-        self.setMinMaxMeanMedians() #use values to find these values.   
+        self.setMinMaxMeanMedians( startingBucket = self.firstFilledEntry, finishingBucket = self.lastFilledEntry  )  
         
 #         except:
 #             (type, value, tb) = sys.exc_info()

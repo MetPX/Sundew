@@ -206,7 +206,7 @@ def mergePicklesFromSameHour( logger = None , pickleNames = None, mergedPickleNa
                     newFSC.fileEntries[j].values.rows = newFSC.fileEntries[j].values.rows + 1
 
         
-        newFSC = newFSC.setMinMaxMeanMedians( productType = "", startingBucket = 0 , finishingBucket = newFSC.nbEntries )
+        newFSC = newFSC.setMinMaxMeanMedians( productType = "", startingBucket = 0 , finishingBucket = newFSC.nbEntries -1 )
              
            
     else:#Did not merge pickles named. Pickle list was not valid."

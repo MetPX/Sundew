@@ -139,7 +139,7 @@ class ClientGraphicProducer:
         if self.productType != "All":
             
             for c in collectorsList: 
-                c.statsCollection.setMinMaxMeanMedians(  productType = self.productType, startingBucket = 0 , finishingBucket = len(c.statsCollection.fileEntries)  )
+                c.statsCollection.setMinMaxMeanMedians(  productType = self.productType, startingBucket = 0 , finishingBucket = len(c.statsCollection.fileEntries) -1 )
         
         if self.logger != None :         
             self.logger.debug( "Call to StatsPlotter :Clients:%s, timespan:%s, currentTime:%s, statsTypes:%s, productType:%s :" %( self.clientNames, self.timespan, self.currentTime, types, self.productType ) )
