@@ -15,8 +15,18 @@ named COPYING in the root of the source directory tree.
 ## Date   : 06-07-2006 
 ##
 ##
-## Description : 
+## Description : This file contains all the needed methods needed to compare 
+##               the current checksum of a pickle file to the previously saved
+##               checksum of the file.           
 ##
+##               Note : The user parameter is used in some methods. This concept                
+##                      has been implemented as to differentiate the different
+##                      parties wich manipulate said file. This had to be done 
+##                      since different users can use the file at different 
+##                      points in time and thus a file shoudl be considered modified 
+##                      for a certain user might not be for another and vice-versa.
+##
+## 
 ##
 ##############################################################################
 
@@ -29,16 +39,17 @@ class PickleVersionChecker :
 
     def __init__( self ):
         """
-            Constructor.
+            Constructor. Contains two current and saved lists.
         """
         
-        self.currentFileList = {}
-        self.savedFileList   = {}
+        self.currentFileList = {}  # The one present on disk
+        self.savedFileList   = {}  # The one that was previously recorded
         
         
     def getCurrentFileList( self ):
         """
-            Returns the checksum of files currently found on the disk.
+            Returns the checksum of all pickle files currently found on the disk.
+            
         """    
         
         status, md5Output = commands.getstatusoutput( "md5sum `find %s -name '*_??'` " % PXPaths.PICKLES )
@@ -58,7 +69,8 @@ class PickleVersionChecker :
         
     def getSavedList( self ):
         """
-            Returns the checksum of the files when we last used them.
+            Returns the checksum of the files contained in the saved list.
+        
         """
         
         try :
@@ -73,7 +85,15 @@ class PickleVersionChecker :
                     
     def isDifferentFile( self, file, user = "pds5pds6" ):
         """
-        
+            
+            Goal : Returns whether or not the file is different than 
+                   the one previously recorded.
+            
+            File : File to verify
+            
+            User : Name of the client, person, etc.. wich has a relation with the 
+                   file.  
+             
         """
         
         isDifferent = True  
@@ -85,6 +105,7 @@ class PickleVersionChecker :
         if self.savedFileList == {}:
             self.getSavedList()
     
+            
         try:
         
             if self.savedFileList[user][file] == self.currentFileList[file] :
@@ -100,6 +121,10 @@ class PickleVersionChecker :
     
     def updateFileInList( self, file, user ) :
         """
+            File : Name of the file 
+            User : Person for whom a relation with the file exists. 
+            Puts current checksum value  
+            
         """ 
 
         if file in self.currentFileList.keys(): 
@@ -120,7 +145,7 @@ class PickleVersionChecker :
            
 def main():
     """
-    
+        small test case. Tests if everything works plus gives an idea on proper usage.
     """
     
     vc  = PickleVersionChecker()

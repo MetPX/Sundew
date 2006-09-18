@@ -15,7 +15,7 @@ named COPYING in the root of the source directory tree.
 #                             
 #
 # Author        : Nicholas Lemay
-# Last Update   : August 7th 2006
+# Last Update   : September 18th 2006
 #
 #
 ###################################################################################################
@@ -38,13 +38,13 @@ This section thus contains all the files needed to do this job.
 
 Files included in the stats library are :
 ------------------------------------
-
 - ClientGraphicProducer.py  
 - ClientStatsPickler.py 
 - cpickleWrapper.py
 - DirectoryFileCollector.py    
 - FileStatsCollector.py 
 - generateGraphics.py
+- generateAllGraphsForServer.p
 - MyDateLib.py
 - pickleMerging.py
 - pickleUpdater.py 
@@ -62,13 +62,32 @@ These library files are required by the stats library :
               down the road.    
 
 -Gnuplot library : Folder named Gnuplot containing the gnuplot library should be found in 
-                   the imported libs folder of the library.
+                   the imported libs folder of the library.                  
                    
-                   To use imported libs the following line might be usefull in your ~/.profile
-                   export PYTHONPATH=/apps/px/lib/importedLibs/
 
 -backwardReader.py : Methods here are used to read a file backwards.
               
+-PXPaths           : List of paths to be used in the px library. 
+
+
+Environment variables*****WARNING***** :
+---------------------------------------
+The following environment variable needs to be set in order for the file interaction
+to work.
+
+PYTHONPATH=:/apps/px/lib:/apps/px/lib/importedLibs:/apps/px/lib/stats/
+
+It should be set in the .profile(or equivalent) of machines where programs are to be run locally.
+
+On hosts of remotely executed commands, it should be set in the $HOME/.ssh/environment file.
+
+Further more, the PermitUserEnvironment parameter must be set to yes in the /etc/ssh/sshd_config
+file or else the environment file will be ignored by ssh.
+
+Finally, the same variable needs to be set in the crontab file if crontabs are to be used on 
+a machine. Use crontab -e and add the line prior to the line containing the command that relates to
+one of the programs of the library.
+
 
 
 File interaction : 
@@ -106,9 +125,13 @@ File Overview
                             After that it calls StatsPlotter.py with the collected data and uses it to produce the graphic.
 
 
-- generateGraphics       : This file offers to the user a command line interface so he can easily use
+-generateGraphics       : This file offers to the user a command line interface so he can easily use
                            the functionalities offered by ClientGraphicProducer.py. 
 
+                           
+-generateAllGraphsForServer : Serves as a wrapper for generate graphics by adding the possibility to generate a graphic                                 for each and every client found on a specified server. Very usefull in cron jobs to produce
+                              timely graphics.    
+                           
 
 -ClientStatsPickler.py :      Collects stats from all the files needed to cover a certain timespace.
                               
@@ -157,8 +180,9 @@ File Overview
                     
                     This will be very usefull if some pickles for the same client are produced on different 
                     machines and some operation concerning all the data must be done on a cpecific machine.
-                    Ex :See Clientgraphicproducer...                    
+                    Ex :See Clientgraphicproducer...                   
 
+                    
 -pickleUpdater.py : This program is the one to be used to make automated data updates.
                     Recommended usage is to call this program every hours to create the hourly pickles
                     the contain stats on a client. 
@@ -167,6 +191,9 @@ File Overview
 -StatsPlotter.py : This file contains the methods to plot a gnuplot graphic once the data has been
                    collected using the previously described files. This is very similar to the 
                    Plotter.py allready found in the library.  
+
+-pickleSynchroniser : Implementation of an rsync system. Allos a machine to synchronise the content of it's 
+                      pickle folder with the one located on a remote machine.
 
                    
 -PickleVersionChecker.py  : This class is used in the library to keep track of the changes made within files.
@@ -326,7 +353,7 @@ Graphic production
   Otherwise, the graphic's data will not include data after the last crontab 
   call but will be drawn faster since no time will be spent on collecting and calculating new data.
       
--It is now possible to produce graphics for each data type collected. This means latency,bytecount 
+-It is now possible to produce graphics for each data type collected. This means latency, bytecount 
  and errors.  
 
 -It is impossible to create a graphic on a data type wich was not previously collected. 
@@ -341,17 +368,20 @@ Dealing with remote machines
 - To make the application more scalable in terms of a possible growing number of machines it was 
   decided that every machines would do it's own data pickling using pickleUpdater. 
 
-- Some clients have their data stored on different machines. This prompted the implementation
-  of a rsync system that allows pickled data found on numerous machines to be brought back 
-  in a single folder of a specific machine if needed. 
+- Some clients have their data stored on different machines. pickleMerging.py has been introduced
+  in the library to make merging of different machines picklespossible.  
 
-- ClientGraphicProducer uses that system to produce graphics for a certain client where the user wants 
-  to have the data from more than one machine.(todo)       
-
-- pickleMerging.py has been introduced in the library to make merging of different machines pickles
-  possible.
+- Since the graphic producing mahcine is at the heart of the library, it is this machine that will
+  launch all the updates on the remote machines containing the log files. 
   
-     
+- remotely executed commands using ssh need to be added in the crontab of the graphic producing machine.
+  ***See howTo.txt to see how too add line.     
+
+- The graphic producing machine also needed all the pickles created remotely to generate graphics.
+  This prompted the implementation of a rsync system (pickleSynchroniser.py) that allows pickled data
+  found on numerous machines to be brought back in a single folder of a specific machine if needed.   
+
+  
   
  
 Important notes ( Specifics )
@@ -405,12 +435,21 @@ Pickle Files :
 ---------------
 
 
-PICKLED-TIMES :
+/apps/px/stats/PICKLED-TIMES :
 --------------
 This is the only file created to contain all the last pickleUpdates times from each of the different 
 clients. This file is save in a regular non-compresses pickle format. This is done so that a user 
 could easily modify a certain client's date if needed.
 
+
+/apps/px/stats/PICKLED_FILE_POSITIONS:
+-----------------------------
+Contains a list of positions stating where we last read a file for a specific client. 
+
+
+/apps/px/stats/FILE_VERSIONS:
+------------------------------
+Contains a list of checksums saved with PickleVersionChecker. See PickleVersionChecker.py for details.
 
 
 
@@ -504,18 +543,24 @@ Critical errors
 To be completed...    
        
 
-TODO list 
+TODO( maybe? ) list 
 ----------------------------------------------------------------------------------------------------
 
--Make more local tests.
+- Modify columbo graphic interface so that it can display graphics created by library.
 
--Engage in real tests.
+- Implement system that cleans up past graphics,log files and pickles that are no longer needed.
+
+- Implement merging of past data so that it can be reduced in size and be usefull at a different scale.
+  ( Weekly, monthly and yearly graphs ? )
 
 
 Optimizations
 ------------------------------------------------------------------------------------------------------
-Merging pickle files will without a doubt slow down "on the fly" graphic production. 
-Finding a way to optimize it would be nice. 
+- Merging pickle files without a doubt slows down "on the fly" graphic production. 
+  Finding a way to optimize it further would be nice. 
+
+- Any other speed optimization would be welcomed as to not bog down machines with data calculation 
+  and to generate queried graphics as quickly as possible for users.
  
 
  
