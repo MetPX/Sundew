@@ -115,7 +115,7 @@ def getOptionsFromParser( parser ):
     try :
     
         if fileType == "tx":       
-            validTypes = [ "errors","latency","bytecount" ]
+            validTypes = [ "errors","bytecount","latency", ]
             
             if types[0] == "All":
                 types = validTypes

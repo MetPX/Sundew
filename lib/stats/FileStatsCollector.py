@@ -366,7 +366,7 @@ class FileStatsCollector:
                         elif statsType == "fileName":
                             
                             if fileType == "tx" :
-                                values[statsType] = splitLine[6].split( ":" )[0]
+                                values[statsType] = os.path.basename(splitLine[6])#.split( ":" )[0]
                             else:
                                 split     = line.split( "/" )
                                 lastPart  = split[ len( split ) -1 ]
@@ -375,7 +375,7 @@ class FileStatsCollector:
                         elif statsType == "productType":
                             
                             if fileType == "tx":
-                                values[statsType] = splitLine[6].split( ":" )[0]
+                                values[statsType] = os.path.basename(splitLine[6])#.split( ":" )[0]
                             else: # rx has a very different format for product.
                                 split     = line.split( "/" )
                                 lastPart  = split[ len( split ) -1 ]
