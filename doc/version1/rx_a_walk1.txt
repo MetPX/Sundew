@@ -1,4 +1,5 @@
 
+post-2006/09/21: this walkthrough, besides being incomplete, is out of date wrt to current plans.
 
 default namer for AM and WMO socket Sources is bulletin_ingest_namer
 etc/rx/AMacquisition1.conf

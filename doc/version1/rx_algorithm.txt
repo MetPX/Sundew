@@ -46,13 +46,37 @@ So without further ado ( The following is science fiction at the moment )
 
 
 
-How It Ought to Work:
 
+
+Notes before we start:
+
+imask/emask  -- PDS directives... deprecated... replaced by reject & accept
+
+Changes for static routing entries (those in pxRouting.conf):
+
+key	     static routing entries are prefixed with 'key' directive.
+	     this regularizes the grammar (all lines have a directive as first element.)
+
+
+change delimiter to space.
+   change key derviation to remove space character. bulletin key is now SACN37_CWAO
+
+
+
+
+
+
+
+
+
+How It Ought to Work:
 
 Product is received from source S:
 
 
 0. Apply pre_ingest_filters
+
+post-2006/09/21: not examined at this time.
 
    apply any:
    pre_ingest_filter <string> 
@@ -80,13 +104,16 @@ Product is received from source S:
 
 
 1. Determine Ingest name (except priority)
+
+   post-2006/09/21: not examined at this time.
+
    ingest_namer <string>
    only one instance of this directive is permitted per source.  
    Based on 'ingest_namer' from etc/rx/S.conf 
 	-- the value of ingest_namer is the name of a routine to create the ingest_name of the product.
 	   ingest_namer is called with:
 		-- name of file (nil if there isn'y any, as is the case with bulletins)
-		-- patterns applicable (imask/emask entris in /etc/rx/S.conf, nil if there aren't any)
+		-- patterns applicable (accept/reject entries in /etc/rx/S.conf, nil if there aren't any)
 		-- 'extension' value  from etc/rx/S.conf
 		the ingest_namer routine returns the name under which the file is to be ingested.
 		if it returns an empty string, the data is to be dropped without being ingested.
@@ -104,7 +131,7 @@ Product is received from source S:
    file_ingest_namer( filename, patterns, extension )
 	-- will create a file name as a function of ... whatever (depends on the application)
            returns the name. 
-        -- 'imask' and 'emask' directives from  etc/rx/S.conf are applied against ingest name.
+        -- 'accept' and 'reject' directives from  etc/rx/S.conf are applied against ingest name.
 	   if it is excluded, then empty string is returned by routine.
 
    Why:
@@ -121,6 +148,10 @@ Product is received from source S:
 
 
 2. Find Routing Information (and Priority)
+
+   post-2006/09/21: Option 2 created and favoured...
+
+   Option 1:
    The routing_namer is then called, with ingest name as the argument. 
 
    'routing_namer' from etc/rx/S.conf
@@ -130,26 +161,35 @@ Product is received from source S:
         bulletin_routing_namer( ingest_filename ) 
 	    will return: 'TTAAii CCCC' for a bulletin ... 
 
+   Option 2: (result of brain storm with MG... )
+	Fixed namers for socket  types as today, to extract SACN37_CWAO
+        add % (or some other symbol to matching of accept.)
+	so RADAR_%_*_:%  would match RADAR_CYUL_200609041840:PNG
+		the key derived would be  RADAR_CYUL_:PNG
+
+	-- less change.
+	-- no requirement for additional directives (less concepts.)
+
 
    the routing name is then looked up in the routing (aka... header2client) table:
         
 
-	AACN01 CWAO:  Aviation Hydrology:3
+	key AACN01_CWAO Aviation,Hydrology 3 # description
 
 	The priority is determined (3) and the ingest name is thus completed.
 	and the client list determined also.
 
 	if the routing name has no entry in the routing table, then apply:
 
-	emask:<mask>
-	imask:<mask>:<clients>:<priority>
+	reject <mask>
+	accept <mask> <clients> <priority>
 
-	combinations from etc/header2client.conf
+	combinations from etc/pxRouting.conf
 
         ie.
 
-	imask:AACN01 *:Aviation:3
-	imask:* CWAO:Archives:4
+	accept AACN01_* Aviation 3
+	accept *_CWAO Archives 4
 
    		-- select the highest priority among the matches, and catenate
 		   the clients together.... result is equivalent to:
@@ -160,12 +200,12 @@ Product is received from source S:
         the routing information, for the next reception.
 
      Whys:
-	Why don't we just use the imasks in all the clients?
+	Why don't we just use the accept in all the clients?
 	   -- because then we have two different routing methods, one for bulletins, one for files.
               want a single method for folks to learn and understand deeply.
 
 	   -- Each of C clients can have Cm routing masks.  To route a single message will cost
-			C * Cm  imask evaluations.
+			C * Cm  accept evaluations.
 	      -- cost will increase quickly with the number of clients, and the number of masks. 
 	      -- this will produce higher latency.
 	          -- hmm... does caching results change this?... still O(A(Cm))*C... hmm...
@@ -182,7 +222,8 @@ Product is received from source S:
 		   date stamps, and the like.  need to extract a name so that it does not vary over time
                    in order to lookup for routing.  
 		-- if someone can figure out a generic way to extract a routing name, then we don't
-                   need a routine. 
+                   need a routine. (if the % of option 2 works, then we don't need the routing 
+                   namer, as it becomes implicit in 'accept' directives.)
 
 	Why don't we just put all the products statically in routing file (header2client.conf)? 
 		-- because when we have file data, there are many, many different types. hard to know,
@@ -211,29 +252,15 @@ Product is received from source S:
 
 	using the ingest_name, and the priority, link (or just write) the file in the rxq into the DB.
 
-        Routing table, when initially read by receivers should have a ClientPatternsApplied flag for each entry.
-        If this flag is True, then one has already applied to Clients' imask and emask entries, and removed 
-	any destinations which were suppressed.
+        post-2006/09/21: The stuff about client patterns applied is removed, as it was wrong.  
+                         The correspondence is not 1:1, so one cannot do this optimization.)	
 
-        if ClientPatternsApplied:
-		send to the exising list of clients in the routing table.
-        else:
-	   for each C in the list of clients to be routed to:
-
-	        look at imask and emask entries in etc/tx/C.conf
-		if it passes the masks, then queue it in the appropriate txq directory.
-                if it does not, then remove it from the routing table entry.
-	   ClientPatternsApplied=True
-	
-	Why:
-	   Why the new ClientPatternsApplied flag?
-	   -- Faster... This way we cache results of applying client patterns.  
-              Routing algorithm, after the first pass is O(A(n)) same as if there were no patterns.
-
-	
 
 
 4. Create Derived Products ( aka. apply reception post_ingest_filters. )
+
+post-2006/09/21 -- This has changed significantly... need to wait for Michel to document what he did.
+
 	- from etc/rx/S.conf
 
 	  post_ingest_filter <pattern> <filter>
@@ -288,6 +315,6 @@ Product is received from source S:
 
 Other notes:
 	
-Once we get rid of pattern routing, we can reverse the meaning of the emask/imasks in clients (to default accept)
+Once we get rid of pattern routing, we can reverse the meaning of the reject/accept in clients (to default accept)
 and thus make it's meaning consistent with their use elsewhere, and make them un-necessary in most cases.
 
