@@ -177,56 +177,56 @@ class ClientStatsPickler:
                 self.logger.warning( "User tried to modify allready filled pickle file." )
                 self.logger.warning( "Pickle was named : %s" %self.pickleName )      
             
-        else: 
-            # Creates a new FileStats collector wich spans from the very 
-            # start of the hour up till the end. 
-            
-            if self.pickleName == "":
-                self.pickleName = ClientStatsPickler.buildThisHoursFileName( client = self.client, currentTime = startTime, machine = self.machine, fileType = fileType )
-            
-            positions = {}
-            
-            if os.path.isfile( filePickle ):
-                positions = cpickleWrapper.load ( filePickle ) 
-            try :
-                lastReadPosition = positions[ fileType + "_" + self.client] 
-            except:
-                lastReadPosition = 0
         
-                
-            self.statsCollection = FileStatsCollector( files = self.fileCollection.entries, fileType = fileType, statsTypes = types, startTime = MyDateLib.getIsoWithRoundedHours( startTime ), endTime = endTime, interval = interval, totalWidth = 1*HOUR, lastReadPosition = lastReadPosition, logger = self.logger )
+        # Creates a new FileStats collector wich spans from the very 
+        # start of the hour up till the end. 
+        
+        if self.pickleName == "":
+            self.pickleName = ClientStatsPickler.buildThisHoursFileName( client = self.client, currentTime = startTime, machine = self.machine, fileType = fileType )
+        
+        positions = {}
+        
+        if os.path.isfile( filePickle ):
+            positions = cpickleWrapper.load ( filePickle ) 
+        try :
+            lastReadPosition = positions[ fileType + "_" + self.client] 
+        except:
+            lastReadPosition = 0
+    
             
-            #Temporarily delete logger to make sure no duplicated lines appears in log file.
-            temp  = self.logger
-            del self.logger
-            self.statsCollection.collectStats( endTime )    
-            self.logger = temp
-            
+        self.statsCollection = FileStatsCollector( files = self.fileCollection.entries, fileType = fileType, statsTypes = types, startTime = MyDateLib.getIsoWithRoundedHours( startTime ), endTime = endTime, interval = interval, totalWidth = 1*HOUR, lastReadPosition = lastReadPosition, logger = self.logger )
+        
+        #Temporarily delete logger to make sure no duplicated lines appears in log file.
+        temp  = self.logger
+        del self.logger
+        self.statsCollection.collectStats( endTime )    
+        self.logger = temp
+        
+    
+    
+    if save == True :# must remove logger temporarily. Cannot saved opened files.
+        
+        if self.statsCollection.logger != None:     
+            temp = self.statsCollection.logger
+            del self.statsCollection.logger
+            loggerNeedsToBeReplaced = True 
+        
+        cpickleWrapper.save ( object = self.statsCollection, filename = self.pickleName ) 
         
         
-        if save == True :# must remove logger temporarily. Cannot saved opened files.
+        if loggerNeedsToBeReplaced :  
+            self.statsCollection.logger = temp
+        
+        if self.logger != None:
+            self.logger.info( "Saved pickle named : %s " %self.pickleName )
+                        
+        positions = {}
             
-            if self.statsCollection.logger != None:     
-                temp = self.statsCollection.logger
-                del self.statsCollection.logger
-                loggerNeedsToBeReplaced = True 
-            
-            cpickleWrapper.save ( object = self.statsCollection, filename = self.pickleName ) 
-            
-            
-            if loggerNeedsToBeReplaced :  
-                self.statsCollection.logger = temp
-            
-            if self.logger != None:
-                self.logger.info( "Saved pickle named : %s " %self.pickleName )
-                         
-            positions = {}
-                
-            if os.path.isfile( filePickle ):
-                positions = cpickleWrapper.load ( filePickle ) 
-            
-            positions[ fileType + "_" + self.client] =  self.statsCollection.lastReadPosition
-            cpickleWrapper.save ( object = positions, filename = filePickle )  
+        if os.path.isfile( filePickle ):
+            positions = cpickleWrapper.load ( filePickle ) 
+        
+        positions[ fileType + "_" + self.client] =  self.statsCollection.lastReadPosition
+        cpickleWrapper.save ( object = positions, filename = filePickle )  
                  
                 
     

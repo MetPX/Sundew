@@ -302,7 +302,7 @@ def mergePicklesFromDifferentMachines( logger = None , startTime = "2006-07-31 1
             for pickle in pickleNames : #Verify every pickle implicated in merger.
                 
                 if vc.isDifferentFile( file = pickle, user = combinedMachineName,client = client ) == True : # if for some reason pickle has changed since last time
-                    print "we merge without a reason to"
+                    print "file : %s was found different" %pickle
                     needToMergeSameHoursPickle = True 
                     break 
             
