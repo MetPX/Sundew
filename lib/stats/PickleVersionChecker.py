@@ -30,7 +30,7 @@ named COPYING in the root of the source directory tree.
 ##
 ##############################################################################
 
-import os, commands, pwd, sys, PXPaths, cpickleWrapper
+import os, commands, pwd, sys, PXPaths, cpickleWrapper,glob
 
 PXPaths.normalPaths()
 
@@ -42,40 +42,64 @@ class PickleVersionChecker :
             Constructor. Contains two current and saved lists.
         """
         
-        self.currentFileList = {}  # The one present on disk
-        self.savedFileList   = {}  # The one that was previously recorded
+        self.currentClientFileList = {} # Current file list found for a client on disk.
+        self.savedFileList         = {} # The one that was previously recorded
         
         
-    def getCurrentFileList( self ):
+    def getClientsCurrentFileList( self, client ):
         """
+            Client list is used here since we need to find all the pickles that will be used in a merger.
+            Thus unlike all other methos we dont refer here to the combined name but rather to a list of
+            individual machine names. 
+            
             Returns the checksum of all pickle files currently found on the disk.
             
-        """    
+        """  
         
-        status, md5Output = commands.getstatusoutput( "md5sum `find %s -name '*_??'` " % PXPaths.PICKLES )
-        
-        
-        if status == 0:
-        
-            for line in md5Output.splitlines():
-                sum,file = line.split()      
-                self.currentFileList[file] = sum
-            
-            #print self.currentFileList     
     
-        return  self.currentFileList       
+        #print "md5sum `find %s -name '*_??'` " %PXPaths.PICKLES
+        #status, md5Output = commands.getstatusoutput( "md5sum `find %s -name '*_??'` " %(PXPaths.PICKLES + client + "/") )
+        filePattern = PXPaths.PICKLES + client + "/*/*"  #_??
+        #print "filePattern : %s" %filePattern
+        folderNames = glob.glob( filePattern )
+        #print folderNames
+        
+        fileNames = []
+        for folder in folderNames:
+            if os.path.isdir( folder ):                    
+                filePattern = folder + "/" + "*_??"
+                fileNames.extend( glob.glob( filePattern ) )       
+                
+        
+        #print md5Output
+        #print "fileNames : %s" %fileNames 
+        #if status == 0:
+        for fileName in fileNames :
+        
+            #for line in md5Output.splitlines():
+                #sum,file = line.split()      
+                #self.currentClientFileList[file] = sum
+            self.currentClientFileList[fileName] = os.path.getmtime( fileName )
+            
+        #print "self.currentClientFileList : %s" %self.currentClientFileList
+    
+        return  self.currentClientFileList       
             
         
         
-    def getSavedList( self ):
+    def getSavedList( self, user, client ):
         """
             Returns the checksum of the files contained in the saved list.
         
         """
         
-        try :
-            self.savedFileList = cpickleWrapper.load( PXPaths.STATS + "FILE_VERSIONS" )
+        directory = PXPaths.STATS + "file_versions/"
+        fileName  = user + "_" + client 
         
+        try :
+            self.savedFileList = cpickleWrapper.load( directory + fileName )
+            if self.savedFileList == None :
+                self.savedFileList = {}
         except: # if file does not exist
             self.savedFileList = {}
         
@@ -83,32 +107,35 @@ class PickleVersionChecker :
         
         
                     
-    def isDifferentFile( self, file, user = "pds5pds6" ):
+    def isDifferentFile( self, user ,client, file,):
         """
             
             Goal : Returns whether or not the file is different than 
                    the one previously recorded.
             
-            File : File to verify
-            
-            User : Name of the client, person, etc.. wich has a relation with the 
-                   file.  
+            File   : File to verify
+            Client : Client to wich the file is related(used to narrow down searchs)
+            User   : Name of the client, person, etc.. wich has a relation with the 
+                     file.  
              
         """
         
         isDifferent = True  
         
         #if user did not update both list we try and do it for him....
-        if self.currentFileList == {}:
-            self.getCurrentFileList()
+        if self.currentClientFileList == {}:
+            self.getClientsCurrentFileList( client )
     
         if self.savedFileList == {}:
-            self.getSavedList()
-    
-            
-        try:
+            self.getSavedList( user, client )
+        #print "self.savedFileList : %s"   %self.savedFileList
+        #print "self.currentClientFileList : %s" %self.currentClientFileList
         
-            if self.savedFileList[user][file] == self.currentFileList[file] :
+        try:
+            #print "first checksum : %s " %self.savedFileList[file] 
+            #print "second checksum : %s " %self.currentClientFileList[file] 
+            if self.savedFileList[file] == self.currentClientFileList[file] :
+                #print "file : %s was found equal" %file
                 isDifferent = False         
             
         except:#key doesnt exist on one of the lists
@@ -119,27 +146,56 @@ class PickleVersionChecker :
             
     
     
-    def updateFileInList( self, file, user ) :
+    def updateFileInList( self, file, client, user ) :
         """
             File : Name of the file 
             User : Person for whom a relation with the file exists. 
             Puts current checksum value  
             
         """ 
-
-        if file in self.currentFileList.keys(): 
-            self.savedFileList[user] = {}
-            self.savedFileList[user][file] = self.currentFileList[file]
+        #print "File we are trying to update in file list !!!!! : %s" %file
+        # Create all levels in 3 level dictionary if they do not allready exist. 
+        if self.savedFileList == None :
+            self.savedFileList = {}  
+#             self.savedFileList[user] = {} 
+#             self.savedFileList[user][client] = {}
+#         
+#         try :    
+#             if self.savedFileList[user] == None:
+#                self.savedFileList[user] = {}         
+#         except:
+#             self.savedFileList[user] = {}
+#         
+#         try :    
+#             if self.savedFileList[user][client] == None:
+#                self.savedFileList[user][client] = {}         
+#         except:
+#             self.savedFileList[user][client] = {}   
+#                
+#         #print "before update : self.currentClientFileList : %s " %self.currentClientFileList 
         
+        try :
+            self.savedFileList[file] = self.currentClientFileList[file]
+        except:
+            self.savedFileList[file] = 0
+        
+        #print "updated"
     
     
-    def saveList( self ):   
+    def saveList( self, user, client ):   
         """
             Saves list. Will include modification made in updateFileInlist method 
         
         """
-    
-        cpickleWrapper.save( object = self.savedFileList, filename = PXPaths.STATS + "FILE_VERSIONS" )
+        
+        directory = PXPaths.STATS + "file_versions/"
+        fileName  = user + "_" + client 
+        
+        if not os.path.isdir( directory ):
+            os.makedirs( directory, mode=0777 )
+            #create directory
+        
+        cpickleWrapper.save( object = self.savedFileList, filename = directory + fileName )
 
  
            
@@ -149,11 +205,11 @@ def main():
     """
     
     vc  = PickleVersionChecker()
-    vc.getCurrentFileList()
+    vc.currentClientFileList( "bob")
     vc.getSavedList()
-    vc.updateFileInList( file = "/apps/px/stats/pickles/pds5/20060831/rx/lvs1-dev_15" , user = "pds5pds6" ) 
-    
-    print vc.savedFileList["pds5pds6"]["/apps/px/stats/pickles/pds5/20060831/rx/lvs1-dev_15"]
+#     vc.updateFileInList( file = "/apps/px/stats/pickles/pds5/20060831/rx/lvs1-dev_15" , user = "pds5pds6" ) 
+#     
+#     print vc.savedFileList["pds5pds6"]["/apps/px/stats/pickles/pds5/20060831/rx/lvs1-dev_15"]
     
     
     

@@ -273,19 +273,16 @@ def mergePicklesFromDifferentMachines( logger = None , startTime = "2006-07-31 1
         Very usefull when creating graphics on a central server with pickle files coming from 
         remote locations.
         
-    """ 
-    
-    
-    vc  = PickleVersionChecker()
-    vc.getCurrentFileList()
-    vc.getSavedList()
-    
+    """          
          
     combinedMachineName = ""
     
     for machine in machines:
         combinedMachineName = combinedMachineName + machine
-        
+    
+    vc  = PickleVersionChecker()
+    vc.getClientsCurrentFileList( client )
+    vc.getSavedList( user = combinedMachineName, client = client )      
    
     width = MyDateLib.getSecondsSinceEpoch( endTime ) - MyDateLib.getSecondsSinceEpoch( startTime )
     startTime = MyDateLib.getIsoWithRoundedHours( startTime )
@@ -304,18 +301,20 @@ def mergePicklesFromDifferentMachines( logger = None , startTime = "2006-07-31 1
             
             for pickle in pickleNames : #Verify every pickle implicated in merger.
                 
-                if vc.isDifferentFile( file = pickle, user = combinedMachineName ) == True : # if for some reason pickel has changed since last time
+                if vc.isDifferentFile( file = pickle, user = combinedMachineName,client = client ) == True : # if for some reason pickle has changed since last time
+                    print "we merge without a reason to"
                     needToMergeSameHoursPickle = True 
                     break 
             
             if needToMergeSameHoursPickle == True :#First time or one element has changed   
-                 
+                print "problem" 
                 mergePicklesFromSameHour( logger = None , pickleNames = pickleNames , clientName = client, combinedMachineName = combinedMachineName, currentTime = seperators[i], mergedPickleName = mergedPickleNames[i], fileType = fileType  )
                 
+                #print pickleNames
                 for pickle in pickleNames :
-                    vc.updateFileInList( file = pickle, user = combinedMachineName )
+                    vc.updateFileInList( file = pickle, user = combinedMachineName, client = client )
             
-                vc.saveList()
+                vc.saveList( user = combinedMachineName, client = client)
                 
                         
     # Once all machines have merges the necessary pickles we merge all pickles 
