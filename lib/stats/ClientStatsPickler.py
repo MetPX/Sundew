@@ -204,29 +204,29 @@ class ClientStatsPickler:
         
     
     
-    if save == True :# must remove logger temporarily. Cannot saved opened files.
-        
-        if self.statsCollection.logger != None:     
-            temp = self.statsCollection.logger
-            del self.statsCollection.logger
-            loggerNeedsToBeReplaced = True 
-        
-        cpickleWrapper.save ( object = self.statsCollection, filename = self.pickleName ) 
-        
-        
-        if loggerNeedsToBeReplaced :  
-            self.statsCollection.logger = temp
-        
-        if self.logger != None:
-            self.logger.info( "Saved pickle named : %s " %self.pickleName )
-                        
-        positions = {}
+        if save == True :# must remove logger temporarily. Cannot saved opened files.
             
-        if os.path.isfile( filePickle ):
-            positions = cpickleWrapper.load ( filePickle ) 
-        
-        positions[ fileType + "_" + self.client] =  self.statsCollection.lastReadPosition
-        cpickleWrapper.save ( object = positions, filename = filePickle )  
+            if self.statsCollection.logger != None:     
+                temp = self.statsCollection.logger
+                del self.statsCollection.logger
+                loggerNeedsToBeReplaced = True 
+            
+            cpickleWrapper.save ( object = self.statsCollection, filename = self.pickleName ) 
+            
+            
+            if loggerNeedsToBeReplaced :  
+                self.statsCollection.logger = temp
+            
+            if self.logger != None:
+                self.logger.info( "Saved pickle named : %s " %self.pickleName )
+                            
+            positions = {}
+                
+            if os.path.isfile( filePickle ):
+                positions = cpickleWrapper.load ( filePickle ) 
+            
+            positions[ fileType + "_" + self.client] =  self.statsCollection.lastReadPosition
+            cpickleWrapper.save ( object = positions, filename = filePickle )  
                  
                 
     
