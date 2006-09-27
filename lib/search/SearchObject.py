@@ -24,11 +24,16 @@ import time
 # Local imports
 sys.path.insert(1,sys.path[0] + '/../')
 import PXPaths; PXPaths.normalPaths()
+from ConfReader import ConfReader
 
 class SearchObject(object):
-    __slots__ = ["headerRegexes", "searchRegex", "searchType", "names", "logPath", "since", "fromdate", "todate", "timesort", "ftp", "alphanumericRegex", "digitRegex", "zeroOrMoreRegex", "oneOrMoreRegex"]
+    __slots__ = ["machines", "headerRegexes", "searchRegex", "searchType", "names", "logPath", "since", "fromdate", "todate", "timesort", "ftp", "alphanumericRegex", "digitRegex", "zeroOrMoreRegex", "oneOrMoreRegex"]
 
     def __init__(self):
+        # We get the backends hostname with ConfReader
+        cr = ConfReader("%spx.conf" % (PXPaths.ETC))
+        self.machines = ",".join(cr.getConfigValues("backend"))
+        
         self.headerRegexes = {}
         self.searchRegex = ""
         self.searchType = ""
@@ -90,7 +95,13 @@ class SearchObject(object):
     
     def getSearchRegex(self):
         return self.searchRegex
-
+    
+    def getMachines(self):
+        return self.machines
+   
+    def setMachines(self, value):
+        self.machines = value
+   
     def getLogPath(self):
         return self.logPath
 

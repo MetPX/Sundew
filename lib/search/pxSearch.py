@@ -32,7 +32,6 @@ from optparse import OptionParser
 sys.path.insert(1,sys.path[0] + '/../')
 import PXPaths; PXPaths.normalPaths()
 from SearchObject import SearchObject
-from ConfReader import ConfReader
 
 def filterTime(so, lines):
     HOURINSECONDS = 3600
@@ -65,6 +64,7 @@ def updateSearchObject(so, options, args):
     else:
         so.setSearchType("tx")
     
+    so.setMachines(options.machines)
     #so.setFTP(options.ftp)
     
     # Search in the specified flows
@@ -116,12 +116,8 @@ def search(so):
     logFileName = so.getLogPath()
     regex = so.getSearchRegex()
     
-    # We get the backends hostname with ConfReader
-    cr = ConfReader("%spx.conf" % (PXPaths.ETC))
-    machines = cr.getConfigValues("backend")
-   
     results = []
-    for machine in machines:
+    for machine in so.getMachines().split(","):
         machine = machine.strip()
         cmd = 'ssh %s "egrep -o -s -H %s %s"' % (machine, regex, logFileName)
         status, output = commands.getstatusoutput(cmd)
@@ -148,6 +144,8 @@ def createParser(so):
     # These two only offer long option names and using one of them is mandatory
     parser.add_option("--rx", action = "store_true", dest = "type", help = "Perform a search in the RX logs.", default = True)
     parser.add_option("--tx", action = "store_false", dest = "type", help = "Perform a search in the TX logs (default).", default = False)
+    
+    parser.add_option("-m", "--machines", dest = "machines", help = "On which machine do you want to perform the search.", default = so.getMachines())
     
     # Optional. No short option.
     parser.add_option("--timesort", action = "store_true", dest = "timesort", help = "Sort output by timestamps.", default = False)
