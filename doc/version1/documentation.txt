@@ -42,4 +42,7 @@ named COPYING in the root of the source directory tree.
 			-- how to products routed for processing, a la FHS.
 			-- include collection processing.
 
+		DL ... section for AFTN?
+				-- subclient
+				-- aftnmap
 
