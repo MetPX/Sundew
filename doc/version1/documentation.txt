@@ -36,7 +36,9 @@ named COPYING in the root of the source directory tree.
 		canned configurations to go with the basic and advanced routing sections.
 			a basic loop-back, and a glorious loop-back...
 
-		MG ... advanced filtering
+		AMB/MG ... integration with DWD / IBLSoft METDATA application. ?
+		MG ... Integration with LDM
+		MG ... advanced filtering / transformations.
 			-- how to products routed for processing, a la FHS.
 			-- include collection processing.
 
