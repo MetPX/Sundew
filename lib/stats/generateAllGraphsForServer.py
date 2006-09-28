@@ -26,7 +26,7 @@ named COPYING in the root of the source directory tree.
 
 
 
-import os,time, pwd, sys,getopt, commands, fnmatch,pickle
+import os,time, pwd, sys, getopt, commands, fnmatch,pickle
 from optparse import OptionParser
 import PXPaths 
 from PXPaths import * 
@@ -147,7 +147,7 @@ def getOptionsFromParser( parser ):
     combine          = options.combine
     individual       = options.individual
     
-    print date 
+    
     
     try: # Makes sure date is of valid format. 
          # Makes sure only one space is kept between date and hour.
@@ -214,10 +214,10 @@ def updateConfigurationFiles( machine, login ):
         os.makedirs(  '/apps/px/stats/trx/%s/' %machine, mode=0777 )       
 
         
-    status, output = commands.getstatusoutput( "rsync -avzr -e ssh %s@%s:/apps/px/etc/rx/* /apps/px/stats/rx/%s/"  %( login, machine, machine) ) 
+    status, output = commands.getstatusoutput( "rsync -avzr --delete-before -e ssh %s@%s:/apps/px/etc/rx/ /apps/px/stats/rx/%s/"  %( login, machine, machine) ) 
     #print output # for debugging only
     
-    status, output = commands.getstatusoutput( "rsync -avzr -e ssh %s@%s:/apps/px/etc/tx/* /apps/px/stats/tx/%s/"  %( login, machine, machine) )  
+    status, output = commands.getstatusoutput( "rsync -avzr --delete-before -e ssh %s@%s:/apps/px/etc/tx/ /apps/px/stats/tx/%s/"  %( login, machine, machine) )  
     #print output # for debugging only
 
 
@@ -271,8 +271,7 @@ def generateGraphsForIndividualMachines( infos ) :
             pid = os.fork()#create child process
             
             if pid == 0: #child process
-                status, output = commands.getstatusoutput( "python /apps/px/lib/stats/generateGraphics.py -m '%s' -f tx -c '%s' -d '%s' -s %s " %( machine, txName, infos.date, infos.timespan) )
-                print output # for debugging only
+                status, output = commands.getstatusoutput( "python /apps/px/lib/stats/generateGraphics.py -m '%s' -f tx -c '%s' -d '%s' -s %s " %( machine, txName, infos.date, infos.timespan) )                
                 sys.exit()
         
         while True:#wait on all non terminated child process'
@@ -281,11 +280,7 @@ def generateGraphsForIndividualMachines( infos ) :
             except:    
                 break
             
-        
-#         if os.getpid() != currentPid:
-#             print "**************************P r o b l e m e*********************************"
-#               
-#         print "#############################RX#######################################"                               
+                          
         
         for rxName in rxNames:
             pid = os.fork()#create child process
@@ -302,8 +297,7 @@ def generateGraphsForIndividualMachines( infos ) :
             except:    
                 break          
         
-#         if os.getpid() != currentPid:
-#             print "**************************P r o b l e m e*********************************"
+
            
                 
 
@@ -326,7 +320,7 @@ def generateGraphsForPairedMachines( infos ) :
         #end of workaround
         
     infos.combinedName = str(infos.machines).replace( ' ','' ).replace( '[','' ).replace( ']', '' )        
-    print "infos.combinedName : %s" %infos.combinedName         
+     
             
     rxNames, txNames = getRxTxNames( infos.machines[0] )  
     
@@ -336,7 +330,6 @@ def generateGraphsForPairedMachines( infos ) :
         
         if pid == 0 :#child process
             status, output = commands.getstatusoutput( "python /apps/px/lib/stats/generateGraphics.py -m %s -f tx -c %s -d '%s' -s %s  " %( infos.combinedName, txName, infos.date,infos.timespan ) )
-            print output # for debugging only
             sys.exit()    #terminate child process
             
     
@@ -346,14 +339,13 @@ def generateGraphsForPairedMachines( infos ) :
         except:    
             break  
     
-    print "RRRRRRRRRRRRRRRRRRRRRRRRRRRRRXXXXXXXXXXXXXXXXXXXXXXXXXX"
+   
             
     for rxName in rxNames:
         pid = os.fork()#create child process
         
         if pid == 0:#father process            
             status, output = commands.getstatusoutput( "python /apps/px/lib/stats/generateGraphics.py -m %s -f rx -c %s -d '%s' -s %s  " %( infos.combinedName, rxName, infos.date, infos.timespan ) )     
-            print output #for debugging on  
             sys.exit()
             
     

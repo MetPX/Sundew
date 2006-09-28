@@ -284,13 +284,23 @@ GUIDING PRINCIPLES
   meet the above requirements.
   
 - Even with optimization, the time taken to pickle a single hour of data using a single pickle file every day
-  went from three seconds for the first few hours to almost 10 seconds for the last hours of the day.    
+  went from three seconds( maximum ) for the first few hours to almost 10 seconds( maximum ) for the last 
+  hours of the day.    
   
-- Pickling done during the final hour of the day on a machine containing 150 client would me roughly 
-  150 * 10 sec = 1500  1500 /60 sec = 25 minutes dedicated to collecting data only.
+- Pickling done during the final hour of the day on a machine containing 150 client would mean roughly 
+  150 * 10 sec = 1500 sec( 1500 /60 sec = 25 minutes )Wic was too much time dedicated to collecting data.
   
 - Saving pickled data into hourly files makes sure that time used for pickling remains stable throughout
-  the day. It also makes the total amount of time much more acceptable. ~3 sec * 150 = 450 450/60 = 7.5 minutes    
+  the day. It also makes the total amount of time much more acceptable. 
+  
+  On a normal machine it would mean ~3 sec * 150 = 450 450/60 = 7.5 minutes( worst case scenario )
+  
+  On current dev machines where app is being tested, it takes a maximum of a second to update a single client 
+  wich would mean 150 seconds or 2.5 minutes.
+  
+  Currently with tests on pds3-dev,and pds4-dev wich has 70 active clients it takes less than 15 secs to create
+  all the hourly pickles for the 70 clients.   
+ 
 
 - Having every machine perform the collection of the data found in the files that are present
   in it's own space makes the application must more scalable in the event that more machines and 

@@ -454,16 +454,54 @@ def updateHourlyPickles( infos, logger = None ):
                          
         setLastCronJob( client = infos.clients[i], fileType = infos.fileType, currentDate = infos.currentDate, collectUpToNow = infos.collectUpToNow )
         
+       
+        
+        
                 
-            
+def updateConfigurationFiles( machine, login ):
+    """
+        rsync .conf files from designated machine to local machine
+        to make sure we're up to date.
+    
+    """  
+    
+    if not os.path.isdir( '/apps/px/stats/rx/' ):
+        os.makedirs(  '/apps/px/stats/rx/' , mode=0777 )
+    if not os.path.isdir( '/apps/px/stats/tx/'  ):
+        os.makedirs( '/apps/px/stats/tx/', mode=0777 )
+    if not os.path.isdir( '/apps/px/stats/trx/' ):
+        os.makedirs(  '/apps/px/stats/trx/', mode=0777 )       
 
+        
+    status, output = commands.getstatusoutput( "rsync -avzr --delete-before -e ssh %s@%s:/apps/px/etc/rx/ /apps/px/stats/rx/"  %( login, machine) ) 
+    #print output # for debugging only
+    
+    status, output = commands.getstatusoutput( "rsync -avzr --delete-before -e ssh %s@%s:/apps/px/etc/tx/ /apps/px/stats/tx/"  %( login, machine) )  
+    #print output # for debugging only            
+
+    
+    
 def main():
     """
         Gathers options, then makes call to ClientStatsPickler to collect the stats based 
         on parameters received.  
     
     """
-
+    
+    if not os.path.isdir( PXPaths.PICKLES ):
+        os.makedirs( PXPaths.PICKLES, mode=0777 )
+    
+    # Workaround for temporary mirror machine   
+    if  os.uname()[1] == "pds3-dev":
+        mirrorMachine = "pds5"
+        login         = "pds"
+        
+    elif  os.uname()[1] == "pds4-dev":
+        mirrorMachine = "pds6"
+        login         = "pds"    
+      
+    updateConfigurationFiles( machine = mirrorMachine, login = login )
+    
     logger = Logger( PXPaths.LOG + localMachine + "/" + 'stats_' + 'pickling' + '.log.notb', 'INFO', 'TX' + 'pickling' ) 
     logger = logger.getLogger()
    

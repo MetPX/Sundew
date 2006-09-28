@@ -144,7 +144,7 @@ class FileStatsCollector:
         
         if self.logger == None: # Enable logging
            
-            self.logger = Logger( PXPaths.LOG + localMachine + '/' + 'stats_' + self.loggerName + '.log.notb', 'DEBUG', 'TX' + self.loggerName ) 
+            self.logger = Logger( PXPaths.LOG + localMachine + '/' + 'stats_' + self.loggerName + '.log.notb', 'INFO', 'TX' + self.loggerName ) 
             self.logger = self.logger.getLogger()
             
         
