@@ -219,28 +219,28 @@ class SenderFTP(object):
 
     def send(self, files):
 
-        fileList = files
-
-        # applying the fx_script if defined redefine the file list
-
-        if self.client.execfile2 != None :
-           self.logger.info("%d files will be converted" % len(files))
-           fileList = []
-           for file in files:
-               fxfile = self.client.run_fx_script(file,self.logger)
-               os.unlink(file)
-               if fxfile == None :
-                  self.logger.warning("Unable to apply FX on file %s ... file ignored" % os.path.basename(file) )
-                  continue
-               fileList.append(fxfile)
-               self.logger.info("File %s modified to %s " % (os.path.basename(file),fxfile) )
-           self.logger.info("%d converted files will be sent" % len(fileList))
-
         # process with file sending
 
         currentFTPDir = ''
 
-        for file in fileList:
+        for filex in files:
+
+            file = filex
+
+            # applying the fx_script if defined redefine the file list
+
+            if self.client.execfile2 != None :
+               fxfile = self.client.run_fx_script(file,self.logger)
+               if fxfile == None :
+                  self.logger.warning("FX script ignored the file : %s"    % os.path.basename(file) )
+                  os.unlink(file)
+                  continue
+               elif fxfile == file :
+                  self.logger.warning("FX script kept the file as is : %s" % os.path.basename(file) )
+               else :
+                  self.logger.info("FX script modified %s to %s " % (os.path.basename(file),fxfile) )
+                  os.unlink(file)
+                  file = fxfile
 
             # get files ize
             try:
