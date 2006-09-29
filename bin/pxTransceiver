@@ -57,7 +57,7 @@ example 2: %prog start       => will start all transceivers
 
     # We can set the logLevel to ['DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL']
     parser.add_option("-l", "--logLevel",
-                      action="store", type="string", dest="logLevel", default="INFO",
+                      action="store", type="string", dest="logLevel", default="DEBUG",
                       metavar="LOGLEVEL", help="Set the logging level [default: %default]")
 
     options, args = parser.parse_args()
