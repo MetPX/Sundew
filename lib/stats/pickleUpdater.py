@@ -38,7 +38,6 @@ PXPaths.normalPaths()
 PXPaths.RX_CONF  = '/apps/px/stats/rx/'
 PXPaths.TX_CONF  = '/apps/px/stats/tx/'
 PXPaths.TRX_CONF = '/apps/px/stats/trx/'
-print PXPaths.TX_CONF
 localMachine = os.uname()[1]
 
 class _UpdaterInfos: 
@@ -259,9 +258,7 @@ def getOptionsFromParser( parser, logger = None  ):
         else:
             clients = pxManager.getRxNames()          
         
-        print PXPaths.TX_CONF     
-        print "clients : %s"   %clients 
-           
+          
     #print clients   
              
     # Verify that each client needs to be updated. 

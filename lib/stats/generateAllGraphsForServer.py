@@ -344,13 +344,14 @@ def generateGraphsForPairedMachines( infos ) :
     for rxName in rxNames:
         pid = os.fork()#create child process
         
-        if pid == 0:#father process            
+        if pid == 0:#child process            
             status, output = commands.getstatusoutput( "python /apps/px/lib/stats/generateGraphics.py -m %s -f rx -c %s -d '%s' -s %s  " %( infos.combinedName, rxName, infos.date, infos.timespan ) )     
             sys.exit()
             
     
     while True:#wait on all non terminated child process'
-        try:   #will raise exception when no child process remain.        
+        try:   #will raise exception when no child process remain.    
+            print "goes to wait"    
             pid, status = os.wait( )
         except:    
             break  
