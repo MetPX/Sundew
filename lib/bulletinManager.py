@@ -1,26 +1,12 @@
 # -*- coding: iso-8859-1 -*-
-"""
-MetPX Copyright (C) 2004-2006  Environment Canada
-MetPX comes with ABSOLUTELY NO WARRANTY; For details type see the file
-named COPYING in the root of the source directory tree.
-"""
+# MetPX Copyright (C) 2004-2006  Environment Canada
+# MetPX comes with ABSOLUTELY NO WARRANTY; For details type see the file
+# named COPYING in the root of the source directory tree.
 
-"""        
-#############################################################################################
-# Name: bulletinManager.py
-#
-# Authors: Louis-Philippe Thériault
-#         
-# Date: Octobre 2004 
-#       
-#
-# Description: Gestionnaire de bulletins
-#
-#
-# Revision History: 
-#   2005-10-01  NSD         Adding collection capability.
-#
-#############################################################################################
+""" bulletin manager
+
+ Authors: Louis-Philippe Thériault, NSD, 
+
 """
 import math, re, string, os, bulletinPlain, traceback, sys, time
 import PXPaths
@@ -103,15 +89,14 @@ class bulletinManager:
 
         #map du contenu de bulletins en format brut
         #associe a leur arborescence absolue
+        #map raw contents of bulletins to the absolute tree (?)
         self.mapBulletinsBruts = {}
 
-        # Init du map des circuits
+        # setup routing table.
         self.drp = DirectRoutingParser(pathFichierCircuit, self.source.ingestor.allNames, logger)
         self.drp.parse()
         #self.drp.logInfos()
 
-        # Collection regex
-        self.regex = re.compile(r'SACN|SICN|SMCN')
 
     def effacerFichier(self,nomFichier):
         try:
@@ -150,10 +135,10 @@ class bulletinManager:
         unBulletin = self.__generateBulletin(unRawBulletin)
         unBulletin.doSpecificProcessing()
 
-        # Vérification du temps d'arrivée
+        # check arrival time.
         self.verifyDelay(unBulletin)
 
-        # Génération du nom du fichier
+        # generate a file name
         nomFichier = self.getFileName(unBulletin,compteur=compteur)
         nomFichier = nomFichier + ':' + time.strftime( "%Y%m%d%H%M%S", time.gmtime(time.time()) )
 
@@ -162,9 +147,9 @@ class bulletinManager:
             unFichier = os.open( tempNom , os.O_CREAT | os.O_WRONLY )
 
         except (OSError,TypeError), e:
-            # Le nom du fichier est invalide, génération d'un nouveau nom
+            # bad file name, make up a new one. 
 
-            self.logger.warning("Manipulation du fichier impossible! (Ecriture avec un nom non standard)")
+            self.logger.warning("cannot write file! (bad file name)")
             self.logger.error("Exception: " + ''.join(traceback.format_exception(Exception,e,sys.exc_traceback)))
 
             nomFichier = self.getFileName(unBulletin,error=True,compteur=compteur)
@@ -201,7 +186,6 @@ class bulletinManager:
         if self.source.clientsPatternMatching:
             clist = self.source.ingestor.getMatchingClientNamesFromMasks(nomFichier, clist)
 
-        #fet.directIngest( nomFichier, clist, tempNom, self.logger )
         self.source.ingestor.ingest(tempNom, nomFichier, clist)
 
         os.unlink(tempNom)
@@ -216,10 +200,10 @@ class bulletinManager:
         unBulletin = self.__generateBulletin(unRawBulletin)
         unBulletin.doSpecificProcessing()
 
-        # Vérification du temps d'arrivée
+        # check arrival time.
         self.verifyDelay(unBulletin)
 
-        # Génération du nom du fichier
+        # generate a file name.
         nomFichier = self.getFileName(unBulletin,compteur=compteur)
         nomFichier = nomFichier + ':' + time.strftime( "%Y%m%d%H%M%S", time.gmtime(time.time()) )
 
@@ -228,9 +212,9 @@ class bulletinManager:
             unFichier = os.open( tempNom , os.O_CREAT | os.O_WRONLY )
 
         except (OSError,TypeError), e:
-            # Le nom du fichier est invalide, génération d'un nouveau nom
+            # bad file name. Make up a new one.
 
-            self.logger.warning("Manipulation du fichier impossible! (Ecriture avec un nom non standard)")
+            self.logger.warning("Cannot write file! (bad file name)")
             self.logger.error("Exception: " + ''.join(traceback.format_exception(Exception,e,sys.exc_traceback)))
 
             nomFichier = self.getFileName(unBulletin,error=True,compteur=compteur)
@@ -365,31 +349,30 @@ class bulletinManager:
     def getFileName(self,bulletin,error=False, compteur=True ):
         """getFileName(bulletin[,error, compteur]) -> fileName
 
-           Retourne le nom du fichier pour le bulletin. Si error
-           est à True, c'est que le bulletin a tenté d'être écrit
-           et qu'il y a des caractère "illégaux" dans le nom,
-           un nom de fichier "safe" est retourné. Si le bulletin semble être
-           correct mais que le nom du fichier ne peut être généré,
-           les champs sont mis à ERROR dans l'extension.
+           return the a file name for a bulletin.  
+             IF error=True, the header has some nasty characters in it.  
+                 return a "safe" file name.
+           if not, but there is something wrong with the headers so
+           no file name can be generated, then put ERROR in a bunch
+           of fields.
+           compteur is a boolean to determine whether to add a random
+            counter on the end of the file name.
 
-           Si compteur est à False, le compteur n'est pas inséré
-           dans le nom de fichier.
+           Purpose:
 
-           Utilisation:
-
-                Générer le nom du fichier pour le bulletin concerné.
+                Generate a file name for a given bulletin.
         """
 
         # whatfn
         whatfn = self.createWhatFn(bulletin,compteur)
 
         if bulletin.getError() == None and not error:
-
-        # Bulletin normal
+            # a correctly formatted bulletin...
             try:
                 return  whatfn + self.getExtension(bulletin,error).replace(' ','_')
 
             except Exception, e:
+                # umm... sure... leave this one alone...
                 # Une erreur est détectée (probablement dans l'extension) et le nom est généré avec des erreurs
                 # Si le compteur n'a pas été calculé, c'est que le bulletin était correct,
                 # mais si on est ici dans le code, c'est qu'il y a eu une erreur.
@@ -399,31 +382,30 @@ class bulletinManager:
                 return 'PROBLEM_BULLETIN_' + whatfn + self.getExtension(bulletin,error=True).replace(' ','_')
 
         elif bulletin.getError() != None and not error:
-            self.logger.warning("Le bulletin est erronné " + bulletin.getError()[0] )
+            self.logger.warning("bulletin corrupt" + bulletin.getError()[0] )
             return 'PROBLEM_BULLETIN_' + whatfn + self.getExtension(bulletin,error=True).replace(' ','_')
         else:
-            self.logger.warning("L'entête n'est pas imprimable" )
+            self.logger.warning("unprintable header" )
             return ('PROBLEM_BULLETIN ' + 'UNPRINTABLE HEADER ' + self.getExtension(bulletin,error)).replace(' ','_')
 
     def getExtension(self,bulletin,error=False):
         """getExtension(bulletin) -> extension
 
-           Retourne l'extension à donner au bulletin. Si error est à True,
-           les champs 'dynamiques' sont mis à 'PROBLEM'.
+           Returns the extension to suffix to a bulletin header to create a file name.
+           if error=TRUE, 'dynamic' fields are set to PROBLEM.
 
-           -TT:         Type du bulletin (2 premieres lettres)
-           -CCCC:       Origine du bulletin (2e champ dans l'entête
-           -CIRCUIT:    Liste des circuits, séparés par des points,
-                        précédés de la priorité.
+           -TT:         bulletin type TT in AHL (first 2 letters)
+           -CCCC:       bulletin origin CCCC in AHL (second header field) 
+           -CIRCUIT:    FIXME: OBSOLETE FIELD... DO NOT DO THIS.
 
-           Exceptions possibles:
-                bulletinManagerException:       Si l'extension ne peut être générée
-                                                correctement et qu'il n'y avait pas
-                                                d'erreur à l'origine.
+           Exceptions raised:
+                bulletinManagerException:       if the extension cannot be generated
+                                                correctly and error was not initially 
+                                                set.
 
-           Utilisation:
+           Purpose:
 
-                Générer la portion extension du nom du fichier.
+                Generate the extention portion of the file name.
         """
         newExtension = self.extension
 
@@ -438,7 +420,7 @@ class bulletinManager:
 
             return newExtension
         else:
-            # Une erreur est détectée dans le bulletin
+            # error detected in bulletin
             newExtension = newExtension.replace('-TT','PROBLEM')\
                                        .replace('-CCCC','PROBLEM')\
                                        .replace('-CIRCUIT','PROBLEM')
@@ -450,15 +432,15 @@ class bulletinManager:
            lireFicTexte(pathFic) -> liste des lignes
 
            pathFic:        String
-                           - Chemin d'accès vers le fichier texte
+                           - path to text file
 
            liste des lignes:       [str]
-                                   - Liste des lignes du fichier texte
+                                   - list of lines in the file.
 
-        Utilisation:
+        Purpose:
 
-                Retourner les lignes d'un fichier, utile pour lire les petites
-                databases dans un fichier ou les fichiers de config.
+                return the lines in a file. useful for reading small 
+                config files.
         """
         if os.access(pathFic,os.R_OK):
             f = open(pathFic,'r')
@@ -471,6 +453,9 @@ class bulletinManager:
 
     def getCircuitList(self,bulletin):
         """circuitRename(bulletin) -> Circuits
+
+           FIXME: TOTAL BIZARRITUDE: CIRCUIT is actually the PRIORITY. this should be -PRIORITY
+           and the function should be called getPriority.  this naming is a leftover.
 
            bulletin:    Objet bulletin
 
@@ -490,8 +475,8 @@ class bulletinManager:
         entete = ' '.join(bulletin.getHeader().split()[:2])
 
         if not self.drp.routingInfos.has_key(entete):
-            bulletin.setError('Entete +' +entete+ ' non trouvée dans fichier de circuits')
-            raise bulletinManagerException('Entete non trouvée dans fichier de circuits')
+            bulletin.setError('header +' +entete+ ' not found in routing table')
+            raise bulletinManagerException('header not found in routing table')
 
         return self.drp.getHeaderPriority(entete)
 
@@ -499,24 +484,22 @@ class bulletinManager:
         """getPathSource() -> Path_source
 
            Path_source:         String
-                                -Path source que contient le manager
+                                -source path containing the manager (FIXME: wtf?)
         """
         return self.pathSource
 
     def verifyDelay(self,unBulletin):
         """verifyDelay(unBulletin)
 
-           Vérifie que le bulletin est bien dans les délais (si l'option
-           de délais est activée). Flag le bulletin en erreur si le delai
-           n'est pas respecté.
+           Check that the bulletin reception time is within specification
+           if the 'arrival' settings are active. Flag as an error
+           if out of spec.
 
-           Ne peut vérifier le délai que si self.mapEnteteDelai n'est
-           pas à None.
+           requires a valid self.mapEnteteDelai (arrival mapping structure.)
 
-           Utilisation:
+           Purpose:
 
-                Pouvoir vérifier qu'un bulletin soit dans les délais
-                acceptables.
+                implement arrival time filtering.
         """
         if (self.mapEnteteDelai == None):
             return
@@ -530,22 +513,23 @@ class bulletinManager:
             minimum,maximum = None,None
 
             for k in self.mapEnteteDelai.keys():
-            # Fetch de l'intervalle valide dans le map
+            # Fetch appropriate interval from the map.
                 if k == header[:len(k)]:
                     (minimum,maximum) = self.mapEnteteDelai[k]
                     break
 
             if minimum == None:
-            # Si le cas n'est pas défini, considéré comme correct
+            # if there isn't any, then it's OK.
                 return
 
         except Exception:
-            unBulletin.setError('Découpage d\'entête impossible')
+            unBulletin.setError('cannot parse header')
             return
 
-        # Détection si wrap up et correction pour le calcul
+        # adjust for crossing end of day...
         if abs(int(now[:2]) - int(bullTime[:2])) > 10:
             if now > bullTime:
+            #FIXME: do not grok!
             # Si le temps présent est plus grand que le temps du bulletin
             # (donc si le bulletin est généré le mois suivant que présentement),
             # On ajoute une journée au temps présent pour faire le temps du bulletin
@@ -554,12 +538,11 @@ class bulletinManager:
             # Contraire (...)
                 now = str(int(bullTime[:2]) + 1) + now[2:]
 
-        # Conversion en nombre de minutes
+        # Convert to minutes
         nbMinNow = 60 * 24 * int(now[0:2]) + 60 * int(now[2:4]) + int(now[4:])
         nbMinBullTime = 60 * 24 * int(bullTime[0:2]) + 60 * int(bullTime[2:4]) + int(bullTime[4:])
 
-        # Calcul de l'interval de validité
+        # Calculate valid interval.
         if not( -1 * abs(minimum) < nbMinNow - nbMinBullTime < maximum ):
-            # La différence se situe en dehors de l'intervale de validité
-            self.logger.warning("Délai en dehors des limites permises bulletin: "+unBulletin.getHeader()+', heure présente '+now)
-            unBulletin.setError('Bulletin en dehors du delai permis')
+            self.logger.warning("arrival time outside permitted interval: "+unBulletin.getHeader()+', current time '+now)
+            unBulletin.setError('arrival time outside permitted interval')
