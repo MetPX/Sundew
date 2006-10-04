@@ -1,11 +1,11 @@
 # -*- coding: iso-8859-1 -*-
-"""
-MetPX Copyright (C) 2004-2006  Environment Canada
-MetPX comes with ABSOLUTELY NO WARRANTY; For details type see the file
-named COPYING in the root of the source directory tree.
-"""
+#
+#MetPX Copyright (C) 2004-2006  Environment Canada
+#MetPX comes with ABSOLUTELY NO WARRANTY; For details type see the file
+#named COPYING in the root of the source directory tree.
+#
 
-"""Gestion des bulletins "AM" """
+"""Manage "AM" Bulletins (whatever that means...) """
 
 import bulletinManager, bulletinAm, os, string
 import StationParser

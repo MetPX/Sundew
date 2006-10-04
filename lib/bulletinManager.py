@@ -89,7 +89,7 @@ class bulletinManager:
 
         #map du contenu de bulletins en format brut
         #associe a leur arborescence absolue
-        #map raw contents of bulletins to the absolute tree (?)
+        #map raw contents of bulletins to the absolute tree (FIXME wtf?)
         self.mapBulletinsBruts = {}
 
         # setup routing table.
@@ -102,7 +102,7 @@ class bulletinManager:
         try:
             os.remove(nomFichier)
         except:
-            self.logger.error("(BulletinManager.effacerFichier(): Erreur d'effacement d'un bulletin)")
+            self.logger.error("(BulletinManager.effacerFichier(): Error removing bulletin.")
             raise
 
     def writeBulletinToDisk(self,unRawBulletin,compteur=True,includeError=True):
