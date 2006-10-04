@@ -1,5 +1,5 @@
 # -*- coding: iso-8859-1 -*-
-"""Définition de la classe principale pour les bulletins."""
+"""Main class for bulletins"""
 
 import time
 import string, traceback, sys
@@ -9,62 +9,16 @@ from   Grib import Grib
 __version__ = '2.0'
 
 class bulletinException(Exception):
-    """Classe d'exception spécialisés relatives aux bulletins"""
+    """bulletin exception class: FIXME not very useful documentation, when needed?"""
     pass
 
 class bulletin:
-    """Classe abstraite regroupant tout les traits communs des bulletins
-    quels que soient les protocoles utilisés. Les méthodes
-    qui ne retournent qu'une exception doivent êtres redéfinies
-    dans les sous-classes (il s'agit de méthodes abstraites).
+    """Abstract class for bulletins, will all protocol independent features.
 
-    Le bulletin est représenté à l'interne comme une liste de strings,
-    découpés par l'attribut lineSeparator.
+    methods that return an exception must be defined by derived classes.
 
-    Vérifie l'entête du bulletin lors de l'instanciation. Pour sauter
-    cette vérification dans une des classes spécialisées, overrider
-    la méthode par une méthode vide.
-
-            * Paramètres à passer au constructeur
-
-            stringBulletin          String
-
-                                    - Le bulletin lui-même en String
-
-            logger                  Objet log
-
-                                    - Log principal pour les bulletins
-
-            finalLineSeparator      String
-
-                                    - Séparateur utilisé comme fin de ligne
-                                      lors de l'appel du get
-
-            lineSeparator           String
-
-                                    - Marqueur utilise pour separer les lignes
-                                      du bulletin source
-
-            * Attributs (usage interne seulement)
-
-            errorBulletin           tuple (default=None)
-
-                                    - Est modifié une fois que le
-                                      traîtement spécifique est
-                                      effectué.
-                                    - Si une erreur est détectée,
-                                      errorBulletin[0] est le message
-                                      relatif à l'erreur
-                                    - errorBulletin[1:] est laissé
-                                      libre pour la spécialisation
-                                      de la classe
-
-            bulletin                liste de strings [str]
-
-                                    - Lors d'un getBulletin, le
-                                      bulletin est fusionné avec
-                                      lineSeparator comme caractère
-                                      d'union
+    A bulletin is internally represented by a list of strings, separated by 
+    the lineSeparator attribut.
 
     Statut: Abstraite
     Auteur: Louis-Philippe Thériault
@@ -74,6 +28,41 @@ class bulletin:
     """
 
     def __init__(self,stringBulletin,logger,lineSeparator='\n',finalLineSeparator='\n'):
+        """The AHL of a bulletin is checked during instantiation.  To skip the check,
+        override verifyHeader in a derived class.
+
+            * parameters to the constructor
+
+            stringBulletin          String
+
+                                    - The bulletin as a string.
+
+            logger                  Objet log
+
+                                    - Logging object 
+
+            finalLineSeparator      String
+
+                                    - line separator (output.)
+
+            lineSeparator           String
+
+                                    - line separator (in the stringBulletin)
+
+
+            * Attributes (internal use only)
+
+            errorBulletin  tuple (default=None)
+                  - is set once the 'specific' (protocol? derived class?) 
+                    processing is done.
+                  When an error is detected.
+                  - errorBulletin[0] is the set to the message. 
+		  - errorBulletin[1:] is open to for use by derived classes.
+
+            bulletin                list of strings [str]
+                  - after call to getBulletin, this contains the entire 
+                    bulletin with lineSeparator as the line separator.
+        """
         self.logger = logger
         self.errorBulletin = None
         self.lineSeparator = lineSeparator
@@ -90,12 +79,9 @@ class bulletin:
         self.ep_arrival  = -1
         self.ep_emission = -1
 
-        # Normalization du header ici (enlever les espaces au début et a la fin)
+        # Normalization the header (trim spaces before and after) 
         self.setHeader(self.getHeader().strip())
 
-        # Vérification du header du bulletin
-        # pour ne pas l'effectuer, simplement overrider la méthode
-        # dans la classe spécialisée, par une méthode qui ne fait rien
         self.verifyHeader()
 
         self.logger.veryverbose("newBulletin: %s" % stringBulletin)
@@ -118,7 +104,7 @@ class bulletin:
     def compute_Delay(self):
         """compute_Delay() -
 
-           Compute attribut delay which corresponds to  arrival-emission
+           Compute attribute delay which corresponds to  arrival-emission
            delay is an integer in seconds
 
            Visibility:  Private
@@ -158,7 +144,7 @@ class bulletin:
 
         if YYGGGg[:2] == arrival[6:8] : return
 
-        # try to go foreward 1 day... 
+        # try to go forward 1 day... 
 
         ep_day = self.ep_arrival + 24 * 60 * 60
         day    = time.strftime('%d',time.localtime(ep_day))
@@ -186,17 +172,8 @@ class bulletin:
     def doSpecificProcessing(self):
         """doSpecificProcessing()
 
-           Modifie le bulletin s'il y a lieu, selon le traîtement désiré.
+           Apply protocol or derived type specific processing to bulletin.
 
-           Utilisation:
-
-                Inclure les modifications à effectuer sur le bulletin, qui
-                sont propres au type de bulletin en question.
-
-           Statut:      Abstraite
-           Visibilité:  Publique
-           Auteur:      Louis-Philippe Thériault
-           Date:        Octobre 2004
         """
         raise bulletinException('Méthode non implantée (méthode abstraite doSpecificProcessing)')
 
@@ -205,9 +182,6 @@ class bulletin:
 
            Return the age of the bulletin
 
-           Visitility:  Publique
-           Author:      Michel Grenier
-           Date:        May 2006
         """
 
         self.computeAge(ep_now)
@@ -220,9 +194,6 @@ class bulletin:
            Otherwise return the bulletin's BBB
            Remove testing since it is done in verifyHeader
 
-           Visitilité:  Publique
-           Auteur:      Michel Grenier
-           Date:        May 2006
         """
 
         header = self.getHeader().split()
@@ -238,17 +209,13 @@ class bulletin:
            bulletin     : String
 
            includeError:        Bool
-                                - Si est à True, inclut l'erreur dans le corps du bulletin
+               - If True, include error in bulletin body.
 
            useFinalLineSeparator:       Bool
-                                - Si est a True, utilise le finalLineSeparator
+               - If True, use finalLineSeparator
 
-           Retourne le bulletin en texte
+           returns the bulletin text.
 
-           Visibilité:  Publique
-           Auteur:      Louis-Philippe Thériault
-           Date:        Octobre 2004
-           Modifications: Decembre 2004, Louis-Philippe et Pierre
         """
         if useFinalLineSeparator:
             marqueur = self.finalLineSeparator
@@ -266,12 +233,9 @@ class bulletin:
     def getDataType(self):
         """getDataType() -> dataType
 
-           dataType:    String élément de ('BI','AN')
-                        - Type de la portion de données du bulletin
+           dataType:    String, value is one of 'BI' or 'AN'.
+               - determine whether the bulletin is binary or alphanumeric
 
-           Visitilité:  Publique
-           Auteur:      Louis-Philippe Thériault
-           Date:        Octobre 2004
         """
         if self.dataType != None:
             return self.dataType
@@ -290,13 +254,10 @@ class bulletin:
     def getError(self):
         """getError() -> (TypeErreur)
 
-           Retourne None si aucune erreur détectée dans le bulletin,
-           sinon un tuple avec comme premier élément la description
-           de l'erreur. Les autres champs sont laissés libres
+	   Return None if no errors were detected in the bulletin.
+           Otherwise return a tuple with a description as the first element.
+	   remaining elements undefined.
 
-           Visitilité:  Publique
-           Auteur:      Louis-Philippe Thériault
-           Date:        Octobre 2004
         """
         return self.errorBulletin
 
@@ -305,11 +266,7 @@ class bulletin:
 
            header       : String
 
-           Retourne l'entête (première ligne) du bulletin
-
-           Visibilité:  Publique
-           Auteur:      Louis-Philippe Thériault
-           Date:        Octobre 2004
+	   Return the header (first line) of bulletin.
         """
         return self.bulletin[0]
 
@@ -318,22 +275,16 @@ class bulletin:
 
            longueur     : int
 
-           Retourne la longueur du bulletin avec le lineSeparator
+	   return bulletin length (including lineSeparators)
 
-           Visibilité:  Publique
-           Auteur:      Louis-Philippe Thériault
-           Date:        Octobre 2004
         """
         return len(self.getBulletin())
 
     def getLogger(self):
         """getLogger() -> objet_logger
 
-           Retourne l'attribut logger du bulletin
+           Retourne logger attribute.
 
-           Visibilité:  Publique
-           Auteur:      Louis-Philippe Thériault
-           Date:        Novembre 2004
         """
         return self.logger
 
@@ -342,11 +293,7 @@ class bulletin:
 
            origine      : String
 
-           Retourne l'origine (2e champ de l'entête) du bulletin (CWAO,etc...)
-
-           Visibilité:  Publique
-           Auteur:      Louis-Philippe Thériault
-           Date:        Octobre 2004
+	   Return the originating station (2nd field of header) (ie. CWAO)
         """
         return self.getHeader().split(' ')[1]
 
@@ -355,12 +302,7 @@ class bulletin:
 
            station      : String
 
-           Retourne la station associée au bulletin,
-           retourne None si elle est introuvable.
-
-           Visibilité:  Publique
-           Auteur:      Louis-Philippe Thériault
-           Date:        Octobre 2004
+	   Return the station (i.e. CYUL), None if not found.
         """
 
 
@@ -372,7 +314,7 @@ class bulletin:
             deuxiemeLignePleine = ""
             bulletin = self.bulletin
 
-            # Cas special, il faut aller chercher la prochaine ligne pleine
+            # special case, need to get the next full line.
             i = 0
             for ligne in bulletin[1:]:
                 i += 1
@@ -382,7 +324,7 @@ class bulletin:
                    break
 
             #print " ********************* header = ", bulletin[0][0:7]
-            # Embranchement selon les differents types de bulletins
+            # switch depends on bulletin type.
             if bulletin[0][0:2] == "SA":
                 if bulletin[1].split()[0] in ["METAR","LWIS"]:
                     station = premiereLignePleine.split()[1]
@@ -442,11 +384,7 @@ class bulletin:
 
            type         : String
 
-           Retourne le type (2 premieres lettres de l'entête) du bulletin (SA,FT,etc...)
-
-           Visibilité:  Publique
-           Auteur:      Louis-Philippe Thériault
-           Date:        Octobre 2004
+	   Return TT (bulletin type, first two letters of AHL) ... ie.: SA, FT, 
         """
         return self.getHeader()[:2]
 
@@ -455,16 +393,13 @@ class bulletin:
 
            oldchars,newchars    : String
 
-           Remplace oldchars par newchars dans le bulletin. Ne touche pas à la portion Data
-           des GRIB/BUFR
+           Replace oldchars by newchars in a bulletin.  
+           Skip over GRIB & BUFR data 
 
-           Utilisation:
+           purpose:
 
-                Pour des remplacements dans doSpecifiProcessing.
+                substitutions in doSpecifiProcessing.
 
-           Visibilité:  Privée
-           Auteur:      Louis-Philippe Thériault
-           Date:        Novembre 2004
         """
         for i in range(len(self.bulletin)):
             if self.bulletin[i].lstrip()[:4] != 'GRIB' and self.bulletin[i].lstrip()[:4] != 'BUFR':
@@ -476,9 +411,6 @@ class bulletin:
            Assign arrival attribut of bulletin
            ep_arrival is an integer expressing time in epocal seconds
 
-           Visibility:  Public
-           Author:      Michel Grenier
-           Date:        Mai 2006
         """ 
 
         self.ep_arrival = ep_arrival
@@ -494,9 +426,6 @@ class bulletin:
            Assign arrival attribut of bulletin
            arrivalStr is a character string of the form YYYYMMDDhhmmss
 
-           Visibility:  Public
-           Author:      Michel Grenier
-           Date:        Mai 2006
         """
 
         self.arrival    = arrivalStr
@@ -511,14 +440,10 @@ class bulletin:
         """setError(msg)
 
            msg: String
-                - Message relatif à l'erreur
+                - error message to set.
 
-           Flag le bulletin comme erroné. L'utilisation du message est propre
-           au type de bulletin.
-
-           Visitilité:  Publique
-           Auteur:      Louis-Philippe Thériault
-           Date:        Octobre 2004
+           Set the bulletin Error flag.  
+           How the message is used depends on the message type.
         """
         if self.errorBulletin == None:
             self.errorBulletin = [msg]
@@ -528,11 +453,8 @@ class bulletin:
 
            header       : String
 
-           Assigne l'entête du bulletin
+           umm... set the bulletin header? not much help here...
 
-           Visibilité:  Publique
-           Auteur:      Louis-Philippe Thériault
-           Date:        Octobre 2004
         """
         self.bulletin[0] = header
 
@@ -541,11 +463,8 @@ class bulletin:
     def setLogger(self,logger):
         """setLogger(logger)
 
-           Assigne l'attribut logger du bulletin
+           set Logger attribute.
 
-           Visibilité:  Publique
-           Auteur:      Louis-Philippe Thériault
-           Date:        Novembre 2004
         """
         self.logger = logger
 
@@ -555,43 +474,43 @@ class bulletin:
            stringBulletin       : String
            listeLignes          : Liste
 
-           Retourne la liste de lignes des bulletins. Ne pas utiliser .splitlines()
-           (de string) car il y a possibilité d'un bulletin en binaire.
+           Return a list of bulletin lines.  Do not use string.splitlines() since
+           it will not work with binary data.
 
-           Les bulletins binaires (jusqu'à présent) commencent par GRIB/BUFR et
-           se terminent par 7777 (la portion binaire).
+           Binary data start with GRIB or BUFR and end with 77777
 
-           Utilisation:
+           Purpose:
 
-                Pour découpage initial du bulletin, ou si l'on insère un self.linseparator
-                dans le bulletin, pour le redécouper (faire un getBulletin() puis le redécouper).
+                initial split of bulletins to allow change of lineseparator as required.
+                or after setting a line separator to split again (call getBulletin, then split again.)
 
-           Nb.: Les bulletins GRIB/BUFR sont normalisés en enlevant tout data après le '7777'
-                (délimiteur de fin de portion de data) en en ajoutant un lineSeparator.
+           N.B.: GRIB & BUFR data is normalized by removing all data after 77777
+                 and adding a line separator.
 
-           Visibilité:  Privée
-           Auteur:      Louis-Philippe Thériault
-           Date:        Novembre 2004
         """
         try:
             estBinaire = False
 
             # On détermine si le bulletin est binaire
+            # determine if the bulletin is binary.
             for ligne in stringBulletin.splitlines():
                 if ligne.lstrip()[:4] == 'BUFR' or ligne.lstrip()[:4] == 'GRIB':
                     # Il faut que le BUFR/GRIB soit au début d'une ligne
+                    # BUFR/GRIB must be at the beginning of a line.
                     estBinaire = True
                     break
 
             if estBinaire:
                 if stringBulletin.find('GRIB') != -1:
-                # Type de bulletin GRIB, découpage spécifique
+                # for GRIB data, do a binary split.
                 # TODO check if grib is valid  grib.valid  and if not react 
 
                     grib = Grib(stringBulletin)
 
                     b = stringBulletin[:grib.begin].split(self.lineSeparator)
 
+                    # If the last token is a '', then there is a blank last line.
+                    # it is removed, because we will add it back later.
                     # Si le dernier token est un '', c'est qu'il y avait
                     # un \n à la fin, et on enlève puisque entre 2 éléments de la liste,
                     # on insère un \n
@@ -603,7 +522,7 @@ class bulletin:
                     return b
 
                 elif stringBulletin.find('BUFR') != -1:
-                # Type de bulletin BUFR, découpage spécifique
+                # for a BUFR bulletin, do a BUFR split...
                 # TODO check if bufr is valid  bufr.valid  and if not react 
 
                     bufr = Bufr(stringBulletin)
@@ -620,25 +539,22 @@ class bulletin:
 
                     return b
             else:
-                # Le bulletin n'est pas binaire
+                # The bulletin is alphanumeric... 
                 return stringBulletin.split(self.lineSeparator)
         except Exception, e:
-            self.logger.exception('Erreur lors du decoupage du bulletin:\n'+''.join(traceback.format_exception(Exception,e,sys.exc_traceback)))
-            self.setError('Erreur lors du découpage de lignes')
+            self.logger.exception('Error splitting bulletin:\n'+''.join(traceback.format_exception(Exception,e,sys.exc_traceback)))
+            self.setError('Error splitting bulletin into lines')
             return stringBulletin.split(self.lineSeparator)
 
     def verifyHeader(self):
         """verifyHeader()
 
-           Vérifie l'entête du bulletin et le flag en erreur s'il y a erreur.
+           Flag if there is an error in the header.
 
-           Utilisation:
+           purpose:
 
-                Est appelé à l'instance, masquer pour ne pas faire l'appel.
+                called by init, overrid in derived class to suppress.
 
-           Visibilité:  Privée
-           Auteur:      Louis-Philippe Thériault
-           Date:        Novembre 2004
         """
         header = self.getHeader()
 
@@ -648,18 +564,18 @@ class bulletin:
         self.setHeader(header)
 
         if header=='':
-            self.setError('Entete vide')
+            self.setError('empty header')
             return
 
         tokens = header.split()
 
         if len(tokens) < 3:
-            self.setError('Entete non conforme (moins de 3 champs)')
+            self.setError('incomplete header (less than 3 fields)')
             return
 
         if len(tokens[2]) > 6: # On enleve les ['z', 'Z'] ou ['utc', 'UTC'] s'ils sont presents dans le groupe JJHHMM
             tokens[2] = tokens[2][0:6]
-            self.logger.info("Entete corrigee (%s): le groupe JJHHMM a ete tronque (plus de 6 caracteres)" % str(header))
+            self.logger.info("header normalized (%s): truncated the DDHHMM group (>6 characters)" % str(header))
             self.setHeader(' '.join(tokens))
             tokens = self.getHeader().split()
 
@@ -669,7 +585,7 @@ class bulletin:
            not (0 <= int(tokens[2][:2]) <= 31) or not(00 <= int(tokens[2][2:4]) <= 23) or \
            not(00 <= int(tokens[2][4:]) <= 59):
 
-            self.setError('Entete non conforme (format des 3 premiers champs incorrects)')
+            self.setError('malformed header (some of the first 3 fields corrupt)')
             return
 
         if len(tokens) == 3:
@@ -677,7 +593,7 @@ class bulletin:
 
         if not tokens[3].isalpha() or len(tokens[3]) != 3 or tokens[3][0] not in ['C','A','R','P']:
             #self.setError('Entete non conforme (champ BBB incorrect')
-            self.logger.info("Entete corrigee: 4ieme champ (et les suivants) enleve du header") 
+            self.logger.info("Header normalized: fourth and later fields removed.") 
             parts = self.getHeader().split()
             del parts[3:]
             self.setHeader(' '.join(parts))
@@ -686,8 +602,8 @@ class bulletin:
         if len(tokens) == 5 and \
                 (not tokens[4].isalpha() or len(tokens[4]) != 3 or tokens[4][0] not in ['C','A','R','P']):
 
-            #self.setError('Entete non conforme4 (champ BBB no2 incorrect')
-            self.logger.info("Entete corrigee: 5ieme champ (et les suivants) enleve du header")
+            #self.setError('malformed header4 (second BBB field corrupt)')
+            self.logger.info("header normalized: fifth and later fields removed")
             parts = self.getHeader().split()
             del parts[4:]
             self.setHeader(' '.join(parts))
@@ -696,7 +612,7 @@ class bulletin:
         if len(tokens) > 5:
 
             #self.setError('Entete non conforme (plus de 5 champs')
-            self.logger.info("Entete corrigee: 6ieme champ (et les suivants) enleve du header")
+            self.logger.info("header normalized: sixth and later fields removed")
             parts = self.getHeader().split()
             del parts[5:]
             self.setHeader(' '.join(parts))
