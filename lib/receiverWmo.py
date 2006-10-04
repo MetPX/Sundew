@@ -91,8 +91,7 @@ class receiverWmo(gateway.gateway):
         # Instanciation du socketManagerWmo
 
         self.unSocketManagerWmo = \
-                  socketManagerWmo.socketManagerWmo(self.logger,type='slave', \
-                                                         port=self.flow.port)
+                  socketManagerWmo.socketManagerWmo(self.logger, type='slave', port=self.flow.port, None, None, self.flow)
 
     def read(self):
         __doc__ =  gateway.gateway.read.__doc__ + \

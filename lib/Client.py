@@ -66,6 +66,7 @@ class Client(object):
 
         # Socket Attributes
         self.port = None 
+        self.keepAlive = True
 
         # Files Attributes
         self.user = None                    # User name used to connect
@@ -140,6 +141,7 @@ class Client(object):
                     elif words[0] == 'validation': self.validation =  isTrue(words[1])
                     elif words[0] == 'noduplicates': self.nodups =  isTrue(words[1])
                     elif words[0] == 'patternMatching': self.patternMatching =  isTrue(words[1])
+                    elif words[0] == 'keepAlive': self.keepAlive =  isTrue(words[1])
                     elif words[0] == 'mtime': self.mtime = int(words[1])
                     elif words[0] == 'sorter': self.sorter = words[1]
                     elif words[0] == 'type': self.type = words[1]

@@ -65,6 +65,7 @@ class Source(object):
         self.clientsPatternMatching = True                     # No clients pattern matching
         self.sorter = None                                     # No sorting on the filnames
         self.feeds = []                                        # more source to feed directly
+        self.keepAlive = True                                  # TCP SO_KEEPALIVE on (True) or off(False)
         self.mtime = 0                                         # Integer indicating the number of seconds a file must not have 
                                                                # been touched before being picked
         #-----------------------------------------------------------------------------------------
@@ -168,6 +169,7 @@ class Source(object):
                     elif words[0] == 'patternMatching': self.patternMatching =  isTrue(words[1])
                     elif words[0] == 'clientsPatternMatching': self.clientsPatternMatching =  isTrue(words[1])
                     elif words[0] == 'validation' and isTrue(words[1]): self.validation = True
+                    elif words[0] == 'keepAlive': self.keepAlive = isTrue(words[1])
                     elif words[0] == 'debug' and isTrue(words[1]): self.debug = True
                     elif words[0] == 'mtime': self.mtime = int(words[1])
                     elif words[0] == 'sorter': self.sorter = words[1]

@@ -37,8 +37,8 @@ class socketManagerAm(socketManager.socketManager):
 
     #def __init__(self,logger,type='slave',localPort=9999,remoteHost=None,timeout=None):
             #socketManager.socketManager.__init__(self,logger,type,localPort,remoteHost,timeout)
-    def __init__(self,logger,type='slave',port=9999,remoteHost=None,timeout=None):
-        socketManager.socketManager.__init__(self,logger,type,port,remoteHost,timeout)
+    def __init__(self,logger,type='slave',port=9999,remoteHost=None,timeout=None, flow=None):
+        socketManager.socketManager.__init__(self,logger,type,port,remoteHost,timeout, flow)
 
         # La taille du amRec est prise d'a partir du fichier ytram.h, à l'origine dans
         # amtcp2file. Pour la gestion des champs l'on se refere au module struct

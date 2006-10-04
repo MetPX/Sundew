@@ -58,7 +58,7 @@ class socketManager:
        Auteur:      Louis-Philippe Thériault
        Date:        Septembre 2004
     """
-    def __init__(self,logger,type='slave',port=9999,remoteHost=None,timeout=None):
+    def __init__(self,logger,type='slave',port=9999,remoteHost=None,timeout=None, flow=None):
         self.type = type
         self.port = port
         self.remoteHost = remoteHost
@@ -68,6 +68,8 @@ class socketManager:
         self.inBuffer = ""
         self.outBuffer = []
         self.connected = False
+
+        self.flow = flow
 
         # Établissement de la connexion
         self.__establishConnection()
@@ -110,7 +112,11 @@ class socketManager:
         # KEEP_ALIVE à True, pour que si la connexion tombe, la notification
         # soit immédiate
         # nb: Ne semble pas fonctionner
-        self.socket.setsockopt(socket.SOL_SOCKET,socket.SO_KEEPALIVE,1)
+        if self.flow.keepAlive:
+            self.socket.setsockopt(socket.SOL_SOCKET,socket.SO_KEEPALIVE,1)
+        else:
+            self.socket.setsockopt(socket.SOL_SOCKET,socket.SO_KEEPALIVE,0)
+            self.logger.info('SO_KEEPALIVE set to 0')
 
         # Snapshot du temps
         then = time.time()
