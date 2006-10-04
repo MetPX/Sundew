@@ -243,6 +243,8 @@ class Ingestor(object):
     def run(self):
         if self.source.type == 'single-file':
             self.ingestSingleFile()
+        elif self.source.type == 'file':
+            self.ingestFile()
         elif self.source.type == 'bulletin-file':
             self.ingestBulletinFile()
         elif self.source.type == 'collector':
