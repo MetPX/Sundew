@@ -416,7 +416,8 @@ class bulletinManager:
             if self.drp != None:
             # Si les circuits sont activés
             # NB: Lève une exception si l'entête est introuvable
-                newExtension = newExtension.replace('-CIRCUIT',self.getCircuitList(bulletin))
+                entete = ' '.join(bulletin.getHeader().split()[:2])
+                newExtension = newExtension.replace('-CIRCUIT', self.drp.getHeaderPriority(entete))
 
             return newExtension
         else:
@@ -450,35 +451,6 @@ class bulletinManager:
         else:
             self.logger.error("Unable to access:" + pathFic )
             raise IOError
-
-    def getCircuitList(self,bulletin):
-        """circuitRename(bulletin) -> Circuits
-
-           FIXME: TOTAL BIZARRITUDE: CIRCUIT is actually the PRIORITY. this should be -PRIORITY
-           and the function should be called getPriority.  this naming is a leftover.
-
-           bulletin:    Objet bulletin
-
-           Circuits:    String
-                        -Circuits formattés correctement pour êtres insérés dans l'extension
-
-           Retourne la liste des circuits pour le bulletin précédés de la priorité, pour être inséré
-           dans l'extension.
-
-              Exceptions possibles:
-                   bulletinManagerException:       Si l'entête ne peut être trouvée dans le
-                                                   fichier de circuits
-        """
-        if self.drp == None:
-            raise bulletinManagerException("The Direct Routing Parser is not loaded")
-
-        entete = ' '.join(bulletin.getHeader().split()[:2])
-
-        if not self.drp.routingInfos.has_key(entete):
-            bulletin.setError('header +' +entete+ ' not found in routing table')
-            raise bulletinManagerException('header not found in routing table')
-
-        return self.drp.getHeaderPriority(entete)
 
     def getPathSource(self):
         """getPathSource() -> Path_source
