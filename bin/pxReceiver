@@ -112,6 +112,9 @@ example 2: %prog start       => will start all sources
         import receiverWmo
         gateway = receiverWmo.receiverWmo('/dev/null', source, logger)
         igniter.setGateway(gateway)
+    elif source.type == 'file':
+        igniter.setGateway('DUMMY')
+        source.ingestor.ingestFile(igniter)
     elif source.type == 'single-file':
         igniter.setGateway('DUMMY')
         source.ingestor.ingestSingleFile(igniter)
