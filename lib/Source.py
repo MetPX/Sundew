@@ -239,6 +239,7 @@ class Source(object):
         print("Type: %s" % source.type)
         print("Batch: %s" %  source.batch)
         print("Port: %s" % source.port)
+        print("TCP SO_KEEPALIVE: %s" % source.keepAlive)
         print("Extension: %s" % source.extension)
         print("Arrival: %s" % source.mapEnteteDelai)
         print("addSMHeader: %s" % source.addSMHeader)

@@ -55,7 +55,7 @@ class Client(object):
 
         self.validation = True                    # Validation of the filename (prio + date)
         self.patternMatching = True               # Verification of the emask and imask of the client before sending a file
-        self.nodups = True                         # Check if the file has already been sent (md5sum present in the cache)
+        self.nodups = True                        # Check if the file has already been sent (md5sum present in the cache)
         self.mtime = 0                            # Integer indicating the number of seconds a file must not have
                                                   # been touched before being picked
 
@@ -65,8 +65,8 @@ class Client(object):
         self.collection = None                    # Client do not participate in the collection effort
 
         # Socket Attributes
-        self.port = None 
-        self.keepAlive = True
+        self.port = None                    # Port number
+        self.keepAlive = True               # TCP SO_KEEPALIVE on (True) or off(False)
 
         # Files Attributes
         self.user = None                    # User name used to connect
@@ -242,6 +242,7 @@ class Client(object):
         print("User: %s" % client.user)
         print("Passwd: %s" % client.passwd)
         print("Chmod: %s" % client.chmod)
+        print("TCP SO_KEEPALIVE: %s" % client.keepAlive)
         print("Timeout_send: %i" % client.timeout_send)
         print("Lock: %s" % client.lock)
         print("FTP Mode: %s" % client.ftp_mode)
