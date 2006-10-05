@@ -1,11 +1,13 @@
 # -*- coding: iso-8859-1 -*-
-"""
-MetPX Copyright (C) 2004-2006  Environment Canada
-MetPX comes with ABSOLUTELY NO WARRANTY; For details type see the file
-named COPYING in the root of the source directory tree.
-"""
+# MetPX Copyright (C) 2004-2006  Environment Canada
+# MetPX comes with ABSOLUTELY NO WARRANTY; For details type see the file
+# named COPYING in the root of the source directory tree.
+#
+# Author:
+#     2004/10 Louis-Philippe Thériault
+#
 
-"""ReceiverWmo: socketWmo -> disk, incluant traitement pour les bulletins"""
+"""ReceiverWmo: socketWmo -> disk, including bulletin processing"""
 
 import gateway
 import socketManagerWmo
@@ -19,13 +21,9 @@ PXPaths.normalPaths()
 class receiverWmo(gateway.gateway):
     __doc__ = gateway.gateway.__doc__ + \
     """
-    ### Ajout de receiver WMO ###
+    Implement receiver for a WMO socket. Consists of a
+    socketManagerAm and a bulletinManagerAm.
 
-    Implantation du receiver pour un feed Wmo. Il est constitué
-    d'un socket manager Wmo et d'un bulletin manager Wmo.
-
-    Auteur: Louis-Philippe Thériault
-    Date:   Octobre 2004
     """
 
     def __init__(self,path,source,logger):
@@ -47,18 +45,13 @@ class receiverWmo(gateway.gateway):
 
     def shutdown(self):
         __doc__ = gateway.gateway.shutdown.__doc__ + \
-        """### Ajout de receiverWmo ###
+        """
+           Close socket and complete processing of buffer.
 
-           Fermeture du socket et finalisation du traîtement du
-           buffer.
+           Purpose:
 
-           Utilisation:
+                Clean shutdown of connection.
 
-                Fermeture propre du programme via sigkill/sigterm
-
-           Visibilité:  Publique
-           Auteur:      Louis-Philippe Thériault
-           Date:        Octobre 2004
         """
         gateway.gateway.shutdown(self)
 
@@ -67,26 +60,18 @@ class receiverWmo(gateway.gateway):
 
             self.write(resteDuBuffer)
 
-        self.logger.info("Succès du traîtement du reste de l'info")
+        self.logger.info("completed processing of remaining data")
 
     def establishConnection(self):
         __doc__ = gateway.gateway.establishConnection.__doc__ + \
-        """### Ajout de receiverWmo ###
+        """
+           Purpose:
+                encapsulating network connection makes it easier to 
+                manager the loss of a connection, and reestablishment.        
 
-           establishConnection ne fait que initialiser la connection
-           socket.
-
-           Utilisation:
-
-                En encapsulant la connection réseau par cette méthode, il est plus
-                facile de gérer la perte d'une connection et sa reconnection.
-
-           Visibilité:  Privée
-           Auteur:      Louis-Philippe Thériault
-           Date:        Octobre 2004
         """
 
-        self.logger.debug("Instanciation du socketManagerWmo")
+        self.logger.debug("Instantiation of socketManagerWmo")
 
         # Instanciation du socketManagerWmo
 
@@ -95,54 +80,39 @@ class receiverWmo(gateway.gateway):
 
     def read(self):
         __doc__ =  gateway.gateway.read.__doc__ + \
-        """### Ajout de receiverWmo ###
+        """
+           The reader is a tcp socket, managed by a socketManagerWmo.
 
-           Le lecteur est le socket tcp, géré par socketManagerWmo.
+           if corruption in the data is detected, the connection is re-initialized.
 
-           Visibilité:  Privée
-           Auteur:      Louis-Philippe Thériault
-           Date:        Octobre 2004
-
-
-           Modification le 25 janvier 2005: getNextBulletins()
-           retourne une liste de bulletins.
-
-           Modification le 7 Fév 2005: Si une corruption est détectée dans les
-           données, la connection se réinitialise. (LP)
-
-           Auteur:      Louis-Philippe Thériault
         """
         if self.unSocketManagerWmo.isConnected():
             try:
                 data = self.unSocketManagerWmo.getNextBulletins()
             except socketManager.socketManagerException, e:
                 if e.args[0] == 'la connexion est brisee':
-                    self.logger.error("Perte de connection, traîtement du reste du buffer")
+                    self.logger.error("lost connection, processing rest of buffer")
                     data, nbBullEnv = self.unSocketManagerWmo.closeProperly()
                 elif e.args[0] == 'corruption dans les données':
-                    self.logger.error("Corruption détectée dans les données\nContenu du buffer:\n%s" % e.args[2])
+                    self.logger.error("corrupt data\nbuffer contents:\n%s" % e.args[2])
                     data, nbBullEnv = self.unSocketManagerWmo.closeProperly()
                 else:
                     raise
         else:
-            raise gateway.gatewayException("Le lecteur ne peut être accédé")
+            raise gateway.gatewayException("cannot read socket")
 
-        self.logger.veryveryverbose("%d nouveaux bulletins lus" % len(data))
+        self.logger.veryveryverbose("%d new bulletins read" % len(data))
 
         return data
 
     def write(self,data):
         __doc__ =  gateway.gateway.write.__doc__ + \
-        """### Ajout de receiverWmo ###
+        """
+           Writer is a bulletinManagerWmo.
 
-           L'écrivain est un bulletinManagerWmo.
-
-           Visibilité:  Privée
-           Auteur:      Louis-Philippe Thériault
-           Date:        Octobre 2004
         """
 
-        self.logger.veryveryverbose("%d nouveaux bulletins seront écrits" % len(data))
+        self.logger.veryveryverbose("%d new bulletins to write" % len(data))
 
         while True:
             if len(data) <= 0:
@@ -154,7 +124,7 @@ class receiverWmo(gateway.gateway):
 
     def reloadConfig(self):
         __doc__ = gateway.gateway.reloadConfig.__doc__
-        self.logger.info('Demande de rechargement de configuration')
+        self.logger.info('configuration reload start')
 
         try:
 
@@ -162,16 +132,15 @@ class receiverWmo(gateway.gateway):
 
             ficCircuits = newConfig.ficCircuits
 
-            # Reload du fichier de circuits
-            # -----------------------------
+            # Reload routing config
             self.unBulletinManager.drp.reparse()
 
             self.config.ficCircuits = ficCircuits
 
-            self.logger.info('Succès du rechargement de la config')
+            self.logger.info('configuration reload successful')
 
         except Exception, e:
 
-            self.logger.error('Échec du rechargement de la config!')
+            self.logger.error('configuraton reload failed')
 
-            self.logger.debug("Erreur: %s", str(e.args))
+            self.logger.debug("Error: %s", str(e.args))

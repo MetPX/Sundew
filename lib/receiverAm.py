@@ -1,11 +1,13 @@
 # -*- coding: iso-8859-1 -*-
-"""
-MetPX Copyright (C) 2004-2006  Environment Canada
-MetPX comes with ABSOLUTELY NO WARRANTY; For details type see the file
-named COPYING in the root of the source directory tree.
-"""
+# MetPX Copyright (C) 2004-2006  Environment Canada
+# MetPX comes with ABSOLUTELY NO WARRANTY; For details type see the file
+# named COPYING in the root of the source directory tree.
+#
+# Author:
+#    2004/10 - Louis-Philippe Thériault
+#
 
-"""ReceiverAm: socketAm -> disk, incluant traitement pour les bulletins"""
+"""ReceiverAm: socketAm -> disk, including bulletin processing"""
 
 import gateway
 import socketManagerAm
@@ -19,13 +21,9 @@ PXPaths.normalPaths()
 class receiverAm(gateway.gateway):
     __doc__ = gateway.gateway.__doc__ + \
     """
-    ### Ajout de receiver AM ###
+    Implementation of receiver for AM feed. It is made of
+    an socketManagerAM and a bulletinManagerAM.
 
-    Implantation du receiver pour un feed AM. Il est constitué
-    d'un socket manager AM et d'un bulletin manager AM.
-
-    Auteur: Louis-Philippe Thériault
-    Date:   Octobre 2004
     """
 
     def __init__(self, path, source, logger):
@@ -51,18 +49,13 @@ class receiverAm(gateway.gateway):
 
     def shutdown(self):
         __doc__ = gateway.gateway.shutdown.__doc__ + \
-        """### Ajout de receiverAm ###
+        """
+           close socket and complete processing of buffer.
 
-           Fermeture du socket et finalisation du traîtement du
-           buffer.
+           Purpose:
 
-           Utilisation:
+                implement clean shutdown.
 
-                Fermeture propre du programme via sigkill/sigterm
-
-           Visibilité:  Publique
-           Auteur:      Louis-Philippe Thériault
-           Date:        Octobre 2004
         """
         gateway.gateway.shutdown(self)
 
@@ -71,75 +64,49 @@ class receiverAm(gateway.gateway):
 
             self.write(resteDuBuffer)
 
-        self.logger.info("Succès du traîtement du reste de l'info")
+        self.logger.info("Completed processing of remaining data")
 
     def establishConnection(self):
         __doc__ = gateway.gateway.establishConnection.__doc__ + \
-        """### Ajout de receiverAm ###
-
-           establishConnection ne fait que initialiser la connection
-           socket.
-
-           Utilisation:
-
-                En encapsulant la connection réseau par cette méthode, il est plus
-                facile de gérer la perte d'une connection et sa reconnection.
-
-           Visibilité:  Privée
-           Auteur:      Louis-Philippe Thériault
-           Date:        Octobre 2004
+        """
+           establish an AM socket connection.   
         """
 
-        self.logger.debug("Instanciation du socketManagerAm")
+        self.logger.debug("Instantiation of socketManagerAm")
 
-        # Instanciation du socketManagerAm
         self.unSocketManagerAm = \
                 socketManagerAm.socketManagerAm(self.logger, type='slave', port=self.flow.port, remoteHost=None, timeout=None, flow=self.flow)
 
     def read(self):
         __doc__ =  gateway.gateway.read.__doc__ + \
-        """### Ajout de receiverAm ###
+        """
+           The reader is the tcp socket, managed by socketManagerAm.
 
-           Le lecteur est le socket tcp, géré par socketManagerAm.
-
-           Visibilité:  Privée
-           Auteur:      Louis-Philippe Thériault
-           Date:        Octobre 2004
-
-
-           Modification le 25 janvier 2005: getNextBulletins()
-           retourne une liste de bulletins.
-
-           Auteur:      Louis-Philippe Thériault
         """
         if self.unSocketManagerAm.isConnected():
             try:
                 data = self.unSocketManagerAm.getNextBulletins()
             except socketManager.socketManagerException, e:
                 if e.args[0] == "la connexion est brisee":
-                    self.logger.error("Perte de connection, traîtement du reste du buffer")
+                    self.logger.error("lost connection, processing rest of buffer")
                     data, nbBullEnv = self.unSocketManagerAm.closeProperly()
                 else:
                     raise
         else:
-            raise gateway.gatewayException("Le lecteur ne peut être accédé")
+            raise gateway.gatewayException("socket read failure")
 
-        self.logger.veryveryverbose("%d nouveaux bulletins lus" % len(data))
+        self.logger.veryveryverbose("%d new bulletins read" % len(data))
 
         return data
 
     def write(self,data):
         __doc__ =  gateway.gateway.write.__doc__ + \
-        """### Ajout de receiverAm ###
+        """
+           writer is a bulletinManagerAM
 
-           L'écrivain est un bulletinManagerAm.
-
-           Visibilité:  Privée
-           Auteur:      Louis-Philippe Thériault
-           Date:        Octobre 2004
         """
 
-        self.logger.veryveryverbose("%d nouveaux bulletins seront écrits" % len(data))
+        self.logger.veryveryverbose("%d new bulletins to write" % len(data))
 
         while True:
             if len(data) <= 0:
@@ -151,7 +118,7 @@ class receiverAm(gateway.gateway):
 
     def reloadConfig(self):
         __doc__ = gateway.gateway.reloadConfig.__doc__
-        self.logger.info('Demande de rechargement de configuration')
+        self.logger.info('configuration reload started')
 
         try:
 
@@ -160,22 +127,20 @@ class receiverAm(gateway.gateway):
             ficCircuits = newConfig.ficCircuits
             ficCollection = newConfig.ficCollection
 
-            # Reload du fichier de circuits
-            # -----------------------------
+            # reload routing config.
             self.unBulletinManager.drp.reparse()
 
             self.config.ficCircuits = ficCircuits
 
-            # Reload du fichier de stations
-            # -----------------------------
+            # Reload station config.
             self.unBulletinManager.reloadMapEntetes(ficCollection)
 
             self.config.ficCollection = ficCollection
 
-            self.logger.info('Succès du rechargement de la config')
+            self.logger.info('configuration reload successful')
 
         except Exception, e:
 
-            self.logger.error('Échec du rechargement de la config!')
+            self.logger.error('configuration reload failed')
 
-            self.logger.debug("Erreur: %s", str(e.args))
+            self.logger.debug("Error: %s", str(e.args))
