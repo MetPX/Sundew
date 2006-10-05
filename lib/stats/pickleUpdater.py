@@ -112,10 +112,8 @@ def setLastCronJob( client, fileType, currentDate, collectUpToNow = False    ):
 def getLastCronJob( client, fileType, currentDate, collectUpToNow = False ):
     """
         This method gets the dictionnary containing all the last cron job list.
-        From that dictionnary it returns the right value. 
-        
-        Note : pickled-times would need a better path..... 
-        
+        From that dictionnary it returns the right value.         
+       
     """ 
     
     times = {}

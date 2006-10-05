@@ -128,7 +128,7 @@ def getOptionsFromParser( parser ):
         
         if fileType == "tx":       
         
-            validTypes = [ "errors","bytecount","latency" ]
+            validTypes = [ "latency", "bytecount", "errors", "filesOverMaxLatency", "filecount" ]
             
             if types[0] == "All":
                 types = validTypes
@@ -139,7 +139,7 @@ def getOptionsFromParser( parser ):
                         
         else:      
             
-            validTypes = [ "errors","bytecount" ]
+            validTypes = [ "bytecount", "errors", "filecount" ]
             
             if types[0] == "All":
                 types = validTypes
@@ -161,12 +161,10 @@ def getOptionsFromParser( parser ):
                 
     directory = PXPaths.LOG + localMachine + "/"
     
-       
-    infos = _GraphicsInfos( currentTime = currentTime, clientNames = clientNames,  directory = directory , types = types, timespan = timespan, machines = machines, fileType = fileType )
+    currentTime = MyDateLib.getIsoWithRoundedHours( currentTime )
     
-    infos.endTime = MyDateLib.getIsoWithRoundedHours( infos.currentTime ) 
-    
-    
+    infos = _GraphicsInfos( currentTime = currentTime, clientNames = clientNames,  directory = directory , types = types, timespan = timespan, machines = machines, fileType = fileType )   
+            
     return infos 
                    
 
@@ -253,7 +251,7 @@ def buildTitle( type, client, currentTime, timespan, minimum, maximum, mean  ):
         Returns the title of the graphic base on infos. 
     """
     
-    return  "%s for %s queried at %s for a span of %s hours \\n\\nMAX: %s,  MEAN: %3.2f, MIN: %s " %( type, client,  currentTime , timespan, maximum, mean, minimum )    
+    return  "%s for %s queried at %s for a span of %s hours." %( type, client,  currentTime , timespan )    
 
     
 
@@ -265,21 +263,17 @@ def getOverallMin( databaseName, startTime, endTime, logger = None ):
     
     """
     
+    minimum = None 
     output = rrdtool.fetch( databaseName, 'MIN', '-s', "%s" %startTime, '-e', '%s' %endTime )
-    print output
+    #print output
     minTuples = output[2]
-    
+     
     i = 0 
-    while minTuples[i][0] == 'None' or minTuples[i][0] == None:
-        i = i + 1 
-    minimum = minTuples[i][0] 
-    
-    #add optimization
-    for minTuple in minTuples :        
-        if minTuple[0] != 'None' and minTuple[0] != None :
-            if minTuple[0] < minimum : 
+    while i < len( minTuples ):
+        if minTuples[i][0] != 'None' and minTuples[i][0] != None  :        
+            if minTuple[0] < minimum or minimum == None : 
                 minimum = minTuple[0]
-    
+        i = i + 1 
     #print "minimum : %s " %minimum
     return minimum
     
@@ -293,14 +287,14 @@ def getOverallMax( databaseName, startTime, endTime, logger = None ):
 
     output = rrdtool.fetch( databaseName, 'MAX', '-s', "%s" %startTime, '-e', '%s' %endTime )
     
-    maximum = 0
+    maximum = None 
     maxTuples = output[2]
     for maxTuple in maxTuples :
         if maxTuple[0] != 'None' and maxTuple[0] != None :
             if maxTuple[0] > maximum : 
                 maximum = maxTuple[0]
     
-    print "maximum : %s " %maximum
+    #print "maximum : %s " %maximum
 
     return maximum 
  
@@ -313,14 +307,17 @@ def getOverallMean( databaseName, startTime, endTime, logger = None  ):
     """
     
     output = rrdtool.fetch( databaseName, 'AVERAGE', '-s', "%s" %startTime, '-e', '%s' %endTime )
-    print output
+    
+    #print output
+    
     sum = 0
     meanTuples = output[2]
+    i =0
     for meanTuple in meanTuples :
         
         if meanTuple[0] != 'None' and meanTuple[0] != None :
             sum = sum + meanTuple[0]
-    
+
     avg = sum / len( meanTuples )  
     #print "avg : %s " %avg
     
@@ -331,6 +328,8 @@ def getOverallMean( databaseName, startTime, endTime, logger = None  ):
 
 def buildImageName(  type, client, machine, infos, logger = None ):
     """
+        Builds and returns the image name to be created by rrdtool.
+        
     """
 
     
@@ -353,10 +352,8 @@ def buildImageName(  type, client, machine, infos, logger = None ):
     
         
     if not os.path.isdir( directory ):
-        os.makedirs( directory, mode=0777 )  
-    
-        
-    
+        os.makedirs( directory, mode=0777 ) 
+           
     return fileName 
 
 
@@ -366,8 +363,8 @@ def plotRRDGraph( databaseName, type, client, machine, infos, logger = None ):
         This method is used to produce a rrd graphic.
         
     """
-    print "databaseName : %s" %databaseName
-    print "made it up to plotGraph"
+    #print "databaseName : %s" %databaseName
+    #print "made it up to plotGraph"
     imageName = buildImageName( type, client, machine, infos, logger )     
     end       = int ( MyDateLib.getSecondsSinceEpoch ( infos.currentTime ) )  
     start     = end - ( infos.timespan * 60 * 60) 
@@ -379,7 +376,7 @@ def plotRRDGraph( databaseName, type, client, machine, infos, logger = None ):
     
     title = buildTitle( type, client, infos.currentTime, infos.timespan, minimum, maximum, mean )
     
-    rrdtool.graph( imageName,'--imgformat', 'PNG','--width', '600','--height', '200','--start', "%i" %(start) ,'--end', "%s" %(end), '--vertical-label', 'Latency','--title', '%s'%title,'COMMENT:\c Minimum %s Maximum  %s Mean %s' %( minimum, maximum, mean), '--lower-limit','0','DEF:latency=%s:latency:AVERAGE'%databaseName,'LINE1:latency#8b0000:Latency', 'AREA:latency#cd5c5c:Latency' )
+    rrdtool.graph( imageName,'--imgformat', 'PNG','--width', '600','--height', '200','--start', "%i" %(start) ,'--end', "%s" %(end), '--vertical-label', '%s' %type,'--title', '%s'%title,'COMMENT: Minimum %s Maximum  %s Mean %.2f\c' %( minimum, maximum, mean), '--lower-limit','0','DEF:latency=%s:latency:AVERAGE'%databaseName, 'AREA:latency#cd5c5c:%s' %type,'LINE1:latency#8b0000:%s'%type)
     
     print "plotted : %s" %imageName
     
