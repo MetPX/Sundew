@@ -80,7 +80,8 @@ class senderAm(gateway.gateway):
                          self.logger,type='master', \
                          port=self.client.port,\
                          remoteHost=self.client.host,
-                         timeout=self.client.timeout)
+                         timeout=self.client.timeout,
+                         flow=self.client)
 
     def read(self):
         if self.igniter.reloadMode == True:

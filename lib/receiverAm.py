@@ -94,7 +94,7 @@ class receiverAm(gateway.gateway):
 
         # Instanciation du socketManagerAm
         self.unSocketManagerAm = \
-                socketManagerAm.socketManagerAm(self.logger, type='slave', port=self.flow.port, None, None, self.flow)
+                socketManagerAm.socketManagerAm(self.logger, type='slave', port=self.flow.port, remoteHost=None, timeout=None, flow=self.flow)
 
     def read(self):
         __doc__ =  gateway.gateway.read.__doc__ + \
