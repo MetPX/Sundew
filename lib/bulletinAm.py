@@ -1,11 +1,13 @@
 # -*- coding: iso-8859-1 -*-
-"""
-MetPX Copyright (C) 2004-2006  Environment Canada
-MetPX comes with ABSOLUTELY NO WARRANTY; For details type see the file
-named COPYING in the root of the source directory tree.
-"""
+# MetPX Copyright (C) 2004-2006  Environment Canada
+# MetPX comes with ABSOLUTELY NO WARRANTY; For details type see the file
+# named COPYING in the root of the source directory tree.
+#
+# Author:
+# 2004 - Louis-Phillippe Thériault.
+#
 
-"""Définition d'une sous-classe pour les bulletins "AM" """
+"""Derived classs for AM protocol bulletins """
 
 import time
 import struct
@@ -19,34 +21,30 @@ __version__ = '2.0'
 class bulletinAm(bulletin.bulletin):
     __doc__ = bulletin.bulletin.__doc__ + \
     """
-    ## Ajouts de bulletinAm ##
+    Concrete Implementation of a bulletin class.
 
     Implantation pour un usage concret de la classe bulletin
 
-            * Informations à passer au constructeur
+            * information to pass to the constructor
 
             mapEntetes              dict (default=None)
 
-                                    - Si autre que None, le reformattage
-                                      d'entêtes est effectué
-                                    - Une map contenant les entêtes à utiliser
-                                      avec quelles stations. La clé se trouve à
-                                      être une concaténation des 2 premières
-                                      lettres du bulletin et de la station, la
-                                      définition est une string qui contient
-                                      l'entête à ajouter au bulletin.
-
-                                      Ex.: TH["SPCZPC"] = "CN52 CWAO "
-                                    - Si est à None, aucun traîtement sur
-                                      l'entête est effectué
+                                    - a mapping of headers to stations.
+                                      to build the key, take the first two
+                                      letters of the header (ie. CA, RA )
+                                      and concatenate the station. ie.
+                                      CACYUL.  The value is what to add to 
+                                      the header to complete it. 
+                                      for an SP received from CZPC:
+                                       TH["SPCZPC"] = "CN52 CWAO "
+                                      
+                                    - if None, leave header alone.
 
             SMHeaderFormat          bool (default=False)
 
-                                    - Si True, ajout de la ligne "AAXX jjhhmm4\\n"
-                                      à la 2ième ligne du bulletin
+                                    - If true, add "AAXX jjhhmm4\\n"
+                                      to the second line of the bulletin. 
 
-    Auteur: Louis-Philippe Thériault
-    Date:   Octobre 2004
     """
 
 
@@ -57,25 +55,19 @@ class bulletinAm(bulletin.bulletin):
 
     def doSpecificProcessing(self):
         __doc__ = bulletin.bulletin.doSpecificProcessing.__doc__ + \
-        """### Ajout de bulletinAm ###
+        """AM specific processing.
 
-           Modifie les bulletins provenant de stations, transmis
-           par protocole Am, nommés "Bulletins Am"
-
-           Visibilité:  Publique
-           Auteur:      Louis-Philippe Thériault
-           Date:        Octobre 2004
         """
         self.replaceChar('\r','')
 
         unBulletin = self.bulletin
 
         if len(self.getHeader().split()) < 1:
-        # Si la première ligne est vide, bulletin erroné, aucun traîtement
+        # If the first line is empty, bad bulletin, do nothing.
             bulletin.bulletin.verifyHeader(self)
             return
 
-        # Si le bulletin est à modifier et que l'entête doit être renomée
+        # If the bulletin needs a new header and/or modification.
         if self.mapEntetes != None and len(self.getHeader().split()[0]) == 2:
             # Si le premier token est 2 lettres de long
 
@@ -103,7 +95,7 @@ class bulletinAm(bulletin.bulletin):
                     # L'entête n'a pu être trouvée
                         uneEnteteDeBulletin = None
 
-            # Construction de l'entête
+            # build header
             if station != None and uneEnteteDeBulletin != None:
                 if len(unBulletin[0].split()) == 1:
                     uneEnteteDeBulletin = premierMot + uneEnteteDeBulletin + self.getFormattedSystemTime()
@@ -112,26 +104,25 @@ class bulletinAm(bulletin.bulletin):
                 else:
                     uneEnteteDeBulletin = premierMot + uneEnteteDeBulletin + unBulletin[0].split()[1] + ' ' + unBulletin[0].split()[2]
 
-                # Assignement de l'entete modifiee
+                # Apply the header to the bulletin.
                 self.setHeader(uneEnteteDeBulletin)
 
-                # Si le bulletin est à modifier et que l'on doit traîter les SM/SI
-                # (l'ajout de "AAXX jjhhmm4\n")
+                # Insert AAXX jjhhmm4 if needed (for SM/SI.)
                 if self.SMHeaderFormat and self.getType() in ["SM","SI"]:
                     self.bulletin.insert(1, "AAXX " + self.getHeader().split()[2][0:4] + "4")
 
             if station == None or uneEnteteDeBulletin == None:
                 if station == None:
-                    self.setError("Pattern de station non trouve ou non specifie")
+                    self.setError("station missing from either configuration or bulletin")
 
-                    self.logger.warning("Pattern de station non trouve")
+                    self.logger.warning("station not found")
                     self.logger.warning("Bulletin:\n"+self.getBulletin())
 
-                # L'entête n'a pu être trouvée dans le fichier de collection, erreur
+                # Header not found in station configuration file, error.
                 elif uneEnteteDeBulletin == None:
-                    self.setError("Entete non trouvee dans le fichier de collection")
+                    self.setError("header not found in stations configuration file")
 
-                    self.logger.warning("Station <" + station + "> non trouvee avec prefixe <" + premierMot + ">")
+                    self.logger.warning("Station <" + station + "> not found for prefix <" + premierMot + ">")
                     self.logger.warning("Bulletin:\n"+self.getBulletin())
 
         if self.getType() in ['UG','UK','US'] and self.bulletin[1] == '':
@@ -158,25 +149,18 @@ class bulletinAm(bulletin.bulletin):
 
            heure:       String
 
-           Retourne une string de l'heure locale du systeme, selon
-           jjhhmm : jour/heures(24h)/minutes
+           Return a string with the local system time.
+           ddhhmm : day of month/hour(0-23h)/minutes
 
-           Utilisation:
+           Purpose:
 
-                Générer le champ jjhhmm pour l'entête du bulletin avec
-                l'heure courante.
-
-           Visibilité:  Privée
-           Auteur:      Louis-Philippe Thériault
-           Date:        Octobre
+               Generate the time stamp for a bulletin header.
         """
         return time.strftime("%d%H%M",time.localtime())
 
     def verifyHeader(self):
         __doc__ = bulletin.bulletin.verifyHeader.__doc__ + \
-        """### Ajout de bulletinAm ###
-
-           Overriding ici pour que lors de l'instanciation, le bulletin
-           ne soit pas vérifié.
+        """
+           Override to prevent header verification during instantiation.
         """
         return
