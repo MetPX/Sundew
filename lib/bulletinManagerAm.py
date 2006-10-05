@@ -4,6 +4,9 @@
 #MetPX comes with ABSOLUTELY NO WARRANTY; For details type see the file
 #named COPYING in the root of the source directory tree.
 #
+# Author:
+#   2004/10 - Louis-Philippe Thériault
+#
 
 """Manage "AM" Bulletins (whatever that means...) """
 
@@ -14,12 +17,8 @@ __version__ = '2.0'
 
 class bulletinManagerAm(bulletinManager.bulletinManager):
     __doc__ = bulletinManager.bulletinManager.__doc__ + \
-    """### Ajout de bulletinManagerAm ###
-
-       Spécialisation et implantation du bulletinManager
-
-       Auteur:      Louis-Philippe Thériault
-       Date:        Octobre 2004
+    """
+       AM protocol implementation of a bulletinManager.
     """
 
     def __init__(self,pathTemp,logger,pathSource=None,\
@@ -36,25 +35,21 @@ class bulletinManagerAm(bulletinManager.bulletinManager):
     def __isSplittable(self,rawBulletin):
         """__isSplittable(rawBulletin) -> bool
 
-           Retourne vrai si le bulletin courant contient plus d'un bulletin
+           return true if the current bulletin contains more than one bulletin
 
-           Utilisation:
+           Purpose:
 
-                Déterminer si un bulletin est séparable, avant de l'instancier.
+                Determine if the bulletin is separable before instatiating it.
 
-           Visibilité:  Privée
-           Auteur:      Louis-Philippe Thériault
-           Date:        Octobre 2004
         """
-        # Si c'est un bulletin FC/FT, possibilite de plusieurs bulletins,
-        # donc découpage en fichiers et reste du traitement saute (il
-        # sera effectue lors de la prochaine passe.
+        # If it is an FC/FT, perhaps several reports, so splitting into files
+        # and the rest of the processing is skipped (to be done in the next pass.)
 
-        # Si une erreur est détectée
+        # on Error...
         try:
             premierMot = rawBulletin.splitlines()[0].split()[0]
         except Exception, e:
-            self.logger.error("Erreur lors du découpage d'entête\nBulletin:\n%s",rawBulletin)
+            self.logger.error("Error parsing header\nBulletin:\n%s",rawBulletin)
             return False
 
         if len(premierMot) == 2 and premierMot in ["FC","FT"]:
@@ -72,16 +67,12 @@ class bulletinManagerAm(bulletinManager.bulletinManager):
     def __splitBulletin(self,rawBulletin):
         """__splitBulletin(rawBulletin) -> liste bulletins
 
-           Retourne une liste de rawBulletins, séparés
+           Return a list of rawBulletins, separated
 
-           Utilisation:
+           Purpose:
 
-                Séparer les bulletins FC/FT qui contiennent plus d'un bulletin
-                par bulletin.
+                Split FC/FT bulletins which have >1 report 
 
-           Visibilité:  Privée
-           Auteur:      Louis-Philippe Thériault
-           Date:        Octobre 2004
         """
         entete = rawBulletin.split(self.lineSeparator)[0]
 
@@ -89,8 +80,7 @@ class bulletinManagerAm(bulletinManager.bulletinManager):
         unBulletin = []
         motCle = 'TAF'
 
-        # Les bulletins FC/FT ont une entête commune, et le data de chaque
-        # station commence par 'TAF'
+        # FC/FT bulletins have the same headers.  The data for each station starts with TAF.
         for ligne in rawBulletin.split(self.lineSeparator)[1:]:
             if len(ligne.split()) > 0 and ligne.split()[0] == motCle:
                 listeBulletins.append(string.join(unBulletin,self.lineSeparator))
@@ -105,28 +95,17 @@ class bulletinManagerAm(bulletinManager.bulletinManager):
 
     def _bulletinManager__generateBulletin(self,rawBulletin):
         __doc__ = bulletinManager.bulletinManager._bulletinManager__generateBulletin.__doc__ + \
-        """### Ajout de bulletinManagerAm ###
+        """Override here to pass the correct arguments to bulletinAm 
 
-           Overriding ici pour passer les bons arguments au bulletinAm
-
-           Visibilité:  Privée
-           Auteur:      Louis-Philippe Thériault
-           Date:        Octobre 2004
         """
         return bulletinAm.bulletinAm(rawBulletin,self.logger,self.lineSeparator,self.mapEntetes,self.SMHeaderFormat)
 
 
     def writeBulletinToDisk(self,unRawBulletin,includeError=False):
         bulletinManager.bulletinManager.writeBulletinToDisk.__doc__ + \
-        """### Ajout de bulletin manager AM ###
+        """AM bulletins can be split, so a split is done and each resulting 
+           bulletin is then passed to the parent method
 
-           Les bulletins en AM peuvent êtres divisibles, donc
-           une division est effectuée et est passée à la méthode
-           de la superclasse.
-
-           Visibilité:  Publique
-           Auteur:      Louis-Philippe Thériault
-           Date:        Octobre 2004
         """
         if self.__isSplittable(unRawBulletin):
             for rawBull in self.__splitBulletin(unRawBulletin):
@@ -137,19 +116,15 @@ class bulletinManagerAm(bulletinManager.bulletinManager):
     def reloadMapEntetes(self, pathFichierStations):
         """reloadMapEntetes(pathFichierStations)
 
-
            pathFichierStations: String
-                                - Chemin d'accès vers le fichier de "collection"
+                                - path to the stations.conf
 
-           Recharge le fichier d'entêtes en mémoire.
+           Reload the header table in memory.
 
-           Utilisation:
+           Purpose:
 
-                Pour le rechargement lors d'un SIGHUP.
+                handle SIGHUP
 
-           Visibilité:  Publique
-           Auteur:      Louis-Philippe Thériault
-           Date:        Décembre 2004
         """
         oldMapEntetes = self.mapEntetes
 
@@ -157,13 +132,13 @@ class bulletinManagerAm(bulletinManager.bulletinManager):
 
             self.initMapEntetes(pathFichierStations)
 
-            self.logger.info("Succès du rechargement du fichier d'entêtes")
+            self.logger.info("station table reloaded")
 
         except Exception,e :
 
             self.mapEntetes = oldMapEntetes
 
-            self.logger.warning("Échec du rechargement du fichier d'entêtes")
+            self.logger.warning("Error reloading station table")
 
             raise
 
@@ -171,21 +146,17 @@ class bulletinManagerAm(bulletinManager.bulletinManager):
         """initMapEntetes(pathFichierStations)
 
            pathFichierStations: String
-                                - Chemin d'acces vers le fichier de "collection"
+                                - path to stations.conf
 
-           mapEntetes sera un map contenant les entete a utiliser avec
-           quelles stations. La cle se trouve a etre une concatenation des
-           2 premieres lettres du bulletin et de la station, la definition
-           est une string qui contient l'entete a ajouter au bulletin.
-
-           self.mapEntetes2mapStations sera un map, avec pour chaque entete
-           un map associe des stations, dont la valeur sera None.
+           mapEntetes is used to complete headers of AM bulletins.
+           reports come in with simple, two letter headers (ie. SP)
+           key of the table is the original header + station in the report.
+           the value is the string to be used to complete the AHL.
 
                 Ex.: mapEntetes["SPCZPC"] = "CN52 CWAO "
 
-           Visibilite:  Privee
-           Auteur:      Louis-Philippe Theriault
-           Date:        Octobre 2004
+           self.mapEntetes2mapStations is a mapping from headers to stations.
+
         """
         if pathFichierStations == None:
             self.mapEntetes = None
