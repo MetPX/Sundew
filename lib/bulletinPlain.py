@@ -1,11 +1,11 @@
 # -*- coding: iso-8859-1 -*-
-"""
-MetPX Copyright (C) 2004-2006  Environment Canada
-MetPX comes with ABSOLUTELY NO WARRANTY; For details type see the file
-named COPYING in the root of the source directory tree.
-"""
+#MetPX Copyright (C) 2004-2006  Environment Canada
+#MetPX comes with ABSOLUTELY NO WARRANTY; For details type see the file
+#named COPYING in the root of the source directory tree.
+#Auteur: 
+#    2004/11 -- Louis-Philippe Thériault
 
-"""Définition d'une classe concrète pour les bulletins"""
+"""Concrete bulletin class"""
 
 import bulletin
 
@@ -14,27 +14,16 @@ __version__ = '2.0'
 class bulletinPlain(bulletin.bulletin):
     __doc__ = bulletin.bulletin.__doc__ + \
     """
-    ### Ajout de bulletinPlain ###
+    minimal bulletin implementation.
 
-    Implantation minimale d'un bulletin abstrait.
+    Detail: doSpecificProcessing does nothing.
 
-    Concrètement, doSpecificProcessing ne fait rien.
-
-    Utilisation:
-            Pour créer un bulletin dont on ne toucheras pas
-            au contenu.
-
-    Auteur: Louis-Philippe Thériault
-    Date:   Novembre 2004
+    Purpose:
+            to create bulletins whose contents
+            will not be modified.
     """
 
     def doSpecificProcessing(self):
-        """doSpecificProcessing()
-
-           Fait rien
-
-           Visibilité:  Publique
-           Auteur:      Louis-Philippe Thériault
-           Date:        Octobre 2004
+        """do nothing.
         """
         return

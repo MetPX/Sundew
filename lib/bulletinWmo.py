@@ -1,11 +1,13 @@
 # -*- coding: iso-8859-1 -*-
-"""
-MetPX Copyright (C) 2004-2006  Environment Canada
-MetPX comes with ABSOLUTELY NO WARRANTY; For details type see the file
-named COPYING in the root of the source directory tree.
-"""
+#MetPX Copyright (C) 2004-2006  Environment Canada
+#MetPX comes with ABSOLUTELY NO WARRANTY; For details type see the file
+#named COPYING in the root of the source directory tree.
+#
+# author:
+#   2004/10 Louis-Philippe Thériault
+#
 
-"""Définition d'une sous-classe pour les bulletins "WMO" """
+"""WMO socket protocol derived bulletin class"""
 
 import string
 import bulletin
@@ -14,15 +16,9 @@ __version__ = '2.0'
 
 class bulletinWmo(bulletin.bulletin):
     __doc__ = bulletin.bulletin.__doc__ + \
-    """### Ajout de bulletinWmo ###
+    """
+    For now, a bulletinWmo's only attribute is it's specific processing.
 
-    Implantation pour un usage concret de la classe bulletin.
-
-    Pour l'instant, un bulletinWmo ne se différencie que par son
-    traîtement spécifique.
-
-    Auteur: Louis-Philippe Thériault
-    Date:   Octobre 2004
     """
 
     def __init__(self,stringBulletin,logger,lineSeparator='\n',finalLineSeparator='\n'):
@@ -31,12 +27,9 @@ class bulletinWmo(bulletin.bulletin):
     def doSpecificProcessing(self):
         """doSpecificProcessing()
 
-           Modifie les bulletins provenant de Washington, transmis
-           par protocole Wmo, nommés "WMO"
+           Modify bulletins received from Washington via the
+           WMO socket protocol.
 
-           Visibilité:  Publique
-           Auteur:      Louis-Philippe Thériault
-           Date:        Octobre 2004
         """
         if self.getDataType() == 'BI':
         # Si le bulletin est un BUFR, l'on remplace le premier set,
@@ -104,14 +97,14 @@ class bulletinWmo(bulletin.bulletin):
         if self.bulletin[0][:2] in ['SA','SM','SI','SO','UJ','US','FT']:
             self.replaceChar('\x03','')
 
-        # Re-calcul du bulletin
+        # recalculate the bulletin.
         self.bulletin = self.splitlinesBulletin(self.getBulletin(useFinalLineSeparator=False))
 
-        # Enlève les espaces à la fin des lignes
+        # remove trailing spaces.
         for i in range(len(self.bulletin)):
             self.bulletin[i] = self.bulletin[i].rstrip()
 
-        # Si pas de newline, on en ajoute un à la fin
+        # Add a newline at end of bulletin, if needed.
         if self.bulletin[-1] != '':
             self.bulletin += ['']
 

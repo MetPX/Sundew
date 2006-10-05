@@ -1,11 +1,15 @@
 # -*- coding: iso-8859-1 -*-
-"""
-MetPX Copyright (C) 2004-2006  Environment Canada
-MetPX comes with ABSOLUTELY NO WARRANTY; For details type see the file
-named COPYING in the root of the source directory tree.
-"""
+# MetPX Copyright (C) 2004-2006  Environment Canada
+# MetPX comes with ABSOLUTELY NO WARRANTY; For details type see the file
+# named COPYING in the root of the source directory tree.
+#
+#   Auteur:      
+#
+#      2004/10 -- Louis-Philippe Thériault
+#
 
-"""Superclasse pour un gateway de transfert de bulletins"""
+"""abstract class for bulletin transfers """
+
 import imp, time, sys
 from MultiKeysStringSorter import MultiKeysStringSorter
 from DiskReader import DiskReader
@@ -16,47 +20,37 @@ PXPaths.normalPaths()
 __version__ = '2.0'
 
 class gatewayException(Exception):
-    """Classe d'exception spécialisés relatives aux gateways"""
+    """what is the point?  exception class for gateways"""
     pass
 
 class gateway:
-    """Regroupe les traits communs d'un gateway.
+    """container for the common attributes of a gateway.
+       
+       Receivers and senders are derived from thie class.
 
-       De cette classe sera spécialisé les receivers, senders, etc.
-       Un module self.config sera accessible qui contiendra les
-       éléments de configuration du fichier de config.
+       self.config module will contain the obvious.
 
-       Les méthodes abstraites lèvent une exception pour l'instant, et
-       cette classe ne devrait pas être utilisée comme telle.
+       Terminology:
 
-       Terminologie:
-
-          - D'un lecteur l'on pourra appeler une lecture de données
+          - from a reader we can call a data reader
             (ex: disque, socket, etc...)
-          - D'un écrivain on pourra lui fournir des données qu'il
-            pourra "écrire" (ex: disque, socket, etc...)
+          - we can provide data to a write which can be written
+            (ex: disque, socket, etc...)
 
        Instanciation:
 
-            Le gateway s'instancie avec un fichier de configuration
-            qu'il charge et dont l'implémentation varie selon le type
-            de gateway.
+	    Gateway is instantiated with a config file.
 
             path            String
+                            - path to config file.
 
-                            - Chemin d'accès vers le fichier de config
+            flow            - Source or Client (permits access to all options)
 
-            flow            - Source ou Client (Permet d'acceder toutes les options)
+            logger          logging object
 
-            logger          Objet logger
+                            - Must be callable to write messages.   
+                              this is normally the program's log file.
 
-                            - Doit pouvoir être appelé pour écrire les
-                              messages. C'est le log principal du
-                              programme
-
-       Statut:      Abstraite
-       Auteur:      Louis-Philippe Thériault
-       Date:        Octobre 2004
     """
     def __init__(self, path, flow, logger):
         self.pathToConfigFile = path
@@ -89,14 +83,7 @@ class gateway:
     def loadConfig(path):
         """loadConfig(path)
 
-           Charge la configuration, située au path en particulier.
-           La configuration doit être syntaxiquement correcte pour
-           que python puisse l'interpréter.
-
-           (Méthode statique)
-
-           Auteur:      Louis-Philippe Thériault
-           Date:        Octobre 2004
+           Load the configuration file.
         """
         try:
             fic_cfg = open(path,'r')
@@ -105,7 +92,7 @@ class gateway:
 
             return config
         except IOError:
-            print "*** Erreur: Fichier de configuration inexistant, erreur fatale!"
+            print "*** Error: configuration file missing !"
             sys.exit(-1)
 
     loadConfig = staticmethod(loadConfig)
@@ -113,28 +100,21 @@ class gateway:
     def establishConnection(self):
         """establishConnection()
 
-           Établit une connection avec le lecteur et l'écrivain (vérifie
-           que les ressources sont disponibles aussi). Est appelé si la
-           connection, d'un côté ou l'autre, tombe.
+           Establish a connection with a reader and writer (check
+           that resources are available too.) is also 
+           called if the connection is dropped.
 
-           Visibilité:  Privée
-           Auteur:      Louis-Philippe Thériault
-           Date:        Octobre 2004
         """
-        raise gatewayException('Méthode non implantée (méthode abstraite establishConnection)')
+        raise gatewayException('Not Implemented abstract class method establishConnection')
 
     def read(self):
         """read() -> data
 
-           data : Liste d'objets
+           data : Liste of objects
 
-           Cette méthode retourne une liste d'objets, qui peut être
-           ingérée par l'écrivain. Elle lève une exception si
-           une erreur est détectée.
+           This method returns a list of objects to be ingested by a writer.
+           Raise an exception if there is an error.
 
-           Visibilité:  Privée
-           Auteur:      Louis-Philippe Thériault
-           Date:        Octobre
         """
         raise gatewayException('Méthode non implantée (méthode abstraite read)')
 
@@ -143,25 +123,17 @@ class gateway:
 
            data : Liste d'objets
 
-           Cette méthode prends le data lu par read, et fait le traîtement
-           approprié.
+           write the data given (as returned by a read call.) while doing
+           the appropriate processing.
 
-           Visibilité:  Privée
-           Auteur:      Louis-Philippe Thériault
-           Date:        Octobre 2004
         """
         raise gatewayException('Méthode non implantée (méthode abstraite write)')
 
     def run(self):
         """run()
 
-           Boucle infinie pour le transfert de data. Une exception
-           non contenue peut être levée si le lecteur et l'écrivain
-           ne sont pas disponibles.
-
-           Visibilité:  Publique
-           Auteur:      Louis-Philippe Thériault
-           Date:        Octobre 2004
+           infinite loop to transfer data. An exception is raised
+           if either the reader or writer is not available.
         """
         while True:
 
@@ -201,42 +173,31 @@ class gateway:
     def shutdown(self):
         """shutdown()
 
-           Ferme le lecteur et l'écrivain "proprement". À être
-           redéfini.
+           close down gateway nicely.
 
-           Visibilité:  Publique
-           Auteur:      Louis-Philippe Thériault
-           Date:        Octobre 2004
         """
-        self.logger.info("Fermeture propre du gateway")
+        self.logger.info("clean gateway shutdown")
 
     def checkLooping(self, unElementDeData):
         """checkLooping() -> bool
 
-           Permet de détecté que l'on reçoit du data que l'on a
-           déja reçu.
+           detect if data given has already been received.
 
-           Retourne True si pour l'objet passé on a du looping.
-
-           Statut: Abstraite
+           Return True if the object is a repeat.
         """
-        raise gatewayException("Méthode non implantée: gateway.gateway.checkLooping()")
+        raise gatewayException("Method not implemented: gateway.gateway.checkLooping()")
 
     def reloadConfig(self):
         """reloadConfig()
 
-           Recharge les éléments du fichier de config, les éléments
-           peuvent varier selon l'implantation.
+           Reload settings from configuration files.
 
-           Utilisation:
+           Purpose:
 
-                Recharger la config lors d'un SIGHUP.
+                handle SIGHUP
 
-           Visibilité:  Publique
-           Auteur:      Louis-Philippe Thériault
-           Date:        Décembre 2004
         """
-        self.logger.info('Demande de rechargement de configuration... non implanté!')
+        self.logger.info('reload config file... not implemented!')
 
     def printSpeed(self):
         elapsedTime = time.time() - self.initialTime

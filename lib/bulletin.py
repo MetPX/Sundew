@@ -1,5 +1,13 @@
 # -*- coding: iso-8859-1 -*-
 """Main class for bulletins"""
+#MetPX Copyright (C) 2004-2006  Environment Canada
+#MetPX comes with ABSOLUTELY NO WARRANTY; For details type see the file
+#named COPYING in the root of the source directory tree.
+#Auteur:
+#    2004/12 -- Louis-Philippe Thériault
+#    2004/12 -- Louis-Philippe Thériault et Pierre
+#    2006/05 -- Michel Grenier... time tools + modules in alpha order 
+
 
 import time
 import string, traceback, sys
@@ -13,18 +21,13 @@ class bulletinException(Exception):
     pass
 
 class bulletin:
-    """Abstract class for bulletins, will all protocol independent features.
+    """Abstract class for bulletins, with all protocol independent features.
 
     methods that return an exception must be defined by derived classes.
 
     A bulletin is internally represented by a list of strings, separated by 
-    the lineSeparator attribut.
+    the lineSeparator attribute.
 
-    Statut: Abstraite
-    Auteur: Louis-Philippe Thériault
-    Date:   Octobre 2004
-    Modifications: Decembre 2004, Louis-Philippe et Pierre
-    Modifications: May      2006, Michel Grenier... time tools + modules in alpha order
     """
 
     def __init__(self,stringBulletin,logger,lineSeparator='\n',finalLineSeparator='\n'):
@@ -93,9 +96,6 @@ class bulletin:
            the age is given by  age = now-emission 
            were age, now and emission are integer, epocal in second
 
-           Visibility:  Publique
-           Author:      Michel Grenier
-           Date:        May 2006
         """
 
         if ep_now == None : ep_now = time.mktime(time.localtime())
@@ -107,9 +107,6 @@ class bulletin:
            Compute attribute delay which corresponds to  arrival-emission
            delay is an integer in seconds
 
-           Visibility:  Private
-           Author:      Michel Grenier
-           Date:        May 2006
         """
 
         self.delay = self.ep_arrival - self.ep_emission
@@ -121,9 +118,6 @@ class bulletin:
            emission is a character string of the form YYYYMMDDhhmmss
            ep_emission is its epocal correspondant
 
-           Visibility:  Private
-           Author:      Michel Grenier
-           Date:        May 2006
         """
 
         if self.arrival == None : return
@@ -408,8 +402,8 @@ class bulletin:
     def setArrivalEp(self,ep_arrival):
         """setArrivalEp(ep_arrival)
 
-           Assign arrival attribut of bulletin
-           ep_arrival is an integer expressing time in epocal seconds
+           Assign the arrival attribute of bulletin
+           ep_arrival is an integer expressing time in epochal seconds
 
         """ 
 
@@ -423,7 +417,7 @@ class bulletin:
     def setArrivalStr(self,arrivalStr):
         """setArrivalStr(arrivalStr)
 
-           Assign arrival attribut of bulletin
+           Assign arrival attribute of bulletin
            arrivalStr is a character string of the form YYYYMMDDhhmmss
 
         """
@@ -458,7 +452,7 @@ class bulletin:
         """
         self.bulletin[0] = header
 
-        self.logger.debug("Nouvelle entête du bulletin: %s",header)
+        self.logger.debug("new bulletin header: %s",header)
 
     def setLogger(self,logger):
         """setLogger(logger)
