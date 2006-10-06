@@ -1,0 +1,112 @@
+"""
+MetPX Copyright (C) 2004-2006  Environment Canada
+MetPX comes with ABSOLUTELY NO WARRANTY; For details type see the file 
+named COPYING in the root of the source directory tree.
+"""
+##################################################################################################
+#               _ _____           _       _              
+#              | |_   _|         | |     | |             
+#  _ __ _ __ __| | | | ___   ___ | |   __| | ___   ___   
+# | '__| '__/ _` | | |/ _ \ / _ \| |  / _` |/ _ \ / __|  
+# | |  | | | (_| | | | (_) | (_) | | | (_| | (_) | (__  _ 
+# |_|  |_|  \__,_| \_/\___/ \___/|_|  \__,_|\___/ \___ (_)
+#                                                       
+#                                                       
+# Author        : Nicholas Lemay
+# Last Update   : October 6th 2006
+#
+###################################################################################################
+
+
+Quick overview( Taken from official web page )
+-----------------------------------------------------
+
+* RRDtool stores data; that makes it a back-end tool. The RRDtool command set allows the
+  creation of graphs; that makes it a front-end tool as well. Other databases just store
+  data and can not create graphs.
+
+* In case of linear databases, new data gets appended at the bottom of the database table.
+  Thus its size keeps on increasing, whereas the size of an RRDtool database is determined 
+  at creation time. Imagine an RRDtool database as the perimeter of a circle. Data is added
+  along the perimeter. When new data reaches the starting point, it overwrites existing data.
+  This way, the size of an RRDtool database always remains constant. The name ``Round Robin'' 
+  stems from this behavior.
+
+  
+  
+Creating the database :
+------------------------------------------------------  
+    rrdtool.create( databaseName, '--start','%s' %( startTime ), '--step', '60', 'DS:latency:GAUGE:60:U:U', 'RRA:AVERAGE:0:1:1440','RRA:MIN:0:1:1440', 'RRA:MAX:0:1:1440', 'RRA:AVERAGE:0:5:2016','RRA:MIN:0:5:2016','RRA:MAX:0:5:2016', 'RRA:AVERAGE:0:1440:3650','RRA:MIN:0:1440:3650','RRA:MAX:0:1440:3650' ) 
+    
+This creates a database names databaseName, wich starts at startTime. 
+No data can be fed that has a date prior to startTime.
+
+Step allows to specify the frequency at wich data will be fed to the database.    
+
+RRA's allows us to specify how data is to be consolidated inthe database.
+1st set of rra's : keep last 24 hours for daily graphs. Each line contains 1 minute of data. 
+                   ( 1440 * 1 entry of 60 seconds) 
+2nd set of rra's : keep last 7 days for weekly graphs. Each line contains 5 minutes of data. 
+                   ( 2016 * 5 combined entries of 60 seconds each )
+3rd set of rra's : keep last 10 years of data. Each line contains 24 hours of data.
+                   ( 3650 * 1440 combined entries of 60 seconds each. )
+                   
+                   
+Feeding the database with data :
+------------------------------------------------------
+The following command must be executed to update the database names databaseName. 
+
+rrdtool.update( rrdFileName, '%s:%s' %( int(pair[0]), int(pair[1]) ) )
+
+First value of the pair is the number of seconds since epoch value for wich we want to set a value.
+Number of seconds must be an integer.    
+
+Second value is the value to be set.                 
+                   
+Data must be added in chronological order. Data can never be set for dates prior or equal to the one
+of the most recent update. Because of that, first update must have a number of seconds higher than the 
+one of the date of creation of the database.
+
+Because of that, in transferPickleToRRD the databse created always has a creation date 1 minute older than
+the time at wich we want to set the first pair of data.
+
+
+
+Generating Graphs
+------------------------------------------------------
+rrdtool.graph( imageName,'--imgformat', 'PNG','--width', '600','--height', '200','--start', "%i" %(start) ,'--end', "%s" %(end), '--vertical-label', '%s' %type,'--title', '%s'%title,'COMMENT: Minimum %s Maximum  %s Mean %.2f\c' %( minimum, maximum, mean), '--lower-limit','0','DEF:latency=%s:latency:AVERAGE'%databaseName, 'AREA:latency#cd5c5c:%s' %type,'LINE1:latency#8b0000:%s'%type)
+
+- Will create an image named imageName of the speciefied width and height.
+- Start and End must be expressed in seconds since epoch. Integer value only, no float will be accepted.
+- Label, comments, title speak for themselves. 
+- 'DEF:latency=%s:latency:AVERAGE'%databaseName means to get data from the AVERAGE RRA
+   coming from database named databaseName and to store it in a variable named latency. 
+- Fetched data in preceding line will be comprised between start and end.
+- 'AREA:latency#cd5c5c:%s' %type means to draw an area style graph with the data found in the variable named latency.
+- 'LINE1:latency#8b0000:%s'%type means to draw a line1 style graph with the data found in the variable named latency.
+- The above plots th esame data twice. However having a line contour the area graph makes grphs looks much better.
+- In both cases the #xxxxxx number helps specify the color of the graph.
+
+                   
+Database size :
+------------------------------------------------------
+Database size, since it will never gow, has been found very acceptable. 
+
+Current testing configuration has us transfer all the pickled data from both rx and tx clients
+from machines called pds5 and pds6. This means around 75 clients. Tx clients have 5 databases each.
+Rx clients only have 3. All dabatases are made to be fed with data that is split by the minute.
+
+In each database, we currently keep the data archived in this fashion : 
+1- The mean,max and min of every minute saved up to the last 24 hours.
+2- The mean,max and min of every 5 minutes saved up to the last 24 hours.
+3- The mean,max and min of every day saved up to the last 10 years.
+
+All this takes up less than 60 megs on the disk.
+
+
+Ressource pages :
+------------------------------------------------------
+http://oss.oetiker.ch/rrdtool/ ( official web page )
+http://projects.adytum.us/tracs/PyRRD/
+http://en.wikipedia.org/wiki/Rrdtool
+man rrdcreate, man rrdupdate, man rrdgraph
