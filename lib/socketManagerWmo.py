@@ -1,11 +1,14 @@
 # -*- coding: iso-8859-1 -*-
-"""
-MetPX Copyright (C) 2004-2006  Environment Canada
-MetPX comes with ABSOLUTELY NO WARRANTY; For details type see the file
-named COPYING in the root of the source directory tree.
-"""
+# MetPX Copyright (C) 2004-2006  Environment Canada
+# MetPX comes with ABSOLUTELY NO WARRANTY; For details type see the file
+# named COPYING in the root of the source directory tree.
+#
+# Author:
+#    2004/10  Louis-Philippe Thériault
+#    2004/12  Pierre Michaud
+#
 
-"""Spécialisation pour gestion de sockets "WMO" """
+"""WMO protocol socket manager"""
 
 __version__ = '2.0'
 
@@ -16,29 +19,24 @@ import time
 class socketManagerWmo(socketManager.socketManager):
     __doc__ = socketManager.socketManager.__doc__ + \
     """
-       ### Ajout de socketManagerWmo ###
-
-       * Attributs
+       * Attributes
 
             patternWmoRec           str
 
-                                    - Pattern pour le découpage d'entête
-                                      par struct
+                                    - pattern for parsing header
+                                      struct
 
             sizeWmoRec              int
 
-                                    - Longueur de l'entête (en octets)
-                                      calculée par struct
+                                    - header length (in octets)
+                                      calculated from struct
 
-       Auteur: Louis-Philippe Thériault
-       Date:   Octobre 2004
-       Modifications: Decembre2004, Pierre Michaud
     """
 
     def __init__(self,logger,type='slave',port=9999,remoteHost=None,timeout=None, flow=None):
         socketManager.socketManager.__init__(self,logger,type,port,remoteHost,timeout, flow)
 
-        # La taille du wmoHeader est prise d'a partir du document :
+        # Size of wmoHeader taken from document (WMO 386):
         # "Use of TCP/IP on the GTS", pages 28-29, et l'exemple en C
         # page 49-54
         self.patternWmoRec = '8s2s'
@@ -51,13 +49,7 @@ class socketManagerWmo(socketManager.socketManager):
 
     def unwrapBulletin(self):
         __doc__ = socketManager.socketManager.unwrapBulletin.__doc__ + \
-        """### Ajout de socketManagerWmo ###
-
-           Définition de la méthode
-
-           Visibilité:  Privée
-           Auteur:      Louis-Philippe Thériault
-           Date:        Octobre 2004
+        """
         """
         status = self.checkNextMsgStatus()
 
@@ -73,28 +65,21 @@ class socketManagerWmo(socketManager.socketManager):
         elif status == 'INCOMPLETE':
             return '',0
         else:
-        # Donc message corrompu
+        # message corrupt
             raise socketManagerException("Données corrompues",self.inBuffer)
 
     def wrapBulletin(self,bulletin):
         __doc__ = socketManager.socketManager.wrapBulletin.__doc__ + \
-        """### Ajout de socketManagerWmo ###
-           Nom:
-           wrapBulletin
+        """
+           input parameters:
+           -bulletin:   a bulletinWmo object
 
-           Parametres d'entree:
-           -bulletin:   un objet bulletinWmo
+           output parameters:
+           -returns a bulletin as a ready to send string.
 
-           Parametres de sortie:
-           -Retourne le bulletin pret a envoyer en format string
+           Purpose:
+           Add WMO header to input bulletin.
 
-           Description:
-           Ajoute l'entete WMO approprie au bulletin passe en parametre.
-
-           Visibilité:  Privée
-           Auteur:      Louis-Philippe Thériault
-           Date:        Octobre 2004
-           Modifications: Decembre 2004, Pierre Michaud
         """
         bulletinStr = chr(curses.ascii.SOH) + '\r\r\n' + self.getNextCounter(5) + '\r\r\n' + bulletin.getBulletin(useFinalLineSeparator=True) + '\r\r\n' + chr(curses.ascii.ETX)
 
@@ -103,19 +88,14 @@ class socketManagerWmo(socketManager.socketManager):
         return string.zfill(len(bulletinStr),8) + bulletin.getDataType() + bulletinStr
 
     def getNextCounter(self,x):
-        """getNextCounter() -> compteur
+        """getNextCounter() 
 
            compteur:    String
-                        - Portion "compteur" du bulletin
+                        - counter part of bulletin
 
-           Utilisation:
-
-                Générer le compteur pour un bulletinWmo. L'on doit être sur que le bulletin
-                sera dans le queue de bulletins à envoyer.
-
-           Visibilité:  Publique
-           Auteur:      Louis-Philippe Thériault
-           Date:        Octobre 2004
+           Purpose:
+                Generate ´counter´ (sequence number?) for a bulletinWmo. Must be certain that
+                bulletin is in send queue. 
         """
         if self.compteur > self.maxCompteur:
             self.compteur = 0
@@ -126,13 +106,7 @@ class socketManagerWmo(socketManager.socketManager):
 
     def checkNextMsgStatus(self):
         __doc__ = socketManager.socketManager.checkNextMsgStatus.__doc__ + \
-        """### Ajout de socketManagerAm ###
-
-           Définition de la méthode
-
-           Visibilité:  Privée
-           Auteur:      Louis-Philippe Thériault
-           Date:        Octobre 2004
+        """
         """
         if len(self.inBuffer) >= self.sizeWmoRec:
             (msg_length,msg_type) = \
@@ -142,18 +116,18 @@ class socketManagerWmo(socketManager.socketManager):
 
         try:
             msg_length = int(msg_length)
-            self.logger.debug("Longueur du message: %d",msg_length)
+            self.logger.debug("message length: %d",msg_length)
         except ValueError:
-            self.logger.debug("Corruption: longueur n'est pas lisible")
+            self.logger.debug("Corruption: length decode failure ")
             return 'CORRUPT'
 
         if not msg_type in ['BI','AN','FX']:
-            self.logger.debug("Corruption: Type de message est incorrec")
+            self.logger.debug("Corruption: invalid bulletin type")
             return 'CORRUPT'
 
         if len(self.inBuffer) >= self.sizeWmoRec + msg_length:
             if ord(self.inBuffer[self.sizeWmoRec]) != curses.ascii.SOH or ord(self.inBuffer[self.sizeWmoRec+msg_length-1]) != curses.ascii.ETX:
-                self.logger.debug("Corruption: Caractères de contrôle incorrects")
+                self.logger.debug("Corruption: unexpected control characters")
                 return 'CORRUPT'
 
             return 'OK'
@@ -163,32 +137,20 @@ class socketManagerWmo(socketManager.socketManager):
     def sendBulletin(self,bulletin):
         #__doc__ = socketManager.socketManager.sendBulletin.__doc__ + \
         """
-        ###Methode concrete pour socketManagerWmo###
-
-        Nom:
-        sendBulletin
-
-        Parametres d'entree:
+        input parameters:
         -bulletin:
-                -un objet bulletin
+                -a bulletin object
 
-        Parametres de sortie:
-        -si succes: 0
-        -sinon: 1
+        Return value:
+        -on success: 0
+        -on failure: 1
 
         Description:
-        Envoi au socket correspondant un bulletin WMO et indique
-        si le bulletin a ete transfere totalement ou non.  Chaque
-        envoi s'assure de l'etat de la connexion.
-
-        Auteur:
-        Pierre Michaud
-
-        Date:
-        Decembre 2004
+        Send the WMO bulletin to the socket.
+        Each send checks the connection state.
         """
         try:
-            #preparation du bulletin pour l'envoi
+            #prepare the bulletin for send.
             data = self.wrapBulletin(bulletin)
 
             # debuging...!? keep the transmitted file
@@ -196,11 +158,11 @@ class socketManagerWmo(socketManager.socketManager):
                self.writetofile("/tmp/WMO",data)
 
             #tentative d'envoi et controle de la connexion
+            #try to send, and control connection.
             try:
-                #envoi du bulletin
                 bytesSent = self.socket.send(data)
 
-                #verifier si l'envoi est un succes
+                #check if it went OK.
                 if bytesSent != len(data):
                     self.connected=False
                     return (0, bytesSent)
@@ -208,17 +170,15 @@ class socketManagerWmo(socketManager.socketManager):
                     return (1, bytesSent)
 
             except socket.error, e:
-                #erreurs potentielles: 104, 107, 110 ou 32
-                self.logger.error("senderWmo.write(): la connexion est rompue: %s",str(e.args))
-                #modification du statut de la connexion
-                #tentative de reconnexion
+                #possible errors: 104, 107, 110 or 32
+                self.logger.error("senderWmo.write(): connection broken: %s",str(e.args))
                 self.connected = False
-                self.logger.info("senderWmo.write(): tentative de reconnexion")
+                self.logger.info("senderWmo.write(): attempt to reconnect")
                 self.socket.close()
                 self._socketManager__establishConnection()
 
         except Exception, e:
-            self.logger.error("socketManagerWmo.sendBulletin(): erreur d'envoi: %s",str(e.args))
+            self.logger.error("socketManagerWmo.sendBulletin(): send error: %s",str(e.args))
             raise
 
     # debug development module write data to file

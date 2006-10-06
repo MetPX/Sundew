@@ -1,9 +1,7 @@
 # -*- coding: iso-8859-1 -*-
-"""
-MetPX Copyright (C) 2004-2006  Environment Canada
-MetPX comes with ABSOLUTELY NO WARRANTY; For details type see the file
-named COPYING in the root of the source directory tree.
-"""
+# MetPX Copyright (C) 2004-2006  Environment Canada
+# MetPX comes with ABSOLUTELY NO WARRANTY; For details type see the file
+# named COPYING in the root of the source directory tree.
 
 """
 #############################################################################################
@@ -145,7 +143,7 @@ class senderAMIS:
                    continue
                 dataAmis = self.encapsulate(data[index])
                 succes, nbBytesSent = self.write_data( dataAmis )
-             #si le bulletin a ete envoye correctement, le fichier est efface
+             #if the bulletin was sent, erase the file.
              if succes:
                 basename = os.path.basename(self.reader.sortedFiles[index])
                 self.logger.info("(%i Bytes) Bulletin %s  delivered" % (nbBytesSent, basename))

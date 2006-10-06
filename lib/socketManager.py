@@ -1,62 +1,54 @@
 # -*- coding: iso-8859-1 -*-
-"""
-MetPX Copyright (C) 2004-2006  Environment Canada
-MetPX comes with ABSOLUTELY NO WARRANTY; For details type see the file
-named COPYING in the root of the source directory tree.
-"""
+#
+# MetPX Copyright (C) 2004-2006  Environment Canada
+# MetPX comes with ABSOLUTELY NO WARRANTY; For details type see the file
+# named COPYING in the root of the source directory tree.
+#
+# Author
+#    2004/10 -- Louis-Philippe Thériault
+#    2005/12 -- Pierre Michaud
+#
 
-"""Gestionnaire de sockets générique"""
+"""Generic socket manager"""
 
 import socket, time, string, sys, traceback
 
 __version__ = '2.0'
 
 class socketManagerException(Exception):
-    """Classe d'exception spécialisés relatives au socket managers"""
+    """generic socket manager exception class"""
     pass
 
 class socketManager:
-    """Classe abstraite regroupant toutes les fonctionnalitées
-       requises pour un gestionnaire de sockets. Les méthodes
-       qui ne retournent qu'une exception doivent êtres redéfinies
-       dans les sous-classes (il s'agit de méthodes abstraites).
+    """
+       Abstract class with all the functionalist needed for a socket manager.
+       methods raising an exception must be implemented in derived classes.
 
-       Les arguments à passer pour initialiser un socketManager sont les
-       suivants:
+       Arguments to initialize a socketManager:
 
             type            'master','slave' (default='slave')
 
-                            - Si master est fourni, le programme se
-                              connecte à un hôte distant, si slave,
-                              le programme écoute pour une
-                              connexion.
+                            - if master, then connect to remote host
+                            - if slave, then bind and wait for connection.
 
             port    int (default=9999)
 
-                            - Port local ou se 'bind' le socket.
+                            - Port to bind (slave) 
 
             remoteHost      (str hostname,int port)
 
-                            - Couple de (hostname,port) pour la
-                              connexion. Lorsque timeout secondes
-                              est atteint, un socketManagerException
-                              est levé.
+                            - tuple (hostname,port) for master connection.
+                              after timeout seconds, an exception is raised.
 
-                            - Doit être absolument fourni si type='master',
-                              et non fourni si type='slave'.
+                            - required for type=master
+                            - must not be specified for type=slave.
 
             timeout         int (default=None)
 
-                            - Lors de l'établissement d'une connexion
-                              à un hôte distant, délai avant de dire
-                              que l'hôte de réponds pas.
+                            - connection timeout
 
             log             Objet Log (default=None)
 
-                            - Objet de la classe Log
-
-       Auteur:      Louis-Philippe Thériault
-       Date:        Septembre 2004
     """
     def __init__(self,logger,type='slave',port=9999,remoteHost=None,timeout=None, flow=None):
         self.type = type
@@ -71,34 +63,24 @@ class socketManager:
 
         self.flow = flow
 
-        # Établissement de la connexion
         self.__establishConnection()
 
     def __establishConnection(self):
         """
-           Nom:
-           __establishConnection()
+           input Parameters:
+           -none
 
-           Parametres d'entree:
-           -Aucun
-
-           Parametres de sortie:
-           -Aucun
+           output Parameters:
+           -none
 
            Description:
-           Établit la connexion selon la valeur des attributs de l'objet.
-           self.socket sera, après l'exécution, la connexion.
+           establish connection according to object attributes.
+           return established connection as self.socket.
 
-           Visibilité:  Privée
-           Auteur:      Louis-Philippe Thériault
-           Date:        Octobre 2004
-           Modifications: Pierre Michaud, 2004-12-15
         """
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
 
-        # Binding avec le port local
-        # Si ce n'est pas un master - Pierre Michaud 2004-12-15
         if self.type == 'slave':
             self.logger.info("Socket binding with port %d",self.port)
             while True:
@@ -135,7 +117,7 @@ class socketManager:
                 """
                 if self.timeout != None and (time.time() - then) > self.timeout:
                     self.socket.close()
-                    raise socketManagerException('timeout dépassé')
+                    raise socketManagerException('timeout exceeded')
                 """
 
                 try:
@@ -151,7 +133,6 @@ class socketManager:
 
         #connexion type serveur (exemple PDS-NCCS: un receiver) ou bidirectionnelle
         else:
-            # En attente de connexion
             self.socket.listen(1)
 
 
@@ -160,7 +141,7 @@ class socketManager:
                 """
                 if self.timeout != None and (time.time() - then) > self.timeout:
                     self.socket.close()
-                    raise socketManagerException('timeout dépassé')
+                    raise socketManagerException('timeout exceeded')
                 """
                 self.logger.info("Waiting for a connexion (listen mode)")
                 try:
@@ -182,9 +163,7 @@ class socketManager:
             self.socket.close()
             self.socket = conn
 
-        #L'ensemble des protocoles implantes ici n'ont pas besoin du non-blocking
-        #Si le non-blocking est utilise, les sender sont en probleme et aptes
-        #a mettre un receiver a terre en moins de deux...
+        #trying to use of non-blocking will break senders and receivers in seconds.
         self.socket.setblocking(True)
 
         self.logger.info("Connexion established with %s",str(self.remoteHost))
@@ -193,34 +172,28 @@ class socketManager:
     def closeProperly(self):
         """closeProperply() -> ([bulletinsReçus],nbBulletinsEnvoyés)
 
-           [bulletinsReçus]:    liste de str
-                                - Retourne les bulletins dans le buffer lors
-                                  de la fermeture
+           [bulletinsReçus]:    liste of str
+                                - returns list of bulletins in buffer at close.
 
-           Ferme le socket et finit de traîter le socket d'arrivée et de
-           sortie.
+           Close socket and complete processing of pending bulletins.
 
-           Utilisation:
+           Purpose:
 
-                Traîter l'information restante, puis éliminer le socket
-                proprement.
+                Process remaining data, the cleanly shutdown socket.
 
-           Visibilité:  Privée
-           Auteur:      Louis-Philippe Thériault
-           Date:        Octobre 2004
         """
         self.logger.info("Fermeture du socket et copie du reste du buffer")
 
-        # Coupure de la connexion
+        # Close the connection.
         try:
             self.socket.shutdown(2)
-            self.logger.debug("Shutdown du socket: [OK]")
+            self.logger.debug("Shutdown socket: [OK]")
         except Exception, e:
-            self.logger.debug("Shutdown du socket: [ERREUR]\n %s",str(e))
+            self.logger.debug("Shutdown socket: [ERROR]\n %s",str(e))
 
-        # Copie du reste du buffer entrant après la connexion
-        # Le bulletin doit être mis à non blocking si on
-        # veut fermer la connection proprement.
+        # Copy rest of input buffer 
+        # bulletin must be put in non-blocking if we want to close
+        # the connection cleanly.
         try:
             self.socket.setblocking(False)
             self.__syncInBuffer(onlySynch = True)
@@ -236,12 +209,12 @@ class socketManager:
 
         self.connected = False
 
-        # Traîtement du reste du buffer pour découper les bulletins
+        # process rest of buffer, slicing into individual bulletins.
         bulletinsRecus = self.getNextBulletins()
 
 
-        self.logger.info("Succès de la fermeture de la connexion socket")
-        self.logger.debug("Nombre de bulletins dans le buffer : %d",len(bulletinsRecus))
+        self.logger.info("socket closed successfully")
+        self.logger.debug("bulletins in the buffer: %d",len(bulletinsRecus))
 
         return (bulletinsRecus, 0)
 
@@ -250,20 +223,12 @@ class socketManager:
 
            bulletin     : [String]
 
-           Retourne les prochains bulletin reçus, une liste vide sinon.
+           Return the rest of the bulletins in the buffer, on empty list.
 
-           Visibilité:  Publique
-           Auteur:      Louis-Philippe Thériault
-           Date:        Octobre 2004
-
-           Modifiée le 25 janvier 2005, retourne maintenant une liste, et
-           le socket est bloquant.
-
-           Auteur:      Louis-Philippe Thériault
         """
         if self.isConnected():
-        # Si n'est pas connecté, ne fais pas le check, car l'on peut vouloir avoir les
-        # bulletins dans le buffer sans être connecté.
+        # if not connected, do not check, because we might want bulletins in the 
+        # buffer without being connected.
             self.__syncInBuffer()
 
         nouveauxBulletins = []
@@ -272,7 +237,7 @@ class socketManager:
 
             status = self.checkNextMsgStatus()
 
-            self.logger.debug("Statut du prochain bulletin dans le buffer: %s", status )
+            self.logger.debug("status of next bulletin in the buffer: %s", status )
 
             if status == 'INCOMPLETE':
                 break
@@ -284,37 +249,31 @@ class socketManager:
 
                 nouveauxBulletins.append(bulletin)
             elif status == 'CORRUPT':
-                raise socketManagerException('corruption dans les données','CORRUPT',self.inBuffer)
+                raise socketManagerException('data corrupt','CORRUPT',self.inBuffer)
             else:
-                raise socketManagerException('status de buffer inconnu',status,self.inBuffer)
+                raise socketManagerException('unknown buffer status',status,self.inBuffer)
 
         return nouveauxBulletins
 
     def sendBulletin(self):
-        raise socketManagerException('socketManager.sendBulletin() est une methode virtuelle pure')
+        # FIXME: wtf like this means something?
+        raise socketManagerException('socketManager.sendBulletin() pure virtual method')
 
     def __syncInBuffer(self,onlySynch=False):
         """__syncInBuffer()
 
            onlySynch:   Booleen
-                        - Si est à True, ne vérifie pas que la connexion fonctionne,
-                          Ne fait que syncher le buffer
+                        - if true, do not check if connection is working.
+                          just sync buffer.
 
-           Copie l'information du buffer du socket s'il y a lieu
+           Copy data from buffer to socket, if there is some.
 
-           Lève une exception si la connexion est perdue.
+           raise an exception if connection lost.
 
-           Utilisation:
+           Purpose:
 
-                Copier le nouveau data reçu du socket dans l'attribut
-                du socketManager.
+                Copy the new received data to socketManager attribute.
 
-           Visibilité:  Privée
-           Auteur:      Louis-Philippe Thériault
-           Date:        Octobre 2004
-
-
-           Modification:        Modification du code pour que le socket soit non-bloquant.
         """
         while True:
             try:
@@ -324,10 +283,10 @@ class socketManager:
                     self.connected = False
 
                     if not onlySynch:
-                        self.logger.error("La connexion est brisée")
-                        raise socketManagerException('la connexion est brisee')
+                        self.logger.error("connection lost")
+                        raise socketManagerException('connection lost')
 
-                self.logger.veryverbose("Data reçu: %s" % temp)
+                self.logger.veryverbose("Data received: %s" % temp)
 
                 self.inBuffer = self.inBuffer + temp
                 break
@@ -344,8 +303,8 @@ class socketManager:
                 # La connexion est brisée
                     self.connected = False
 
-                    self.logger.error("La connexion est brisée")
-                    raise socketManagerException('la connexion est brisee')
+                    self.logger.error("connection broken")
+                    raise socketManagerException('connection broken')
 
     def __transmitOutBuffer(self):
         pass
@@ -356,18 +315,13 @@ class socketManager:
            bulletin             : String
            wrappedBulletin      : String
 
-           Retourne le bulletin avec les entetes/informations relatives
-           au protocole sous forme de string. Le bulletin doit etre un
-           objet Bulletin. Wrap bulletin doit être appelé seulement si
-           ce bulletin est sûr d'être envoyé, étant donné la possibilité
-           d'un compteur qui doit se suivre.
-
-           Statut:      Abstraite
-           Visibilité:  Privée
-           Auteur:      Louis-Philippe Thériault
-           Date:        Octobre 2004
+           Return the bulletin with header & data in protocol format
+           as a string.  The bulletin must be a Bulletin object.
+           Wrap bulletin must only be called if we are sure to send it,
+           because of a counter that will have to follow.
+         
         """
-        raise socketManagerException("Méthode non implantée (méthode abstraite wrapBulletin)")
+        raise socketManagerException("not implemented (abstract method wrapBulletin)")
 
     def unwrapBulletin(self):
         """unwrapBulletin() -> (bulletin,longBuffer)
@@ -375,50 +329,37 @@ class socketManager:
            bulletin     : String
            longBuffer   : int
 
-           Retourne le prochain bulletin contenu dans le buffer,
-           après avoir vérifié son intégrité, sans modifier le buffer.
-           longBuffer sera égal à la longueur de ce que l'on doit enlever
-           au buffer pour que le prochain bulletin soit en premier.
+           Returns the next bulletin in the buffer, after checking
+           integrity, without modifying the buffer.
+           longBuffer will be as long as we need to remove from
+           the buffer to place us at the beginning of the next bulletin.
 
-           Retourne une chaîne vide s'il n'y a pas assez de données
-           pour compléter le prochain bulletin.
+           Return empty string if there is not enough data to complete
+           the next bulletin.
 
-           Statut:      Abstraite
-           Visibilité:  Privée
-           Auteur:      Louis-Philippe Thériault
-           Date:        Octobre 2004
         """
-        raise socketManagerException("Méthode non implantée (méthode abstraite unwrapBulletin)")
+        raise socketManagerException("method not implemented (abstract method unwrapBulletin)")
 
     def isConnected(self):
         """isConnected() -> bool
 
-           Retourne True si la connexion est établie.
+           Return True if the connection is established.
 
-           Visibilité:  Publique
-           Auteur:      Louis-Philippe Thériault
-           Date:        Octobre 2004
         """
         return self.connected
 
     def checkNextMsgStatus(self):
         """checkNextMsgStatus() -> status
 
-           status       : String élément de ('OK','INCOMPLETE','CORRUPT')
+           status       : String  choice of ('OK','INCOMPLETE','CORRUPT')
 
-           Statut du prochain bulletin dans le buffer.
+           Status of next bulletin in the buffer.
 
-           Statut:      Abstraite
-           Visibilité:  Privée
-           Auteur:      Louis-Philippe Thériault
-           Date:        Octobre 2004
         """
-        raise socketManagerException("Méthode non implantée (méthode abstraite checkNextMsgStatus)")
+        raise socketManagerException("method not implemented (abstract method checkNextMsgStatus)")
 
     def setConnected(self,valeur):
         """
-        Description: modifie le statut de l'attribut connected
-        Auteur: PM
-        Date: janvier 2005
+        Description: set the connected attribute value
         """
         self.connected = valeur

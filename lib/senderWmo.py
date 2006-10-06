@@ -1,9 +1,7 @@
 # -*- coding: iso-8859-1 -*-
-"""
-MetPX Copyright (C) 2004-2006  Environment Canada
-MetPX comes with ABSOLUTELY NO WARRANTY; For details type see the file
-named COPYING in the root of the source directory tree.
-"""
+# MetPX Copyright (C) 2004-2006  Environment Canada
+# MetPX comes with ABSOLUTELY NO WARRANTY; For details type see the file
+# named COPYING in the root of the source directory tree.
 
 """
 #############################################################################################
@@ -122,7 +120,7 @@ class senderWmo(gateway.gateway):
                       continue
                    succes, nbBytesSent = self.write_data( data[index] )
 
-                #si le bulletin a ete envoye correctement, le fichier est efface
+                #If the bulletin was sent successfully, erase the file.
                 if succes:
                    basename = os.path.basename(self.reader.sortedFiles[index])
                    self.logger.info("(%i Bytes) Bulletin %s  delivered" % (nbBytesSent, basename))
@@ -131,7 +129,7 @@ class senderWmo(gateway.gateway):
                    self.logger.info("%s: Sending problem" % self.reader.sortedFiles[index])
 
             except Exception, e:
-            # e==104 or e==110 or e==32 or e==107 => connexion rompue
+            # e==104 or e==110 or e==32 or e==107 => connection broken
                 (type, value, tb) = sys.exc_info()
                 self.logger.error("Type: %s, Value: %s" % (type, value))
 
