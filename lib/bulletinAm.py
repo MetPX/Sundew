@@ -86,6 +86,7 @@ class bulletinAm(bulletin.bulletin):
                     uneCle = "SA" + station
 
                 # Fetch de l'entete a inserer
+                # FIXME: default should be configurable in px.conf
                 if premierMot in ["CA","MA","RA"]:
                     uneEnteteDeBulletin = "CN00 CWAO "
                 else:

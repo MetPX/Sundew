@@ -396,7 +396,8 @@ class bulletinManager:
 
            -TT:         bulletin type TT in AHL (first 2 letters)
            -CCCC:       bulletin origin CCCC in AHL (second header field) 
-           -CIRCUIT:    FIXME: OBSOLETE FIELD... DO NOT DO THIS.
+           -CIRCUIT:    FIXME: OBSOLETE FIELD... use -PRIORITY
+           -PRIORITY:   bulletin priority (set by pxRouting.conf entry.)
 
            Exceptions raised:
                 bulletinManagerException:       if the extension cannot be generated
@@ -417,13 +418,16 @@ class bulletinManager:
             # Si les circuits sont activés
             # NB: Lève une exception si l'entête est introuvable
                 entete = ' '.join(bulletin.getHeader().split()[:2])
+                #FIXME: remove -CIRCUIT after transition period.
                 newExtension = newExtension.replace('-CIRCUIT', self.drp.getHeaderPriority(entete))
+                newExtension = newExtension.replace('-PRIORITY', self.drp.getHeaderPriority(entete))
 
             return newExtension
         else:
             # error detected in bulletin
             newExtension = newExtension.replace('-TT','PROBLEM')\
                                        .replace('-CCCC','PROBLEM')\
+                                       .replace('-PRIORITY','PROBLEM')\
                                        .replace('-CIRCUIT','PROBLEM')
 
             return newExtension
