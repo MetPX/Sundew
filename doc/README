@@ -10,20 +10,9 @@ For some example of how to configure sources and clients, go to
 /apps/px/etc.sample/[r,t]x/README
 ################################################################################
 
-TODO:       Evident
-
-pxFiles:    Short description of the directories and files composing px.
-
-fet:        obsolete but historically interesting specifications.
-
-terminology.txt  A sort of glossary of how terms ought to be used in documentation.
-                 provides some history to explain some acronyms that will pop up.
-
-
-design_efficiency_principles.txt -- CONTRIBUTORS SHOULD READ THIS. 
-              metpx strives for simplicity, and it is a conscious choice.
-              deviation from the principles in here will require folks
-              to explain why they are doing that.
-
+user	   The User Guide
+dev	   The Developer Guide
+historical The Origins document (only of interest if there is an inexplicable
+           acronym in the Developer's Guide.
 version1   Documentation for the future 1.0 release which will be feature complete
 	   for all switching needs...
