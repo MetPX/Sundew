@@ -29,7 +29,7 @@ destination wmo://localhost:5002
 imask *:*:*:*:*:*:*
 --
 
-/apps/px/etc/header2client.conf
+/apps/px/etc/pxRouting.conf
 --
 SACN37 CWAO:loop:3
 SACN31 CWAO:loop:3
@@ -37,6 +37,8 @@ SICN25 CWAO:loop:3
 SANT31 CWAO:loop:3
 SMCN37 CWAO:loop:3
 --
+
+touch /apps/px/etc/stations.conf  # just needs to exist...
 
 px start
 
@@ -52,9 +54,11 @@ cp <wherever>/testSuite/01TwelveHoursOld/input/* .
 That will copy a selection of bulletins into the file receivers input queue.
 they will be ingested (look at rx_file.log) and queued for transmission via the
 wmo client.   
+
 The loop sender client is connected to the loop reception client at localhost.  
 The sender will send the bulletins.  
-The receiver will receive the bulletins, and route them to the sender (a looping configuration, normally a bad thing)
+The receiver will receive the bulletins, and route them to the sender (a looping 
+configuration, normally a bad thing) 
 The sender will notice that it has sent the messages recently and drop the bulletins.
 
 So from this you can see a very simple installation configuration self-test.
