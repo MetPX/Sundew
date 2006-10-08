@@ -41,12 +41,14 @@ What you need to know:
 Getting Source Code
 -------------------
 
+FIXME: metpx.sf.net was down.. want to copy instructions.
 svn co etc...
 
 
 Development Environment
 -----------------------
 
+FIXME: just place holder for now.
 One way to build a development environment is install the package normally,
 and then re-direct things.
 
