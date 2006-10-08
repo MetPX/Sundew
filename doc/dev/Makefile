@@ -1,7 +1,7 @@
 
 .SUFFIXES: .dia .png .pdf .txt .html
 
-default: 
+default: DevGuide.html
 
  
 .txt.html:
