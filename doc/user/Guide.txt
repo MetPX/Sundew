@@ -233,23 +233,25 @@ on your server.)
 Now build a sample configuration: 
 
 |
-| cat >/etc/px/rx/file.conf <<EOT
+| PXETC=/etc/px
+
+| cat >${PXETC}/rx/file.conf <<EOT
 |   type bulletin-file
 |   extension file\:-CCCC:-TT:-PRIORITY:Direct
 |
-| cat >/etc/px/rx/loop.conf <<EOT
+| cat >${PXETC}/rx/loop.conf <<EOT
 |   type wmo
 |   port 5002
 |   extension pxatx\:-CCCC:-TT:-PRIORITY:Direct
 | EOT
 |
-| cat >/etc/px/tx/loop.conf <<EOT
+| cat >${PXETC}/tx/loop.conf <<EOT
 |   type wmo
 |   destination wmo://localhost:5002
 |   accept .*:.*:.*:.*:.*:.*:.*
 | EOT
 |
-| cat >/etc/px/pxRouting.conf <<EOT
+| cat >${PXETC}/pxRouting.conf <<EOT
 |   key_accept .* loop 3
 | EOT
 |

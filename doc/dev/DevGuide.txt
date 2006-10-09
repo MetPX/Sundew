@@ -12,68 +12,209 @@ MetPX Contributors Guide
     MetPX Copyright (C) 2004-2006  Environment Canada.
     MetPX comes with ABSOLUTELY NO WARRANTY; For details type see the file
     named COPYING in the root of the source directory tree.
-    
+    or the *Licensing* section of this document.    
 
 .. contents::
 
 
-Starting Out
-------------
-This manual describes ideal working methods we strive for.
-Sometimes we do not manage to live up to our ideals. 
-If you find parts of the code that do not follow the prescriptions here,
-then it is either an oversight or code which existed before this guide
-was created, not a license to deviate.  Please strive to follow the 
-guide's principles.  If you really feel the need to violate the 
-principles here, mail to metpx-devel for discussion first.
+Making Better Things Together
+------------------------------
 
-What you need to know:
+People are welcome to make changes to the code.  We are especially pleased
+if those who make changes choose to contribute them back to the project
+so that all users can benefit from the improvements.  The WMO messaging
+community is very, very, small.  Cooperative development of a reference
+switch implementation will benefit everyone.
 
- * Basic knowledge of the Python programming language (You'll learn as you go!)
+If the reader is unfamiliar with open source methods, then some aspects
+of this project may seem unusual.  Metpx strives to be a relatively standard 
+open source development project.  The goal of open source is to reduce the overhead
+of collaborating with people in other organizations to as near zero as
+feasible, so people can work together to reduce costs and improve quality
+of the tools available to the community.
+
+As a collaborative development project, it tries to use the best practices
+of open source projects as observed over the past decade.  
+
+  * The most common open source license (GPLv2) is used for the project. This 
+    license is used in approximately 60% of all open source projects, and when 
+    multiple competitive projects with different licensing schemes have been 
+    seen (ie. \*BSD vs. Linux) The GPL license has tended to build a more 
+    cohesive community, and therefore developed a stronger product, than 
+    applications built with other types of licenses.
+
+  * the source code repository is on a public site, rather than one belonging 
+    to the primary sponsor and rights holder.  This is to emphasize that the project
+    is open to everyone, and that the primary rights holder has no particular
+    privilege beyond those of potential contributors.
+
+  * Other nations' met services, other government users, and industrial
+    producers and consumers of met data, rather than being considered clients 
+    or customers, are hoped to be collaborators in development, with an aim 
+    of reducing costs for all over the long term. 
+
+  * Companies and contractors are welcome to include the application in 
+    their offering, even bundling it with their own products, provided they do 
+    not sell the software itself, or any derived products or improvements.  
+    Charging for support of the products they integrate is perfectly 
+    reasonable and expected.  Actions which build up the collaborative 
+    development community are welcome and encouraged.
+
+    (tha above paragraph is not part of any licensing agreement, but an attempt
+    to describe GPLv2 in layman's terms.  GPLv2 presents the complete 
+    licensing terms.)
+
+    Examples of companies profitably distributing GPL software on a 
+    commercial basis:  RedHat, Novell, Ubuntu, MySQL, JBOSS, ...
+
+    An example of a niche might be to provide turnkey solutions to clients
+    which have little to no inhouse technical expertise.  A contract based
+    on support costs would probably have little difference in it's cost vs.
+    a conventional software sale.  For many vendors, creating the software
+    is simply a cost for being in the integration niche.  The bigger
+    the user base, the more likely other contributors will appear.
+
+
+
+Contributor Background
+------------------------
+
+Leaving aside the community aspirations of an open source development project,
+we can now turn to application development itself.  
+
+The main development web-site is http://sourceforge.net/projects/metpx
+where one can use can browse the subversion source tree over the web,
+as well as examine the list of known bugs, and feature requests.
+There are also two mailing lists which ought to be of interest to potential
+contributors:
+
+* `metpx-devel <https://lists.sourceforge.net/lists/listinfo/metpx-devel>`_ for
+  discussions about development, and general support questions.
+* `metpx-commit <https://lists.sourceforge.net/lists/listinfo/metpx-commit>`_
+  which mails out the change descriptions created by developers as they
+  commit changes to the repository.
+
+Taking the time to read and comment on the documentation and 
+commenting on bugs, participating on the mailing list submitting feature requests
+are all very helpful activities to guide us in future development.
+The kinds of skills What you might want to know to be able to help:
+
+ * Basic knowledge of the Python programming language. 
  * Basic knowledge of Linux shell commands (ls, ps, cat, vi (or other editor)) etc...
  * Basic knowledge of Make (build automation tool.)
  * Basic knowledge of Subversion (source code management system.)
  * For documentation, ReStructured Text is your friend.  Dia for Diagrams.
 
+If your knowledge of python is not encyclopedic, no worries, collaborating
+means learning together too.  Collaboration is also a means for people
+to collectively improve their skils.   
 
+
+This manual describes 
+ideal working methods we strive for.  Sometimes we do not manage to live 
+up to our ideals.  If you find parts of the code that do not follow the 
+prescriptions here, then it is either an oversight or code which existed 
+before this guide was created, and not a license to deviate.  Please strive 
+to follow the guide's principles.  If you really feel the need to 
+violate the principles here, mail to metpx-devel for discussion first.
+
+
+
+Development Platform: Any Old Linux Laptop Will Do
+---------------------------------------------------
+
+While MetPX runs at the CMC on highly redundant servers in a large cluster 
+in a climate controlled room with a small army of highly trained 
+specialists, it can run pretty much on any PC available on the market today.
+A good development environment is to remotely login to a server in a machine
+room, where real WMO bulletin and RADAR data streams are available, but 
+the application does not expect or require any sort of cluster infrastructure,
+and is not aware of one if it is in place.  It is blissfully ignorant of
+anything beyond a single system.
+
+One developer works exclusively on a vintage 2004 laptop running Kubuntu offsite,
+with no connectivity the WMO or any weather centre.  With a faster system 
+and/or more nodes, ultimate performance and reliability improve, but the 
+application itself is identical.
+
+You need to install a reasonably modern (i.e. Debian Sarge=3.1 or better, anything 
+released later than 2005/06) linux distribution.  It will be easiest if you
+use Debian, or Debian Derived operating system such as kubuntu on your laptop, 
+as well as the necessary development tools (principally subversion, and 
+several python modules) all of which are available from standard repositories.
 
 
 Getting Source Code
 -------------------
 
-FIXME: metpx.sf.net was down.. want to copy instructions.
-svn co etc...
+MetPX http://metpx.sourceforge.net is developed and used on Debian Linux Systems.  
+There are no special dependencies on this linux distribution, but no testing 
+of others is done.  Users of other Debian derived distributions should also have 
+no trouble (Ubuntu and Kubuntu will work fine.)  
 
+The simplest method of obtaining the source code is to open a shell window on
+a linux system, and execute the command:
 
-Development Environment
------------------------
+svn co https://svn.sourceforge.net/svnroot/metpx/trunk
 
-FIXME: just place holder for now.
+If you see *svn: command not found* then you need to have subversion
+installed on your system (likely by apt-get install subversion, as root.)
+Assuming it works, You will see a trunk directory. and you can set up
+a loop back environment by 
+
+Running A Loopback Test as a Developer
+----------------------------------------
+
+Once you have the source code. go into the trunk/sundew directory.
+
+| cd trunk/sundew
+| export PXROOT=`pwd`
+| export PATH="`pwd`/bin:${PATH}"
+| echo "user=*<your user name>*" > etc/px.conf   
+ 
+By setting PXROOT, PATH, as well putting the current user name in etc/px.conf,
+you can now run the application in a 'developer' mode.  To try it out,
+use the procedure from *A First Run* in the User's Guide, but use the PXETC 
+setting from here. You might also need to create a few directories first.
+something like:
+
+| mkdir etc/rx etc/tx txq rxq db
+| export PXETC=etc
+| 
+
+then the need to run all cat commands.
+
 One way to build a development environment is install the package normally,
 and then re-direct things.
 
- * dpkg -i first, then re-direct via symlinks
- * svn co (either anonymous, or with your user name.)
- * alternative, run with PXROOT setting.
- * Set up a loopback test environment, as per the User Guide.
- * Add what you need to test your features on top of the basic loop back.
 
 
-Contributing
--------------
+General Information About Contributions
+-----------------------------------------
 
+
+additional features for the user community to share.  The goal is
+ * subscribe to metpx-devel.
+ * Visit metpx.sf.net, and then go to the sourceforge site.  Look at the bugs 
+   and feature requests which are pending.  Feel free to add feature requests
+   there. 
+ * Propose/discuss your ideas on metpx-devel.
+ * You can always use anonymous checkout to obtain the code and play with it.
  * Read this manual first !
- * propose your ideas on metpx-devel.
  * do not add configuration options without discussion. (Principle 5)
  * consider performance when adding features. (Principle 4)
  * Apply Python Style Guide (even though some of the existing modules do not.)
- * Comments in the code should say what the goal of code is, rather than how it is being done (code itself says how.)
-       example to avoid (similar spots in the code in multiple places):
+ * Comments in the code should say what the goal of code is, rather than how 
+   it is being done (code itself says how.) example to avoid (similar spots 
+   in the code in multiple places):
+
 		# process the bulletin
                 self.processBulletin()
- * to become a project member email, one of the project admins.
-    * please subscribe to metpx-commit and metpx-devel first.
-    * probably will want to see some sample fixes, submitted as patches first.
+
+ * to become a project member email, one of the project admins. 
+   FIXME: Cathedral vs. Bazaar... We are cathedral, striving for Bazaar :-)
+   * please subscribe to metpx-commit and metpx-devel first.
+   * probably will want to see some sample fixes, submitted as patches first.
  * once you have commit privileges:
  * develop happens mostly on the trunk 
  * commit working code.  Occasional breakage is normal, but try to avoid it.
@@ -249,6 +390,13 @@ will most often lead to unwanted outcomes.
     to transform it.  They are not subject to this principle.
 
 
+7. Principle: There is no Cluster (metpx)
+
+    This application will typically be deployed in a cluster.  Don't
+    worry about it.  Pretend it isn't true.  The cluster architecture
+    for metpx is an array of identically configured nodes, none of whom
+    is aware that there is a cluster.  This is something of a corollary
+    to *Principle 2: Avoid IPC*
 
 
 Efficiency Tests
@@ -509,7 +657,7 @@ AFTN                          MessageAFTN.py
 
 
 
-Appendix III: Terminology/Glossary
+Terminology/Glossary
 ----------------------------------
 
 
