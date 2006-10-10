@@ -60,7 +60,7 @@ class ClientStatsPickler:
             -Builds a ClientStatsPickler with no entries.           
         """
         
-        self.client           = client                 # Name of the lcient for whom were collecting data 
+        self.client           = client                 # Name of the client for whom were collecting data 
         self.pickleName       = ""                     # Pickle 
         self.directory        = directory              # Name of the directory containing stats files.
         self.statsTypes       = statsTypes or []       # Types we'll search for stats. 
@@ -126,11 +126,11 @@ class ClientStatsPickler:
     
     def collectStats( self, types, directory, fileType = "tx", startTime = '2006-05-18 00:00:00', endTime = "", interval = 60*MINUTE, save = True  ):
         """
-            This method is used to collectstats for a directory.
+            This method is used to collect stats for a directory.
             
             Types is the type of dats to be collected. 
             
-            Pickle is th ename of the file to be used. If not specified will be generated
+            Pickle is the name of the file to be used. If not specified will be generated
             according to the other parameters.
             
             FileType specifies what type of files to look for in the directory.

@@ -112,7 +112,7 @@ class FileStatsCollector:
             is to set sourceFile and statsType. The class contains other methods to set the other values
             properly.  
             
-            constructor receives date in an iso format wich is conveniant for users but transforms is in a seconds since epoch format for ease of use during the program.   
+            constructor receives date in an iso format wich is conveniant for users but transforms it in a seconds since epoch format for ease of use during the program.   
             
             Precondition : Interval should be smaller than width !
         
@@ -168,14 +168,13 @@ class FileStatsCollector:
             
     def setMinMaxMeanMedians( self, productType = "", startingBucket = 0, finishingBucket = 0  ):
         """
-            This method takes all the values set in the values dictionary, finds the media for every
-            types found and sets them in a list of medians. This means if statsTypes = [latency, bytecount]
-            we will store the medians in the same order :[ latencyMedian, bytecountMedian ] 
+            This method takes all the values set in the values dictionary, finds the minimum, maximum,
+            mean and median for every types found and sets them in a dictionary.
             
             All values are set in the same method as to enhance performances slightly.
            
-            Product type starting bucket and finishing bucket can be quite usefull to recalculate a days data 
-            for only selected products names.  
+            Product type, starting bucket and finishing bucket parameters can be quite usefull
+            to recalculate a days data for only selected products names.  
             
             Pre-condition : Values dictionary should have been built and filled prior to using this method.
         
@@ -305,7 +304,7 @@ class FileStatsCollector:
                     total   = 0
                     mean    = 0
                     
-                self.fileEntries[i].medians[aType]= median     # appending values to a list   
+                self.fileEntries[i].medians[aType]= median# appending values to a list   
                 self.fileEntries[i].means[aType] = mean     
                 self.fileEntries[i].totals[aType] =  float(total)
                                     
@@ -569,9 +568,8 @@ class FileStatsCollector:
             -Number of entries is based on the time separators wich are found with the startTime, width and interval.  -Only entries with arrival time comprised between startTime and startTime + width will be saved in dicts
             -Entries wich have no values will have 0 as value for means, minimum maximum and median     
         
-            -Precondition : stats type specified in self must be valid. 
-        
-            - performance bottleneck...needs to be optimized badly.   
+            -Precondition : stats type specified in self must be valid.         
+              
         """
         
         line                  = ""                 
@@ -709,16 +707,10 @@ class FileStatsCollector:
             each data types wanted. 
                
         """
-        
-#         try:
             
         self.setValues( endTime )   #fill dictionary with values
         self.setMinMaxMeanMedians( startingBucket = self.firstFilledEntry, finishingBucket = self.lastFilledEntry  )  
-        
-#         except:
-#             (type, value, tb) = sys.exc_info()
-#             self.logger.error( "Unexpected exception in FileStatsCollector.collectSats." ) 
-#             self.logger.error("Type: %s, Value: %s, tb: %s ..." % (type, value,tb))                        
+                     
              
 
                          

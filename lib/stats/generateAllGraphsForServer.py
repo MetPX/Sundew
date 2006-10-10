@@ -27,11 +27,13 @@ named COPYING in the root of the source directory tree.
 
 
 import os,time, pwd, sys, getopt, commands, fnmatch,pickle
-from optparse import OptionParser
 import PXPaths 
+
+from optparse import OptionParser
 from PXPaths import * 
 from PXManager import *
 from  MyDateLib import *
+
 PXPaths.normalPaths()
 
 
@@ -263,10 +265,7 @@ def generateGraphsForIndividualMachines( infos ) :
             machine = infos.machines[i]         
                                              
         rxNames, txNames = getRxTxNames( infos.machines[i] )  
-                      
-                          
-#         #Create graphs for all         
-#         currentPid = os.getpid()#for testing only         
+     
         for txName in txNames :    
             pid = os.fork()#create child process
             
@@ -287,7 +286,6 @@ def generateGraphsForIndividualMachines( infos ) :
             
             if pid == 0 :#child process
                 status, output = commands.getstatusoutput( "python /apps/px/lib/stats/generateGraphics.py -m '%s' -f rx -c '%s' -d '%s' -s %s" %( machine , rxName, infos.date,infos.timespan ) )     
-                #print output #for debugging only
                 sys.exit()
         
         
@@ -297,10 +295,8 @@ def generateGraphsForIndividualMachines( infos ) :
             except:    
                 break          
         
-
-           
+          
                 
-
 def generateGraphsForPairedMachines( infos ) :
     """
         Create graphs for all client by merging the data from all the listed machines.    

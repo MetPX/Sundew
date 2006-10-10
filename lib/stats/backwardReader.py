@@ -16,7 +16,7 @@ named COPYING in the root of the source directory tree.
 ## Date   : 06-07-2006 
 ##
 ##
-## Description : Small utility that can be used to read files backward. 
+## Description : Small utility that can be used to read text files backward. 
 ##
 ##  Has a readlineBackwards method that is similar to readline 
 ##  and a tail method that is similar to the tail used in linux 
@@ -44,7 +44,7 @@ def tail( nbLines = 1, file = "", printIt = False ):
         
         offset   = -1
         lines    = []
-        fileSize = os.stat(file)[6]
+        fileSize = os.stat( file )[6]
         
         if fileSize >=2 : 
             

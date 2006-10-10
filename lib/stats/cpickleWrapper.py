@@ -34,7 +34,6 @@ import PXPaths
 PXPaths.normalPaths()
 
 
-
 def save( object, filename ):
     """
         Saves an object to disk using cpickle.

@@ -11,7 +11,8 @@ named COPYING in the root of the source directory tree.
 #
 # Date  : 2006-06-19
 #
-# Description: 
+# Description: This method allows user to quicly see all the update times stroed in the 
+#              pickledtimes file.
 #
 #   Usage:   This program can be called from command-line. 
 #
@@ -72,7 +73,7 @@ def loadPickledTimes( fileName ):
   
     else:
     
-        print "Error. Pickled times file named : %s does not exist." %fileName
+        print "Error. Pickled file named : %s does not exist." %fileName
         print "Modify content of this program to use another file."
         print "Program terminated."
         sys.exit()    

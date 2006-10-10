@@ -15,7 +15,7 @@ named COPYING in the root of the source directory tree.
 ## Date   : 06-07-2006 
 ##
 ##
-## Description : Contains all usefullclasses and methods to produce a graphic 
+## Description : Contains all the usefull classes and methods to produce a graphic 
 ##               for a certain client. Main use is to build latency graphics
 ##               for one or many clients. Can also produce graphics on
 ##               bytecounts and errors found in log files. 
@@ -32,9 +32,8 @@ import pickleUpdater
 import pickleMerging
 import logging 
 import PXPaths
-from   Logger import *
 
-
+from Logger import *
 from MyDateLib import MyDateLib
 from StatsPlotter import StatsPlotter
 from ClientStatsPickler import *
@@ -45,9 +44,7 @@ PXPaths.normalPaths()
 localMachine = os.uname()[1]
 
 class ClientGraphicProducer:
-    
-    
-    
+        
     def __init__( self, directory, fileType, clientNames = None ,  timespan = 12, currentTime = None, productType = "All", logger = None, machines = ["pds000"]  ):
         """
             ClientGraphicProducer constructor. 
@@ -56,6 +53,7 @@ class ClientGraphicProducer:
             system time by default.   
             
             CurrentTime is to be used if a different time than sytem time is to be used. 
+            
             Very usefull for testing or to implement graphic request where user can choose start 
             time.  
     
@@ -80,8 +78,7 @@ class ClientGraphicProducer:
         if self.logger is None: # Enable logging
             self.logger = Logger( PXPaths.LOG + localMachine + '/' + 'stats_' + self.loggerName + '.log.notb', 'INFO', 'TX' + self.loggerName ) 
             self.logger = self.logger.getLogger()
-                 
-
+                
     
 
     def produceGraphicWithHourlyPickles( self, types , now = False ):
@@ -94,10 +91,9 @@ class ClientGraphicProducer:
         
             Now option not yet implemented.
             
-            Every pickle necessary for graphic production needs to be there. Filling holes with empty data not yet implemented.  
+            Every pickle necessary for graphic production needs to be there. Filling holes with empty data not yet implemented.              
             
-            
-        """ 
+        """         
         
         collectorsList = [] #     
         minutesToAppend = 0 # In case we need to collect up to now 
@@ -144,12 +140,12 @@ class ClientGraphicProducer:
         if self.logger != None :         
             self.logger.debug( "Call to StatsPlotter :Clients:%s, timespan:%s, currentTime:%s, statsTypes:%s, productType:%s :" %( self.clientNames, self.timespan, self.currentTime, types, self.productType ) )
         
-        print "Call to StatsPlotter :Clients:%s, timespan:%s, currentTime:%s, statsTypes:%s, productType:%s :" %( self.clientNames, self.timespan, self.currentTime, types, self.productType )
+        #print "Call to StatsPlotter :Clients:%s, timespan:%s, currentTime:%s, statsTypes:%s, productType:%s :" %( self.clientNames, self.timespan, self.currentTime, types, self.productType )
         
         plotter = StatsPlotter( stats = collectorsList, clientNames = self.clientNames, timespan = self.timespan, currentTime = endTime, now = False, statsTypes = types, productType = self.productType, logger = None, machines = self.machines  )
         
         plotter.plot()                          
-        print "Plotted graph"
+        print "Plotted graph."
         
         if self.logger != None :
             self.logger.debug( "Returns from StatsPlotter." )

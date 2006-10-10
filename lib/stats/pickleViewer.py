@@ -42,8 +42,6 @@ def printPickle( pickle, outputFile = "" ):
         File can be specified to make reading easier. 
     
     """
-    
-#     try :
         
     if outputFile != "":
        
@@ -84,16 +82,8 @@ def printPickle( pickle, outputFile = "" ):
         fileHandle.close()      
         sys.stdout = old_stdout #resets standard output 
     
-    
-#     except:
-#         
-#         print "Error writing to file named %s" %outputFile
-#         print "Program terminated."
-#         sys.exit()
-#         
 
-
-
+        
 def main(): 
     """
         Validates program call,splits up parameter then calls

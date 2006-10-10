@@ -88,7 +88,7 @@ def mergePicklesFromDifferentHours( logger = None , startTime = "2006-07-31 13:0
     """
         This method merges entire hourly pickles files. 
         
-        This does not support merging part of the data of pickles yet.   
+        This does not support merging part of the data of pickles.   
     
     """
     
@@ -123,32 +123,19 @@ def mergePicklesFromDifferentHours( logger = None , startTime = "2006-07-31 13:0
             
     statsCollection = FileStatsCollector(  startTime = startTime , endTime = endTime, interval = MyDateLib.MINUTE, totalWidth = width, fileEntries = entries, logger = logger )
     
-#     statsCollection = statsCollection.setMinMaxMeanMedians( startingBucket = 0 , finishingBucket = statsCollection.nbEntries )      
-    
-#     statsCollection.logger = None
-#     cpickleWrapper.save( object = statsCollection, filename = "/apps/px/stats/mergedData") 
-#     #print "statsCollection.nbEntries %s" %statsCollection.nbEntries
-    
     return statsCollection        
-
 
 
 
 def mergePicklesFromSameHour( logger = None , pickleNames = None, mergedPickleName = "", clientName = "" , combinedMachineName = "", currentTime = "", fileType = "tx" ):
     """
-            This methods receives a list of filenames referring to /apps/px/lib/o 
-            pickled FileStatsEntries.
-            
-            Saves pickles since they might be reused somewhere else...
-            
-            Pre condition :Pickle should be of the same timespan and bucket width.
-                        If not exception will be raised and program terminated.  
-            
-                        
-            Note : Should test if it would be somewhat faster not to recalculate everything 
-            and just go with proportions 
-            
-    
+        This methods receives a list of filenames referring to pickled FileStatsEntries.
+        
+        After the merger pickles get saved since they might be reused somewhere else.
+        
+        Pre condition : Pickle should be of the same timespan and bucket width.
+                        If not no merging will occur.  
+        
     """
     
     
@@ -302,7 +289,8 @@ def mergePicklesFromDifferentMachines( logger = None , startTime = "2006-07-31 1
             #print "pickleNames : %s" %pickleNames
             for pickle in pickleNames : #Verify every pickle implicated in merger.
                 
-                if vc.isDifferentFile( file = pickle, user = combinedMachineName,client = client ) == True : # if for some reason pickle has changed since last time
+                # if for some reason pickle has changed since last time
+                if vc.isDifferentFile( file = pickle, user = combinedMachineName,client = client ) == True : 
                     #print "file : %s was found different" %pickle
                     needToMergeSameHoursPickle = True 
                     break 

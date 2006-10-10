@@ -24,25 +24,27 @@ named COPYING in the root of the source directory tree.
 
 #important files 
 import os,time, pwd, sys,getopt, commands, fnmatch,pickle
-from   Logger import * 
+import PXManager
+import PXPaths 
 
+
+from   Logger import * 
 from optparse import OptionParser
 from ConfigParser import ConfigParser
 from MyDateLib import *
 from ClientStatsPickler import ClientStatsPickler
-import PXManager
 from PXManager import *
-import PXPaths 
 from PXPaths import *
+
 PXPaths.normalPaths()
 PXPaths.RX_CONF  = '/apps/px/stats/rx/'
 PXPaths.TX_CONF  = '/apps/px/stats/tx/'
 PXPaths.TRX_CONF = '/apps/px/stats/trx/'
 localMachine = os.uname()[1]
 
-class _UpdaterInfos: 
-    
 
+
+class _UpdaterInfos:  
 
     def __init__( self, clients, directories, types, startTimes,collectUpToNow, fileType, currentDate = '2005-06-27 13:15:00', interval = 1, hourlyPickling = True, machine = ""   ):
         
@@ -406,8 +408,9 @@ def updateHourlyPickles( infos, logger = None ):
         
         width = MyDateLib.getSecondsSinceEpoch(infos.endTime) - MyDateLib.getSecondsSinceEpoch( MyDateLib.getIsoWithRoundedHours(infos.startTimes[i] ) ) 
         
+        
         if width > MyDateLib.HOUR :#In case pickling didnt happen for a few hours for some reason...   
-            #"pickles for numerous hours"
+            
             hours = [infos.startTimes[i]]
             hours.extend( MyDateLib.getSeparatorsWithStartTime( infos.startTimes[i], interval = MyDateLib.HOUR, width = width ))
             
@@ -448,10 +451,8 @@ def updateHourlyPickles( infos, logger = None ):
        
                          
         setLastCronJob( client = infos.clients[i], fileType = infos.fileType, currentDate = infos.currentDate, collectUpToNow = infos.collectUpToNow )
-        
-       
-        
-        
+              
+                
                 
 def updateConfigurationFiles( machine, login ):
     """

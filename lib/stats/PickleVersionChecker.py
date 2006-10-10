@@ -55,14 +55,10 @@ class PickleVersionChecker :
             Returns the checksum of all pickle files currently found on the disk.
             
         """  
-        
-    
-        #print "md5sum `find %s -name '*_??'` " %PXPaths.PICKLES
-        #status, md5Output = commands.getstatusoutput( "md5sum `find %s -name '*_??'` " %(PXPaths.PICKLES + client + "/") )
+
         filePattern = PXPaths.PICKLES + client + "/*/*"  #_??
-        #print "filePattern : %s" %filePattern
         folderNames = glob.glob( filePattern )
-        #print folderNames
+        
         
         fileNames = []
         for folder in folderNames:
@@ -70,19 +66,10 @@ class PickleVersionChecker :
                 filePattern = folder + "/" + "*_??"
                 fileNames.extend( glob.glob( filePattern ) )       
                 
-        
-        #print md5Output
-        #print "fileNames : %s" %fileNames 
-        #if status == 0:
+
         for fileName in fileNames :
-        
-            #for line in md5Output.splitlines():
-                #sum,file = line.split()      
-                #self.currentClientFileList[file] = sum
-            self.currentClientFileList[fileName] = os.path.getmtime( fileName )
-            
-        #print "self.currentClientFileList : %s" %self.currentClientFileList
-    
+            self.currentClientFileList[fileName] = os.path.getmtime( fileName )            
+   
         return  self.currentClientFileList       
             
         
@@ -128,14 +115,9 @@ class PickleVersionChecker :
     
         if self.savedFileList == {}:
             self.getSavedList( user, client )
-        #print "self.savedFileList : %s"   %self.savedFileList
-        #print "self.currentClientFileList : %s" %self.currentClientFileList
         
         try:
-            #print "first checksum : %s " %self.savedFileList[file] 
-            #print "second checksum : %s " %self.currentClientFileList[file] 
             if self.savedFileList[file] == self.currentClientFileList[file] :
-                #print "file : %s was found equal" %file
                 isDifferent = False         
             
         except:#key doesnt exist on one of the lists
@@ -146,41 +128,22 @@ class PickleVersionChecker :
             
     
     
-    def updateFileInList( self, file, client, user ) :
+    def updateFileInList( self, file ) :
         """
             File : Name of the file 
             User : Person for whom a relation with the file exists. 
             Puts current checksum value  
             
         """ 
-        #print "File we are trying to update in file list !!!!! : %s" %file
-        # Create all levels in 3 level dictionary if they do not allready exist. 
+        
         if self.savedFileList == None :
             self.savedFileList = {}  
-#             self.savedFileList[user] = {} 
-#             self.savedFileList[user][client] = {}
-#         
-#         try :    
-#             if self.savedFileList[user] == None:
-#                self.savedFileList[user] = {}         
-#         except:
-#             self.savedFileList[user] = {}
-#         
-#         try :    
-#             if self.savedFileList[user][client] == None:
-#                self.savedFileList[user][client] = {}         
-#         except:
-#             self.savedFileList[user][client] = {}   
-#                
-#         #print "before update : self.currentClientFileList : %s " %self.currentClientFileList 
         
         try :
             self.savedFileList[file] = self.currentClientFileList[file]
         except:
             self.savedFileList[file] = 0
-        
-        #print "updated"
-    
+            
     
     def saveList( self, user, client ):   
         """
