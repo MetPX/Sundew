@@ -16,55 +16,57 @@ named COPYING in the root of the source directory tree.
 import sys, logging, logging.handlers, fnmatch
 
 def funcToMethod(func, clas, method_name=None):
-   setattr(clas, method_name or func.__name__, func)
+    setattr(clas, method_name or func.__name__, func)
    
 def exception(self, message):
-   self.log(logging.EXCEPTION, message)
+    self.log(logging.EXCEPTION, message)
 
 def veryverbose(self, message):
-   self.log(logging.VERYVERBOSE, message)
+    self.log(logging.VERYVERBOSE, message)
 
 def veryveryverbose(self, message):
-   self.log(logging.VERYVERYVERBOSE, message)
+    self.log(logging.VERYVERYVERBOSE, message)
 
 class Logger:
 
-   def __init__(self, logname, log_level, loggername):
+   def __init__(self, logname, log_level, loggername, bytes=False):
        
-      # Standard error is redirected in the log
-      # FIXME: Potential problem when rotating occurs
-      if not fnmatch.fnmatch(logname, '*.log.notb'):
-        sys.stderr = open(logname, 'a')
+       # Standard error is redirected in the log
+       # FIXME: Potential problem when rotating occurs
+       if not fnmatch.fnmatch(logname, '*.log.notb'):
+           sys.stderr = open(logname, 'a')
+    
+       # Custom levels
+       logging.addLevelName(45, 'EXCEPTION')
+       logging.EXCEPTION = 45
+       funcToMethod(exception, logging.Logger)
 
-      # Custom levels
-      logging.addLevelName(45, 'EXCEPTION')
-      logging.EXCEPTION = 45
-      funcToMethod(exception, logging.Logger)
+       logging.addLevelName(5, 'VERYVERBOSE')
+       logging.VERYVERBOSE = 5
+       funcToMethod(veryverbose, logging.Logger)
 
-      logging.addLevelName(5, 'VERYVERBOSE')
-      logging.VERYVERBOSE = 5
-      funcToMethod(veryverbose, logging.Logger)
+       logging.addLevelName(3, 'VERYVERYVERBOSE')
+       logging.VERYVERYVERBOSE = 3
+       funcToMethod(veryveryverbose, logging.Logger)
 
-      logging.addLevelName(3, 'VERYVERYVERBOSE')
-      logging.VERYVERYVERBOSE = 3
-      funcToMethod(veryveryverbose, logging.Logger)
+       #fmt = logging.Formatter("%(levelname)-8s %(asctime)s %(name)s %(message)s")
+       #fmt = logging.Formatter("%(asctime)s [%(levelname)s] %(message)s","%x %X")
+       fmt = logging.Formatter("%(asctime)s [%(levelname)s] %(message)s")
+       if bytes:
+           hdlr = logging.handlers.RotatingFileHandler(logname, "a", 1000000, 3)  # Max 100000 bytes, 3 rotations
+       else:
+           hdlr = logging.handlers.TimedRotatingFileHandler(logname, when='midnight', interval=1, backupCount=5) 
+       hdlr.setFormatter(fmt)
 
-      #fmt = logging.Formatter("%(levelname)-8s %(asctime)s %(name)s %(message)s")
-      #fmt = logging.Formatter("%(asctime)s [%(levelname)s] %(message)s","%x %X")
-      fmt = logging.Formatter("%(asctime)s [%(levelname)s] %(message)s")
-      #hdlr = logging.handlers.RotatingFileHandler(logname, "a", 1000000, 3)  # Max 100000 bytes, 3 rotations
-      hdlr = logging.handlers.TimedRotatingFileHandler(logname, when='midnight', interval=1, backupCount=5) 
-      hdlr.setFormatter(fmt)
+       self.logger = logging.getLogger(loggername)
+       self.logger.setLevel(eval("logging." + log_level))                     # Set logging level
+       self.logger.addHandler(hdlr)
 
-      self.logger = logging.getLogger(loggername)
-      self.logger.setLevel(eval("logging." + log_level))                     # Set logging level
-      self.logger.addHandler(hdlr)
+       #print logging.getLevelName(5)
+       #print logging.getLevelName(3)
 
-      #print logging.getLevelName(5)
-      #print logging.getLevelName(3)
-
-   def getLogger(self):
-      return self.logger 
+    def getLogger(self):
+        return self.logger 
 
 if (__name__ == "__main__"):
    """
