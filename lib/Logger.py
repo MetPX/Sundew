@@ -65,8 +65,8 @@ class Logger:
        #print logging.getLevelName(5)
        #print logging.getLevelName(3)
 
-    def getLogger(self):
-        return self.logger 
+   def getLogger(self):
+       return self.logger 
 
 if (__name__ == "__main__"):
    """
