@@ -424,6 +424,16 @@ will most often lead to unwanted outcomes.
     to *Principle 2: Avoid IPC*
 
 
+8. Principle: Language is Important.
+
+    If you find us using ornate phraseology in order to convey a concept,
+    call us on it.  We will re-ify our definitions and phrasing methodology
+    to...  um... We'll find a simpler way to say it, OK? We try to pick
+    'le mot juste' (poor translation: The right word) so that the meaning
+    of directives, log messages, and displays are self-evident.  We value
+    clarity and brevity. (if you prefer: we like things short and clear!)
+
+
 Efficiency Tests
 ----------------------------
 

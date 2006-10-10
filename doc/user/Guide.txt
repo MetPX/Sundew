@@ -121,8 +121,8 @@ MetPX's switching component (sundew) functions, succinctly, as follows:
  * each pxReceiver processes destermins the routing key for the data, and 
  * The receivers then *switch* or *route* the data based on the label, (that is, they 
    queue the data for the appropriate Filters and Senders. Steps:
-      * look up the key in pxRouting.conf
-      * a table entry gives the list of destinations, as well as a sending priority.
+   * look up the key in pxRouting.conf
+   * a table entry gives the list of destinations, as well as a sending priority.
  * pxSenders send the data which is waiting in their queues.  
  * pxFilters read data from their queue like a sender, transform data in some 
    fashion, and then switch the data like a receiver.
@@ -356,43 +356,113 @@ So after this first run, one can try a number of experiments:
    Canadian MetManager, or AM software.
  * make the test run forever by *noduplicates false* to the loop sender's config 
 
-FIXME: VSFTP setup.
 
-in /etc/vsftpd.conf
-|  chown_uploads=yes
-|  chown_username=px
-|  ascii_upload_enable=yes  # useful when transferring to linux <-> VAX or windows
-|  userlist_enable=yes # do not use all users from the passwd file, but a separate list.
-|  userlist_deny=no # users from the list are allowed in.
-|  userlist_file=/etc/vsftpd.user_list
-|  write_enable=yes # cannot receive data if the remote users cannot write to server.
-|  
-|  guest_enable=yes   # make all authenticated ftp visits, ´guests´ of a local user.
-|  guest_username=px  # set the host user to receive guests.
-|  user_sub_token=$USER  # what to add to the guest user home directory to create a guest home.
-|  local_root=/apps/px/rxq/user_sub_token
+Configuring VSFTPD for File Reception
+-------------------------------------
 
-FIXME:  
-  I do not have this working yet...
-  This is really cool stuff, but we are currently just using vsftp as a normalish ftp 
-  server.  Need to try this out, get it to work so that all receivers get their data 
-  as the px user, so that no chowning is ever necessary.  
+If you are careful, you can likely use any FTP server you want.  However,
+VSFTPD usually makes configuration much simpler.  It is available from 
+standard repositories via *apt-get install vsftpd*.  
+
+Here is a complete /etc/vsftpd.conf that works for me:
+
+| cat >/etc/vsftpd.conf <<EOT
+| # These are Debian/Ubuntu Defaults ...
+| listen=YES
+| dirmessage_enable=YES
+| xferlog_enable=YES
+| connect_from_port_20=YES
+| secure_chroot_dir=/var/run/vsftpd
+| pam_service_name=vsftpd
+| rsa_cert_file=/etc/ssl/certs/ssl-cert-snakeoil.pem
+| rsa_private_key_file=/etc/ssl/private/ssl-cert-snakeoil.key
+| ascii_upload_enable=YES
+| ascii_download_enable=YES
+| 
+| # Do not want users logging in without pw.
+| anonymous_enable=NO
+| # will specify which users can log in in /etc/vsftpd.user_list
+| userlist_enable=YES
+| userlist_deny=NO
+| userlist_file=/etc/vsftpd.user_list
+| write_enable=YES
+| 
+| # all the authenticated users are 'guests' of the px account.
+| # when they log in, they will be placed in the right reception queueing directory.
+| local_enable=YES
+| guest_enable=YES
+| guest_username=px
+| virtual_use_local_privs=YES
+| user_sub_token=$USER
+| local_root=/apps/px/rxq/$USER
+| EOT
+|
+
+NOTE:
+   vsftpd has a very picky parser:
+
+   * it cares about capital letters versus lower case, and spaces.
+   * Do not put spaces before or after directives, or around the = sign.
+   * Do not apply trailing comments, they will be considered part of the value setting.  
+   * Comments need their own line. 
+
+Now that we have a vsftpd configuration, also need to prep for guest users.
+This is because of an oddity in vsftpd's PAM setup on ubuntu (same on Deb?), 
+where it refuses to approve a login unless the account has a valid shell.  
+/bin/false was already used as a login shell for many users, but it is not
+in /etc/shells.  Worrying that this was on purpose, and not wanting to 
+assign a useful shell to 'guests', added a bogus one to /etc/shells instead.
+
+| echo "/bin/true" >>/etc/shells
+
+Of note, vsftpd has the virtual user / guest user concept.  This makes it easier
+to set up ftp receivers.  For example, to configure ftp reception for 
+the 'file' receiver defined in the first run above, just do the following:
+
+|
+| useradd  -s /bin/true file   # create the 'file' user.
+| echo "file" >>/etc/vsftpd.user_list  # permit him to ftp into the server.
+| passwd file  # set his password.
+|    # assume it is ILuvData
+
+Send username and password to the technical contact at your data source, 
+and you work is done!
+
+
+Setup FTP Sender
+-----------------
+
+try a new sender loop configuration:
+
+| cat >${PXETC}/tx/loop <<EOT
+| type single-file
+| destination ftp://file:ILuvData@localhost
+| imask *
+| EOT
+
+If you start this up, it will loop infintely because there is no 
+duplicate suppression in the FTP sender.  So there you have
+a basic FTP sender!
+
 
 
 Basic Routing
 -------------
 
 FIXME: Add a second router, create per bulletin pxRouting file.
--- source
-     -- apply accept to extract key.
 
-   pxRouting.conf
-       -- list of keys with clients to route to.
-          find key, queue up for those clients.
 
--- client.
-       -- looks in it´s queue
-       -- applies imasks, sends as directed.
+* file naming requirements and conventions.
+
+* source 
+  * apply accept to extract key.
+* pxRouting.conf
+  * list of keys with clients to route to.
+  * find key, queue up for those clients.
+
+* client.
+  * looks in it´s queue
+  * applies imasks, sends as directed.
 
 
 Advanced Routing
@@ -515,3 +585,4 @@ OK, there is also mr-clean, which eliminates unwanted empty directories,
 as well as pxChecker which restarts any channels which may have failed.  Those 
 processes generally need no attention.  
 
+bandwidth control using vsftpd ... at least for reception.
