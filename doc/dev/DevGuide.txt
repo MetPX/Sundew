@@ -17,10 +17,10 @@ MetPX Contributors Guide
 .. contents::
 
 
-Making Better Things Together
-------------------------------
+Making Better Software Together
+---------------------------------
 
-People are welcome to make changes to the code.  We are especially pleased
+People are welcome to make changes to MetPX.  We are especially pleased
 if those who make changes choose to contribute them back to the project
 so that all users can benefit from the improvements.  The WMO messaging
 community is very, very, small.  Cooperative development of a reference
@@ -54,25 +54,35 @@ of open source projects as observed over the past decade.
     of reducing costs for all over the long term. 
 
   * Companies and contractors are welcome to include the application in 
-    their offering, even bundling it with their own products, provided they do 
+    their offerings, even bundling it with their own products, provided they do 
     not sell the software itself, or any derived products or improvements.  
-    Charging for support of the products they integrate is perfectly 
-    reasonable and expected.  Actions which build up the collaborative 
-    development community are welcome and encouraged.
+    They must also include the source code for the application, including
+    their modifications, when distributing the code.  Charging for support 
+    of the products they integrate is perfectly reasonable and expected.  
+    Actions which build up the collaborative development community are 
+    welcome and encouraged.
 
     (tha above paragraph is not part of any licensing agreement, but an attempt
     to describe GPLv2 in layman's terms.  GPLv2 presents the complete 
     licensing terms.)
 
-    Examples of companies profitably distributing GPL software on a 
-    commercial basis:  RedHat, Novell, Ubuntu, MySQL, JBOSS, ...
+    Here are some examples of companies distributing GPLv2 software on a 
+    commercial basis:  `RedHat <http://www.redhat.com>`_, 
+    `Novell <http://www.novell.com>`_, `Ubuntu <http://www.canonical.com>`_, 
+    `MySQL <http://www.mysql.com>`_, 
+    `JBOSS <http://www.jboss.com>`_ (now a division of RedHat), 
+    `SugarCRM <http://www.sugarCRM.com`_.
+    Well established integrators also profitably perform support roles without 
+    being necessarily associated with the product itself, such as 
+    `IBM <http://www.ibm.com>`_.  
 
     An example of a niche might be to provide turnkey solutions to clients
     which have little to no inhouse technical expertise.  A contract based
     on support costs would probably have little difference in it's cost vs.
     a conventional software sale.  For many vendors, creating the software
     is simply a cost for being in the integration niche.  The bigger
-    the user base, the more likely other contributors will appear.
+    the user base, the more likely other contributors will appear.  The
+    use of GPL'd software is a net benefit for system integrators.
 
 
 
@@ -184,8 +194,23 @@ something like:
 
 then the need to run all cat commands.
 
-One way to build a development environment is install the package normally,
-and then re-direct things.
+This should work as it did in the user guide.  Another way of working would
+be to install the package normally, but set the path for the px user to
+search your development path ahead of the default versions of metpx.
+
+
+Changing the Documentation
+-----------------------------
+
+To edit the documentation, checkout the source code normally. then change
+directory into the one containing the source of the manual you with
+to modify. ie.. sundew/doc/dev.  Once there, you can use a text editor
+to modify DevGuide.txt to make your own additions to the Contributor Guide.
+The document is in *ReStructured Text* see http://docutils.sourceforge.net/rst.html
+for details about that.  Once you have made your modifications to the .txt
+save your changes, and run make to see create the corresponding html.
+Review the html, and when satisfied, you can commit your changes back
+to the repository just as one would do with source code.
 
 
 

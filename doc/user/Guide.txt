@@ -119,11 +119,13 @@ MetPX can Send:
 MetPX's switching component (sundew) functions, succinctly, as follows:  
  * data is received by pxReceiver processes, 
  * each pxReceiver processes destermins the routing key for the data, and 
- * The receivers then *switch* or *route* the data based on the label, (that is, they queue the data for the appropriate Filters and Senders. Steps:
+ * The receivers then *switch* or *route* the data based on the label, (that is, they 
+   queue the data for the appropriate Filters and Senders. Steps:
       * look up the key in pxRouting.conf
       * a table entry gives the list of destinations, as well as a sending priority.
  * pxSenders send the data which is waiting in their queues.  
- * pxFilters read data from their queue like a sender, transform data in some fashion, and then switch the data like a receiver.
+ * pxFilters read data from their queue like a sender, transform data in some 
+   fashion, and then switch the data like a receiver.
 
 Receivers (also called *Sources*) and Senders (also called *Clients*), as 
 their names imply, are uni-directional data channels.  A receiver will only 
@@ -238,6 +240,7 @@ Now build a sample configuration:
 | cat >${PXETC}/rx/file.conf <<EOT
 |   type bulletin-file
 |   extension file\:-CCCC:-TT:-PRIORITY:Direct
+| EOT
 |
 | cat >${PXETC}/rx/loop.conf <<EOT
 |   type wmo
@@ -305,7 +308,13 @@ There should be three log files, and they should indicate normal startup.  Look 
 | 2006-10-08 00:24:36,556 [INFO] (107 Bytes) Ingested in DB as /apps/px/db/20061008/SM/file/CWAO/SMCN37_CWAO_300651___0001:file\:CWAO:SM:3:Direct:20061008042436
 | 2006-10-08 00:24:36,557 [INFO] Queued for: loop
 
+
 Then the rest of the bulletins are ingested once, and each in turn is queued for transmission on the loop wmo sender.
+One of the things to notice is what has been done to name the file corresponding to the bulletin received.  The file 
+name begins with the complete AHL, but then the a randomizing counter is added, followed by the string given in the 
+extension directive, and a reception timestamp.   The following line, 'Queued for' indicates whose transmission queues
+the file will be linked to.
+
 Now have a look at the log of the sender:
 
 | 2006-10-08 00:23:31,278 [INFO] Sender loop has been started
@@ -341,13 +350,39 @@ the excercise:
 | 18704 pts/2    S+     0:00 grep px
 | px@laptop:~/log$    
 
-To make the test run forever, You can turn off duplicate message detection
-in the sender by adding the line *noduplicates false* to the sender's config (/etc/px/tx/loop.conf). 
+So after this first run, one can try a number of experiments:
+
+ * replace wmo by am in the loop receiver and sender. You can now exchange data with 
+   Canadian MetManager, or AM software.
+ * make the test run forever by *noduplicates false* to the loop sender's config 
+
+FIXME: VSFTP setup.
+
+in /etc/vsftpd.conf
+|  chown_uploads=yes
+|  chown_username=px
+|  ascii_upload_enable=yes  # useful when transferring to linux <-> VAX or windows
+|  userlist_enable=yes # do not use all users from the passwd file, but a separate list.
+|  userlist_deny=no # users from the list are allowed in.
+|  userlist_file=/etc/vsftpd.user_list
+|  write_enable=yes # cannot receive data if the remote users cannot write to server.
+|  
+|  guest_enable=yes   # make all authenticated ftp visits, ´guests´ of a local user.
+|  guest_username=px  # set the host user to receive guests.
+|  user_sub_token=$USER  # what to add to the guest user home directory to create a guest home.
+|  local_root=/apps/px/rxq/user_sub_token
+
+FIXME:  
+  I do not have this working yet...
+  This is really cool stuff, but we are currently just using vsftp as a normalish ftp 
+  server.  Need to try this out, get it to work so that all receivers get their data 
+  as the px user, so that no chowning is ever necessary.  
 
 
 Basic Routing
 -------------
 
+FIXME: Add a second router, create per bulletin pxRouting file.
 -- source
      -- apply accept to extract key.
 
@@ -471,6 +506,7 @@ Peter?
 Columbo
 -------
 
+Need to install it on the laptop first...
 
 Miscellany
 ----------
