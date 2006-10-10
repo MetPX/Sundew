@@ -264,17 +264,26 @@ def getOverallMin( databaseName, startTime, endTime, logger = None ):
     """
     
     minimum = None 
-    output = rrdtool.fetch( databaseName, 'MIN', '-s', "%s" %startTime, '-e', '%s' %endTime )
-    #print output
-    minTuples = output[2]
-     
-    i = 0 
-    while i < len( minTuples ):
-        if minTuples[i][0] != 'None' and minTuples[i][0] != None  :        
-            if minTuple[0] < minimum or minimum == None : 
-                minimum = minTuple[0]
-        i = i + 1 
-    #print "minimum : %s " %minimum
+    
+    try :  
+    
+        output = rrdtool.fetch( databaseName, 'MIN', '-s', "%s" %startTime, '-e', '%s' %endTime )
+        #print output
+        minTuples = output[2]
+        
+        i = 0 
+        while i < len( minTuples ):
+            if minTuples[i][0] != 'None' and minTuples[i][0] != None  :        
+                if minTuple[0] < minimum or minimum == None : 
+                    minimum = minTuple[0]
+            i = i + 1 
+        #print "minimum : %s " %minimum
+    
+    except :
+        if logger != None:
+            logger.error( "Error in generateRRDGraphics.getOverallMin. Unable to read %s" %databaseName )
+        pass    
+        
     return minimum
     
     
@@ -284,20 +293,29 @@ def getOverallMax( databaseName, startTime, endTime, logger = None ):
         This methods returns the max of the entire set of data found between 
         startTime and endTime within the specified database name.
     """  
-
-    output = rrdtool.fetch( databaseName, 'MAX', '-s', "%s" %startTime, '-e', '%s' %endTime )
     
-    maximum = None 
-    maxTuples = output[2]
-    for maxTuple in maxTuples :
-        if maxTuple[0] != 'None' and maxTuple[0] != None :
-            if maxTuple[0] > maximum : 
-                maximum = maxTuple[0]
+    maximum = None
     
-    #print "maximum : %s " %maximum
-
+    try:
+    
+        output = rrdtool.fetch( databaseName, 'MAX', '-s', "%s" %startTime, '-e', '%s' %endTime )      
+        maxTuples = output[2]
+        
+        for maxTuple in maxTuples :
+            if maxTuple[0] != 'None' and maxTuple[0] != None :
+                if maxTuple[0] > maximum : 
+                    maximum = maxTuple[0]
+        
+        #print "maximum : %s " %maximum
+    
+    except :
+        if logger != None:
+            logger.error( "Error in generateRRDGraphics.getOverallMin. Unable to read %s" %databaseName )
+        pass    
+    
     return maximum 
  
+    
        
 def getOverallMean( databaseName, startTime, endTime, logger = None  ):
     """
@@ -306,23 +324,27 @@ def getOverallMean( databaseName, startTime, endTime, logger = None  ):
         
     """
     
-    output = rrdtool.fetch( databaseName, 'AVERAGE', '-s', "%s" %startTime, '-e', '%s' %endTime )
+    sum = 0 
+    avg = 0
     
-    #print output
-    
-    sum = 0
-    meanTuples = output[2]
-    i =0
-    for meanTuple in meanTuples :
+    try :
         
-        if meanTuple[0] != 'None' and meanTuple[0] != None :
-            sum = sum + meanTuple[0]
-
-    avg = sum / len( meanTuples )  
-    #print "avg : %s " %avg
+        output = rrdtool.fetch( databaseName, 'AVERAGE', '-s', "%s" %startTime, '-e', '%s' %endTime )
+        meanTuples = output[2]
+        
+        for meanTuple in meanTuples :            
+            if meanTuple[0] != 'None' and meanTuple[0] != None :
+                sum = sum + meanTuple[0]
     
+        avg = sum / len( meanTuples )  
+        #print "avg : %s " %avg
+    
+    except :
+        if logger != None:
+            logger.error( "Error in generateRRDGraphics.getOverallMin. Unable to read %s" %databaseName )
+        pass    
+            
     return avg 
-
     
 
 
@@ -375,11 +397,22 @@ def plotRRDGraph( databaseName, type, client, machine, infos, logger = None ):
     
     
     title = buildTitle( type, client, infos.currentTime, infos.timespan, minimum, maximum, mean )
+    try:
+        rrdtool.graph( imageName,'--imgformat', 'PNG','--width', '600','--height', '200','--start', "%i" %(start) ,'--end', "%s" %(end), '--vertical-label', '%s' %type,'--title', '%s'%title,'COMMENT: Minimum %s Maximum  %s Mean %.2f\c' %( minimum, maximum, mean), '--lower-limit','0','DEF:latency=%s:latency:AVERAGE'%databaseName, 'AREA:latency#cd5c5c:%s' %type,'LINE1:latency#8b0000:%s'%type)
+        
+        print "Plotted : %s" %imageName
+        if logger != None:
+            logger.info(  "Plotted : %s" %imageName )
+       
     
-    rrdtool.graph( imageName,'--imgformat', 'PNG','--width', '600','--height', '200','--start', "%i" %(start) ,'--end', "%s" %(end), '--vertical-label', '%s' %type,'--title', '%s'%title,'COMMENT: Minimum %s Maximum  %s Mean %.2f\c' %( minimum, maximum, mean), '--lower-limit','0','DEF:latency=%s:latency:AVERAGE'%databaseName, 'AREA:latency#cd5c5c:%s' %type,'LINE1:latency#8b0000:%s'%type)
+    except :
+        if logger != None:
+            logger.error( "Error in generateRRDGraphics.plotRRDGraph. Unable to generate %s" %imageName )
+        pass     
     
-    print "plotted : %s" %imageName
     
+
+        
     
 def generateRRDGraphics( infos, logger = None ):
     """
@@ -408,14 +441,14 @@ def main():
     if not os.path.isdir( PXPaths.LOG + localMachine + '/' ):
         os.makedirs( PXPaths.LOG + localMachine + '/', mode=0777 )
     
-    logger = Logger( PXPaths.LOG + localMachine + "/" + 'stats_' + 'rrd_graphs' + '.log.notb', 'INFO', 'TX' + 'rrd_transfer' ) 
+    logger = Logger( PXPaths.LOG + localMachine + "/" + 'stats_' + 'rrd_graphs' + '.log.notb', 'INFO', 'TX' + 'rrd_transfer', bytes = True  ) 
     
     logger = logger.getLogger()
        
     parser = createParser() 
    
     infos = getOptionsFromParser( parser )
-#     #print "infos : %s" %infos.clients
+    #print "infos : %s" %infos.clients
     generateRRDGraphics( infos, logger = logger )
     
     

@@ -498,7 +498,7 @@ def main():
     if not os.path.isdir( PXPaths.LOG + localMachine + '/' ):
         os.makedirs( PXPaths.LOG + localMachine + '/', mode=0777 )
     
-    logger = Logger( PXPaths.LOG + localMachine + "/" + 'stats_' + 'rrd_transfer' + '.log.notb', 'INFO', 'TX' + 'rrd_transfer' ) 
+    logger = Logger( PXPaths.LOG + localMachine + "/" + 'stats_' + 'rrd_transfer' + '.log.notb', 'INFO', 'TX' + 'rrd_transfer', bytes = True  ) 
     
     logger = logger.getLogger()
        

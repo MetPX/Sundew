@@ -71,7 +71,7 @@ class ClientStatsPickler:
         if logger is None: # Enable logging
             if not os.path.isdir( PXPaths.LOG + localMachine + '/' ):
                 os.makedirs( PXPaths.LOG + localMachine + '/', mode=0777 )
-            self.logger = Logger( PXPaths.LOG + localMachine + '/' + 'stats_' + self.loggerName + '.log.notb', 'INFO', 'TX' + self.loggerName ) 
+            self.logger = Logger( PXPaths.LOG + localMachine + '/' + 'stats_' + self.loggerName + '.log.notb', 'INFO', 'TX' + self.loggerName, bytes = True  ) 
             self.logger = self.logger.getLogger()
            
         self.statsCollection  = statsCollection or FileStatsCollector( logger = self.logger )
