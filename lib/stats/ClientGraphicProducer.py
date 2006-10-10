@@ -76,6 +76,8 @@ class ClientGraphicProducer:
         self.logger       = logger            # Enable logging
         
         if self.logger is None: # Enable logging
+            if not os.path.isdir( PXPaths.LOG + localMachine + '/' ):
+                os.makedirs( PXPaths.LOG + localMachine + '/', mode=0777 )
             self.logger = Logger( PXPaths.LOG + localMachine + '/' + 'stats_' + self.loggerName + '.log.notb', 'INFO', 'TX' + self.loggerName ) 
             self.logger = self.logger.getLogger()
                 
@@ -145,7 +147,7 @@ class ClientGraphicProducer:
         plotter = StatsPlotter( stats = collectorsList, clientNames = self.clientNames, timespan = self.timespan, currentTime = endTime, now = False, statsTypes = types, productType = self.productType, logger = None, machines = self.machines  )
         
         plotter.plot()                          
-        print "Plotted graph."
+        #print "Plotted graph."
         
         if self.logger != None :
             self.logger.debug( "Returns from StatsPlotter." )

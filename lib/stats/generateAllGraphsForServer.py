@@ -29,10 +29,10 @@ named COPYING in the root of the source directory tree.
 import os,time, pwd, sys, getopt, commands, fnmatch,pickle
 import PXPaths 
 
-from optparse import OptionParser
-from PXPaths import * 
+from optparse  import OptionParser
+from PXPaths   import * 
 from PXManager import *
-from  MyDateLib import *
+from MyDateLib import *
 
 PXPaths.normalPaths()
 
@@ -342,12 +342,13 @@ def generateGraphsForPairedMachines( infos ) :
         
         if pid == 0:#child process            
             status, output = commands.getstatusoutput( "python /apps/px/lib/stats/generateGraphics.py -m %s -f rx -c %s -d '%s' -s %s  " %( infos.combinedName, rxName, infos.date, infos.timespan ) )     
+            #print output 
             sys.exit()
             
     
     while True:#wait on all non terminated child process'
         try:   #will raise exception when no child process remain.    
-            print "goes to wait"    
+            #print "goes to wait"    
             pid, status = os.wait( )
         except:    
             break  

@@ -301,7 +301,7 @@ def mergePicklesFromDifferentMachines( logger = None , startTime = "2006-07-31 1
                 
                 #print pickleNames
                 for pickle in pickleNames :
-                    vc.updateFileInList( file = pickle, user = combinedMachineName, client = client )
+                    vc.updateFileInList( file = pickle )
             
                 vc.saveList( user = combinedMachineName, client = client)
                 

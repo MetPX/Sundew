@@ -495,6 +495,9 @@ def main():
    
     localMachine = os.uname()[1] # /apps/px/log/ logs are stored elsewhere at the moment.
     
+    if not os.path.isdir( PXPaths.LOG + localMachine + '/' ):
+        os.makedirs( PXPaths.LOG + localMachine + '/', mode=0777 )
+    
     logger = Logger( PXPaths.LOG + localMachine + "/" + 'stats_' + 'rrd_transfer' + '.log.notb', 'INFO', 'TX' + 'rrd_transfer' ) 
     
     logger = logger.getLogger()

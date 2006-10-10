@@ -248,14 +248,14 @@ def main():
     
     infos = getOptionsFromParser( parser )      
     
-    print "parameters in generate graphics: %s %s %s %s %s %s %s" %( infos.clientNames, infos.timespan, infos.currentTime, infos.productType, infos.directory , infos.fileType,  infos.machines)
+    #print "parameters in generate graphics: %s %s %s %s %s %s %s" %( infos.clientNames, infos.timespan, infos.currentTime, infos.productType, infos.directory , infos.fileType,  infos.machines)
     
     
     gp = ClientGraphicProducer( clientNames = infos.clientNames, timespan = infos.timespan, currentTime = infos.currentTime, productType = infos.productType, directory = infos.directory , fileType = infos.fileType, machines = infos.machines )  
     
     gp.produceGraphicWithHourlyPickles( types = infos.types, now = infos.collectUpToNow   )
     
-    print "Done." # replace by logging later.
+    #print "Done." # replace by logging later.
 
 
 if __name__ == "__main__" :

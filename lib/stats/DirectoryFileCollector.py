@@ -61,6 +61,8 @@ class DirectoryFileCollector:
        
         
         if logger is None: # Enable logging
+            if not os.path.isdir( PXPaths.LOG + localMachine + '/' ):
+                os.makedirs( PXPaths.LOG + localMachine + '/', mode=0777 )
             self.logger = Logger( PXPaths.LOG + localMachine + '/', 'stats_' + self.loggerName + '.log.notb', 'INFO', 'TX' + self.loggerName ) 
             self.logger = self.logger.getLogger()
             

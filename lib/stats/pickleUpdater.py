@@ -498,6 +498,9 @@ def main():
       
     updateConfigurationFiles( machine = mirrorMachine, login = login )
     
+    if not os.path.isdir( PXPaths.LOG + localMachine + '/' ):
+        os.makedirs( PXPaths.LOG + localMachine + '/', mode=0777 )
+    
     logger = Logger( PXPaths.LOG + localMachine + "/" + 'stats_' + 'pickling' + '.log.notb', 'INFO', 'TX' + 'pickling' ) 
     logger = logger.getLogger()
    
