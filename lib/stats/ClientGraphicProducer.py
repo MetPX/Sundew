@@ -81,9 +81,12 @@ class ClientGraphicProducer:
             self.logger = Logger( PXPaths.LOG + localMachine + '/' + 'stats_' + self.loggerName + '.log.notb', 'INFO', 'TX' + self.loggerName, bytes = True  ) 
             self.logger = self.logger.getLogger()
                 
-    
+    def createLink( client, imageName ):
+        """
+           Creates a symbolic link to an image name. 
+        """
 
-    def produceGraphicWithHourlyPickles( self, types , now = False ):
+    def produceGraphicWithHourlyPickles( self, types , now = False, createLink = False ):
         """
             This higher-level method is used to produce a graphic based on the data found in log files
             concerning a certain client. Data will be searched according to the clientName and timespan
@@ -146,7 +149,8 @@ class ClientGraphicProducer:
         
         plotter = StatsPlotter( stats = collectorsList, clientNames = self.clientNames, timespan = self.timespan, currentTime = endTime, now = False, statsTypes = types, productType = self.productType, logger = None, machines = self.machines  )
         
-        plotter.plot()                          
+        plotter.plot( createLink )
+                                  
         #print "Plotted graph."
         
         if self.logger != None :

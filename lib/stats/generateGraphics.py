@@ -35,7 +35,7 @@ localMachine = os.uname()[1]
 
 class _GraphicsInfos:
 
-    def __init__( self, directory, fileType, types, collectUpToNow,  clientNames = None ,  timespan = 12, currentTime = None, productType = "All", machines = ["pdsGG"]  ):
+    def __init__( self, directory, fileType, types, collectUpToNow,  clientNames = None ,  timespan = 12, currentTime = None, productType = "All", machines = ["pdsGG"], link = False   ):
 
             
         self.directory    = directory         # Directory where log files are located. 
@@ -47,7 +47,7 @@ class _GraphicsInfos:
         self.currentTime  = currentTime       # Time when stats were queried.
         self.productType  = productType       # Specific data type on wich we'll collect the data.
         self.machines     = machines          # Machine from wich we want the data to be calculated.
-        
+        self.link         = link              #Wheteher or not we create a link file.
         
 #################################################################
 #                                                               #
@@ -77,6 +77,7 @@ def getOptionsFromParser( parser ):
     currentTime      = options.currentTime.replace('"','').replace("'",'')
     fileType         = options.fileType.replace("'",'')
     collectUpToNow   = options.collectUpToNow
+    link             = options.link
     productType      = options.productType.replace( ' ', '' )     
      
     
@@ -145,7 +146,7 @@ def getOptionsFromParser( parser ):
     directory = PXPaths.LOG + localMachine + "/"
     
        
-    infos = _GraphicsInfos( collectUpToNow = collectUpToNow, currentTime = currentTime, clientNames = clientNames,  directory = directory , types = types, fileType = fileType, timespan = timespan, productType = productType, machines = machines )
+    infos = _GraphicsInfos( collectUpToNow = collectUpToNow, currentTime = currentTime, clientNames = clientNames,  directory = directory , types = types, fileType = fileType, timespan = timespan, productType = productType, machines = machines, link = link )
     
     if collectUpToNow == False:
         infos.endTime = MyDateLib.getIsoWithRoundedHours( infos.currentTime ) 
@@ -224,6 +225,8 @@ def addOptions( parser ):
     
     parser.add_option("-f", "--fileType", action="store", type="string", dest="fileType", default='tx', help="Type of log files wanted.")                     
    
+    parser.add_option("-l", "--link", action="store_true", dest = "link", default=False, help="Create a link file for the generated image.")
+    
     parser.add_option( "-m", "--machines", action="store", type="string", dest="machines", default=localMachine, help = "Machines for wich you want to collect data." ) 
     
     parser.add_option("-n", "--collectUpToNow", action="store_true", dest = "collectUpToNow", default=False, help="Collect data up to current second.")
@@ -253,7 +256,7 @@ def main():
     
     gp = ClientGraphicProducer( clientNames = infos.clientNames, timespan = infos.timespan, currentTime = infos.currentTime, productType = infos.productType, directory = infos.directory , fileType = infos.fileType, machines = infos.machines )  
     
-    gp.produceGraphicWithHourlyPickles( types = infos.types, now = infos.collectUpToNow   )
+    gp.produceGraphicWithHourlyPickles( types = infos.types, now = infos.collectUpToNow, createLink = infos.link   )
     
     #print "Done." # replace by logging later.
 

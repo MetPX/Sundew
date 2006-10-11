@@ -341,8 +341,36 @@ class StatsPlotter:
         return title
         
     
-    
-    def plot( self ):
+    def createLink( self ):
+        """
+            Creates a symbolic link between created image file and 
+            an shorter, easier to read name. 
+            
+        """
+        clientName = ""
+        
+        if len( self.clientNames ) == 0:
+            clientName = self.clientNames[0]
+        else:
+            for name in self.clientNames :
+                clientName = clientName + name  
+                if name != self.clientNames[ len(self.clientNames) -1 ] :
+                    clientName = clientName + "-" 
+        
+        src         = self.imageName
+        destination = PXPaths.GRAPHS + "/symlinks/%s" %clientName 
+        
+        if not os.path.isdir( PXPaths.GRAPHS + "/symlinks/" ):
+            os.makedirs( PXPaths.GRAPHS + "/symlinks/", mode=0777 )
+        
+        if os.path.isfile( destination ):
+            os.remove( destination )
+        
+        os.symlink( src, destination )
+        
+        
+         
+    def plot( self, createLink = False  ):
         """
             Used to plot gnuplot graphics. Settings used are
             slighly modified but mostly based on Plotter.py's
@@ -389,8 +417,7 @@ class StatsPlotter:
         self.graph( 'set multiplot' ) 
         
         
-        for i in range( len( self.stats ) ) :
-            
+        for i in range( len( self.stats ) ) :            
                        
             for j in range ( len ( self.statsTypes ) ):
                 
@@ -416,9 +443,10 @@ class StatsPlotter:
                 self.graph.plot( Gnuplot.Data( pairs , with="%s %s 1" % ( self.type, color) ) )
                 
                 nbGraphs = nbGraphs + 1 
-
+                
                     
-        
+        if createLink :
+            self.createLink(  )     
          
     def addLatencyLabelsToGraph( self, i , nbGraphs, j, maxPairValue ):
         """

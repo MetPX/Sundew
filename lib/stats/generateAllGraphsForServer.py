@@ -270,7 +270,7 @@ def generateGraphsForIndividualMachines( infos ) :
             pid = os.fork()#create child process
             
             if pid == 0: #child process
-                status, output = commands.getstatusoutput( "python /apps/px/lib/stats/generateGraphics.py -m '%s' -f tx -c '%s' -d '%s' -s %s " %( machine, txName, infos.date, infos.timespan) )                
+                status, output = commands.getstatusoutput( "python /apps/px/lib/stats/generateGraphics.py -m '%s' -f tx -c '%s' -d '%s' -s %s -l" %( machine, txName, infos.date, infos.timespan) )                
                 sys.exit()
         
         while True:#wait on all non terminated child process'
@@ -285,7 +285,7 @@ def generateGraphsForIndividualMachines( infos ) :
             pid = os.fork()#create child process
             
             if pid == 0 :#child process
-                status, output = commands.getstatusoutput( "python /apps/px/lib/stats/generateGraphics.py -m '%s' -f rx -c '%s' -d '%s' -s %s" %( machine , rxName, infos.date,infos.timespan ) )     
+                status, output = commands.getstatusoutput( "python /apps/px/lib/stats/generateGraphics.py -m '%s' -f rx -c '%s' -d '%s' -s %s -l" %( machine , rxName, infos.date,infos.timespan ) )     
                 sys.exit()
         
         
@@ -325,7 +325,8 @@ def generateGraphsForPairedMachines( infos ) :
         pid = os.fork()#create child process
         
         if pid == 0 :#child process
-            status, output = commands.getstatusoutput( "python /apps/px/lib/stats/generateGraphics.py -m %s -f tx -c %s -d '%s' -s %s  " %( infos.combinedName, txName, infos.date,infos.timespan ) )
+            status, output = commands.getstatusoutput( "python /apps/px/lib/stats/generateGraphics.py -m %s -f tx -c %s -d '%s' -s %s  -l" %( infos.combinedName, txName, infos.date, infos.timespan ) )
+            createLink( infos.combinedName, txName, infos.date, infos.timespan ) 
             sys.exit()    #terminate child process
             
     
@@ -341,7 +342,7 @@ def generateGraphsForPairedMachines( infos ) :
         pid = os.fork()#create child process
         
         if pid == 0:#child process            
-            status, output = commands.getstatusoutput( "python /apps/px/lib/stats/generateGraphics.py -m %s -f rx -c %s -d '%s' -s %s  " %( infos.combinedName, rxName, infos.date, infos.timespan ) )     
+            status, output = commands.getstatusoutput( "python /apps/px/lib/stats/generateGraphics.py -m %s -f rx -c %s -d '%s' -s %s  -l" %( infos.combinedName, rxName, infos.date, infos.timespan ) )     
             #print output 
             sys.exit()
             
