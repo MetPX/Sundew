@@ -17,15 +17,17 @@ named COPYING in the root of the source directory tree.
 # Description:
 #
 # Revision :  2006-05-14 (ingestCollection by MG)
+#             2006-10-14 (ingestFile       by MG)
 #
 #############################################################################################
 
 """
-import sys, os, os.path, string, fnmatch, time, signal, stat
+import sys, os, os.path, string, fnmatch, re, time, signal, stat
 import PXPaths
 from PXManager import PXManager
 from Client import Client
-from CacheManager import CacheManager
+from CacheManager        import CacheManager
+from DirectRoutingParser import DirectRoutingParser
 
 PXPaths.normalPaths()              # Access to PX paths
 
@@ -40,6 +42,7 @@ class Ingestor(object):
         # General Attributes
         self.source = source
         self.reader = None
+        self.drp    = None
         if source is not None:
             self.ingestDir = PXPaths.RXQ + self.source.name
             self.logger = source.logger
@@ -139,6 +142,29 @@ class Ingestor(object):
         else:
             return ''
 
+    def getRouteKey(self, filename):
+        """
+        Given an ingest name, return a route key based on the imask given
+        """
+        # check against the masks
+        for mask in self.source.masks:
+
+            # accept/imask
+            if len(mask) == 3 :
+               parts = re.findall( mask[0], filename )
+               if len(parts) != 1 : continue
+               key = parts[0]
+               if isinstance(parts[0],tuple) : key = '_'.join(parts[0])
+               self.logger.debug("RouteKey Key = %s  Mask = %s  Filename = %s" % (key,mask[0],filename) )
+               return key
+
+            # reject/emask
+            else  :
+               if fnmatch.fnmatch(filename, mask[0]): return None
+ 
+        # fallback behavior 
+        return None
+
     def isMatching(self, client, ingestName):
         """
         Verify if ingestName is matching one mask of a client
@@ -151,6 +177,30 @@ class Ingestor(object):
                 except:
                     return False
         return False
+
+    def getMatchingClientNamesFromKey(self, key, ingestName):
+        matchingClients = []
+
+        # if direct key match does not work than
+        # check for an indirect key match with key_accept/key_reject pattern
+
+        if self.drp.routingInfos.has_key(key):
+                self.logger.debug("Key %s had a direct routing match" % key )
+                matchingClients = self.drp.getHeaderClients(key)
+        else :
+                matchingClients = self.drp.getKeyClients(key)
+                if matchingClients != None : 
+                   self.logger.debug("Key %s added to routing" % key )
+                else :
+                   self.logger.debug("Key %s not match and not found in routing" % key )
+                   return None
+
+        # check pattern matching in clients
+
+        if self.source.clientsPatternMatching:
+           matchingClients = self.getMatchingClientNamesFromMasks(ingestName, matchingClients)
+                
+        return matchingClients
 
     def getMatchingClientNamesFromMasks(self, ingestName, potentialClientNames):
         matchingClientNames = []
@@ -250,6 +300,91 @@ class Ingestor(object):
         elif self.source.type == 'collector':
             self.ingestCollection()
 
+    def ingestFile(self, igniter):
+        from DiskReader import DiskReader
+
+        self.drp = DirectRoutingParser(PXPaths.ROUTING_TABLE, self.allNames, self.logger)
+        self.drp.parse()
+
+        # we will not use paternMaching ... file validation now require
+        # building a key out of the filename and match the key with the routingtable
+        patternMatching = False
+
+        reader = DiskReader(self.ingestDir, self.source.batch, self.source.validation, patternMatching,
+                            self.source.mtime, False, self.source.logger, self.source.sorter, self.source)
+
+        while True:
+            if igniter.reloadMode == True:
+                # We assign the defaults, reread configuration file for the source
+                # and reread all configuration file for the clients (all this in __init__)
+                self.source.__init__(self.source.name, self.source.logger)
+
+
+                self.drp = DirectRoutingParser(PXPaths.ROUTING_TABLE, self.allNames, self.logger)
+                self.drp.parse()
+
+                reader = DiskReader(self.ingestDir, self.source.batch, self.source.validation, patternMatching,
+                                    self.source.mtime, False, self.source.logger, self.source.sorter, self.source)
+                self.logger.info("Receiver has been reloaded")
+                igniter.reloadMode = False
+            reader.read()
+            if len(reader.sortedFiles) <= 0:
+               time.sleep(1)
+               continue
+
+            sortedFiles = reader.sortedFiles[:self.source.batch]
+            self.logger.info("%d files will be ingested" % len(sortedFiles))
+
+            # loop on all files
+
+            for filex in sortedFiles:
+                file = filex
+
+                # converting the file if necessary
+
+                if self.source.execfile != None :
+                   fxfile = self.source.run_fx_script(file,self.source.logger)
+
+                   # convertion did not work
+                   if fxfile == None :
+                          self.logger.warning("FX script ignored the file : %s"    % os.path.basename(file) )
+                          os.unlink(file)
+                          continue
+
+                   # file already in proper format
+                   elif fxfile == file :
+                          self.logger.warning("FX script kept the file as is : %s" % os.path.basename(file) )
+
+                   # file converted...
+                   else :
+                          self.logger.info("FX script modified %s to %s " % (os.path.basename(file),fxfile) )
+                          os.unlink(file)
+                          file = fxfile
+
+                # ingestName is used for key generation
+                # Key is used to get clientlist
+
+                ingestName       = self.getIngestName(os.path.basename(file))
+                routeKey         = self.getRouteKey(ingestName)
+
+                # if key is found : find clients associated with key
+                # else ... file is ingested as problem....
+
+                matchingClients = []
+
+                if routeKey != None :
+                   matchingClients = self.getMatchingClientNamesFromKey(routeKey,ingestName)
+
+                if routeKey == None or matchingClients == None :
+                   parts=ingestName.split(':')
+                   ingestName =  parts[0] + ":PROBLEM:PROBLEM:PROBLEM:" + parts[4] + ":PROBLEM"
+                   matchingClients = []
+
+                # ingesting the file
+
+                self.ingest(file, ingestName, matchingClients )
+                os.unlink(file)
+
     def ingestSingleFile(self, igniter):
         from DiskReader import DiskReader
 
@@ -272,25 +407,35 @@ class Ingestor(object):
                continue
 
             sortedFiles = reader.sortedFiles[:self.source.batch]
-            fileList = sortedFiles
+            self.logger.info("%d files will be ingested" % len(sortedFiles))
 
-            # applying the fx_script if defined
-            if self.source.execfile != None :
-               self.logger.info("%d files will be converted" % len(sortedFiles))
-               fileList = []
-               for file in sortedFiles:
+            for filex in sortedFiles:
+                file = filex
+
+                # converting the file if necessary
+                if self.source.execfile != None :
+
                    fxfile = self.source.run_fx_script(file,self.source.logger)
-                   os.unlink(file)
-                   if fxfile == None :
-                      self.logger.warning("Unable to apply FX on file %s ... file ignored" % os.path.basename(file) )
-                      continue
-                   fileList.append(fxfile)
-                   self.logger.info("File %s modified to %s " % (os.path.basename(file),fxfile) )
 
-            # ingesting files
-            self.logger.info("%d files will be ingested" % len(fileList))
-            for file in fileList:
-                ingestName = self.getIngestName(os.path.basename(file)) 
+                   # convertion did not work
+                   if fxfile == None :
+                          self.logger.warning("FX script ignored the file : %s"    % os.path.basename(file) )
+                          os.unlink(file)
+                          continue
+
+                   # file already in proper format
+                   elif fxfile == file :
+                          self.logger.warning("FX script kept the file as is : %s" % os.path.basename(file) )
+
+                   # file converted...
+                   else :
+                          self.logger.info("FX script modified %s to %s " % (os.path.basename(file),fxfile) )
+                          os.unlink(file)
+                          file = fxfile
+
+                # ingesting the file
+
+                ingestName = self.getIngestName(os.path.basename(file))
                 matchingClients = self.getMatchingClientNamesFromMasks(ingestName, self.clientNames)
                 self.logger.debug("Matching (from patterns) client names: %s" % matchingClients)
                 self.ingest(file, ingestName, matchingClients )
