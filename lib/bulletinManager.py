@@ -160,7 +160,7 @@ class bulletinManager:
         os.close( unFichier )
         os.chmod(tempNom,0644)
 
-        entete = ' '.join(unBulletin.getHeader().split()[:2])
+        entete = '_'.join(unBulletin.getHeader().split()[:2])
 
         # MG use filename for Pattern File Matching from source ...  (As Proposed by DL )
         if self.source.patternMatching:
@@ -225,7 +225,7 @@ class bulletinManager:
         os.close( unFichier )
         os.chmod(tempNom,0644)
 
-        entete = ' '.join(unBulletin.getHeader().split()[:2])
+        entete = '_'.join(unBulletin.getHeader().split()[:2])
 
         # MG use filename for Pattern File Matching from source ...  (As Proposed by DL )
         if self.source.patternMatching:
@@ -417,7 +417,7 @@ class bulletinManager:
             if self.drp != None:
             # Si les circuits sont activés
             # NB: Lève une exception si l'entête est introuvable
-                entete = ' '.join(bulletin.getHeader().split()[:2])
+                entete = '_'.join(bulletin.getHeader().split()[:2])
                 #FIXME: remove -CIRCUIT after transition period.
                 newExtension = newExtension.replace('-CIRCUIT', self.drp.getHeaderPriority(entete))
                 newExtension = newExtension.replace('-PRIORITY', self.drp.getHeaderPriority(entete))
