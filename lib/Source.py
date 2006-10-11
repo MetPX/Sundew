@@ -97,6 +97,7 @@ class Source(object):
 
         if self.execfile != None :
            execfile(PXPaths.ETC + self.execfile )
+           #execfile(PXPaths.FX_LIB + self.execfile )
 
         #-----------------------------------------------------------------------------------------
         # Make sure the collection params are valid
@@ -157,8 +158,10 @@ class Source(object):
                             self.logger.error("Extension (%s) for source %s has wrong number of fields" % (words[1], self.name)) 
                         else:
                             self.extension = ':' + words[1]
-                    elif words[0] == 'imask': self.masks.append((words[1], currentDir, currentFileOption))
-                    elif words[0] == 'emask': self.masks.append((words[1],))
+                    elif words[0] == 'accept': self.masks.append((words[1], currentDir, currentFileOption))
+                    elif words[0] == 'imask':  self.masks.append((words[1], currentDir, currentFileOption))
+                    elif words[0] == 'emask':  self.masks.append((words[1],))
+                    elif words[0] == 'reject':  self.masks.append((words[1],))
                     elif words[0] == 'timask': self.tmasks.append((words[1], currentTransformation))
                     elif words[0] == 'temask': self.tmasks.append((words[1],))
                     elif words[0] == 'transformation': currentTransformation = words[1]
