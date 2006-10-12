@@ -1,3 +1,4 @@
+#! /usr/bin/env python
 """
 MetPX Copyright (C) 2004-2006  Environment Canada
 MetPX comes with ABSOLUTELY NO WARRANTY; For details type see the file
@@ -99,10 +100,8 @@ def addOptions( parser ):
     """
         This method is used to add all available options to the option parser.
         
-    """    
-    
-    dayInSeconds = ( 60 * 60 * 24 * 1 )
-    
+    """        
+   
     parser.add_option( "-c", "--clients", action="store", type="string", dest="clients", default="ALL", help = "Clients for wich we need to tranfer the data." ) 
     
     parser.add_option( "-e", "--end", action="store", type="string", dest="end", default=MyDateLib.getIsoFromEpoch( time.time() ), help="Decide ending time of the update.") 
@@ -211,7 +210,7 @@ def getDatabaseTimeOfUpdate( client, machine, fileType, endTime ):
     """ 
     
 
-    lastUpdate = MyDateLib.getSecondsSinceEpoch( endTime ) - ( 60 * 60 * 24 )
+    lastUpdate = MyDateLib.getSecondsSinceEpoch( endTime ) - ( 60 * 60 )
     folder   = PXPaths.STATS + "DATABASE-UPDATES/%s/" %fileType
     fileName = folder + "%s_%s" %( client, machine )
     #print "fileName : %s" %fileName
@@ -236,11 +235,8 @@ def setDatabaseTimeOfUpdate(  client, machine, fileType, timeOfUpdate ):
     """   
     
     folder   = PXPaths.STATS + "DATABASE-UPDATES/%s/" %fileType
-    fileName = folder + "%s_%s" %( client, machine )
-    
-    if not os.path.isdir( folder ):
-        os.makedirs(  folder , mode=0777 )          
-      
+    fileName = folder + "%s_%s" %( client, machine )   
+              
     fileHandle  = open( fileName, "w" )
     pickle.dump( timeOfUpdate, fileHandle )
     fileHandle.close()
@@ -295,11 +291,8 @@ def createRoundRobinDatabase( dataType, client, machine, startTime ):
     """
     
     databaseName = buildRRDFileName( dataType, client, machine )
-    startTime = int( startTime )
-    
-    if not os.path.isdir( os.path.dirname( databaseName ) ):
-        os.makedirs( os.path.dirname( databaseName ), mode=0777 )
-       
+    startTime = int( startTime )    
+      
     # 1st  rra : keep last 24 hours for daily graphs. Each line contains 1 minute of data. 
     # 2nd  rra : keep last 7 days for weekly graphs. Each line contains 5 minutes of data. 
     # 3rd  rra : keep last 10 years of data. Each line contains 24 hours of data.
@@ -486,17 +479,38 @@ def transferPickleToRRD( infos, logger = None ):
             break 
 
             
+def createPaths():
+    """
+    
+    """            
+       
+    localMachine = os.uname()[1] # /apps/px/log/ logs are stored elsewhere at the moment.
+    
+    dataTypes = [ "latency", "bytecount", "errors", "filesOverMaxLatency", "filecount" ]
+    
+    
+    if not os.path.isdir( PXPaths.LOG + localMachine + '/' ):
+        os.makedirs( PXPaths.LOG + localMachine + '/', mode=0777 )
+        
+    for dataType in dataTypes:
+        if not os.path.isdir( PXPaths.STATS + "databases/%s/" %dataType ):
+            os.makedirs( PXPaths.STATS + "databases/%s/" %dataType, mode=0777 )          
             
+    if not os.path.isdir( PXPaths.STATS + "DATABASE-UPDATES/tx" ):
+        os.makedirs( PXPaths.STATS + "DATABASE-UPDATES/tx/", mode=0777 )
+     
+    if not os.path.isdir( PXPaths.STATS + "DATABASE-UPDATES/rx" ):
+        os.makedirs( PXPaths.STATS + "DATABASE-UPDATES/rx/", mode=0777 )      
+        
+                               
+               
 def main():
     """
         Gathers options, then makes call to transferPickleToRRD   
     
     """
-   
-    localMachine = os.uname()[1] # /apps/px/log/ logs are stored elsewhere at the moment.
-    
-    if not os.path.isdir( PXPaths.LOG + localMachine + '/' ):
-        os.makedirs( PXPaths.LOG + localMachine + '/', mode=0777 )
+
+    createPaths()
     
     logger = Logger( PXPaths.LOG + localMachine + "/" + 'stats_' + 'rrd_transfer' + '.log.notb', 'INFO', 'TX' + 'rrd_transfer', bytes = True  ) 
     

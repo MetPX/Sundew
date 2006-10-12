@@ -384,7 +384,7 @@ class StatsPlotter:
         color = 1
         nbGraphs = 0
          
-        totalSize = ( 0.37 * len( self.stats )  * len( self.statsTypes ) )
+        totalSize = ( 0.38 * len( self.stats )  * len( self.statsTypes ) )
         
         self.graph('set terminal png size 1280,768')
         self.graph( 'set size 1.0, %2.1f' % ( totalSize ) )
@@ -446,8 +446,10 @@ class StatsPlotter:
                 
                     
         if createLink :
-            self.createLink(  )     
+            self.createLink( )     
          
+            
+            
     def addLatencyLabelsToGraph( self, i , nbGraphs, j, maxPairValue ):
         """
             Used to set proper labels for a graph relating to latencies. 

@@ -77,6 +77,8 @@ def createParser( ):
 
 Defaults :
 - Default combine value is false.
+- Default individual value is false.
+- If default is used for individual and combine, combine will be set to True.  
 - Default Date is current system time.
 - Default logins is pds.  
 - Default machines value is pxatx.
@@ -85,6 +87,7 @@ Defaults :
 Options:
     - With -c|--combine you specify that graphic produced must also be a combination of numerous machines.  
     - With -d|--date you can specify the time of the request.( Usefull for past days and testing. )
+    - With -i|--individual you can specify to generate graphics for numerous machines without merging their data.
     - With -l|--logins you can specify wich login must be used for each of the enumerated machines.
     - With -m|--machines you can specify the list of machines to be used.
     - With -s|--span you can specify the time span to be used to create the graphic 
@@ -93,10 +96,13 @@ Options:
 WARNING: - Client name MUST be specified,no default client exists. 
           
             
-Ex1: %prog                                   --> All default values will be used. Not recommended.  
-Ex2: %prog -m pds5                           --> All default values, for machine pds5. 
-Ex3: %prog -m pds5 -d '2006-06-30 05:15:00'  --> Machine pds5, Date of call 2006-06-30 05:15:00.
-Ex4: %prog -s 24                             --> Uses current time, default machine and 24 hours span.
+Ex1: %prog                                   --> All default values will be used. Not recommended.
+Ex2: %prog -i -c -m "m1,m2" -l "l1,l2"       --> Generate graphs for all machiens found on m1 and m2.
+                                                 login to m1 using l1 and to m2 using l2. 
+                                                 We will generate graphs for data comiing from m1 exclusively,
+                                                 m2 exclusively, and from the resulting data of a combination 
+                                                 of m1's and m2's data.                                                 
+ 
 ********************************************
 * See /doc.txt for more details.           *
 ********************************************"""   
@@ -326,7 +332,6 @@ def generateGraphsForPairedMachines( infos ) :
         
         if pid == 0 :#child process
             status, output = commands.getstatusoutput( "python /apps/px/lib/stats/generateGraphics.py -m %s -f tx -c %s -d '%s' -s %s  -l" %( infos.combinedName, txName, infos.date, infos.timespan ) )
-            createLink( infos.combinedName, txName, infos.date, infos.timespan ) 
             sys.exit()    #terminate child process
             
     

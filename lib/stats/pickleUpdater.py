@@ -28,7 +28,7 @@ import PXManager
 import PXPaths 
 
 
-from   Logger import * 
+from Logger import * 
 from optparse import OptionParser
 from ConfigParser import ConfigParser
 from MyDateLib import *

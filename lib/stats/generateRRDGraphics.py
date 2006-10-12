@@ -1,3 +1,4 @@
+#! /usr/bin/env python
 """
 MetPX Copyright (C) 2004-2006  Environment Canada
 MetPX comes with ABSOLUTELY NO WARRANTY; For details type see the file
@@ -30,7 +31,6 @@ from   PXManager import *
 from   MyDateLib import *
 from   Logger    import *     
 from   Logger    import *       
-#from   transferPickleToRRD import *
 
 
 PXPaths.normalPaths()   
@@ -117,11 +117,12 @@ def getOptionsFromParser( parser ):
         
         
     if clientNames[0] == "ALL":
+        updateConfigurationFiles( machines[0], "pds" )
         #get rx tx names accordingly.         
         if fileType == "tx":    
-            x = 1 
+            clientNames = getNames( "tx" )  
         else:
-            x = 2    
+            clientNames = getNames( "rx" )      
             
     
     try :
@@ -166,9 +167,55 @@ def getOptionsFromParser( parser ):
     infos = _GraphicsInfos( currentTime = currentTime, clientNames = clientNames,  directory = directory , types = types, timespan = timespan, machines = machines, fileType = fileType )   
             
     return infos 
-                   
+       
+    
+                
+def getNames( fileType ):
+    """
+        Returns a tuple containg RXnames or TXnames that we've rsync'ed 
+        using updateConfigurationFiles
+         
+    """    
+                        
+    pxManager = PXManager()
+    
+    #These values need to be set here.
+    PXPaths.RX_CONF  = '/apps/px/stats/rx/%s/'  %machine
+    PXPaths.TX_CONF  = '/apps/px/stats/tx/%s/'  %machine
+    PXPaths.TRX_CONF = '/apps/px/stats/trx/%s/' %machine
+    pxManager.initNames() # Now you must call this method  
+    
+    if fileType == "tx":
+        names = pxManager.getTxNames()               
+    else:
+        rxNames = pxManager.getRxNames()  
+
+    return names 
+        
+    
+    
+def updateConfigurationFiles( machine, login ):
+    """
+        rsync .conf files from designated machine to local machine
+        to make sure we're up to date.
+    
+    """  
+    
+    if not os.path.isdir( '/apps/px/stats/rx/%s/' %machine):
+        os.makedirs(  '/apps/px/stats/rx/%s/' %machine, mode=0777 )
+    if not os.path.isdir( '/apps/px/stats/tx/%s' %machine ):
+        os.makedirs( '/apps/px/stats/tx/%s/' %machine , mode=0777 )
+    if not os.path.isdir( '/apps/px/stats/trx/%s/' %machine ):
+        os.makedirs(  '/apps/px/stats/trx/%s/' %machine, mode=0777 )       
 
         
+    status, output = commands.getstatusoutput( "rsync -avzr --delete-before -e ssh %s@%s:/apps/px/etc/rx/ /apps/px/stats/rx/%s/"  %( login, machine, machine) ) 
+    #print output # for debugging only
+    
+    status, output = commands.getstatusoutput( "rsync -avzr --delete-before -e ssh %s@%s:/apps/px/etc/tx/ /apps/px/stats/tx/%s/"  %( login, machine, machine) )  
+    #print output # for debugging only    
+    
+    
         
 def createParser( ):
     """ 
@@ -193,7 +240,7 @@ Defaults :
 - Default span is 12 hours.
 - Accepted values for types are : errors,latency,bytecount
   -To use mutiple types, use -t|--types "type1,type2"
-
+- Whether a date is specified or the default current time is used, 
 
 Options:
  
@@ -209,9 +256,15 @@ WARNING: - Client name MUST be specified,no default client exists.
           
             
 Ex1: %prog                                   --> All default values will be used. Not recommended.  
-Ex2: %prog -c satnet                         --> All default values, for client satnet. 
-Ex3: %prog -c satnet -d '2006-06-30 05:15:00'--> Client satnet, Date of call 2006-06-30 05:15:00.
-Ex4: %prog -c satnet -t "errors,latency"     --> Uses current time, client satnet and collect those 2 types.
+Ex2: %prog -d "2006-10-10 15:13:00" -s 12 
+     -m "pds1" -f tx                         --> Generate all avaibable graphic types for every tx 
+                                                 client found on the machine named pds1. Graphics will
+                                                 be 12 hours wide and will end at 15:00:00.  
+Ex3: %prog -d "2006-10-10 15:13:00" -s 12 
+     -m "pds1" -f tx -t "latency,errors"     --> Generate latency and errors graphics for tx client named 
+     -c "pds"                                    pds with data found on the machine named pds1. Graphics will
+                                                 be 12 hours wide and will end at 15:00:00. 
+                                                                                                
 ********************************************
 * See /doc.txt for more details.           *
 ********************************************"""   
@@ -254,7 +307,6 @@ def buildTitle( type, client, currentTime, timespan, minimum, maximum, mean  ):
     return  "%s for %s queried at %s for a span of %s hours." %( type, client,  currentTime , timespan )    
 
     
-
  
 def getOverallMin( databaseName, startTime, endTime, logger = None ):
     """
@@ -299,13 +351,14 @@ def getOverallMax( databaseName, startTime, endTime, logger = None ):
     try:
     
         output = rrdtool.fetch( databaseName, 'MAX', '-s', "%s" %startTime, '-e', '%s' %endTime )      
+        
         maxTuples = output[2]
         
         for maxTuple in maxTuples :
             if maxTuple[0] != 'None' and maxTuple[0] != None :
                 if maxTuple[0] > maximum : 
                     maximum = maxTuple[0]
-        
+                    print maxTuple
         #print "maximum : %s " %maximum
     
     except :
@@ -385,15 +438,14 @@ def plotRRDGraph( databaseName, type, client, machine, infos, logger = None ):
         This method is used to produce a rrd graphic.
         
     """
-    #print "databaseName : %s" %databaseName
-    #print "made it up to plotGraph"
+
     imageName = buildImageName( type, client, machine, infos, logger )     
     end       = int ( MyDateLib.getSecondsSinceEpoch ( infos.currentTime ) )  
     start     = end - ( infos.timespan * 60 * 60) 
     
     mean    = getOverallMean( databaseName, start, end )
     maximum = getOverallMax( databaseName, start, end )   
-    minimum = 0#getOverallMin( databaseName, start, end  ) 
+    minimum = getOverallMin( databaseName, start, end  ) 
     
     
     title = buildTitle( type, client, infos.currentTime, infos.timespan, minimum, maximum, mean )
@@ -448,7 +500,7 @@ def main():
     parser = createParser() 
    
     infos = getOptionsFromParser( parser )
-    #print "infos : %s" %infos.clients
+
     generateRRDGraphics( infos, logger = logger )
     
     
