@@ -6,11 +6,15 @@ A Guide to Using MetPX
     Peter Silva
     and many more to come...:-)
 
-:Version: $Revision: $
+:Version: 
+    0-3-0 tracking...
+
 :Copyright: MetPX Copyright (C) 2004-2006  Environment Canada
 
 
 .. contents::
+
+
 
 Fundamentals
 ------------
@@ -273,8 +277,21 @@ received to the loop sender.  Start it up to see what happens.
 
 | px@laptop:~/$ px start
 
-The above will start all the configured recievers and senders.
-Let's have a look at the processes:
+The above will start all the configured recievers and senders, it will
+also build the queuing directories for each defined channel.
+
+laptop% ls -lr rxq txq
+txq:
+total 4
+drwxr-xr-t 2 px px 4096 2006-10-08 23:03 loop
+
+rxq:
+total 8
+drwxr-xr-t 2 px px 4096 2006-10-08 23:03 loop
+drwxr-xr-t 2 px px 4096 2006-10-08 23:04 file
+laptop%   
+
+Now, Let's have a look at the processes:
 
 | px@laptop:~/$ ps ax | grep px
 | 15897 pts/2    S      0:00 su - px
@@ -305,15 +322,17 @@ There should be three log files, and they should indicate normal startup.  Look 
 | 2006-10-08 00:23:31,290 [INFO] Initialisation of client loop
 | 2006-10-08 00:23:31,506 [INFO] Routing table used: /etc/px/pxRouting.conf
 | 2006-10-08 00:24:36,553 [INFO] 6 bulletins will be ingested
-| 2006-10-08 00:24:36,556 [INFO] (107 Bytes) Ingested in DB as /apps/px/db/20061008/SM/file/CWAO/SMCN37_CWAO_300651___0001:file\:CWAO:SM:3:Direct:20061008042436
+| 2006-10-08 00:24:36,556 [INFO] (107 Bytes) Ingested in DB as /var/spool/px/db20061008/SM/file/CWAO/SMCN37_CWAO_300651___0001:file\:CWAO:SM:3:Direct:20061008042436
 | 2006-10-08 00:24:36,557 [INFO] Queued for: loop
 
 
-Then the rest of the bulletins are ingested once, and each in turn is queued for transmission on the loop wmo sender.
-One of the things to notice is what has been done to name the file corresponding to the bulletin received.  The file 
-name begins with the complete AHL, but then the a randomizing counter is added, followed by the string given in the 
-extension directive, and a reception timestamp.   The following line, 'Queued for' indicates whose transmission queues
-the file will be linked to.
+Then the rest of the bulletins are ingested once, and each in turn is queued 
+for transmission on the loop wmo sender.  Note what has been done to name 
+the file corresponding to the bulletin received.  The file name begins with 
+the complete AHL, then the a randomizing counter is added, followed by the 
+string given in the extension directive, and a reception timestamp.   The 
+following line, 'Queued for' indicates whose transmission queues the file 
+will be linked to.
 
 Now have a look at the log of the sender:
 
@@ -337,8 +356,7 @@ Now have a look at the log of the sender:
 
 The loop receiver log will show the messages being ingested, and sent, as in 
 the file receiver.  So from this you can see a very simple installation 
-configuration self-test.  One can try a few more commands to clean up after 
-the excercise:
+configuration self-test.  Complete the excercise:
 
 | px@laptop:~/log$ px stop
 | px@laptop:~/log$ px status
@@ -350,11 +368,19 @@ the excercise:
 | 18704 pts/2    S+     0:00 grep px
 | px@laptop:~/log$    
 
-So after this first run, one can try a number of experiments:
 
- * replace wmo by am in the loop receiver and sender. You can now exchange data with 
-   Canadian MetManager, or AM software.
- * make the test run forever by *noduplicates false* to the loop sender's config 
+So now one can:
+  * Build a basic configuration. 
+  * Start them all up as a group, and stop them.
+  * See what is going on in the log files.
+
+experiments:
+
+ * Do *px start*, then *pxSender loop stop*, then feed the data from sample 
+   bulletins into the file receiver.  Look at txq/loop.  What do you see?
+ * Replace wmo by am in the loop receiver and sender. You can now exchange data 
+   with Canadian MetManager, or AM software.
+ * Make the test run forever by *noduplicates false* to the loop sender's config 
 
 
 Configuring VSFTPD for File Reception
@@ -364,7 +390,7 @@ If you are careful, you can likely use any FTP server you want.  However,
 VSFTPD usually makes configuration much simpler.  It is available from 
 standard repositories via *apt-get install vsftpd*.  
 
-Here is a complete /etc/vsftpd.conf that works for me:
+Here is a complete /etc/vsftpd.conf: 
 
 | cat >/etc/vsftpd.conf <<EOT
 | # These are Debian/Ubuntu Defaults ...
@@ -394,7 +420,7 @@ Here is a complete /etc/vsftpd.conf that works for me:
 | guest_username=px
 | virtual_use_local_privs=YES
 | user_sub_token=$USER
-| local_root=/apps/px/rxq/$USER
+| local_root=/var/spool/px/rxq/$USER
 | EOT
 |
 
@@ -405,6 +431,10 @@ NOTE:
    * Do not put spaces before or after directives, or around the = sign.
    * Do not apply trailing comments, they will be considered part of the value setting.  
    * Comments need their own line. 
+
+For each *guest* user, vsftp will chroot the session into a directory given
+by the local_root pattern, so the *file* will have /var/spool/px/rxq/file as 
+the working directory on login.
 
 Now that we have a vsftpd configuration, also need to prep for guest users.
 This is because of an oddity in vsftpd's PAM setup on ubuntu (same on Deb?), 
@@ -432,7 +462,7 @@ and you work is done!
 Setup FTP Sender
 -----------------
 
-try a new sender loop configuration:
+Change the sender loop configuration:
 
 | cat >${PXETC}/tx/loop <<EOT
 | type single-file
@@ -455,12 +485,15 @@ FIXME: Add a second router, create per bulletin pxRouting file.
 * file naming requirements and conventions.
 
 * source 
-  * apply accept to extract key.
+  apply accept to extract key.
+
 * pxRouting.conf
+
   * list of keys with clients to route to.
   * find key, queue up for those clients.
 
 * client.
+
   * looks in it´s queue
   * applies imasks, sends as directed.
 
@@ -481,11 +514,11 @@ Hi Michel!
 A Demo with bulletin Collection would be really cool here.
 
 
-Routing Recommendations
------------------------
+Recommendations
+----------------
 
 
-Use Revision control on configuration files.
+Use revision control on configuration files.
   systems such as RCS, CVS, and Subversion are very helpful for maintaining
   configuration files. One of the primary advantages of text based configuration
   files is being able to compare different configurations easily via diff.
@@ -555,15 +588,16 @@ The NOAAport configuration.
 AFTN
 ----
 
-The AFTN over TCP/IP Gateway in MetPX is an end-node implemention, which expected to talk to to a AFTN 
-Message Handling System.  It is not a complete AFTN MHS on its own.  The protocol implemented was 
-specified by NavCanada for use with their MHS, which should be quite similar to the interface supported
-by AFTN MHS's from vendor XYZ.
+The AFTN over TCP/IP Gateway in MetPX is an end-node implemention, which expected 
+to talk to to a AFTN Message Handling System.  It is not a complete AFTN MHS on 
+its own.  The protocol implemented was specified by NavCanada for use with their 
+MHS, which should be quite similar to the interface supported by AFTN MHS's from 
+vendor FIXME: XYZ.
 
-AFTN is well, necessarily completely different from WMO protocols.  Instead of unidirectional channels, 
-AFTN requires bi-directional channels.   Instead of using WMO headers, there are AFTN envelopes to 
-remove, and inside are WMO messages., there are mappings, and WMO bulletins are encapsulated within 
-AFTN messages.  
+AFTN is well, necessarily completely different from WMO protocols.  Instead of 
+unidirectional channels, AFTN requires bi-directional channels.   Instead of using 
+WMO headers, there are AFTN envelopes to remove, and inside are WMO messages., 
+there are mappings, and WMO bulletins are encapsulated within AFTN messages.  
 
 I think Daniel must write this part... 
 
