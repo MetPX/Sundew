@@ -2,14 +2,14 @@
 The global configuration files are here:
 
 
-header2client.conf:
+pxRouting.conf:
 
-header2client.conf is a text file with colon separated fields.  
+pxRouting.conf is a text file with colon separated fields.  
 
 
 A static routing entry is like so:
 
-AACN02 CWTO: CMC climate_archive NWS UKMETOFFICE:3:
+key AACN02_CWTO CMC,climate_archive,NWS,UKMETOFFICE 3
 
 -- First field (AACN02 CWTO) is an AHL specification (TTAAii CCCC) as, indicating the AHL of messages 
    received to which this routing is to apply.
@@ -21,23 +21,23 @@ AACN02 CWTO: CMC climate_archive NWS UKMETOFFICE:3:
 
 Other possible routing directives in the header2client.conf file:
 
-subclient:<client>: subclient1 subclient2 subclient3 subclient4
+subclient <client> subclient1,subclient2,subclient3,subclient4
 
 ie. 
 subclient:AFTN: AACNCWAO AACNCYVR
 
-clientAlias:<aliasname>: <client1> <client2> <client3> ...
+clientAlias <aliasname> <client1>,<client2>,<client3> ...
 
 In a static routing entry, one can use the alias to stand in for the list 
 of clients.
 
 sample clientAlias entry:
 
-clientAlias:Aviation: AirTraffic CivilAuthority MilitaryAuthority AFTN.AACNCYVR
+clientAlias Aviation AirTraffic,CivilAuthority,MilitaryAuthority,AFTN.AACNCYVR
 
 A static routing entry can then be of the form:
 
-FPCN37 CWAO: Aviation 
+key FPCN37_CWAO: Aviation 
 
 to go to all Aviation clients,  including the AACNCYVR node addressed through th AFTN client.
 
