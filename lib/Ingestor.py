@@ -179,21 +179,8 @@ class Ingestor(object):
         return False
 
     def getMatchingClientNamesFromKey(self, key, ingestName):
-        matchingClients = []
 
-        # if direct key match does not work than
-        # check for an indirect key match with key_accept/key_reject pattern
-
-        if self.drp.routingInfos.has_key(key):
-                self.logger.debug("Key %s had a direct routing match" % key )
-                matchingClients = self.drp.getHeaderClients(key)
-        else :
-                matchingClients = self.drp.getKeyClients(key)
-                if matchingClients != None : 
-                   self.logger.debug("Key %s added to routing" % key )
-                else :
-                   self.logger.debug("Key %s not match and not found in routing" % key )
-                   return None
+        matchingClients = self.drp.getClients(key)
 
         # check pattern matching in clients
 
@@ -204,12 +191,16 @@ class Ingestor(object):
 
     def getMatchingClientNamesFromMasks(self, ingestName, potentialClientNames):
         matchingClientNames = []
+
+	if potentialClientNames == None : return None
+
         for name in potentialClientNames:
             try:
                 if self.isMatching(self.clients[name], ingestName):
                     matchingClientNames.append(name)
             except KeyError:
                 pass
+
         return matchingClientNames
 
     def getMatchingFeedNamesFromMasks(self, ingestName, potentialFeedNames):
@@ -229,6 +220,8 @@ class Ingestor(object):
         if dbName == '':
             self.logger.warning('Bad ingest name (%s) => No dbName' % ingestName)
             return 0
+
+        if clientNames == None : clientNames = []
         
         self.createDir(os.path.dirname(dbName), self.dbDirsCache)
         #try:
@@ -365,7 +358,9 @@ class Ingestor(object):
                 # Key is used to get clientlist
 
                 ingestName       = self.getIngestName(os.path.basename(file))
+                self.logger.debug("ingestName = %s" % ingestName )
                 routeKey         = self.getRouteKey(ingestName)
+                self.logger.debug("routeKey = %s" % routeKey )
 
                 # if key is found : find clients associated with key
                 # else ... file is ingested as problem....

@@ -138,8 +138,22 @@ class bulletinManager:
         # check arrival time.
         self.verifyDelay(unBulletin)
 
-        # generate a file name
-        nomFichier = self.getFileName(unBulletin,compteur=compteur)
+        # ckeck if it is routable
+	error  = False
+        entete = '_'.join(unBulletin.getHeader().split()[:2])
+        clist = self.drp.getClients(entete)
+
+        # generate a file name.
+	if clist != None :
+           nomFichier = self.getFileName(unBulletin,error,compteur=compteur)
+
+        # file name when no routing
+        else :
+	   self.logger.warning("Header %s has no routing defined" + entete )
+           whatfn = self.createWhatFn(unBulletin,self.compteur)
+	   nomFichier = 'PROBLEM_BULLETIN_' + whatfn + self.getExtension(unBulletin,error=True).replace(' ','_')
+
+        # add date/time stamp
         nomFichier = nomFichier + ':' + time.strftime( "%Y%m%d%H%M%S", time.gmtime(time.time()) )
 
         tempNom = self.pathTemp + nomFichier
@@ -160,8 +174,6 @@ class bulletinManager:
         os.close( unFichier )
         os.chmod(tempNom,0644)
 
-        entete = '_'.join(unBulletin.getHeader().split()[:2])
-
         # MG use filename for Pattern File Matching from source ...  (As Proposed by DL )
         if self.source.patternMatching:
             if not self.source.fileMatchMask(nomFichier) :
@@ -178,13 +190,8 @@ class bulletinManager:
                     self.source.ingestor.ingest()
             """
 
-        if self.drp.routingInfos.has_key(entete):
-            clist = self.drp.getHeaderClients(entete)
-        else:
-            clist = []
-
         if self.source.clientsPatternMatching:
-            clist = self.source.ingestor.getMatchingClientNamesFromMasks(nomFichier, clist)
+           clist = self.source.ingestor.getMatchingClientNamesFromMasks(nomFichier, clist)
 
         self.source.ingestor.ingest(tempNom, nomFichier, clist)
 
@@ -203,8 +210,21 @@ class bulletinManager:
         # check arrival time.
         self.verifyDelay(unBulletin)
 
+        # ckeck if it is routable
+	error  = False
+        entete = '_'.join(unBulletin.getHeader().split()[:2])
+        clist = self.drp.getClients(entete)
+
         # generate a file name.
-        nomFichier = self.getFileName(unBulletin,compteur=compteur)
+	if clist != None :
+           nomFichier = self.getFileName(unBulletin,error,compteur=compteur)
+
+        # file name when no routing
+        else :
+	   self.logger.warning("Header %s has no routing defined" + entete )
+           whatfn = self.createWhatFn(unBulletin,self.compteur)
+	   nomFichier = 'PROBLEM_BULLETIN_' + whatfn + self.getExtension(unBulletin,error=True).replace(' ','_')
+
         nomFichier = nomFichier + ':' + time.strftime( "%Y%m%d%H%M%S", time.gmtime(time.time()) )
 
         tempNom = self.pathTemp + nomFichier
@@ -225,8 +245,6 @@ class bulletinManager:
         os.close( unFichier )
         os.chmod(tempNom,0644)
 
-        entete = '_'.join(unBulletin.getHeader().split()[:2])
-
         # MG use filename for Pattern File Matching from source ...  (As Proposed by DL )
         if self.source.patternMatching:
             if not self.source.fileMatchMask(nomFichier) :
@@ -242,11 +260,6 @@ class bulletinManager:
                 for name in newNames:
                     self.source.ingestor.ingest()
             """
-
-        if self.drp.routingInfos.has_key(entete):
-            clist = self.drp.getHeaderClients(entete)
-        else:
-            clist = []
 
         if self.source.clientsPatternMatching:
             clist = self.source.ingestor.getMatchingClientNamesFromMasks(nomFichier, clist)

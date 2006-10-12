@@ -81,9 +81,23 @@ class DirectRoutingParser(FileParser):
                self.routingInfos[key]['clients']    = self.keyInfos[keyp]['clients']
                self.routingInfos[key]['subclients'] = {}
                self.routingInfos[key]['priority']   = self.keyInfos[keyp]['priority']
+               self.logger.debug("Key %s match pattern %s and was added" % (key,keyp) )
                return self.routingInfos[key]['clients']
 
+        self.logger.debug("Key %s did not match any pattern " % key )
         return None
+
+    def isRoutable(self, key):
+        if self.routingInfos.has_key(key): return True
+        for keyp in self.keyInfos :
+	    if fnmatch.fnmatch(key,keyp) : return True
+	return False
+
+    def getClients(self,key):
+        if self.routingInfos.has_key(key):
+           self.logger.debug("Key %s had direct routing" % key )
+           return self.routingInfos[key]['clients']
+        return self.getKeyClients(key)
 
     def _makeClientsGroups(self, clients, linkableClients):
         goodClientsForOneHeader = {}
