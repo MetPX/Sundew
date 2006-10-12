@@ -326,11 +326,14 @@ def getOverallMin( databaseName, startTime, endTime, logger = None ):
         i = 0 
         while i < len( minTuples ):
             if minTuples[i][0] != 'None' and minTuples[i][0] != None  :        
-                if minTuple[0] < minimum or minimum == None : 
-                    minimum = minTuple[0]
+                
+                
+                if minTuples[i][0] < minimum or minimum == None : 
+                    minimum = minTuples[i][0]
+                    print minimum
             i = i + 1 
         #print "minimum : %s " %minimum
-    
+         
     except :
         if logger != None:
             logger.error( "Error in generateRRDGraphics.getOverallMin. Unable to read %s" %databaseName )
@@ -358,7 +361,7 @@ def getOverallMax( databaseName, startTime, endTime, logger = None ):
             if maxTuple[0] != 'None' and maxTuple[0] != None :
                 if maxTuple[0] > maximum : 
                     maximum = maxTuple[0]
-                    print maxTuple
+                    #print maxTuple
         #print "maximum : %s " %maximum
     
     except :

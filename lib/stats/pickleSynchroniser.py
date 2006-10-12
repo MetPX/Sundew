@@ -132,17 +132,17 @@ def buildCommands( machines, clients ):
     """ 
     
     commands = []
-    
+
     if clients[0] == "All" :
         for machine in machines :
-            commands.append( "rsync -avzr -e ssh pds@%s:%s %s"  %( machine, PXPaths.PICKLES, PXPaths.PICKLES )  )
+            commands.append( "rsync -avzr --delete-before -e ssh pds@%s:%s %s"  %( machine, PXPaths.PICKLES, PXPaths.PICKLES )  )
           
     else:
         
         for client in clients :
             path = PXPaths.PICKLES + client + "/"
             for machine in machines :
-                commands.append( "rsync -avzr -e ssh pds@%s:%s %s"  %( machine, path, path )  )
+                commands.append( "rsync --delete-before -avzr -e ssh pds@%s:%s %s"  %( machine, path, path )  )
 
     
     return commands 
