@@ -94,7 +94,7 @@ class StatsPlotter:
         if self.logger == None: # Enable logging
             if not os.path.isdir( PXPaths.LOG + localMachine + '/' ):
                 os.makedirs( PXPaths.LOG + localMachine + '/', mode=0777 )
-            self.logger = Logger( PXPaths.LOG + localMachine + '/' + 'stats_' + self.loggerName + '.log.notb', 'INFO', 'TX' + self.loggerName, bytes = True  ) 
+            self.logger = Logger( PXPaths.LOG + localMachine + '/' + 'stats_' + self.loggerName + '.log', 'INFO', 'TX' + self.loggerName, bytes = True  ) 
             self.logger = self.logger.getLogger()
             
         self.xtics       = self.getXTics( )        # Seperators on the x axis.
@@ -179,7 +179,8 @@ class StatsPlotter:
             
         """
         #print "get x tics"
-        self.logger.debug( "Call to getXtics received" )
+        if self.logger != None :
+            self.logger.debug( "Call to getXtics received" )
         
         nbBuckets = ( len( self.stats[0].statsCollection.timeSeperators ) )
         xtics = ''
@@ -217,7 +218,8 @@ class StatsPlotter:
         
         """
         
-        self.logger.debug( "Call to getPairs received." )
+        if self.logger != None: 
+            self.logger.debug( "Call to getPairs received." )
         
         k = 0 
         pairs = []
@@ -385,8 +387,9 @@ class StatsPlotter:
             plot function. 
             
         """
-
-        self.logger.debug( "Call to plot received" )
+        
+        if self.logger != None:
+            self.logger.debug( "Call to plot received" )
         
         #Set general settings for graphs 
         color = 1
@@ -574,6 +577,7 @@ class StatsPlotter:
         if self.maximums[i][j] !=None and self.maximums[i][j] != 0 :
             
             timeOfMax =  self.timeOfMax[i][j]
+            timeOfMax =  MyDateLib.getIsoWithRoundedSeconds( timeOfMax )
             
             if maxPairValue < 5 :
                 self.graph( 'set format y "%7.2f"' )
@@ -602,7 +606,7 @@ class StatsPlotter:
         self.graph( 'set label "Max error/%s : %s" at screen .545, screen %3.2f' % ( self.entryType, maximum, (.19+(nbGraphs) *.37) ))
         
         
-        self.graph( 'set label "Time of maximum : %s" at screen .545, screen %3.2f' % ( ( MyDateLib.getIsoWithRoundedSeconds( timeOfMax ), (.16+(nbGraphs) *.37)  )))
+        self.graph( 'set label "Time of maximum : %s" at screen .545, screen %3.2f' % ( ( timeOfMax, (.16+(nbGraphs) *.37)  )))
         
         self.graph( 'set label "# of errors : %s" at screen .545, screen %3.2f' % ( self.nbErrors[i], (.13+(nbGraphs) *.37) ) )
       

@@ -78,7 +78,7 @@ class ClientGraphicProducer:
         if self.logger is None: # Enable logging
             if not os.path.isdir( PXPaths.LOG + localMachine + '/' ):
                 os.makedirs( PXPaths.LOG + localMachine + '/', mode=0777 )
-            self.logger = Logger( PXPaths.LOG + localMachine + '/' + 'stats_' + self.loggerName + '.log.notb', 'INFO', 'TX' + self.loggerName, bytes = True  ) 
+            self.logger = Logger( PXPaths.LOG + localMachine + '/' + 'stats_' + self.loggerName + '.log', 'INFO', 'TX' + self.loggerName, bytes = True  ) 
             self.logger = self.logger.getLogger()
                 
     def createLink( client, imageName ):
@@ -147,7 +147,7 @@ class ClientGraphicProducer:
         
         #print "Call to StatsPlotter :Clients:%s, timespan:%s, currentTime:%s, statsTypes:%s, productType:%s :" %( self.clientNames, self.timespan, self.currentTime, types, self.productType )
         
-        plotter = StatsPlotter( stats = collectorsList, clientNames = self.clientNames, timespan = self.timespan, currentTime = endTime, now = False, statsTypes = types, productType = self.productType, logger = None, machines = self.machines, fileType = self.fileType  )
+        plotter = StatsPlotter( stats = collectorsList, clientNames = self.clientNames, timespan = self.timespan, currentTime = endTime, now = False, statsTypes = types, productType = self.productType, logger = self.logger, machines = self.machines, fileType = self.fileType  )
         
         plotter.plot( createLink )
                                   
