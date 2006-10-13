@@ -39,7 +39,7 @@ PXPaths.normalPaths()
 
 class _GraphicsInfos:
 
-    def __init__( self, directory, fileType, types, clientNames = None ,  timespan = 12, currentTime = None, machines = ["pdsGG"]  ):
+    def __init__( self, directory, fileType, types, clientNames = None ,  timespan = 12, endDate = None, machines = ["pdsGG"]  ):
 
             
         self.directory    = directory         # Directory where log files are located. 
@@ -47,7 +47,7 @@ class _GraphicsInfos:
         self.types        = types             # Type of graphics to produce. 
         self.clientNames  = clientNames or [] # Client name we need to get the data from.
         self.timespan     = timespan          # Number of hours we want to gather the data from. 
-        self.currentTime  = currentTime       # Time when stats were queried.
+        self.endDate      = endDate       # Time when stats were queried.
         self.machines     = machines          # Machine from wich we want the data to be calculated.
         
         
@@ -69,23 +69,55 @@ def getOptionsFromParser( parser ):
     
     """ 
     
-    currentTime   = []
+    endDate   = []
     
     ( options, args )= parser.parse_args()        
     timespan         = options.timespan
     machines         = options.machines.replace( ' ','').split(',')
     clientNames      = options.clients.replace( ' ','' ).split(',')
     types            = options.types.replace( ' ', '').split(',')
-    currentTime      = options.currentTime.replace('"','').replace("'",'')
+    endDate          = options.endDate.replace('"','').replace("'",'')
     fileType         = options.fileType.replace("'",'')
-       
-     
+    individual       = options.individual
+    daily            = options.daily
+    weekly           = options.weekly
+    yearly           = options.yearly    
     
+    
+    counter = 0  
+    specialParameters = [daily, weekly, yearly]
+    for specialParameter in specialParameters:
+        if specialParameter:
+            counter = counter + 1 
+            
+    if counter > 1 :
+        print "Error. Only one of the daily, weekly and yearly options can be use at a time " 
+        print "Use -h for help."
+        print "Program terminated."
+        sys.exit()
+    
+    elif counter == 1 and timespan != None :
+        print "Error. When using the daily, the weekly or the yearly options timespan cannot be specified. " 
+        print "Use -h for help."
+        print "Program terminated."
+        sys.exit()
+    
+    elif counter == 0 and timespan == None :
+        timespan = 12
+    
+    if daily == True :
+        timeSpan = 24
+    elif weekly == True:
+        timeSpan = 24 * 7
+    elif yearly == True:
+        timeSpan = 24 * 365        
+         
+            
     try: # Makes sure date is of valid format. 
          # Makes sure only one space is kept between date and hour.
-        t =  time.strptime( currentTime, '%Y-%m-%d %H:%M:%S' )
-        split = currentTime.split()
-        currentTime = "%s %s" %( split[0], split[1] )
+        t =  time.strptime( endDate, '%Y-%m-%d %H:%M:%S' )
+        split = endDate.split()
+        endDate = "%s %s" %( split[0], split[1] )
 
     except:    
         print "Error. The date format must be YYYY-MM-DD HH:MM:SS" 
@@ -120,9 +152,9 @@ def getOptionsFromParser( parser ):
         updateConfigurationFiles( machines[0], "pds" )
         #get rx tx names accordingly.         
         if fileType == "tx":    
-            clientNames = getNames( "tx" )  
+            clientNames = getNames( "tx",machines[0] )  
         else:
-            clientNames = getNames( "rx" )      
+            clientNames = getNames( "rx",machines[0] )      
             
     
     try :
@@ -158,19 +190,34 @@ def getOptionsFromParser( parser ):
         print "Program terminated."
         sys.exit()
     
-                
-                
+    #workaround because of mirroring
+    for i in range( len(machines) ):
+        if machines[i] == "pds5":
+            machines[i] = "pds3-dev"
+        elif machines[i] == "pds6":
+            machines[i] = "pds4-dev"
+            
+            
+    if individual != True :        
+        combinedMachineName = ""
+        for machine in machines:
+            combinedMachineName = combinedMachineName + machine
+                    
+        machines = [ combinedMachineName ]              
+    
+
+            
     directory = PXPaths.LOG + localMachine + "/"
     
-    currentTime = MyDateLib.getIsoWithRoundedHours( currentTime )
+    endDate = MyDateLib.getIsoWithRoundedHours( endDate )
     
-    infos = _GraphicsInfos( currentTime = currentTime, clientNames = clientNames,  directory = directory , types = types, timespan = timespan, machines = machines, fileType = fileType )   
+    infos = _GraphicsInfos( endDate = endDate, clientNames = clientNames,  directory = directory , types = types, timespan = timespan, machines = machines, fileType = fileType )   
             
     return infos 
        
     
                 
-def getNames( fileType ):
+def getNames( fileType, machine ):
     """
         Returns a tuple containg RXnames or TXnames that we've rsync'ed 
         using updateConfigurationFiles
@@ -210,13 +257,12 @@ def updateConfigurationFiles( machine, login ):
 
         
     status, output = commands.getstatusoutput( "rsync -avzr --delete-before -e ssh %s@%s:/apps/px/etc/rx/ /apps/px/stats/rx/%s/"  %( login, machine, machine) ) 
-    #print output # for debugging only
+
     
     status, output = commands.getstatusoutput( "rsync -avzr --delete-before -e ssh %s@%s:/apps/px/etc/tx/ /apps/px/stats/tx/%s/"  %( login, machine, machine) )  
-    #print output # for debugging only    
-    
-    
-        
+
+
+
 def createParser( ):
     """ 
         Builds and returns the parser 
@@ -284,27 +330,34 @@ def addOptions( parser ):
     
     localMachine = os.uname()[1]
     
-    parser.add_option("-c", "--clients", action="store", type="string", dest="clients", default="satnet",
+    parser.add_option("-c", "--clients", action="store", type="string", dest="clients", default="ALL",
                         help="Clients' names")
-
-    parser.add_option("-d", "--date", action="store", type="string", dest="currentTime", default=MyDateLib.getIsoFromEpoch( time.time() ), help="Decide current time. Usefull for testing.")
+    
+    parser.add_option("-d", "--daily", action="store_true", dest = "daily", default=False, help="Create daily graph(s).")
+    
+    parser.add_option("-e", "--endDate", action="store", type="string", dest="endDate", default=MyDateLib.getIsoFromEpoch( time.time() ), help="Decide end time of graphics. Usefull for testing.")
     
     parser.add_option("-f", "--fileType", action="store", type="string", dest="fileType", default='tx', help="Type of log files wanted.")                     
-   
+    
+    parser.add_option("-i", "--individual", action="store_true", dest = "individual", default=False, help="Dont combine data from specified machines. Create graphs for every machine independently")
+        
     parser.add_option( "-m", "--machines", action="store", type="string", dest="machines", default=localMachine, help = "Machines for wich you want to collect data." )   
     
-    parser.add_option("-s", "--span", action="store",type ="int", dest = "timespan", default=12, help="timespan( in hours) of the graphic.")
+    parser.add_option("-s", "--span", action="store",type ="int", dest = "timespan", default=None, help="timespan( in hours) of the graphic.")
        
     parser.add_option("-t", "--types", type="string", dest="types", default="All",help="Types of data to look for.")   
-
+    
+    parser.add_option("-w", "--weekly", action="store_true", dest = "weekly", default=False, help="Create weekly graph(s).")
+    
+    parser.add_option("-y", "--yearly", action="store_true", dest = "yearly", default=False, help="Create yearly graph(s).")
     
         
-def buildTitle( type, client, currentTime, timespan, minimum, maximum, mean  ):
+def buildTitle( type, client, endDate, timespan, minimum, maximum, mean  ):
     """
         Returns the title of the graphic base on infos. 
     """
     
-    return  "%s for %s queried at %s for a span of %s hours." %( type, client,  currentTime , timespan )    
+    return  "%s for %s queried at %s for a span of %s hours." %( type, client,  endDate , timespan )    
 
     
  
@@ -320,19 +373,17 @@ def getOverallMin( databaseName, startTime, endTime, logger = None ):
     try :  
     
         output = rrdtool.fetch( databaseName, 'MIN', '-s', "%s" %startTime, '-e', '%s' %endTime )
-        #print output
         minTuples = output[2]
         
         i = 0 
         while i < len( minTuples ):
-            if minTuples[i][0] != 'None' and minTuples[i][0] != None  :        
-                
-                
+            if minTuples[i][0] != 'None' and minTuples[i][0] != None  :       
+                                
                 if minTuples[i][0] < minimum or minimum == None : 
                     minimum = minTuples[i][0]
                     print minimum
             i = i + 1 
-        #print "minimum : %s " %minimum
+       
          
     except :
         if logger != None:
@@ -411,7 +462,7 @@ def buildImageName(  type, client, machine, infos, logger = None ):
     """
 
     
-    date = infos.currentTime.replace( "-","" ).replace( " ", "_")
+    date = infos.endDate.replace( "-","" ).replace( " ", "_")
     
     fileName = PXPaths.GRAPHS + "%s/rrdgraphs/%s_%s_%s_%s_%shours_on_%s.png" %( client,infos.fileType, client, date, type, infos.timespan, machine )
     
@@ -443,7 +494,7 @@ def plotRRDGraph( databaseName, type, client, machine, infos, logger = None ):
     """
 
     imageName = buildImageName( type, client, machine, infos, logger )     
-    end       = int ( MyDateLib.getSecondsSinceEpoch ( infos.currentTime ) )  
+    end       = int ( MyDateLib.getSecondsSinceEpoch ( infos.endDate ) )  
     start     = end - ( infos.timespan * 60 * 60) 
     
     mean    = getOverallMean( databaseName, start, end )
@@ -451,19 +502,30 @@ def plotRRDGraph( databaseName, type, client, machine, infos, logger = None ):
     minimum = getOverallMin( databaseName, start, end  ) 
     
     
-    title = buildTitle( type, client, infos.currentTime, infos.timespan, minimum, maximum, mean )
-    try:
-        rrdtool.graph( imageName,'--imgformat', 'PNG','--width', '600','--height', '200','--start', "%i" %(start) ,'--end', "%s" %(end), '--vertical-label', '%s' %type,'--title', '%s'%title,'COMMENT: Minimum %s Maximum  %s Mean %.2f\c' %( minimum, maximum, mean), '--lower-limit','0','DEF:latency=%s:latency:AVERAGE'%databaseName, 'AREA:latency#cd5c5c:%s' %type,'LINE1:latency#8b0000:%s'%type)
-        
-        print "Plotted : %s" %imageName
-        if logger != None:
-            logger.info(  "Plotted : %s" %imageName )
-       
+    if type == "latency" or type == "filesOverMaxLatency":
+        innerColor = "cd5c5c"
+        outerColor = "8b0000"
+    elif  type == "bytecount" or type == "filecount" :
+        innerColor = "019EFF"
+        outerColor = "4D9AA9"  
+    else:
+        innerColor = "54DE4F"
+        outerColor = "1C4A1A"
     
-    except :
-        if logger != None:
-            logger.error( "Error in generateRRDGraphics.plotRRDGraph. Unable to generate %s" %imageName )
-        pass     
+    title = buildTitle( type, client, infos.endDate, infos.timespan, minimum, maximum, mean )
+    
+#     try:
+    rrdtool.graph( imageName,'--imgformat', 'PNG','--width', '600','--height', '200','--start', "%i" %(start) ,'--end', "%s" %(end), '--vertical-label', '%s' %type,'--title', '%s'%title,'COMMENT: Minimum %s Maximum  %s Mean %.2f\c' %( minimum, maximum, mean), '--lower-limit','0','DEF:latency=%s:latency:AVERAGE'%databaseName, 'AREA:latency#%s:%s' %( innerColor, type ),'LINE1:latency#%s:%s'%( outerColor, type ) )
+    
+    print "Plotted : %s" %imageName
+    if logger != None:
+        logger.info(  "Plotted : %s" %imageName )
+       
+#     
+#     except :
+#         if logger != None:
+#             logger.error( "Error in generateRRDGraphics.plotRRDGraph. Unable to generate %s" %imageName )
+#         pass     
     
     
 

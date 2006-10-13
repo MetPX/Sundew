@@ -309,6 +309,9 @@ def generateGraphsForPairedMachines( infos ) :
     
     """        
     
+    rxNames, txNames = getRxTxNames( infos.machines[0] )  
+    
+    
     #workaround to be removed after its installed on real machines
     for i in range ( len( infos.machines ) ) :
     
@@ -324,7 +327,7 @@ def generateGraphsForPairedMachines( infos ) :
     infos.combinedName = str(infos.machines).replace( ' ','' ).replace( '[','' ).replace( ']', '' )        
      
             
-    rxNames, txNames = getRxTxNames( infos.machines[0] )  
+    
     
     for txName in txNames :
         

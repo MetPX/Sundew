@@ -331,7 +331,7 @@ def getPairsFromMergedData( statType, mergedData, logger = None  ):
                     #   print mergedData.statsCollection.fileEntries[i].totals[statType]
                     elif statType == "bytecount":
                     
-                        pairs.append( [ MyDateLib.getSecondsSinceEpoch(mergedData.statsCollection.timeSeperators[i]), mergedData.statsCollection.fileEntries[i].means[statType]] )
+                        pairs.append( [ MyDateLib.getSecondsSinceEpoch(mergedData.statsCollection.timeSeperators[i]), mergedData.statsCollection.fileEntries[i].totals[statType]] )
                         #print mergedData.statsCollection.fileEntries[i].means[statType]
                     elif statType == "latency":
                     

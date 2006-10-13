@@ -191,7 +191,7 @@ class MyDateLib:
         
         """
         
-        print "iso before modif : %s" %iso 
+        #print "iso before modif : %s" %iso 
         iso = iso.split( ":" )
         iso = iso[0] + ":" + iso[1] + ":00"
         
