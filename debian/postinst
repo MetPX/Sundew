@@ -1,0 +1,117 @@
+#! /bin/sh -e 
+
+. /usr/share/debconf/confmodule
+
+. ./.metpx-sundew_env
+
+# create the PX's home directory
+if [ ! -d $PXHOME ];
+	then install -d $PXHOME; \
+fi
+
+if [ ! -d $PXHOME/etc ];
+	then ln -sf /etc/px/ $PXHOME/etc; \
+fi
+
+if [ ! -d $PXHOME/bin ];
+	then install -d $PXHOME/bin; \
+fi
+
+if [ ! -d $PXHOME/log ];
+	then ln -sf $PXLOGLOCATION $PXHOME/log; \
+fi
+
+if [ ! -d $PXHOME/etc.sample ];
+	then install -d $PXHOME/etc.sample; \
+fi
+
+# install the config files in /etc/px
+for file in `find /etc/px/ -type f -maxdepth 1`; \
+	do install -m 644 $file $PXHOME/etc.sample; \
+done
+
+if [ ! -d $PXHOME/doc ];
+	then ln -sf /usr/share/doc/px $PXHOME/doc; \
+fi
+
+if [ ! -d $PXHOME/lib ];
+	then ln -sf /usr/lib/px $PXHOME/lib; \
+fi
+
+if [ ! -d $PXHOME/tools ];
+	then install -d $PXHOME/tools; \
+fi
+
+if [ ! -d $PXHOME/tools/toolLib ];
+	then install -d $PXHOME/tools/toolLib; \
+fi
+
+if [ ! -d $PXHOME/db ];
+	then ln -sf $PXDBLOCATION/db $PXHOME/db; \
+fi
+
+if [ ! -d $PXHOME/txq ];
+	then ln -sf $PXDBLOCATION/txq $PXHOME/txq; \
+fi
+
+if [ ! -d $PXHOME/rxq ];
+	then ln -sf $PXDBLOCATION/rxq $PXHOME/rxq
+fi
+
+# create the db directory
+if [ ! -d $PXDBLOACTION/db ];
+	then install -d $PXDBLOACTION/db; \
+fi
+
+# create the queues directory
+if [ ! -d $PXDBLOACTION/txq ];
+	then install -d $PXDBLOACTION/txq; \
+fi
+
+if [ ! -d $PXDBLOACTION/rxq ]; 
+	then install -d $PXDBLOACTION/rxq; \
+fi
+
+# create the log directory
+if [ ! -d $PXDBLOACTION/log ];
+	then install -d $PXLOGLOCATION/log; \
+fi
+
+# create the sym-link PXHOME/bin
+for file in `cat /var/log/px/.bin_dir_metpx_sundew`; \
+	do 
+		if [ -f /usr/sbin/$file ] ; 
+			then ln -sf /usr/sbin/$file  $PXHOME/bin/; fi ;
+done
+
+# create the sym-link PXHOME/tools
+for file in `cat /var/log/px/.tools_dir_metpx_sundew`; \
+	do 
+		if [ -f /usr/sbin/$file ] ;  
+			then ln -sf /usr/sbin/$file  $PXHOME/tools/; fi ;
+done
+
+# create the sym-link PXHOME/tools/toolLib
+for file in `cat /var/log/px/.tools_lib_dir_metpx_sundew`; \
+        do 
+		if [ -f /usr/lib/px/$file ] ; 
+			then ln -sf /usr/lib/px/$file  $PXHOME/tools/toolLib/; fi ;
+done
+	
+# create a sym-link PXLOGLOCATION
+if [ ! -d /var/log/px ];
+	then ln -sf $PXLOGLOCATION /var/log/px; \
+fi
+
+        
+# create a sym-link /var/spool/px
+if [ ! -d /var/spool/px ];
+	then ln -sf $PXDBLOCATION /var/spool/px; \
+fi
+
+chown -R px:px $PXHOME/
+chown -R px:px /etc/px/
+chown -R px:px $PXDBLOCATION/
+chown -R px:px $PXLOGLOCATION/
+
+#DEBHELPER#

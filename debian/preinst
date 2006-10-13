@@ -1,0 +1,10 @@
+#! /bin/sh -e
+
+. /usr/share/debconf/confmodule
+. ./.metpx-sundew_env
+
+# Make sure the user px exists
+getent group px >/dev/null 2>&1 || addgroup --system px
+getent passwd px >/dev/null 2>&1 || adduser --system --shell /bin/bash --home $PXHOME --ingroup px --gecos "PX user" px
+
+#DEBHELPER#
