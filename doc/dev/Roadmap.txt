@@ -1,4 +1,8 @@
 
+MetPX Feature Roadmap
+
+
+-----------------------------
 
 updated 2006/05/15...
    Current plans wrt roadmap for future releases.
@@ -23,6 +27,7 @@ updated 2006/05/15...
       -- file transformation support.
 
 
+
 -- Target December 2006... 0.3   WorksForOthers release
       -- Debian packaging & FHS compliance. -- make it play nice.
       -- General Pull support
@@ -30,3 +35,11 @@ updated 2006/05/15...
       -- input monitoring?
       -- transfer rate limiting ??
 
+------------------------------------
+
+what is actually happenning:
+        0.2.0 installed end September.
+           -- resend interface fixes not confirmed.
+           -- WMO feed monitoring included.
+           -- re-factored collections (delivered in July)
+           -- 

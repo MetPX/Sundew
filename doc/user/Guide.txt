@@ -7,7 +7,13 @@ A Guide to Using MetPX
     and many more to come...:-)
 
 :Version: 
-    0-3-0 tracking...
+     PRE-DRAFT, not even ready for revision yet!
+     Missing:
+
+     * explanation of file naming convention & extension.
+     * explanation of DESTFN stuff in general terms (details for man page.)
+     * several recipes: WMO monitoring feed, LDM reception, choosing among WMO feeds.
+     * AFTN.
 
 :Copyright: MetPX Copyright (C) 2004-2006  Environment Canada
 

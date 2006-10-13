@@ -7,7 +7,13 @@ MetPX Contributors Guide
     Peter Silva,
     Daniel Lemay
 
-:Version: $Revision: $
+:Version: 
+     Drafty Draft...
+     What is missing:
+        sample projects?
+        additional sorters?
+        sample fx_script ?
+
 :Copyright: 
     MetPX Copyright (C) 2004-2006  Environment Canada.
     MetPX comes with ABSOLUTELY NO WARRANTY; For details type see the file
