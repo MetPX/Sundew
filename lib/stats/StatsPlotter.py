@@ -49,6 +49,14 @@ class StatsPlotter:
         """
         
         x = [ [0]*5  for x in range(5) ]
+        
+        for i in range( len(machines) ):
+            if machines[i] == "pds3-dev":
+                machines[i] = "pds5"
+            elif machines[i] == "pds4-dev":
+                machines[i] = "pds6"
+        
+        print machines    
         machines = "%s" %machines
         machines = machines.replace( "[","").replace( "]","" ).replace( "'", "" )
         
@@ -247,9 +255,9 @@ class StatsPlotter:
                             
                             
                         else:
-                            #print "goes to bytecount"
-                            pairs.append( [ MyDateLib.getSecondsSinceEpoch(self.stats[clientCount].statsCollection.timeSeperators[k]), self.stats[clientCount].statsCollection.fileEntries[k].means[statType]] )
-                            #print self.stats[clientCount].statsCollection.fileEntries[k].means
+                            
+                            pairs.append( [ MyDateLib.getSecondsSinceEpoch(self.stats[clientCount].statsCollection.timeSeperators[k]), self.stats[clientCount].statsCollection.fileEntries[k].totals[statType]] )
+                            
                         
                         if( self.stats[clientCount].statsCollection.fileEntries[k].maximums[statType]  > self.maximums[clientCount][typeCount] ) :
                             
@@ -358,7 +366,7 @@ class StatsPlotter:
                     clientName = clientName + "-" 
         
         src         = self.imageName
-        destination = PXPaths.GRAPHS + "/symlinks/%s" %clientName 
+        destination = PXPaths.GRAPHS + "/symlinks/%s.png" %clientName 
         
         if not os.path.isdir( PXPaths.GRAPHS + "/symlinks/" ):
             os.makedirs( PXPaths.GRAPHS + "/symlinks/", mode=0777 )
@@ -594,7 +602,7 @@ class StatsPlotter:
         self.graph( 'set label "Max error/%s : %s" at screen .545, screen %3.2f' % ( self.entryType, maximum, (.19+(nbGraphs) *.37) ))
         
         
-        self.graph( 'set label "Time of maximum : %s" at screen .545, screen %3.2f' % ( ( timeOfMax, (.16+(nbGraphs) *.37)  )))
+        self.graph( 'set label "Time of maximum : %s" at screen .545, screen %3.2f' % ( ( MyDateLib.getIsoWithRoundedSeconds( timeOfMax ), (.16+(nbGraphs) *.37)  )))
         
         self.graph( 'set label "# of errors : %s" at screen .545, screen %3.2f' % ( self.nbErrors[i], (.13+(nbGraphs) *.37) ) )
       
