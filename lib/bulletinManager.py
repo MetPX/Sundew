@@ -149,7 +149,7 @@ class bulletinManager:
 
         # file name when no routing
         else :
-	   self.logger.warning("Header %s has no routing defined" + entete )
+	   self.logger.warning("Header %s has no routing defined",  entete )
            whatfn = self.createWhatFn(unBulletin,self.compteur)
 	   nomFichier = 'PROBLEM_BULLETIN_' + whatfn + self.getExtension(unBulletin,error=True).replace(' ','_')
 
