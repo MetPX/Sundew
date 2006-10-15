@@ -21,13 +21,13 @@ if [ ! -d $PXHOME/log ];
 	then ln -sf $PXLOGLOCATION $PXHOME/log; \
 fi
 
-if [ ! -d $PXHOME/etc.sample ];
-	then install -d $PXHOME/etc.sample; \
+if [ ! -d $PXHOME/etc ];
+	then install -d $PXHOME/etc; \
 fi
 
 # install the config files in /etc/px
 for file in `find /etc/px/ -type f -maxdepth 1`; \
-	do install -m 644 $file $PXHOME/etc.sample; \
+	do install -m 644 $file $PXHOME/etc; \
 done
 
 if [ ! -d $PXHOME/doc ];

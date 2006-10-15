@@ -53,17 +53,17 @@ install: build
 	done
 
 	# install the config files in /etc/px
-	for file in `find $(CURDIR)/etc.sample/ -type f -maxdepth 1`; \
+	for file in `find $(CURDIR)/etc/ -type f -maxdepth 1`; \
 		do install -m 644 $$file $(CURDIR)/debian/metpx-sundew/etc/px/; \
 	done
 
 	# the config subdirectory /etc/px/rx
-	for file in `find $(CURDIR)/etc.sample/rx/ -type f -maxdepth 1`; \
+	for file in `find $(CURDIR)/etc/rx/ -type f -maxdepth 1`; \
 		do install -m 644 $$file $(CURDIR)/debian/metpx-sundew/etc/px/rx/; \
 	done
 
 	# the config subdirectory /etc/px/tx
-	for file in `find $(CURDIR)/etc.sample/tx/ -type f -maxdepth 1`; \
+	for file in `find $(CURDIR)/etc/tx/ -type f -maxdepth 1`; \
 		do install -m 644 $$file $(CURDIR)/debian/metpx-sundew/etc/px/tx/; \
 	done
 
