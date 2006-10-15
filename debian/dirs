@@ -1,6 +1,8 @@
 usr/share/px
 usr/share/doc/px
-usr/share/doc/px/fet
+usr/share/doc/px/user
+usr/share/doc/px/dev
+usr/share/doc/px/historical
 usr/share/doc/px/version1
 usr/sbin
 usr/lib/px

@@ -22,7 +22,8 @@ install: build
 	dh_installdirs
 
 	ls -1 $(CURDIR)/bin/ > $(CURDIR)/debian/metpx-sundew/var/log/px/.bin_dir_metpx_sundew
-	ls -1 $(CURDIR)/tools/ > $(CURDIR)/debian/metpx-sundew/var/log/px/.tools_dir_metpx_sundew
+        # Peter removed tools when he saw the state of stuff in there... mr-clean is the only needed thing...
+	#ls -1 $(CURDIR)/tools/ > $(CURDIR)/debian/metpx-sundew/var/log/px/.tools_dir_metpx_sundew
 	ls -1 $(CURDIR)/tools/toolLib/ > $(CURDIR)/debian/metpx-sundew/var/log/px/.tools_lib_dir_metpx_sundew
 	
 	# install the binary files in /usr/sbin
@@ -32,12 +33,12 @@ install: build
 
 
 	# install the tools in /usr/sbin
-	for file in `find $(CURDIR)/tools/ -type f -maxdepth 1`; \
-        	do install -m 755 $$file   $(CURDIR)/debian/metpx-sundew/usr/sbin/; \
-	done
+	#for file in `find $(CURDIR)/tools/ -type f -maxdepth 1`; \
+        #	do install -m 755 $$file   $(CURDIR)/debian/metpx-sundew/usr/sbin/; \
+	#done
 
 	# install the documentation in /usr/share/doc/px
-	for file in `find $(CURDIR)/doc/ -type f -maxdepth 1`; \
+	for file in `find $(CURDIR)/doc/ -type f -maxdepth 2`; \
 		do install -m 644 $$file $(CURDIR)/debian/metpx-sundew/usr/share/doc/px/; \
 	done
 

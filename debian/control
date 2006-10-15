@@ -8,16 +8,9 @@ Standards-Version: 3.6.1
 Package: metpx-sundew
 Architecture: any
 Depends: ${shlibs:Depends}, python (>= 2.3),debconf (>= 1.2.9)
-Description:MetPX is a message switching system for use with  Wmo  Global
- Telecommunications System circuits based on TCP/IP. Developed at
- the Canadian Meteorological Centre of Environment Canada for our
- own use. 
- MetPX is a work in progress, the development process is being
- externalized in the hopes of fostering a community around a
- switching system which all can share and improve together. The
- system is already production quality for a limited set of features
- and is in production use at the CMC as the core of our national
- bulletin switching infrastructure. The software is under continuous,
- but low-intensity development. Features are carefully being layered
- on top of existing stable functions.
+Description:MetPX is a WMO TCP/IP GTS message switching system 
+ WMO - World Meteorological Organization, 
+ GTS - Global Telecommunications System circuits based on TCP/IP. 
+ Developed at the Canadian Meteorological Centre of Environment 
+ Canada for our local use. 
  web site: http://metpx.sourceforge.net/
