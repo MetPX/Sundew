@@ -346,20 +346,20 @@ class StatsPlotter:
         """  
         
         if self.maximums[i][typeCount] !=None :
-            maximum =("%3.2f") %self.maximums[i][typeCount]
+            maximum =("%s") %self.maximums[i][typeCount]
         
         else:
             maximum = None
                  
         if self.minimums[i][typeCount] != None :
-            minimum = ("%3.2f") %self.minimums[i][typeCount]
+            minimum = ("%s") %self.minimums[i][typeCount]
         else:
             minimum = None
         
         statType = statType[0].upper() + statType[1:] 
             
               
-        title =  "%s for %s queried at %s for a span of %s hours \\n\\nMAX: %s,  MEAN: %3.2f, MIN: %s " %( statType, self.clientNames[i],  self.currentTime , self.timespan,  maximum, self.means[i][typeCount], minimum )     
+        title =  "%s for %s for a span of %s hours ending at %s\\n\\nMAX: %s  MEAN: %3.2f MIN: %s " %( statType, self.clientNames[i], self.timespan, self.currentTime,  maximum, self.means[i][typeCount], minimum )     
         
         return title
         
@@ -579,7 +579,7 @@ class StatsPlotter:
         
         self.graph( 'set label "# of files : %s " at screen .545, screen %3.2f' % ( self.nbFiles[i] , ( x-.06+(nbGraphs) *.37) ) )
     
-        self.graph( 'set label "Total # of bytes: %s " at screen .545, screen %s' % (  self.totalNumberOfBytes[i],( x -.08 +(nbGraphs) *.37 ) ) )
+        self.graph( 'set label "Total # of bytes: %i " at screen .545, screen %s' % (  self.totalNumberOfBytes[i],( x -.08 +(nbGraphs) *.37 ) ) )
                 
 
     
@@ -625,7 +625,7 @@ class StatsPlotter:
         
         self.graph( 'set label "Time of max. : %s" at screen .545, screen %3.2f' % ( ( timeOfMax, (.20+(nbGraphs) *.37)  )))
         
-        self.graph( 'set label "# of errors : %s" at screen .545, screen %3.2f' % ( self.nbErrors[i], (.18+(nbGraphs) *.37) ) )
+        self.graph( 'set label "# of errors : %i" at screen .545, screen %3.2f' % ( self.nbErrors[i], (.18+(nbGraphs) *.37) ) )
       
                 
                 
