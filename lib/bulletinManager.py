@@ -139,19 +139,19 @@ class bulletinManager:
         self.verifyDelay(unBulletin)
 
         # ckeck if it is routable
-	error  = False
+        error  = False
         entete = '_'.join(unBulletin.getHeader().split()[:2])
         clist = self.drp.getClients(entete)
 
         # generate a file name.
-	if clist != None :
+        if clist != None :
            nomFichier = self.getFileName(unBulletin,error,compteur=compteur)
 
         # file name when no routing
         else :
-	   self.logger.warning("Header %s has no routing defined",  entete )
+           self.logger.warning("Header %s has no routing defined",  entete )
            whatfn = self.createWhatFn(unBulletin,self.compteur)
-	   nomFichier = 'PROBLEM_BULLETIN_' + whatfn + self.getExtension(unBulletin,error=True).replace(' ','_')
+           nomFichier = 'PROBLEM_BULLETIN_' + whatfn + self.getExtension(unBulletin,error=True).replace(' ','_')
 
         # add date/time stamp
         nomFichier = nomFichier + ':' + time.strftime( "%Y%m%d%H%M%S", time.gmtime(time.time()) )
@@ -211,19 +211,19 @@ class bulletinManager:
         self.verifyDelay(unBulletin)
 
         # ckeck if it is routable
-	error  = False
+        error  = False
         entete = '_'.join(unBulletin.getHeader().split()[:2])
         clist = self.drp.getClients(entete)
 
         # generate a file name.
-	if clist != None :
+        if clist != None :
            nomFichier = self.getFileName(unBulletin,error,compteur=compteur)
 
         # file name when no routing
         else :
-	   self.logger.warning("Header %s has no routing defined" + entete )
+           self.logger.warning("Header %s has no routing defined" + entete )
            whatfn = self.createWhatFn(unBulletin,self.compteur)
-	   nomFichier = 'PROBLEM_BULLETIN_' + whatfn + self.getExtension(unBulletin,error=True).replace(' ','_')
+           nomFichier = 'PROBLEM_BULLETIN_' + whatfn + self.getExtension(unBulletin,error=True).replace(' ','_')
 
         nomFichier = nomFichier + ':' + time.strftime( "%Y%m%d%H%M%S", time.gmtime(time.time()) )
 
