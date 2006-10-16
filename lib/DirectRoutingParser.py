@@ -76,7 +76,9 @@ class DirectRoutingParser(FileParser):
     # defined with that key pattern
     def getKeyClients(self,key):
         for keyp in self.keyInfos :
-	    if fnmatch.fnmatch(key,keyp):
+            parts = re.findall( keyp, key )
+            if len(parts) == 2 and parts[1] == '' : parts.pop(1)
+            if len(parts) == 1 :
                self.routingInfos[key] = {}
                self.routingInfos[key]['clients']    = self.keyInfos[keyp]['clients']
                self.routingInfos[key]['subclients'] = {}
@@ -90,8 +92,10 @@ class DirectRoutingParser(FileParser):
     def isRoutable(self, key):
         if self.routingInfos.has_key(key): return True
         for keyp in self.keyInfos :
-	    if fnmatch.fnmatch(key,keyp) : return True
-	return False
+            parts = re.findall( keyp, key )
+            if len(parts) == 2 and parts[1] == '' : parts.pop(1)
+            if len(parts) == 1 : return True
+        return False
 
     def getClients(self,key):
         if self.routingInfos.has_key(key):
@@ -184,19 +188,19 @@ class DirectRoutingParser(FileParser):
                         self.aliasedClients[words[1]] = self.removeDuplicate(clients)
 
                     # Here we have an "accepted key pattern"
-		    elif words[0] == 'key_accept':
+                    elif words[0] == 'key_accept':
 
                          # the line had the form  key_accept key_pattern client1,client2,... priority
                          if len(words) == 4:
-		            words.pop(0)
-		            keyI     = words[0]
+                            words.pop(0)
+                            keyI     = words[0]
                             clients  = words[1].split(',')
                             priority = words[2]
 
                          # the line had the form  key_accept key_pattern priority
                          elif len(words) == 3:
-		            words.pop(0)
-		            keyI     = words[0]
+                            words.pop(0)
+                            keyI     = words[0]
                             clients  = []
                             priority = words[1]
 
@@ -225,17 +229,17 @@ class DirectRoutingParser(FileParser):
                          self.keyInfos[keyI]['priority'] = priority
 
                     # Here we have a "header line"
-		    elif words[0] == 'key':
+                    elif words[0] == 'key':
 
                         if len(words) == 4:
-		           words.pop(0)
-		           entete   = words[0]
+                           words.pop(0)
+                           entete   = words[0]
                            clients  = words[1].split(',')
                            priority = words[2]
 
                         elif len(words) == 3:
-		           words.pop(0)
-		           entete   = words[0]
+                           words.pop(0)
+                           entete   = words[0]
                            clients  = []
                            priority = words[1]
 
@@ -361,19 +365,19 @@ class DirectRoutingParser(FileParser):
                             myprint("Alias %s has duplicate(s): %s" % (words[1], duplicateForAlias))
 
                     # Here we have an "accepted key pattern"
-		    elif words[0] == 'key_accept':
+                    elif words[0] == 'key_accept':
 
                         # the line had the form  key_accept key_pattern client1,client2,... priority
                         if len(words) == 4:
-		           words.pop(0)
-		           keyI     = words[0]
+                           words.pop(0)
+                           keyI     = words[0]
                            clients  = words[1].split(',')
                            priority = words[2]
 
                         # the line had the form  key_accept key_pattern priority
                         elif len(words) == 3:
-		           words.pop(0)
-		           keyI     = words[0]
+                           words.pop(0)
+                           keyI     = words[0]
                            clients  = []
                            priority = words[1]
 
@@ -411,15 +415,15 @@ class DirectRoutingParser(FileParser):
                         self.keyInfos[keyI]['priority'] = priority
 
                     # Here we have a "header line"
-		    elif words[0] == 'key':
+                    elif words[0] == 'key':
 
                         if len(words) == 4:
-		           words.pop(0)
+                           words.pop(0)
                            clients  = words[1].split(',')
                            priority = words[2]
 
                         elif len(words) == 3:
-		           words.pop(0)
+                           words.pop(0)
                            clients  = []
                            priority = words[1]
 

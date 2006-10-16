@@ -214,11 +214,12 @@ class Source(object):
 
     def getTransformation(self, filename):
         for mask in self.tmasks:
-            if fnmatch.fnmatch(filename, mask[0]):
-                try:
-                    return mask[1]
-                except:
-                    return None
+            parts = re.findall( mask[0], filename )
+            if len(parts) == 2 and parts[1] == '' : parts.pop(1)
+            if len(parts) == 1 :
+               if len(mask) == 2 : return mask[1]
+               return None
+
         return None
 
     def fileMatchMask(self, filename):
@@ -227,11 +228,11 @@ class Source(object):
 
         # check against the masks
         for mask in self.masks:
-            if fnmatch.fnmatch(filename, mask[0]):
-               try:
-                    if mask[2]: return True
-               except:
-                    return False
+            parts = re.findall( mask[0], filename )
+            if len(parts) == 2 and parts[1] == '' : parts.pop(1)
+            if len(parts) == 1 :
+               if len(mask) == 3 : return True
+               return False
 
         # fallback behavior 
         return True

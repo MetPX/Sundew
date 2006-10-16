@@ -152,6 +152,7 @@ class Ingestor(object):
             # accept/imask
             if len(mask) == 3 :
                parts = re.findall( mask[0], filename )
+               if len(parts) == 2 and parts[1] == '' : parts.pop(1)
                if len(parts) != 1 : continue
                key = parts[0]
                if isinstance(parts[0],tuple) : key = '_'.join(parts[0])
@@ -160,7 +161,9 @@ class Ingestor(object):
 
             # reject/emask
             else  :
-               if fnmatch.fnmatch(filename, mask[0]): return None
+               parts = re.findall( mask[0], filename )
+               if len(parts) == 2 and parts[1] == '' : parts.pop(1)
+               if len(parts) == 1 : return None
  
         # fallback behavior 
         return None
@@ -170,12 +173,12 @@ class Ingestor(object):
         Verify if ingestName is matching one mask of a client
         """
         for mask in client.masks:
-            if fnmatch.fnmatch(ingestName, mask[0]):
-                try:
-                    if mask[2]:
-                        return True
-                except:
-                    return False
+            parts = re.findall( mask[0], ingestName )
+            if len(parts) == 2 and parts[1] == '' : parts.pop(1)
+            if len(parts) == 1 :
+               if len(mask) == 3 : return True
+               return False
+
         return False
 
     def getMatchingClientNamesFromKey(self, key, ingestName):
@@ -192,7 +195,7 @@ class Ingestor(object):
     def getMatchingClientNamesFromMasks(self, ingestName, potentialClientNames):
         matchingClientNames = []
 
-	if potentialClientNames == None : return None
+        if potentialClientNames == None : return None
 
         for name in potentialClientNames:
             try:

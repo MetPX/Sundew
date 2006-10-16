@@ -181,12 +181,12 @@ class Client(object):
 
     def _getMatchingMask(self, filename): 
         for mask in self.masks:
-            if fnmatch.fnmatch(filename, mask[0]):
-                try:
-                    if mask[2]:
-                        return mask
-                except:
-                    return None
+            parts = re.findall( mask[0], filename )
+            if len(parts) == 2 and parts[1] == '' : parts.pop(1)
+            if len(parts) == 1 :
+               if len(mask) == 3 : return mask
+               return None
+
         return None
 
     def getDestInfos(self, filename):

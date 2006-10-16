@@ -122,11 +122,11 @@ class DiskReader:
 
         elif isinstance(self.flow, Client.Client):
            for mask in self.flow.masks:
-               if fnmatch.fnmatch(basename, mask[0]):
-                  try:
-                       if mask[2]: return (True, 'TX')
-                  except:
-                       return (False, 'TX')
+               parts = re.findall( mask[0], basename )
+               if len(parts) == 2 and parts[1] == '' : parts.pop(1)
+               if len(parts) == 1 :
+                  if len(mask) == 3 : return (True, 'TX')
+                  return (False, 'TX')
 
         return (False, 'TX')
 
