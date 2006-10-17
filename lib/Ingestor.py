@@ -49,7 +49,7 @@ class Ingestor(object):
         if source is not None:
             self.ingestDir = PXPaths.RXQ + self.source.name
             if self.source.type == 'filter' :
-	       self.ingestDir = PXPaths.FXQ + self.source.name
+               self.ingestDir = PXPaths.FXQ + self.source.name
             self.logger = source.logger
         elif logger is not None:
             self.logger = logger
@@ -66,7 +66,7 @@ class Ingestor(object):
         self.feedNames = []  # source to feed
         self.feeds = {}  # source to feed
         if source is not None:
-	   if self.source.name in self.allNames : self.allNames.remove(self.source.name)
+           if self.source.name in self.allNames : self.allNames.remove(self.source.name)
            self.logger.info("Ingestor (source %s) can link files to clients: %s" % (source.name, self.allNames))
 
     def createDir(self, dir, cacheManager):
@@ -378,7 +378,7 @@ class Ingestor(object):
                 if routeKey == None or matchingClients == None :
                    self.count = self.count + 1
                    if self.count > self.Mcount : self.count = 0
-		   strCount = string.zfill(self.count, len(str(self.Mcount)))
+                   strCount = string.zfill(self.count, len(str(self.Mcount)))
                    parts=ingestName.split(':')
                    ingestName =  parts[0] + "_" + strCount + ":PROBLEM:PROBLEM:PROBLEM:PROBLEM:PROBLEM"
                    matchingClients = []

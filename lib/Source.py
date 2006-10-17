@@ -44,7 +44,7 @@ class Source(object):
         if logger is None:
             pathlog     = PXPaths.LOG + 'rx_' + name + '.log'
             namelog     = 'RX' + name
-	    if self.filter :
+            if self.filter :
                pathlog  = PXPaths.LOG + 'fx_' + name + '.log'
                namelog  = 'FX' + name
             self.logger = Logger(pathlog, 'INFO', namelog ) # Enable logging
@@ -146,7 +146,7 @@ class Source(object):
 
         filePath = PXPaths.RX_CONF +  self.name + '.conf'
         if self.filter :
-	   filePath = PXPaths.FX_CONF +  self.name + '.conf'
+           filePath = PXPaths.FX_CONF +  self.name + '.conf'
 
         try:
             config = open(filePath, 'r')
