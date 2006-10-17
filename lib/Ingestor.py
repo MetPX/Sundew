@@ -43,8 +43,13 @@ class Ingestor(object):
         self.source = source
         self.reader = None
         self.drp    = None
+        self.count  = 0
+        self.Mcount = 99999
+
         if source is not None:
             self.ingestDir = PXPaths.RXQ + self.source.name
+            if self.source.type == 'filter' :
+	       self.ingestDir = PXPaths.FXQ + self.source.name
             self.logger = source.logger
         elif logger is not None:
             self.logger = logger
@@ -52,28 +57,17 @@ class Ingestor(object):
         self.pxManager.setLogger(self.logger)     # Give the logger to the the manager
         self.pxManager.initNames()                # Set rx and tx names
         self.clientNames = self.pxManager.getTxNames()         # Obtains the list of client's names (the ones to wich we can link files)
+        self.filterNames = self.pxManager.getFxNames()         # Obtains the list of filter's names (the ones to wich we can link files)
         self.sourlientNames = self.pxManager.getTRxNames()     # Obtains the list of sourlient's names (the ones to wich we can link files)
-        self.allNames = self.clientNames + self.sourlientNames # Clients + Sourlients names
-        self.clients = {}   # All the Client/Sourlient objects
+        self.allNames = self.clientNames + self.filterNames + self.sourlientNames # Clients + Sourlients names
+        self.clients = {}   # All the Client/Filter/Sourlient objects
         self.dbDirsCache = CacheManager(maxEntries=200000, timeout=25*3600)      # Directories created in the DB
         self.clientDirsCache = CacheManager(maxEntries=100000, timeout=2*3600)   # Directories created in TXQ
         self.feedNames = []  # source to feed
         self.feeds = {}  # source to feed
         if source is not None:
-            self.logger.info("Ingestor (source %s) can link files to clients: %s" % (source.name, self.allNames))
-
-    def setFeeds(self, feedNames ):
-        from Source import Source
-        sources = self.pxManager.getRxNames()
-        for name in feedNames :
-            if not name in sources : continue
-            instant = Source(name, self.logger, False)
-            if instant.type == 'am' or instant.type == 'wmo' :
-               self.logger.warning("Feed (source %s) will be ignored  (type %s)" % (name, instant.type) )
-               continue
-            self.feedNames.append(name)
-            self.feeds[name] = instant
-        self.logger.info("Ingestor (source %s) can link files to receiver: %s" % (self.source.name, self.feedNames))
+	   if self.source.name in self.allNames : self.allNames.remove(self.source.name)
+           self.logger.info("Ingestor (source %s) can link files to clients: %s" % (source.name, self.allNames))
 
     def createDir(self, dir, cacheManager):
         if cacheManager.find(dir) == None:
@@ -88,9 +82,12 @@ class Ingestor(object):
         Set a dictionnary of Clients. Main usage will be to access value of 
         configuration options (mainly masks) of the Client objects.
         """
+        from Source    import Source
         from Sourlient import Sourlient
         for name in self.clientNames:
             self.clients[name] = Client(name, self.logger)
+        for name in self.filterNames:
+            self.clients[name] = Source(name, self.logger, False, True)
         for name in self.sourlientNames:
             self.clients[name] = Sourlient(name, self.logger, False)
             #self.clients[name].readConfig()
@@ -121,7 +118,13 @@ class Ingestor(object):
         parts = ingestName.split(':')
         if not priority:
             priority = parts[4].split('.')[0]
-        return PXPaths.TXQ + clientName + '/' + str(priority) + '/' + time.strftime("%Y%m%d%H", time.gmtime()) + '/' + ingestName
+
+        clientpathName = PXPaths.TXQ + clientName + '/' + str(priority) + '/' + time.strftime("%Y%m%d%H", time.gmtime()) + '/' + ingestName
+
+        if clientName in self.filterNames :
+           clientpathName = PXPaths.FXQ + clientName + '/' + ingestName
+
+        return clientpathName
 
     def getDBName(self, ingestName):
         """
@@ -361,7 +364,6 @@ class Ingestor(object):
                 # Key is used to get clientlist
 
                 ingestName       = self.getIngestName(os.path.basename(file))
-                self.logger.debug("ingestName = %s" % ingestName )
                 routeKey         = self.getRouteKey(ingestName)
                 self.logger.debug("routeKey = %s" % routeKey )
 
@@ -374,8 +376,11 @@ class Ingestor(object):
                    matchingClients = self.getMatchingClientNamesFromKey(routeKey,ingestName)
 
                 if routeKey == None or matchingClients == None :
+                   self.count = self.count + 1
+                   if self.count > self.Mcount : self.count = 0
+		   strCount = string.zfill(self.count, len(str(self.Mcount)))
                    parts=ingestName.split(':')
-                   ingestName =  parts[0] + ":PROBLEM:PROBLEM:PROBLEM:" + parts[4] + ":PROBLEM"
+                   ingestName =  parts[0] + "_" + strCount + ":PROBLEM:PROBLEM:PROBLEM:PROBLEM:PROBLEM"
                    matchingClients = []
 
                 # ingesting the file

@@ -27,15 +27,18 @@ class SystemManager:
 
     def __init__(self):
         self.logger = None                     # self.setLogger will be used by the application using a Manager 
+        self.fxNames = []                      # Names are based on filenames found in FX_CONF
         self.rxNames = []                      # Names are based on filenames found in RX_CONF
         self.txNames = []                      # Names are based on filenames found in TX_CONF
         self.trxNames = []                     # Names are based on filenames found in TRX_CONF
+        self.shouldRunFxNames = []             # Names are based on filenames found in FX_CONF and the presence of a .lock in FXQ
         self.shouldRunRxNames = []             # Names are based on filenames found in RX_CONF and the presence of a .lock in RXQ
         self.shouldRunTxNames = []             # Names are based on filenames found in TX_CONF and the presence of a .lock in TXQ
         self.shouldRunTRxNames = []            # Names are based on filenames found in TRX_CONF and the presence of a .lock in RXQ
         self.runningRxNames = []               # We only keep the Rx for which we can find a PID
         self.runningTxNames = []               # We only keep the Tx for which we can find a PID 
         self.runningTRxNames = []              # We only keep the TRx for which we can find a PID 
+        self.fxPaths = []                      # Filters   (input directories in PDS parlance) paths
         self.rxPaths = []                      # Receivers (input directories in PDS parlance) paths
         self.txPaths = []                      # Transmitters (clients in PDS parlance, senders in PX parlance) paths
 
@@ -126,8 +129,14 @@ class SystemManager:
     ##########################################################################################################
     # Names (sources and clients)
     ##########################################################################################################
+    def getFxNames(self):
+        return self.fxNames
+
     def getRxNames(self):
         return self.rxNames
+
+    def setFxNames(self):
+        raise SystemManagerException('Abstract method: not implemented in SystemManager Class')
 
     def setRxNames(self):
         raise SystemManagerException('Abstract method: not implemented in SystemManager Class')
@@ -142,6 +151,12 @@ class SystemManager:
         return self.trxNames
 
     def setTRxNames(self):
+        raise SystemManagerException('Abstract method: not implemented in SystemManager Class')
+
+    def getFxPaths(self):
+        return self.fxPaths
+
+    def setFxPaths(self):
         raise SystemManagerException('Abstract method: not implemented in SystemManager Class')
 
     def getRxPaths(self):

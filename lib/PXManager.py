@@ -44,6 +44,7 @@ class PXManager(SystemManager):
     def getAllFlowNames(self, tuple=False, drp=None):
         clientNames =  self.getTxNames()
         sourlientNames = self.getTRxNames()
+        filterNames = self.getFxNames()
         sourceNames = self.getRxNames()
 
         if drp:
@@ -85,6 +86,7 @@ class PXManager(SystemManager):
         clientNames =  self.getTxNames()
         sourlientNames = self.getTRxNames()
         sourceNames = self.getRxNames()
+        filterNames = self.getFxNames()
 
         # clientNames first, sourlientNames second, sourcesNames third and finally, aliases fourth
         flowType = None
@@ -94,6 +96,8 @@ class PXManager(SystemManager):
             flowType = 'TX'
         elif name in sourlientNames:
             flowType = 'TRX'
+        elif name in filterNames:
+            flowType = 'FX'
         elif name in sourceNames:
             flowType = 'RX'
         elif drp:
@@ -108,10 +112,12 @@ class PXManager(SystemManager):
             self.logger.error("This directory: %s does not exist!" % (PXPaths.ROOT))
             sys.exit(15)
 
+        self.setFxNames()           
         self.setRxNames()           
         self.setTxNames()
         self.setTRxNames()
 
+        self.setFxPaths()
         self.setRxPaths()
         self.setTxPaths()
         #self.rxPaths = ['/apps/px/toto/', '/apps/px/titi/', '/apps/px/tata/']
@@ -135,6 +141,7 @@ class PXManager(SystemManager):
             self.logger.error("This directory: %s does not exist!" % (PXPaths.ROOT))
             sys.exit(15)
 
+        self.setFxNames()           
         self.setRxNames()           
         self.setTxNames()
         self.setTRxNames()
@@ -144,6 +151,7 @@ class PXManager(SystemManager):
             self.logger.error("This directory: %s does not exist!" % (PXPaths.ROOT))
             sys.exit(15)
 
+        self.setShouldRunFxNames()           
         self.setShouldRunRxNames()           
         self.setShouldRunTxNames()
         self.setShouldRunTRxNames()
@@ -153,9 +161,13 @@ class PXManager(SystemManager):
             self.logger.error("This directory: %s does not exist!" % (PXPaths.ROOT))
             sys.exit(15)
 
+        self.setRunningFxNames()
         self.setRunningRxNames()
         self.setRunningTxNames()
         self.setRunningTRxNames()
+
+    def getNotRunningFxNames(self):
+        return self.notRunningFxNames
 
     def getNotRunningRxNames(self):
         return self.notRunningRxNames
@@ -169,9 +181,32 @@ class PXManager(SystemManager):
     ##########################################################################################################
     # Running Names (sources and clients):
     # 1) Have a .conf file in /apps/px/etc/[rt]x
-    # 2) Have a lock file (.lock) in /apps/px/[rt]xq/NAME
+    # 2) Have a lock file (.lock) in /apps/px/[frt]xq/NAME
     # 3) A ps confirm that the pid contained in the .lock file is running 
     ##########################################################################################################
+    def setRunningFxNames(self):
+        """
+        Set a list of filters' name. We choose filters that have a .conf file in FX_CONF
+        and we verify that these filters have a .lock and a process associated to them.
+        """
+        runningFxNames = []
+        notRunningFxNames = []
+        shouldRunFxNames = self.getShouldRunFxNames()
+        for name in shouldRunFxNames:
+            try:
+                pid = open(PXPaths.FXQ + name + '/' + '.lock', 'r').read().strip()
+                if not commands.getstatusoutput('ps -p ' + pid)[0]:
+                    # Process is running
+                    runningFxNames.append(name)
+                else:
+                    notRunningFxNames.append(name)
+            except:
+                #FIXME 
+                pass
+
+        self.runningFxNames = runningFxNames
+        self.notRunningFxNames = notRunningFxNames
+
     def setRunningRxNames(self):
         """
         Set a list of receivers' name. We choose receivers that have a .conf file in RX_CONF
@@ -248,6 +283,18 @@ class PXManager(SystemManager):
     # 1) Have a .conf file in /apps/px/etc/[rt]x
     # 2) Have a lock file (.lock) in /apps/px/[rt]xq/NAME
     ##########################################################################################################
+    def setShouldRunFxNames(self):
+        """
+        Set a list of receivers' name. We choose receivers that have a .conf file in RX_CONF
+        and we verify that these receivers have a .lock  associated to them.
+        """
+        shouldRunFxNames = []
+        fxNames =  self.getFxNames()
+        for name in fxNames:
+            if os.path.isfile(PXPaths.FXQ + name + '/' + '.lock'):
+                shouldRunFxNames.append(name)
+        self.shouldRunFxNames = shouldRunFxNames
+
     def setShouldRunRxNames(self):
         """
         Set a list of receivers' name. We choose receivers that have a .conf file in RX_CONF
@@ -288,6 +335,20 @@ class PXManager(SystemManager):
     # Names and paths (sources and clients):
     # 1) Have a .conf file in /apps/px/etc/[rt]x
     ##########################################################################################################
+    def setFxNames(self):
+        """
+        Set a list of filters' name. We choose filters that have a .conf file in FX_CONF.
+        We don't verify if these filters have a process associated to them.
+        """
+        fxNames = []
+        for file in os.listdir(PXPaths.FX_CONF):
+            if file[-5:] != '.conf':
+                continue
+            else:
+                fxNames.append(file[:-5])
+        fxNames.sort()
+        self.fxNames = fxNames
+                
     def setRxNames(self):
         """
         Set a list of receivers' name. We choose receivers that have a .conf file in RX_CONF.
@@ -329,6 +390,17 @@ class PXManager(SystemManager):
                 trxNames.append(file[:-5])
         trxNames.sort()
         self.trxNames = trxNames
+
+    def setFxPaths(self):
+        """
+        Set a list of receivers' path. We choose receivers that have a .conf file in RX_CONF.
+        We don't verify if these receivers have a process associated to them.
+        """
+        fxPaths = []
+        for name in self.fxNames:
+            fxPaths.append(PXPaths.FXQ + name + '/')
+
+        self.fxPaths = fxPaths
 
     def setRxPaths(self):
         """
@@ -383,6 +455,7 @@ class PXManager(SystemManager):
 if __name__ == '__main__':
   
     manager = PXManager()
+    #print manager.getFxNames()
     #print manager.getRxNames()
     #print manager.getTxNames()
     #print manager.getRxPaths()
@@ -395,18 +468,22 @@ if __name__ == '__main__':
 
     print
     print "**************************************************************"
+    print("FX Names: %s" % manager.getFxNames())
     print("RX Names: %s" % manager.getRxNames())
     print("TX Names: %s" % manager.getTxNames())
     print("TRX Names: %s" % manager.getTRxNames())
     print "********************* Should run names ***********************"
+    print("FX that should run: %s" % manager.getShouldRunFxNames())
     print("RX that should run: %s" % manager.getShouldRunRxNames())
     print("TX that should run: %s" % manager.getShouldRunTxNames())
     print("TRX that should run: %s" % manager.getShouldRunTRxNames())
     print "********************** Running names *************************"
+    print manager.getRunningFxNames()
     print manager.getRunningRxNames()
     print manager.getRunningTxNames()
     print manager.getRunningTRxNames()
     print "************* Not Running names (that should run) ************"
+    print manager.getNotRunningFxNames()
     print manager.getNotRunningRxNames()
     print manager.getNotRunningTxNames()
     print manager.getNotRunningTRxNames()

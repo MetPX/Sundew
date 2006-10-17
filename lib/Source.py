@@ -36,16 +36,26 @@ PXPaths.normalPaths()              # Access to PX paths
 
 class Source(object):
 
-    def __init__(self, name='toto', logger=None, ingestion=True ) :
+    def __init__(self, name='toto', logger=None, ingestion=True, filter=False ) :
         
         # General Attributes
-        self.name = name                          # Source's name
+        self.name   = name                        # Source's name
+        self.filter = filter                      # is this source realy defines a filter ?
         if logger is None:
-            self.logger = Logger(PXPaths.LOG + 'rx_' + name + '.log', 'INFO', 'RX' + name) # Enable logging
+            pathlog     = PXPaths.LOG + 'rx_' + name + '.log'
+            namelog     = 'RX' + name
+	    if self.filter :
+               pathlog  = PXPaths.LOG + 'fx_' + name + '.log'
+               namelog  = 'FX' + name
+            self.logger = Logger(pathlog, 'INFO', namelog ) # Enable logging
             self.logger = self.logger.getLogger()
         else:
             self.logger = logger
-        self.logger.info("Initialisation of source %s" % self.name)
+
+        if not self.filter :
+           self.logger.info("Initialisation of source %s" % self.name)
+        else :
+           self.logger.info("Initialisation of filter %s" % self.name)
 
         # Attributes coming from the configuration file of the source
         #self.extension = 'nws-grib:-CCCC:-TT:-CIRCUIT:Direct'  # Extension to be added to the ingest name
@@ -55,7 +65,7 @@ class Source(object):
         self.masks = []                           # All the masks (imask and emask)
         self.tmasks = []                          # All the transformation maks (timask, temask)
         self.extension = ':MISSING:MISSING:MISSING:MISSING:'   # Extension to be added to the ingest name
-        self.type = None                                       # Must be in ['single-file', 'bulletin-file', 'am', 'wmo']
+        self.type = None                                       # Must be in ['filter','file','single-file', 'bulletin-file', 'am', 'wmo']
         self.port = None                                       # Port number if type is in ['am', 'wmo']
         self.routingTable = PXPaths.ROUTING_TABLE              # Defaut routing table name
         self.mapEnteteDelai = None                             #
@@ -135,6 +145,9 @@ class Source(object):
                 return False
 
         filePath = PXPaths.RX_CONF +  self.name + '.conf'
+        if self.filter :
+	   filePath = PXPaths.FX_CONF +  self.name + '.conf'
+
         try:
             config = open(filePath, 'r')
         except:

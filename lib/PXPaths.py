@@ -45,7 +45,7 @@ def readConfig():
 
 def normalPaths():
 
-    global ROOT, BIN, LIB, LOG, ETC, RXQ, TXQ, DB, RX_CONF, TX_CONF, TRX_CONF, LAT, LAT_RESULTS, LAT_TMP, \
+    global ROOT, BIN, LIB, LOG, ETC, FXQ, RXQ, TXQ, DB, FX_CONF, RX_CONF, TX_CONF, TRX_CONF, LAT, LAT_RESULTS, LAT_TMP, \
            COLLECTION_DB, COLLECTION_CONTROL, ROUTING_TABLE, STATION_TABLE, STATS, PICKLES, GRAPHS, SEARCH, \
            REQUEST_REPLY
 
@@ -59,9 +59,11 @@ def normalPaths():
     LIB = ROOT + 'lib/' # This path was hardcoded in PXCopy.py, see dominik_db or dlema for details
     LOG = ROOT + 'log/'
     ETC = ROOT + 'etc/'
+    FXQ = ROOT + 'fxq/'
     RXQ = ROOT + 'rxq/'
     TXQ = ROOT + 'txq/'
     DB = ROOT + 'db/'
+    FX_CONF = ETC + 'fx/'
     RX_CONF = ETC + 'rx/'
     TX_CONF = ETC + 'tx/'
     TRX_CONF = ETC + 'trx/'
@@ -88,7 +90,7 @@ def normalPaths():
 
 def drbdPaths(rootPath):
 
-    global ROOT, BIN, LIB, LOG, ETC, RXQ, TXQ, DB, RX_CONF, TX_CONF, TRX_CONF, LAT, LAT_RESULTS, LAT_TMP, \
+    global ROOT, BIN, LIB, LOG, ETC, FXQ, RXQ, TXQ, DB, FX_CONF, RX_CONF, TX_CONF, TRX_CONF, LAT, LAT_RESULTS, LAT_TMP, \
            COLLECTION_DB, COLLECTION_CONTROL
 
     ROOT = os.path.normpath(rootPath) + '/'
@@ -96,9 +98,11 @@ def drbdPaths(rootPath):
     LIB = ROOT + 'lib/'
     LOG = '/apps/px/' + 'log/'
     ETC = ROOT + 'etc/'
+    FXQ = ROOT + 'fxq/'
     RXQ = ROOT + 'rxq/'
     TXQ = ROOT + 'txq/'
     DB = ROOT + 'db/'
+    FX_CONF = ETC + 'fx/'
     RX_CONF = ETC + 'rx/'
     TX_CONF = ETC + 'tx/'
     TRX_CONF = ETC + 'trx/'

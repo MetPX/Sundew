@@ -315,6 +315,7 @@ class DirectRoutingParser(FileParser):
         badClients = self.badClients.keys()
         badClients.sort()
         for client in badClients:
+            if client == '' : continue
             self.logger.warning("Client %s is in %s but not in px" % (client, os.path.basename(self.filename)))
 
     def parseAndShowErrors(self):
