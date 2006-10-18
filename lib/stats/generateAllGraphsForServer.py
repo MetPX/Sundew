@@ -82,7 +82,7 @@ Defaults :
 - Default Date is current system time.
 - Default logins is pds.  
 - Default machines value is pxatx.
-- Default span is 12 hours.
+- Default span is 24 hours.
 
 Options:
     - With -c|--combine you specify that graphic produced must also be a combination of numerous machines.  
@@ -130,7 +130,7 @@ def addOptions( parser ):
     
     parser.add_option( "-m", "--machines", action="store", type="string", dest="machines", default="pxatx", help = "Machines for wich you want to collect data." ) 
     
-    parser.add_option("-s", "--span", action="store",type ="int", dest = "timespan", default=12, help="timespan( in hours) of the graphic.")    
+    parser.add_option("-s", "--span", action="store",type ="int", dest = "timespan", default=24, help="timespan( in hours) of the graphic.")    
     
     
   
@@ -259,24 +259,15 @@ def generateGraphsForIndividualMachines( infos ) :
           
     """       
              
-    for i in range ( len( infos.machines ) ) :
-        
-        
-        #small workaround for temporary test machines    
-        if infos.machines[i] == "pds5" :
-            machine = "pds3-dev"
-        elif infos.machines[i] == "pds6" :
-            machine = "pds4-dev"
-        else:
-            machine = infos.machines[i]         
-                                             
+    for i in range ( len( infos.machines ) ) :      
+                                                        
         rxNames, txNames = getRxTxNames( infos.machines[i] )  
      
         for txName in txNames :    
             pid = os.fork()#create child process
             
             if pid == 0: #child process
-                status, output = commands.getstatusoutput( "python /apps/px/lib/stats/generateGraphics.py -m '%s' -f tx -c '%s' -d '%s' -s %s -l" %( machine, txName, infos.date, infos.timespan) )                
+                status, output = commands.getstatusoutput( "python /apps/px/lib/stats/generateGraphics.py -m '%s' -f tx -c '%s' -d '%s' -s %s -l" %( infos.machines[i], txName, infos.date, infos.timespan) )                
                 sys.exit()
         
         while True:#wait on all non terminated child process'
@@ -291,7 +282,7 @@ def generateGraphsForIndividualMachines( infos ) :
             pid = os.fork()#create child process
             
             if pid == 0 :#child process
-                status, output = commands.getstatusoutput( "python /apps/px/lib/stats/generateGraphics.py -m '%s' -f rx -c '%s' -d '%s' -s %s -l" %( machine , rxName, infos.date,infos.timespan ) )     
+                status, output = commands.getstatusoutput( "python /apps/px/lib/stats/generateGraphics.py -m '%s' -f rx -c '%s' -d '%s' -s %s -l" %( infos.machines[i] , rxName, infos.date,infos.timespan ) )     
                 sys.exit()
         
         
@@ -310,20 +301,7 @@ def generateGraphsForPairedMachines( infos ) :
     """        
     
     rxNames, txNames = getRxTxNames( infos.machines[0] )  
-    
-    
-    #workaround to be removed after its installed on real machines
-    for i in range ( len( infos.machines ) ) :
-    
-        #small workaround for temporary test machines    
-        if infos.machines[i] == "pds5" :
-            infos.machines[i] = "pds3-dev"
-        elif infos.machines[i] == "pds6" :
-            infos.machines[i] = "pds4-dev"
-        else:#case for pxatx?
-            infos.machines[i] = infos.machines[i]
-        #end of workaround
-        
+            
     infos.combinedName = str(infos.machines).replace( ' ','' ).replace( '[','' ).replace( ']', '' )        
      
             

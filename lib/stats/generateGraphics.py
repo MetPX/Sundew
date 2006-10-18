@@ -145,7 +145,23 @@ def getOptionsFromParser( parser ):
     
     directory = PXPaths.LOG + localMachine + "/"
     
+    
+    #workaround to be removed after its installed on real machines
+    for i in range ( len( machines ) ) :
+    
+        #small workaround for temporary test machines    
+        if machines[i] == "pds5" :
+            machines[i] = "pds3-dev"
+        elif machines[i] == "pds6" :
+            machines[i] = "pds4-dev"
+        elif machines[i] == "pxatx" :
+            machines[i] = "lvs1-stage"
+        else:
+            machines[i] = machines[i]
+            
+        #end of workaround
        
+    
     infos = _GraphicsInfos( collectUpToNow = collectUpToNow, currentTime = currentTime, clientNames = clientNames,  directory = directory , types = types, fileType = fileType, timespan = timespan, productType = productType, machines = machines, link = link )
     
     if collectUpToNow == False:
