@@ -55,7 +55,13 @@ class SenderFTP(object):
         if self.ftp == None : return
 
         try    :
+                  # gives 10 seconds to close the connection
+                  timex = AlarmFTP('FTP connection timeout')
+                  timex.alarm(10)
+
                   self.ftp.quit()
+
+                  timex.cancel()
         except :
                   (type, value, tb) = sys.exc_info()
                   self.logger.warning("Could not close connection")
@@ -142,20 +148,23 @@ class SenderFTP(object):
         count = 0
         while count < maxCount:
             try:
-                # gives 15 seconds to open the connection
+                # gives 30 seconds to open the connection
                 timex = AlarmFTP('FTP connection timeout')
-                timex.alarm(15)
+                timex.alarm(30)
+
                 ftp = ftplib.FTP(self.client.host, self.client.user, self.client.passwd)
-                timex.cancel()
                 if self.client.ftp_mode == 'active':
                     ftp.set_pasv(False)
                 else:
                     ftp.set_pasv(True)
                 self.originalDir = ftp.pwd()
+
+                timex.cancel()
+
                 return ftp
 
             except FtpTimeoutException :
-                self.logger.error("FTP connection timed out after 15 seconds... retrying" )
+                self.logger.error("FTP connection timed out after 30 seconds... retrying" )
 
             except:
                 count +=  1
@@ -189,13 +198,7 @@ class SenderFTP(object):
 
         tempName = destName + self.client.lock
         fileObject = open(file, 'r')
-        if self.client.timeout_send > 0 :
-           timex = AlarmFTP('FTP timeout')
-           timex.alarm(self.client.timeout_send)
-           self.ftp.storbinary("STOR " + tempName, fileObject)
-           timex.cancel()
-        else:
-           self.ftp.storbinary("STOR " + tempName, fileObject)
+        self.ftp.storbinary("STOR " + tempName, fileObject)
         fileObject.close()
         self.ftp.rename(tempName, destName)
         self.perm(destName)
@@ -205,13 +208,7 @@ class SenderFTP(object):
 
         self.ftp.voidcmd('SITE UMASK 777')
         fileObject = open(file, 'r' )
-        if self.client.timeout_send > 0 :
-           timex = AlarmFTP('FTP timeout')
-           timex.alarm(self.client.timeout_send)
-           self.ftp.storbinary('STOR ' + destName, fileObject)
-           timex.cancel()
-        else :
-           self.ftp.storbinary('STOR ' + destName, fileObject)
+        self.ftp.storbinary('STOR ' + destName, fileObject)
         fileObject.close()
         self.ftp.voidcmd('SITE CHMOD ' + str(self.client.chmod) + ' ' + destName)
 
@@ -291,80 +288,90 @@ class SenderFTP(object):
             # ftp protocol
             if self.client.protocol == 'ftp':
 
-               # we are not in the proper directory
-               if currentFTPDir != destDir:
-
-                  # create and cd to the directory
-                  if self.client.dir_mkdir:
-                     try:
-                             if self.dirMkdir(destDir):
-                                currentFTPDir = destDir
-                     except:
-                             (type, value, tb) = sys.exc_info()
-                             self.logger.error("Unable to mkdir: %s, Type: %s, Value:%s" % (destDir, type, value))
-                             time.sleep(1)
-                             continue
-
-                  # just cd to the directory
-                  else:
-                     try:
-                            self.ftp.cwd(self.originalDir)
-                            self.ftp.cwd(destDir)
-                            currentFTPDir = destDir
-                     except ftplib.error_perm:
-                            (type, value, tb) = sys.exc_info()
-                            self.logger.error("Unable to cwd to: %s, Type: %s, Value:%s" % (destDir, type, value))
-                            time.sleep(1)
-                            continue
-
-               # run destfn
-               ldestName = self.client.run_destfn_script(destName)
-
-               if ldestName != destName :
-                  self.logger.info("destfn_script : %s becomes %s "  % (destName,ldestName) )
-
-               # try to write the file to the client
                try :
 
-                      # First put method : use a temporary filename = filename + lock extension
-                      if self.client.lock[0] == '.':
-                         self.send_lock( file,ldestName )
+                   # the alarm timeout is set at that level
+                   # it means that everything done to a file must be done
+                   # within "timeout_send" seconds
 
-                      # Second put method : use UMASK to temporary lock the file
+                   if self.client.timeout_send > 0 :
+                      timex = AlarmFTP('FTP timeout')
+                      timex.alarm(self.client.timeout_send)
+
+                   # we are not in the proper directory
+                   if currentFTPDir != destDir:
+    
+                      # create and cd to the directory
+                      if self.client.dir_mkdir:
+                         try:
+                                 if self.dirMkdir(destDir):
+                                    currentFTPDir = destDir
+                         except:
+                                 if self.client.timeout_send > 0 : timex.cancel()
+                                 (type, value, tb) = sys.exc_info()
+                                 self.logger.error("Unable to mkdir: %s, Type: %s, Value:%s" % (destDir, type, value))
+                                 time.sleep(1)
+                                 continue
+    
+                      # just cd to the directory
                       else:
-                         self.send_umask( file,ldestName )
+                         try:
+                                self.ftp.cwd(self.originalDir)
+                                self.ftp.cwd(destDir)
+                                currentFTPDir = destDir
+                         except ftplib.error_perm:
+                                if self.client.timeout_send > 0 : timex.cancel()
+                                (type, value, tb) = sys.exc_info()
+                                self.logger.error("Unable to cwd to: %s, Type: %s, Value:%s" % (destDir, type, value))
+                                time.sleep(1)
+                                continue
+    
+                   # run destfn
+                   ldestName = self.client.run_destfn_script(destName)
+    
+                   if ldestName != destName :
+                      self.logger.info("destfn_script : %s becomes %s "  % (destName,ldestName) )
+    
+                   # try to write the file to the client
+                   try :
+    
+                          # First put method : use a temporary filename = filename + lock extension
+                          if self.client.lock[0] == '.':
+                             self.send_lock( file,ldestName )
+    
+                          # Second put method : use UMASK to temporary lock the file
+                          else:
+                             self.send_umask( file,ldestName )
+    
+                          os.unlink(file)
+                          self.logger.info("(%i Bytes) File %s delivered to %s://%s@%s%s%s" % \
+                                          (nbBytes, file, self.client.protocol, self.client.user, \
+                                          self.client.host, destDirString, ldestName))
 
-                      os.unlink(file)
-                      self.logger.info("(%i Bytes) File %s delivered to %s://%s@%s%s%s" % \
-                                      (nbBytes, file, self.client.protocol, self.client.user, \
-                                      self.client.host, destDirString, ldestName))
+                   except:
+                          (type, value, tb) = sys.exc_info()
+                          self.logger.error("Unable to deliver to %s://%s@%s%s%s, Type: %s, Value: %s" % 
+                                           (self.client.protocol, self.client.user, self.client.host, \
+                                           destDirString, ldestName, type, value))
+    
+                          # preventive delete when umask 
+                          if self.client.lock[0] != '.' :
+                             self.rm(ldestName)
 
+                          if self.client.timeout_send > 0 : timex.cancel()
+                          return
+    
                except FtpTimeoutException :
-                      self.logger.warning("SEND TIMEOUT (%i Bytes) File %s going to %s://%s@%s%s%s" % \
+                   if self.client.timeout_send > 0 : timex.cancel()
+                   self.logger.warning("SEND TIMEOUT (%i Bytes) File %s going to %s://%s@%s%s%s" % \
                                       (nbBytes, file, self.client.protocol, self.client.user, \
-                                      self.client.host, destDirString, ldestName))
+                                       self.client.host, destDirString, ldestName))
 
-                      # preventive delete when umask
-                      if self.client.lock[0] != '.':
-                         self.rm(ldestName)
-                      return
-
-               except:
-                      (type, value, tb) = sys.exc_info()
-                      self.logger.error("Unable to deliver to %s://%s@%s%s%s, Type: %s, Value: %s" % 
-                                       (self.client.protocol, self.client.user, self.client.host, \
-                                       destDirString, ldestName, type, value))
-
-                      # preventive delete when umask 
-                      if self.client.lock[0] != '.' :
-                         self.rm(ldestName)
-
-                      time.sleep(1)
-                   
-               # FIXME: Faire des cas particuliers selon les exceptions recues
-               # FIXME: Voir le cas ou un fichier aurait les perms 000
-               # FIXME: ftp.quit() a explorer
-               # FIXME: Reutilisation de ftpConnect
+                   return
+                       
+                   # FIXME: Faire des cas particuliers selon les exceptions recues
+                   # FIXME: Voir le cas ou un fichier aurait les perms 000
+                   # FIXME: Reutilisation de ftpConnect
 
 if __name__ == '__main__':
     pass
