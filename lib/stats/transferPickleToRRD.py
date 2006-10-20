@@ -293,13 +293,12 @@ def createRoundRobinDatabase( dataType, client, machine, startTime ):
     databaseName = buildRRDFileName( dataType, client, machine )
     startTime = int( startTime )    
       
-    # 1st  rra : keep last 24 hours for daily graphs. Each line contains 1 minute of data. 
-    # 2nd  rra : keep last 7 days for weekly graphs. Each line contains 5 minutes of data. 
+    # 1st  rra : keep last 7 days for daily graphs. Each line contains 1 minute of data. 
+    # 2nd  rra : keep last 365 days for Monthly graphs. Each line contains 4 hours of data. 
     # 3rd  rra : keep last 10 years of data. Each line contains 24 hours of data.
-    rrdtool.create( databaseName, '--start','%s' %( startTime ), '--step', '60', 'DS:latency:GAUGE:60:U:U', 'RRA:AVERAGE:0:1:1440','RRA:MIN:0:1:1440', 'RRA:MAX:0:1:1440', 'RRA:AVERAGE:0:5:2016','RRA:MIN:0:5:2016','RRA:MAX:0:5:2016', 'RRA:AVERAGE:0:1440:3650','RRA:MIN:0:1440:3650','RRA:MAX:0:1440:3650' )   
-    
-       
-    #print rrdtool.info( databaseName )   
+    rrdtool.create( databaseName, '--start','%s' %( startTime ), '--step', '60', 'DS:%s:GAUGE:60:U:U' %dataType, 'RRA:AVERAGE:0:1:10080','RRA:MIN:0:1:10080', 'RRA:MAX:0:1:10080', 'RRA:AVERAGE:0:240:1460','RRA:MIN:0:240:1460','RRA:MAX:0:240:1460', 'RRA:AVERAGE:0:1440:3650','RRA:MIN:0:1440:3650','RRA:MAX:0:1440:3650' )      
+              
+    print "created :%s" %databaseName   
     
 
     
@@ -380,7 +379,7 @@ def getMergedData( client, fileType,  machines, startTime, endTime, logger = Non
     
     else:#only one machine, only merge different hours together
         
-        statsCollection = pickleMerging.mergePicklesFromDifferentHours( logger = logger , startTime = startTime, endTime = endTime, client = client, fileType = fileType, machine = machines[0] )
+        statsCollection = pickleMerging.mergePicklesFromDifferentHours( logger = logger , startTime = MyDateLib.getIsoFromEpoch(startTime), endTime = MyDateLib.getIsoFromEpoch(endTime), client = client, fileType = fileType, machine = machines[0] )
         
     
     combinedMachineName = ""
@@ -434,7 +433,7 @@ def updateRoundRobinDatabases(  client, machines, fileType, endTime, logger = No
     for key in dataPairs.keys():
         
         rrdFileName = buildRRDFileName( dataType = key, client = client, machine = combinedMachineName )        
-        
+        print rrdFileName
         if not os.path.isfile( rrdFileName ):  
             #print "startTime : %s " %startTime 
             createRoundRobinDatabase( dataType = key, client = client, machine = combinedMachineName, startTime= startTime - 60 )
@@ -518,9 +517,9 @@ def main():
        
     parser = createParser() 
    
-    infos = getOptionsFromParser( parser, logger = logger )
+    infos = getOptionsFromParser( parser, logger = None )
     #print "infos : %s" %infos.clients
-    transferPickleToRRD( infos, logger = logger )
+    transferPickleToRRD( infos, logger = None )
      
 
 

@@ -76,9 +76,7 @@ class ClientGraphicProducer:
         self.logger       = logger            # Enable logging
         
         if self.logger is None: # Enable logging
-            if not os.path.isdir( PXPaths.LOG + localMachine + '/' ):
-                os.makedirs( PXPaths.LOG + localMachine + '/', mode=0777 )
-            self.logger = Logger( PXPaths.LOG + localMachine + '/' + 'stats_' + self.loggerName + '.log', 'INFO', 'TX' + self.loggerName, bytes = True  ) 
+            self.logger = Logger( PXPaths.LOG + 'stats_' + self.loggerName + '.log', 'INFO', 'TX' + self.loggerName, bytes = True  ) 
             self.logger = self.logger.getLogger()
                 
     def createLink( client, imageName ):
@@ -166,16 +164,12 @@ if __name__ == "__main__":
         
     """
     
-    gp = ClientGraphicProducer( clientNames = [ 'amis' ], timespan = 24, currentTime = "2006-08-01 18:15:00",productType = "All", directory = PXPaths.LOG + localMachine + '/', fileType = "tx" )  
+    gp = ClientGraphicProducer( clientNames = [ 'amis' ], timespan = 24, currentTime = "2006-08-01 18:15:00",productType = "All", directory = PXPaths.LOG , fileType = "tx" )  
     
     gp.produceGraphicWithHourlyPickles( types = [ "bytecount","latency","errors" ], now = False   )
     
     
     
-    
-#     gp = ClientGraphicProducer( clientNames = [ 'satnet' ], timespan = 12, currentTime = "2006-07-20 05:15:00",productType = "", directory =PXPaths.LOG, fileType = "tx" )  
-#     
-#     gp.produceGraphic( types = [ "bytecount","latency","errors" ], now = False   )
 
 
     

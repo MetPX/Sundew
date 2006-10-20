@@ -48,17 +48,8 @@ class StatsPlotter:
             
         """
         
-        x = [ [0]*5  for x in range(5) ]
-        
-        for i in range( len(machines) ):#workaround as to get the right names in the fileName and labels.
-            if machines[i] == "pds3-dev":
-                machines[i] = "pds5"
-            elif machines[i] == "pds4-dev":
-                machines[i] = "pds6"
-            elif machines[i] == "lvs1-stage":
-                machines[i] = "pxatx" 
-            
-            
+        x = [ [0]*5  for x in range(5) ]       
+                       
         #print machines    
         machines = "%s" %machines
         machines = machines.replace( "[","").replace( "]","" ).replace( "'", "" )
@@ -100,9 +91,7 @@ class StatsPlotter:
             self.sourlient = "Source"  
         
         if self.logger == None: # Enable logging
-            if not os.path.isdir( PXPaths.LOG + localMachine + '/' ):
-                os.makedirs( PXPaths.LOG + localMachine + '/', mode=0777 )
-            self.logger = Logger( PXPaths.LOG + localMachine + '/' + 'stats_' + self.loggerName + '.log', 'INFO', 'TX' + self.loggerName, bytes = True  ) 
+            self.logger = Logger( PXPaths.LOG +  'stats_' + self.loggerName + '.log', 'INFO', 'TX' + self.loggerName, bytes = True  ) 
             self.logger = self.logger.getLogger()
             
         self.xtics       = self.getXTics( )        # Seperators on the x axis.
@@ -392,10 +381,11 @@ class StatsPlotter:
                     clientName = clientName + "-" 
         
         src         = self.imageName
-        destination = PXPaths.GRAPHS + "/symlinks/%s.png" %clientName 
         
-        if not os.path.isdir( PXPaths.GRAPHS + "/symlinks/" ):
-            os.makedirs( PXPaths.GRAPHS + "/symlinks/", mode=0777 )
+        destination = "/apps/pds/tools/Columbo/ColumboShow/graphs/%s.png" %clientName 
+        
+        if not os.path.isdir( "/apps/pds/tools/Columbo/ColumboShow/graphs/" ):
+            os.makedirs( "/apps/pds/tools/Columbo/ColumboShow/graphs/", mode=0777 )
         
         if os.path.isfile( destination ):
             os.remove( destination )

@@ -21,15 +21,13 @@ named COPYING in the root of the source directory tree.
 ##############################################################################################
 """
 
-import os, commands, time
+import os, commands, time, sys
 import MyDateLib 
 from   MyDateLib import * 
 
-DAYS_TO_KEEP = 10 #Global constant
 
 
-
-def getDirListToKeep():
+def getDirListToKeep( daysToKeep = 5 ):
     """
           Gets the list of directories to keep. Based on DAYS_TO_KEEP constant.
     """
@@ -37,7 +35,7 @@ def getDirListToKeep():
     dirlist = []
     secondsSinceEpoch = time.time()
     
-    for i in range( DAYS_TO_KEEP ):
+    for i in range( daysToKeep ):
         dirlist.append( MyDateLib.getIsoFromEpoch( secondsSinceEpoch - ( i*60*60*24) ).split()[0].replace( '-','') )
          
     return dirlist
@@ -70,8 +68,18 @@ def main():
         Deletes every pickle directory that is not within the list to keep.
         
     """
-
-    dirsToKeep = getDirListToKeep()
+    
+    daysToKeep = 5
+    
+    if len( sys.argv ) == 2:
+        try:
+            daysToKeep =  int( sys.argv[1] )
+        except:
+            print "Days to keep value must be an integer. Using default values instead."
+            daysToKeep = 5
+            pass    
+            
+    dirsToKeep = getDirListToKeep( daysToKeep )
     cleanPickles( dirsToKeep )
 
     

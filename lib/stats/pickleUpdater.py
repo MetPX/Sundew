@@ -37,10 +37,7 @@ from PXManager import *
 from PXPaths import *
 
 PXPaths.normalPaths()
-PXPaths.RX_CONF  = '/apps/px/stats/rx/'
-PXPaths.TX_CONF  = '/apps/px/stats/tx/'
-PXPaths.TRX_CONF = '/apps/px/stats/trx/'
-localMachine = os.uname()[1]
+
 
 
 
@@ -245,12 +242,9 @@ def getOptionsFromParser( parser, logger = None  ):
     
     
     if clients[0] == "All" :
-        print PXPaths.TX_CONF
+        #print PXPaths.TX_CONF
         pxManager = PXManager()
         #pxManager.setLogger(logger)
-        PXPaths.RX_CONF  = '/apps/px/stats/rx/'
-        PXPaths.TX_CONF  = '/apps/px/stats/tx/'
-        PXPaths.TRX_CONF = '/apps/px/stats/trx/'
         pxManager.initNames() # Now you must call this method
         
         if fileType == "tx": 
@@ -270,11 +264,11 @@ def getOptionsFromParser( parser, logger = None  ):
                
         if currentDate > startTime:
             #print " client : %s currentDate : %s   startTime : %s" %( client, currentDate, startTime )
-            directories.append( PXPaths.LOG + localMachine + "/")
+            directories.append( PXPaths.LOG )
             startTimes.append( startTime )
             usefullClients.append( client )
         else:
-            print "This client was not updated since it's last update was more recent than specified date : %s" %client
+            #print "This client was not updated since it's last update was more recent than specified date : %s" %client
             if logger != None :
                 logger.warning("This client was not updated since it's last update was more recent than specified date : %s" %client)      
        
@@ -432,7 +426,7 @@ def updateHourlyPickles( infos, logger = None ):
                 
                 cs.pickleName =  ClientStatsPickler.buildThisHoursFileName( client = infos.clients[i], currentTime =  startOfTheHour, machine = infos.machine, fileType = infos.fileType )
                  
-                cs.collectStats( types = infos.types, startTime = startTime , endTime = endTime, interval = infos.interval * MyDateLib.MINUTE,  directory = PXPaths.LOG + localMachine + "/" , fileType = infos.fileType )                     
+                cs.collectStats( types = infos.types, startTime = startTime , endTime = endTime, interval = infos.interval * MyDateLib.MINUTE,  directory = PXPaths.LOG , fileType = infos.fileType )                     
                            
                     
         else:      
@@ -447,33 +441,11 @@ def updateHourlyPickles( infos, logger = None ):
                 
             cs.pickleName =   ClientStatsPickler.buildThisHoursFileName( client = infos.clients[i], currentTime = startOfTheHour, machine = infos.machine, fileType = infos.fileType )            
               
-            cs.collectStats( infos.types, startTime = startTime, endTime = endTime, interval = infos.interval * MyDateLib.MINUTE, directory = PXPaths.LOG + localMachine + "/", fileType = infos.fileType   )        
+            cs.collectStats( infos.types, startTime = startTime, endTime = endTime, interval = infos.interval * MyDateLib.MINUTE, directory = PXPaths.LOG , fileType = infos.fileType   )        
        
                          
         setLastCronJob( client = infos.clients[i], fileType = infos.fileType, currentDate = infos.currentDate, collectUpToNow = infos.collectUpToNow )
-              
-                
-                
-def updateConfigurationFiles( machine, login ):
-    """
-        rsync .conf files from designated machine to local machine
-        to make sure we're up to date.
-    
-    """  
-    
-    if not os.path.isdir( '/apps/px/stats/rx/' ):
-        os.makedirs(  '/apps/px/stats/rx/' , mode=0777 )
-    if not os.path.isdir( '/apps/px/stats/tx/'  ):
-        os.makedirs( '/apps/px/stats/tx/', mode=0777 )
-    if not os.path.isdir( '/apps/px/stats/trx/' ):
-        os.makedirs(  '/apps/px/stats/trx/', mode=0777 )       
-
-        
-    status, output = commands.getstatusoutput( "rsync -avzr --delete-before -e ssh %s@%s:/apps/px/etc/rx/ /apps/px/stats/rx/"  %( login, machine) ) 
-    #print output # for debugging only
-    
-    status, output = commands.getstatusoutput( "rsync -avzr --delete-before -e ssh %s@%s:/apps/px/etc/tx/ /apps/px/stats/tx/"  %( login, machine) )  
-    #print output # for debugging only            
+                                               
 
     
     
@@ -485,23 +457,10 @@ def main():
     """
     
     if not os.path.isdir( PXPaths.PICKLES ):
-        os.makedirs( PXPaths.PICKLES, mode=0777 )
-    
-    # Workaround for temporary mirror machine   
-    if  os.uname()[1] == "pds3-dev":
-        mirrorMachine = "pds5"
-        login         = "pds"
-        
-    elif  os.uname()[1] == "pds4-dev":
-        mirrorMachine = "pds6"
-        login         = "pds"    
+        os.makedirs( PXPaths.PICKLES, mode=0777 )      
       
-    updateConfigurationFiles( machine = mirrorMachine, login = login )
     
-    if not os.path.isdir( PXPaths.LOG + localMachine + '/' ):
-        os.makedirs( PXPaths.LOG + localMachine + '/', mode=0777 )
-    
-    logger = Logger( PXPaths.LOG + localMachine + "/" + 'stats_' + 'pickling' + '.log.notb', 'INFO', 'TX' + 'pickling', bytes = True  ) 
+    logger = Logger( PXPaths.LOG + 'stats_' + 'pickling' + '.log.notb', 'INFO', 'TX' + 'pickling', bytes = True  ) 
     logger = logger.getLogger()
    
     parser = createParser( )  #will be used to parse options 

@@ -143,9 +143,7 @@ class FileStatsCollector:
         self.nbEntries        = len ( self.timeSeperators ) -1 # Nb of entries or "buckets" 
         
         if self.logger == None: # Enable logging
-            if not os.path.isdir( PXPaths.LOG + localMachine + '/' ):
-                os.makedirs( PXPaths.LOG + localMachine + '/', mode=0777 )
-            self.logger = Logger( PXPaths.LOG + localMachine + '/' + 'stats_' + self.loggerName + '.log.notb', 'INFO', 'TX' + self.loggerName, bytes = True  ) 
+            self.logger = Logger( PXPaths.LOG + 'stats_' + self.loggerName + '.log.notb', 'INFO', 'TX' + self.loggerName, bytes = True  ) 
             self.logger = self.logger.getLogger()
             
         
@@ -190,11 +188,6 @@ class FileStatsCollector:
         files   = [] # Used to browse all files of an entry
         times   = [] # Used to browse all times of an entry 
         
-#         if startingBucket != 0 :
-#             self.firstFilledEntry  = startingBucket
-#         
-#         if finishingBucket !=0 : 
-#             self.lastFilledEntry = finishingBucket -1
         if finishingBucket == 0 :
             finishingBucket = -1
         
@@ -723,7 +716,7 @@ if __name__ == "__main__":
     
     types = [ "latency", "errors","bytecount" ]
     
-    filename = PXPaths.LOG + localMachine + '/' + 'tx_amis.log'
+    filename = PXPaths.LOG + 'tx_amis.log'
     
     startingHours=["00:00:00","01:00:00","02:00:00","03:00:00","04:00:00","05:00:00","06:00:00","07:00:00","08:00:00","09:00:00","10:00:00","11:00:00","12:00:00","13:00:00","14:00:00","15:00:00","16:00:00","17:00:00","18:00:00","19:00:00","20:00:00","21:00:00","22:00:00","23:00:00" ]
     

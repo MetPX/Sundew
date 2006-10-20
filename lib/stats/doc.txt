@@ -44,8 +44,10 @@ Files included in the stats library are :
 - DirectoryFileCollector.py    
 - FileStatsCollector.py 
 - generateGraphics.py
-- generateAllGraphsForServer.p
+- generateRRDGraphics.py
+- generateAllGraphsForServer.py
 - MyDateLib.py
+- pickleCleaner.py 
 - pickleMerging.py
 - pickleUpdater.py 
 - StatsPlotter.py  
@@ -53,7 +55,7 @@ Files included in the stats library are :
 - pickleViewer.py
 - pickledTimesViewer.py
 - PickleVersionChecker.py
-
+- transferPickleToRRD.py
 
 These library files are required by the stats library :
 
@@ -108,31 +110,30 @@ DirectoryFilecollector           |       |    |             |
                 pickleUpdater                      generateGraphics
 
 
---Note : x-->y means x uses y
                 
-
-
+                
+                
+--Note : x-->y means x uses y            
 
 
 File Overview 
 ----------------------------                
    
-
+-backwardReader.py : Contains two usefull methods for this library and possibly for other.
+                     
+                     -Has a readlineBackwards method that is similar to readline but that reads a file 
+                      a file from the bottom up. 
+                     
+                     -Has a tail method that is similar to the tail used in linux but in pure python. 
+                     
+                     
 -ClientGraphicProducer.py : This file contains methods to be used when a user of this class wants to produce a graphic.
                             
                             It first takes the previously collected data, then adds up the data produced between the last collection and the time of the call.
                             
                             After that it calls StatsPlotter.py with the collected data and uses it to produce the graphic.
 
-
--generateGraphics       : This file offers to the user a command line interface so he can easily use
-                           the functionalities offered by ClientGraphicProducer.py. 
-
-                           
--generateAllGraphsForServer : Serves as a wrapper for generate graphics by adding the possibility to generate a graphic                                 for each and every client found on a specified server. Very usefull in cron jobs to produce
-                              timely graphics.    
-                           
-
+                            
 -ClientStatsPickler.py :      Collects stats from all the files needed to cover a certain timespace.
                               
                               File names are gathered using DirectoryFileCollector.py.
@@ -140,32 +141,40 @@ File Overview
                               Data for each file is collected using the methods found in FileStatsCollector.   
                     
                               Introduces the pickling principle to the library. 
-
-
                               
+-cpickleWrapper.py : very small wrapper that allows for directory creation if the path to the file name saved does not
+                     exist.
+                     
+                     Also handles exceptions when trying to open a file that does not exist.
+                 
+                         
 -DirectoryFileCollector.py  :  This file is used to gather all the interesting files present in a specific directory.  
                                
                                Search is based on fileType, client's name and timespan for wich we need data.
-                                  
-
-
-                           
+                               
 -FileStatsCollector.py : This file contains all the methods needed to collect data from files and produce stats 
                          using said data.
                          
                          The general principle behind the data collection made here is that it's
-                         always spit up into entries of a certain length.
+                         always spit up into entries /apps/px/lib/stats/generateAllGraphsForServer.py -m 'pds5,pds6' -c  -l 'pds,pds'of a certain length.
                           
                          File entries are of a timespan selected by the user. Entries will
                          have the same width all throughout the total width the user has decided to collect data upon.                        
                          Once data has been collected, stats will be created for each buckets. This means that every bucket will have it's own min, max, median and mean values.  
+                         
+                         
+                                                                                                           
+-generateGraphics       :  This file offers to the user a command line interface so he can easily use
+                           the functionalities offered by ClientGraphicProducer.py. 
 
-
--cpickleWrapper.py : very small wrapper that allows for directory creation if the path to the file name saved does not
-                     exist.
-                     
-                     Also handles excepption when trying to open a file that does not exist.
-                 
+                           
+-generateAllGraphsForServer : Serves as a wrapper for generate graphics by adding the possibility to generate a graphic                                 for each and every client found on a specified server. Very usefull in cron jobs to produce
+                              timely graphics.                                                     
+                               
+-generateRRDGraphics.py    : RRD implementation of generateGraphics/generateAllGraphsForServer that is made different by                               using rrd databases as data sources and rrdgraph to produce graphics instead of gnuplot.
+                             Otherwise it is similar to generateGraphics and generateAllGraphsForServer as it allow to 
+                             create graphs from command line and for as many clients as desired.                          
+                                     
                      
 -MyDateLib.py     : Temporary file wich contains date manipulation methods I have been working on. They probably should                       be addded to the regular DateLib.py once they are found to be usefull and reliable.   
                     
@@ -180,48 +189,36 @@ File Overview
                     
                     This will be very usefull if some pickles for the same client are produced on different 
                     machines and some operation concerning all the data must be done on a cpecific machine.
-                    Ex :See Clientgraphicproducer...                   
-
-                    
+                    Ex :See Clientgraphicproducer...               
+                                                   
+                                  
+-pickledTimesViewer.py: Allows users to see clearly the content of the pickled times file. 
+                         Might be found usefull for debuging purpouses. 
+                         
+-pickleSynchroniser : Implementation of an rsync system. Allos a machine to synchronise the content of it's 
+                      pickle folder with the one located on a remote machine. 
+                      
 -pickleUpdater.py : This program is the one to be used to make automated data updates.
                     Recommended usage is to call this program every hours to create the hourly pickles
-                    the contain stats on a client. 
-
-                                        
--StatsPlotter.py : This file contains the methods to plot a gnuplot graphic once the data has been
-                   collected using the previously described files. This is very similar to the 
-                   Plotter.py allready found in the library.  
-
--pickleSynchroniser : Implementation of an rsync system. Allos a machine to synchronise the content of it's 
-                      pickle folder with the one located on a remote machine.
-
-                   
+                    the contain stats on a client.     
+                                             
 -PickleVersionChecker.py  : This class is used in the library to keep track of the changes made within files.
                             
                             Since pickles files are synchronised on grpahic machine they are prone to change
                             without the local machine knowing.           
 
                                                     
-- pickleViewer.py : Allows user to view the content of a cpickle file that contains a FileStatsCollector 
+-pickleViewer.py : Allows user to view the content of a cpickle file that contains a FileStatsCollector 
                     instance. Output can be directed to a text file if wanted. 
                     
                     Very usefull for debugging, making sure data collected is stored at the right place,
-                    and comparing it to the graphics produced to see if there are any differences.  
+                    and comparing it to the graphics produced to see if there are any differences. 
 
-                    
-- pickledTimesViewer.py: Allows users to see clearly the content of the pickled times file. 
-                         Might be found usefull for debuging purpouses. 
+-StatsPlotter.py : This file contains the methods to plot a gnuplot graphic once the data has been
+                   collected using the previously described files. This is very similar to the 
+                   Plotter.py allready found in the library.  
 
-
-
--backwardReader.py : Contains two usefull methods for this library and possibly for other.
-                     
-                     -Has a readlineBackwards method that is similar to readline but that reads a file 
-                      a file from the bottom up. 
-                     
-                     -Has a tail method that is similar to the tail used in linux but in pure python. 
-
-                     
+-Tra                     
                      
                      
 

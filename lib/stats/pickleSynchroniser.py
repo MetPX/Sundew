@@ -135,14 +135,14 @@ def buildCommands( machines, clients ):
 
     if clients[0] == "All" :
         for machine in machines :
-            commands.append( "rsync -avzr --delete-before -e ssh pds@%s:%s %s"  %( machine, PXPaths.PICKLES, PXPaths.PICKLES )  )
+            commands.append( "rsync -avzr  -e ssh pds@%s:%s %s"  %( machine, PXPaths.PICKLES, PXPaths.PICKLES )  )
           
     else:
         
         for client in clients :
             path = PXPaths.PICKLES + client + "/"
             for machine in machines :
-                commands.append( "rsync --delete-before -avzr -e ssh pds@%s:%s %s"  %( machine, path, path )  )
+                commands.append( "rsync  -avzr -e ssh pds@%s:%s %s"  %( machine, path, path )  )
 
     
     return commands 
@@ -185,9 +185,7 @@ def buildLogger( output ):
     logger = None 
     
     if output != "":     
-        if not os.path.isdir( PXPaths.LOG + localMachine + '/' ):
-            os.makedirs( PXPaths.LOG + localMachine + '/', mode=0777 )  
-        logger = Logger( PXPaths.LOG + localMachine + '/' + 'stats_' + output + '.log.notb', 'INFO', 'TX' + output, bytes = True  ) 
+        logger = Logger( PXPaths.LOG + 'stats_' + output + '.log.notb', 'INFO', 'TX' + output, bytes = True  ) 
         logger = logger.getLogger()    
     
     return logger 
