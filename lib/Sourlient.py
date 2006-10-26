@@ -67,8 +67,9 @@ class Sourlient(object):
         self.extension = ':MISSING:MISSING:MISSING:MISSING:'  # Extension to be added to the ingest name
 
         self.validation = False                   # Validation of the filename (prio + date)
-        self.patternMatching = False              # Verification of the emask and imask of the sourlient before sending a file
-        self.clientsPatternMatching = False       # Verification of the emask and imask of the clients before sending a file
+        self.patternMatching = False              # NEVER PUT TO TRUE (Represent sources masks, not used in sourlient)
+        self.diskReaderPatternMatching = True     # Verification of the emask and imask of the sourlient before sending a file
+        self.clientsPatternMatching = True        # Verification of the emask and imask of the clients before linking a file
 
         self.nodups = True                        # Check if the file has already been sent (md5sum present in the cache)
         self.mtime = 0                            # Integer indicating the number of seconds a file must not have
@@ -131,7 +132,7 @@ class Sourlient(object):
                     elif words[0] == 'validation': self.validation =  isTrue(words[1])
                     elif words[0] == 'noduplicates': self.nodups =  isTrue(words[1])
                     elif words[0] == 'slow': self.slow =  isTrue(words[1])
-                    elif words[0] == 'patternMatching': self.patternMatching =  isTrue(words[1])
+                    elif words[0] == 'patternMatching': self.diskReaderPatternMatching =  isTrue(words[1])
                     elif words[0] == 'clientsPatternMatching': self.clientsPatternMatching =  isTrue(words[1])
                     elif words[0] == 'mtime': self.mtime = int(words[1])
                     elif words[0] == 'sorter': self.sorter = words[1]
@@ -199,7 +200,7 @@ class Sourlient(object):
         print("Maximum time (seconds) we wait for an ack: %s" % client.maxAckTime)
         print("Ack used: %s" % client.ackUsed)
 
-        print("Sourlient Pattern Matching: %s" % client.patternMatching)
+        print("Sourlient Pattern Matching: %s" % client.diskReaderPatternMatching)
         print("Clients Pattern Matching: %s" % client.clientsPatternMatching)
 
         print("******************************************")
