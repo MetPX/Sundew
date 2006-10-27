@@ -12,7 +12,7 @@ named COPYING in the root of the source directory tree.
 #
 # Author: Nicholas Lemay
 #
-# Date  : 2006-09-10
+# Date  : 2006-09-12
 #
 # Description: This program is to be used to create graphics of the same timespan for 
 #              one or many machines and for all their respective clients.
@@ -36,7 +36,7 @@ from MyDateLib import *
 
 PXPaths.normalPaths()
 
-
+localMachine = os.uname()[1]
 
 #################################################################
 #                                                               #
@@ -239,10 +239,12 @@ def getRxTxNames( machine ):
                         
     pxManager = PXManager()
     
-    #These values need to be set here.
-    PXPaths.RX_CONF  = '/apps/px/stats/rx/%s/'  %machine
-    PXPaths.TX_CONF  = '/apps/px/stats/tx/%s/'  %machine
-    PXPaths.TRX_CONF = '/apps/px/stats/trx/%s/' %machine
+    
+    remoteMachines= [ "pds3-dev", "pds4-dev","lvs1-stage", "logan1", "logan2" ]
+    if localMachine in remoteMachines :#These values need to be set here.
+        PXPaths.RX_CONF  = '/apps/px/stats/rx/%s/'  %machine
+        PXPaths.TX_CONF  = '/apps/px/stats/tx/%s/'  %machine
+        PXPaths.TRX_CONF = '/apps/px/stats/trx/%s/' %machine
     pxManager.initNames() # Now you must call this method  
     
     txNames = pxManager.getTxNames()               
@@ -262,24 +264,24 @@ def generateGraphsForIndividualMachines( infos ) :
     for i in range ( len( infos.machines ) ) :      
                                                         
         rxNames, txNames = getRxTxNames( infos.machines[i] )  
-        j =0
+        j=0 
         for txName in txNames :    
             pid = os.fork()#create child process
+            
             if pid == 0: #child process
-                #os.nice( 10 )
                 status, output = commands.getstatusoutput( "python /apps/px/lib/stats/generateGraphics.py -m '%s' -f tx -c '%s' -d '%s' -s %s -l" %( infos.machines[i], txName, infos.date, infos.timespan) )                
                 sys.exit()
-            
+        
             else:
                 j = j + 1 
-                
-                if j%10 == 0:
+                                      
+                if j %10 == 0:
                     while True:#wait on all non terminated child process'
                         try:   #will raise exception when no child process remain.        
                             pid, status = os.wait( )
                         except:    
-                            break         
-                   
+                            break        
+        
         while True:#wait on all non terminated child process'
             try:   #will raise exception when no child process remain.        
                 pid, status = os.wait( )
@@ -287,24 +289,22 @@ def generateGraphsForIndividualMachines( infos ) :
                 break
             
                           
-        j = 0 
+        j=0
         for rxName in rxNames:
             pid = os.fork()#create child process
             
             if pid == 0 :#child process
-                #os.nice( 10 )
                 status, output = commands.getstatusoutput( "python /apps/px/lib/stats/generateGraphics.py -m '%s' -f rx -c '%s' -d '%s' -s %s -l" %( infos.machines[i] , rxName, infos.date,infos.timespan ) )     
                 sys.exit()
+        
             else:
-                j = j + 1 
-                 
+                j = j + 1
                 if j %10 == 0:
                     while True:#wait on all non terminated child process'
-                        try:   #will raise exception when no child process remain.        
+                        try:   #will raise exception when no child process remain.
                             pid, status = os.wait( )
-                        except:    
-                            break            
-        
+                        except:
+                            break
         while True:#wait on all non terminated child process'
             try:   #will raise exception when no child process remain.        
                 pid, status = os.wait( )
@@ -322,28 +322,26 @@ def generateGraphsForPairedMachines( infos ) :
     rxNames, txNames = getRxTxNames( infos.machines[0] )  
             
     infos.combinedName = str(infos.machines).replace( ' ','' ).replace( '[','' ).replace( ']', '' )        
-                 
-    
-    i = 0 
+     
+           
+    j=0
     for txName in txNames :
         
         pid = os.fork()#create child process
         
-        if pid == 0 :#child process          
-            #os.nice( 10 )
+        if pid == 0 :#child process
             status, output = commands.getstatusoutput( "python /apps/px/lib/stats/generateGraphics.py -m %s -f tx -c %s -d '%s' -s %s  -l" %( infos.combinedName, txName, infos.date, infos.timespan ) )
             sys.exit()    #terminate child process
-        
-        else:
-            i = i + 1 
-            
-            if i %10 == 0:
-                while True:#wait on all non terminated child process'
-                    try:   #will raise exception when no child process remain.        
-                        pid, status = os.wait( )
-                    except:    
-                        break                
     
+        else:
+            j = j + 1
+            if j %10 == 0:
+                while True:#wait on all non terminated child process'
+                    try:   #will raise exception when no child process remain.
+                        pid, status = os.wait( )
+                    except:
+                        break
+                                                                                                                                                                        
     while True:#wait on all non terminated child process'
         try:   #will raise exception when no child process remain.        
             pid, status = os.wait( )
@@ -351,26 +349,27 @@ def generateGraphsForPairedMachines( infos ) :
             break  
     
    
-    i = 0         
+    j=0        
     for rxName in rxNames:
         pid = os.fork()#create child process
         
-        if pid == 0:#child process          
-            #os.nice( 10 )        
+        if pid == 0:#child process            
             status, output = commands.getstatusoutput( "python /apps/px/lib/stats/generateGraphics.py -m %s -f rx -c %s -d '%s' -s %s  -l" %( infos.combinedName, rxName, infos.date, infos.timespan ) )     
+            #print output 
             sys.exit()
-        
         else:
-            i = i + 1 
-            if i %10 == 0:
+            j = j + 1
+            if j %10 == 0:
                 while True:#wait on all non terminated child process'
-                    try:   #will raise exception when no child process remain.        
+                    try:   #will raise exception when no child process remain.
                         pid, status = os.wait( )
-                    except:    
-                        break         
+                    except:
+                        break
+                                                                                                                                                                
     
     while True:#wait on all non terminated child process'
-        try:   #will raise exception when no child process remain.   
+        try:   #will raise exception when no child process remain.    
+            #print "goes to wait"    
             pid, status = os.wait( )
         except:    
             break  

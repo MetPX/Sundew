@@ -28,7 +28,15 @@ from   FileStatsCollector import *
 
 localMachine = os.uname()[1]
 
+if localMachine == "pds3-dev" or localMachine == "pds4-dev" or localMachine == "lvs1-stage" :
+    PATH_TO_LOGFILES = PXPaths.LOG + localMachine + "/"
 
+elif localMachine == "logan1" or localMachine == "logan2":
+    PATH_TO_LOGFILES = PXPaths.LOG + localMachine + "/" + localMachine + "/"
+
+else:#pds5 pds5 pxatx etc
+    PATH_TO_LOGFILES = PXPaths.LOG  
+    
 
 class DirectoryFileCollector: 
     """ 
@@ -42,7 +50,7 @@ class DirectoryFileCollector:
                  
     """
     
-    def __init__( self, startTime = "2006-06-06 01:00:00", endTime = "2006-06-06 02:00:00", directory = PXPaths.LOG , lastLineRead = "", fileType = "tx", client = "satnet", logger = None ):
+    def __init__( self, startTime = "2006-06-06 01:00:00", endTime = "2006-06-06 02:00:00", directory = PATH_TO_LOGFILES, lastLineRead = "", fileType = "tx", client = "satnet", logger = None ):
         """ 
             Constructor.
             -Builds a directoryFileCollector with no entries.   
@@ -61,6 +69,8 @@ class DirectoryFileCollector:
        
         
         if logger is None: # Enable logging
+            if not os.path.isdir( PXPaths.LOG  ):
+                os.makedirs( PXPaths.LOG , mode=0777 )
             self.logger = Logger( PXPaths.LOG + 'stats_' + self.loggerName + '.log.notb', 'INFO', 'TX' + self.loggerName, bytes = True  ) 
             self.logger = self.logger.getLogger()
             
@@ -151,7 +161,7 @@ if __name__ == "__main__":
     
     """
    
-    dc = DirectoryFileCollector( startTime = "2006-07-20 01:00:00", endTime= "2006-07-20 02:00:00", directory = PXPaths.LOG, lastLineRead = "", fileType = "tx", client = "satnet"  )
+    dc = DirectoryFileCollector( startTime = "2006-07-20 01:00:00", endTime= "2006-07-20 02:00:00", directory = PATH_TO_LOGFILES, lastLineRead = "", fileType = "tx", client = "satnet"  )
     dc.collectEntries() 
     
     print "Files returned : %s " %dc.entries            

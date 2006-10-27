@@ -185,6 +185,8 @@ def buildLogger( output ):
     logger = None 
     
     if output != "":     
+        if not os.path.isdir( PXPaths.LOG  ):
+            os.makedirs( PXPaths.LOG , mode=0777 )  
         logger = Logger( PXPaths.LOG + 'stats_' + output + '.log.notb', 'INFO', 'TX' + output, bytes = True  ) 
         logger = logger.getLogger()    
     

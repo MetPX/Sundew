@@ -49,7 +49,15 @@ class StatsPlotter:
         """
         
         x = [ [0]*5  for x in range(5) ]       
-                       
+        for i in range( len(machines) ):#workaround as to get the right names in the fileName and labels.
+            if machines[i] == "pds3-dev":
+                machines[i] = "pds5"
+            elif machines[i] == "pds4-dev":
+                machines[i] = "pds6"
+            elif machines[i] == "lvs1-stage" or machines[i] == "logan1" or machines[i] == "logan2" :
+                machines[i] = "pxatx"                                                                                
+
+    
         #print machines    
         machines = "%s" %machines
         machines = machines.replace( "[","").replace( "]","" ).replace( "'", "" )
@@ -404,10 +412,10 @@ class StatsPlotter:
         
         src         = self.imageName
         
-        destination = "/apps/pds/tools/Columbo/ColumboShow/graphs/%s.png" %clientName 
-        
-        if not os.path.isdir( "/apps/pds/tools/Columbo/ColumboShow/graphs/" ):
-            os.makedirs( "/apps/pds/tools/Columbo/ColumboShow/graphs/", mode=0777 )
+        destination = PXPaths.GRAPHS + "/symlinks/%s.png" %clientName
+
+        if not os.path.isdir( PXPaths.GRAPHS + "/symlinks/" ):
+            os.makedirs( PXPaths.GRAPHS + "/symlinks/", mode=0777 )                                                      
         
         if os.path.isfile( destination ):
             os.remove( destination )

@@ -43,6 +43,17 @@ PXPaths.normalPaths()
 
 localMachine = os.uname()[1]
 
+if localMachine == "pds3-dev" or localMachine == "pds4-dev" or localMachine == "lvs1-stage" :
+    PATH_TO_LOGFILES = PXPaths.LOG + localMachine + "/"
+
+elif localMachine == "logan1" or localMachine == "logan2":
+    PATH_TO_LOGFILES = PXPaths.LOG + localMachine + "/" + localMachine + "/"
+
+else:#pds5 pds5 pxatx etc
+    PATH_TO_LOGFILES = PXPaths.LOG  
+
+
+
 class ClientGraphicProducer:
         
     def __init__( self, directory, fileType, clientNames = None ,  timespan = 12, currentTime = None, productType = "All", logger = None, machines = ["pds000"]  ):
@@ -76,13 +87,11 @@ class ClientGraphicProducer:
         self.logger       = logger            # Enable logging
         
         if self.logger is None: # Enable logging
-            self.logger = Logger( PXPaths.LOG + 'stats_' + self.loggerName + '.log', 'INFO', 'TX' + self.loggerName, bytes = True  ) 
+            if not os.path.isdir( PXPaths.LOG ):
+                os.makedirs( PXPaths.LOG , mode=0777 )
+            self.logger = Logger( PXPaths.LOG  + 'stats_' + self.loggerName + '.log', 'INFO', 'TX' + self.loggerName, bytes = True  ) 
             self.logger = self.logger.getLogger()
                 
-    def createLink( client, imageName ):
-        """
-           Creates a symbolic link to an image name. 
-        """
 
     def produceGraphicWithHourlyPickles( self, types , now = False, createLink = False ):
         """
@@ -164,12 +173,16 @@ if __name__ == "__main__":
         
     """
     
-    gp = ClientGraphicProducer( clientNames = [ 'amis' ], timespan = 24, currentTime = "2006-08-01 18:15:00",productType = "All", directory = PXPaths.LOG , fileType = "tx" )  
+    gp = ClientGraphicProducer( clientNames = [ 'amis' ], timespan = 24, currentTime = "2006-08-01 18:15:00",productType = "All", directory = PATH_TO_LOGFILES, fileType = "tx" )  
     
     gp.produceGraphicWithHourlyPickles( types = [ "bytecount","latency","errors" ], now = False   )
     
     
     
+    
+#     gp = ClientGraphicProducer( clientNames = [ 'satnet' ], timespan = 12, currentTime = "2006-07-20 05:15:00",productType = "", directory =PXPaths.LOG, fileType = "tx" )  
+#     
+#     gp.produceGraphic( types = [ "bytecount","latency","errors" ], now = False   )
 
 
     

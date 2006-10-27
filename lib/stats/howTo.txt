@@ -48,7 +48,7 @@ How to use the stats library, step by step :
                     pickleUpdater.py -f tx
                     pickleUpdater.py -f rx
             
-            Note These two commands will be the most used of any commands that can be used with pickle updates.        
+            Note : These two commands will be the most used of any commands that can be used with pickle updates.        
         
         Step 1.4.2
             update a certain tx client :
@@ -106,7 +106,7 @@ How to use the stats library, step by step :
             
             Update data from a specific machine :
             
-            pickleSynchroniser.py -m "pds5"
+            pickleSynchroniser.py -m "pds5" 
         
             Note : Might be obligatory if all machines have different ssh logins.
         
@@ -114,7 +114,7 @@ How to use the stats library, step by step :
             
             Update data from a specific client of a machine 
             
-            pickleSynchroniser.py -m "pds5" -c "satnet"
+            pickleSynchroniser.py -m "pds5" -c "satnet" 
             
             Note : this will make updating very long if done client per client and is
             thus not recommended.
@@ -128,25 +128,25 @@ How to use the stats library, step by step :
         
             Note : It is recommended that you use a login that has instant access to
                    the machine when using pickleSynchroniser.py or else automatic updates
-                   using crontab will be useless since user needs to type password for 
+                   using crontab will be rendered useless since user needs to type password for 
                    every ssh connection... 
             
                    
                    
- ----------------------------- 
-|Step 3 - Producing Graphics. |
- -----------------------------  
+ -------------------------------------- 
+|Step 3 - Producing Specific Graphics. |
+ --------------------------------------  
      
      ------------------
     |Preliminary steps |
      ------------------
-    Step 2.1 - Connect to the graphic producing machine.
+    Step 3.1 - Connect to the graphic producing machine.
     
-    Step 2.2 - Go in the /apps/px/lib/stats/ folder. 
+    Step 3.2 - Go in the /apps/px/lib/stats/ folder. 
     
-    Step 2.3 - Run the following to see how generateGRaphics.pyy works : python generateGraphics.py -h 
+    Step 3.3 - Run the following to see how generateGRaphics.pyy works : python generateGraphics.py -h 
     
-    Step 2.4 - Run generateGraphics.py with the parameters wanted to get the desired graphics
+    Step 3.4 - Run generateGraphics.py with the parameters wanted to get the desired graphics
     
      --------------------------------------------------------
     | How to have  the graphics you want:                   |
@@ -218,7 +218,33 @@ How to use the stats library, step by step :
             generateGraphics.py -c rxclient -d "2006-08-08 05:15:00" -f rx -m "pds5,pds6"
             -p WXBO -s 5 -t "bytecount,errors"   
 
-                                
+    
+            
+ ---------------------------------------- 
+|Step 4 - Producing Graphics By Batchs. |
+ ----------------------------------------  
+     Example 1 
+        Produce all tx and rx graphs for all clients found on pxatx. Only one machine is used so we 
+        graphs for individual machines(-i)
+        
+        generateAllGraphsForServer.py -i -m 'pxatx' -l 'pds'
+     
+     Example 2 
+        Produce all tx and rx graphs for all clients found on pxatx. Two machines are specified here and 
+        both contain data for the same clients. We thus want to combine(-c) the data coming from both machines 
+        and produce graphs for the resulting merger only.   
+        
+        generateAllGraphsForServer.py -m 'pds5,pds6' -c  -l 'pds,pds'
+                                 
+     Example 3
+        Produce all tx and rx graphs for all clients found on pxatx. Two machines are specified here and 
+        both contain data for the same clients. Contrary to the previous example, user wants to have graphics for
+        the data resulting from the merger(-c) of both machine but also wants to see graphics wich use the data from
+        each individual machines(-i).   
+         
+        generateAllGraphsForServer.py -m 'pds5,pds6' -c  -i -l 'pds,pds'       
+ 
+ 
  --------------------   
 | Step 4 - Utilities |
  --------------------
@@ -257,7 +283,16 @@ How to use the stats library, step by step :
             pickleViewer.py /apps/px/stats/pickles/amis/20060808/tx/lvs1-dev_00 /myHomeFolder/outputFile.txt.
         
          This is very usefull for debugging.
+    
          
+    4.3 pickleCleaner
+        To cleanup all the created pickle files you can use the pickleCleaner utility.
+        
+        Default value is set to 5 days, wich means we'll keep the last 5 days worth of 
+        pickles and delete everyting else. Otherwise you can specify the number of days as a parameter. 
+        
+        pickleCleaner.py 7  Will delete every pickle that is older than 7 days.
+             
          
  --------------------------------------
 | Step 5 Making it all work together : |
@@ -315,5 +350,5 @@ How to use the stats library, step by step :
         the graphic should be remade by the user as to have the right graphic...
  
  
-
+    Exp
 

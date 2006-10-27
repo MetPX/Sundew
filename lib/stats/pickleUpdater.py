@@ -38,9 +38,26 @@ from PXPaths import *
 
 PXPaths.normalPaths()
 
+localMachine = os.uname()[1]
 
+if localMachine == "pds3-dev" or localMachine == "pds4-dev" or localMachine == "lvs1-stage" :
+    PATH_TO_LOGFILES = PXPaths.LOG + localMachine + "/"
+    PXPaths.RX_CONF  = '/apps/px/stats/rx/'
+    PXPaths.TX_CONF  = '/apps/px/stats/tx/'
+    PXPaths.TRX_CONF = '/apps/px/stats/trx/'
 
+elif localMachine == "logan1" or localMachine == "logan2":
+    PATH_TO_LOGFILES = PXPaths.LOG + localMachine + "/" + localMachine + "/"
+    PXPaths.RX_CONF  = '/apps/px/stats/rx/'
+    PXPaths.TX_CONF  = '/apps/px/stats/tx/'
+    PXPaths.TRX_CONF = '/apps/px/stats/trx/'
 
+else:#pds5 pds5 pxatx etc
+    PATH_TO_LOGFILES = PXPaths.LOG  
+
+    
+    
+    
 class _UpdaterInfos:  
 
     def __init__( self, clients, directories, types, startTimes,collectUpToNow, fileType, currentDate = '2005-06-27 13:15:00', interval = 1, hourlyPickling = True, machine = ""   ):
@@ -242,9 +259,12 @@ def getOptionsFromParser( parser, logger = None  ):
     
     
     if clients[0] == "All" :
-        #print PXPaths.TX_CONF
+        print PXPaths.TX_CONF
         pxManager = PXManager()
         #pxManager.setLogger(logger)
+        PXPaths.RX_CONF  = '/apps/px/stats/rx/'
+        PXPaths.TX_CONF  = '/apps/px/stats/tx/'
+        PXPaths.TRX_CONF = '/apps/px/stats/trx/'
         pxManager.initNames() # Now you must call this method
         
         if fileType == "tx": 
@@ -264,11 +284,11 @@ def getOptionsFromParser( parser, logger = None  ):
                
         if currentDate > startTime:
             #print " client : %s currentDate : %s   startTime : %s" %( client, currentDate, startTime )
-            directories.append( PXPaths.LOG )
+            directories.append( PATH_TO_LOGFILES )
             startTimes.append( startTime )
             usefullClients.append( client )
         else:
-            #print "This client was not updated since it's last update was more recent than specified date : %s" %client
+            print "This client was not updated since it's last update was more recent than specified date : %s" %client
             if logger != None :
                 logger.warning("This client was not updated since it's last update was more recent than specified date : %s" %client)      
        
@@ -426,7 +446,7 @@ def updateHourlyPickles( infos, logger = None ):
                 
                 cs.pickleName =  ClientStatsPickler.buildThisHoursFileName( client = infos.clients[i], currentTime =  startOfTheHour, machine = infos.machine, fileType = infos.fileType )
                  
-                cs.collectStats( types = infos.types, startTime = startTime , endTime = endTime, interval = infos.interval * MyDateLib.MINUTE,  directory = PXPaths.LOG , fileType = infos.fileType )                     
+                cs.collectStats( types = infos.types, startTime = startTime , endTime = endTime, interval = infos.interval * MyDateLib.MINUTE,  directory = PATH_TO_LOGFILES, fileType = infos.fileType )                     
                            
                     
         else:      
@@ -441,11 +461,33 @@ def updateHourlyPickles( infos, logger = None ):
                 
             cs.pickleName =   ClientStatsPickler.buildThisHoursFileName( client = infos.clients[i], currentTime = startOfTheHour, machine = infos.machine, fileType = infos.fileType )            
               
-            cs.collectStats( infos.types, startTime = startTime, endTime = endTime, interval = infos.interval * MyDateLib.MINUTE, directory = PXPaths.LOG , fileType = infos.fileType   )        
+            cs.collectStats( infos.types, startTime = startTime, endTime = endTime, interval = infos.interval * MyDateLib.MINUTE, directory = PATH_TO_LOGFILES, fileType = infos.fileType   )        
        
                          
         setLastCronJob( client = infos.clients[i], fileType = infos.fileType, currentDate = infos.currentDate, collectUpToNow = infos.collectUpToNow )
-                                               
+              
+                
+                
+def updateConfigurationFiles( machine, login ):
+    """
+        rsync .conf files from designated machine to local machine
+        to make sure we're up to date.
+    
+    """  
+    
+    if not os.path.isdir( '/apps/px/stats/rx/' ):
+        os.makedirs(  '/apps/px/stats/rx/' , mode=0777 )
+    if not os.path.isdir( '/apps/px/stats/tx/'  ):
+        os.makedirs( '/apps/px/stats/tx/', mode=0777 )
+    if not os.path.isdir( '/apps/px/stats/trx/' ):
+        os.makedirs(  '/apps/px/stats/trx/', mode=0777 )       
+
+        
+    status, output = commands.getstatusoutput( "rsync -avzr  -e ssh %s@%s:/apps/px/etc/rx/ /apps/px/stats/rx/"  %( login, machine) ) 
+    #print output # for debugging only
+    
+    status, output = commands.getstatusoutput( "rsync -avzr  -e ssh %s@%s:/apps/px/etc/tx/ /apps/px/stats/tx/"  %( login, machine) )  
+    #print output # for debugging only            
 
     
     
@@ -457,8 +499,24 @@ def main():
     """
     
     if not os.path.isdir( PXPaths.PICKLES ):
-        os.makedirs( PXPaths.PICKLES, mode=0777 )      
-      
+        os.makedirs( PXPaths.PICKLES, mode=0777 )
+    
+    # Workaround for temporary mirror machine   
+    if  os.uname()[1] == "pds3-dev":
+        mirrorMachine = "pds5"
+        login         = "pds"
+        
+    elif  os.uname()[1] == "pds4-dev":
+        mirrorMachine = "pds6"
+        login         = "pds"    
+    elif  os.uname()[1] == "lvs1-stage" or os.uname()[1] == "logan1" or os.uname()[1] == "logan2" :
+        mirrorMachine = "pxatx"
+        login         = "pds"
+                    
+    updateConfigurationFiles( machine = mirrorMachine, login = login )
+    
+    if not os.path.isdir( PXPaths.LOG  ):
+        os.makedirs( PXPaths.LOG, mode=0777 )
     
     logger = Logger( PXPaths.LOG + 'stats_' + 'pickling' + '.log.notb', 'INFO', 'TX' + 'pickling', bytes = True  ) 
     logger = logger.getLogger()

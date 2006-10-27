@@ -35,6 +35,14 @@ from   Logger    import *
 
 PXPaths.normalPaths()   
 
+if localMachine == "pds3-dev" or localMachine == "pds4-dev" or localMachine == "lvs1-stage" :
+    PATH_TO_LOGFILES = PXPaths.LOG + localMachine + "/"
+
+elif localMachine == "logan1" or localMachine == "logan2":
+    PATH_TO_LOGFILES = PXPaths.LOG + localMachine + "/" + localMachine + "/"
+
+else:#pds5 pds5 pxatx etc
+    PATH_TO_LOGFILES = PXPaths.LOG  
 
 
 class _GraphicsInfos:
@@ -191,12 +199,15 @@ def getOptionsFromParser( parser ):
         sys.exit()
     
     #workaround because of mirroring
-    for i in range( len(machines) ):
+    for i in range( len( machines ) ):
         if machines[i] == "pds5":
             machines[i] = "pds3-dev"
         elif machines[i] == "pds6":
             machines[i] = "pds4-dev"
-            
+        elif machines[i] == "pxatx":
+            machines[i] = localMachine        
+        
+        print machines    
             
     if individual != True :        
         combinedMachineName = ""
@@ -207,7 +218,7 @@ def getOptionsFromParser( parser ):
     
 
             
-    directory = PXPaths.LOG + localMachine + "/"
+    directory = PATH_TO_LOGFILES
     
     endDate = MyDateLib.getIsoWithRoundedHours( endDate )
     
@@ -226,10 +237,11 @@ def getNames( fileType, machine ):
                         
     pxManager = PXManager()
     
-    #These values need to be set here.
-    PXPaths.RX_CONF  = '/apps/px/stats/rx/%s/'  %machine
-    PXPaths.TX_CONF  = '/apps/px/stats/tx/%s/'  %machine
-    PXPaths.TRX_CONF = '/apps/px/stats/trx/%s/' %machine
+    remoteMachines[ "pds3-dev", "pds4-dev","lvs1-stage", "logan1", "logan2" ]
+    if localMachine in remoteMachines :#These values need to be set here.
+        PXPaths.RX_CONF  = '/apps/px/stats/rx/%s/'  %machine
+        PXPaths.TX_CONF  = '/apps/px/stats/tx/%s/'  %machine
+        PXPaths.TRX_CONF = '/apps/px/stats/trx/%s/' %machine
     pxManager.initNames() # Now you must call this method  
     
     if fileType == "tx":
@@ -487,7 +499,31 @@ def buildImageName(  type, client, machine, infos, logger = None ):
     return fileName 
 
 
+def getDatabaseTimeOfUpdate( client, machine,type ):
+    """
+        Is present in DATABASE-UPDATES file, returns the time of the last 
+        update associated with the databse name.      
+        
+        Otherwise returns None 
+        
+    """ 
+    
 
+    lastUpdate = 0
+    folder   = PXPaths.STATS + "DATABASE-UPDATES/%s/" %type
+    fileName = folder + "%s_%s" %( client, machine )
+    
+    if os.path.isfile( fileName ):
+        
+        fileHandle  = open( fileName, "r" )
+        lastUpdate  = pickle.load( fileHandle )           
+        fileHandle.close()     
+        #print "lastUpdate: %s" %lastUpdate
+            
+    return lastUpdate      
+
+    
+    
 def plotRRDGraph( databaseName, type, client, machine, infos, logger = None ):
     """
         This method is used to produce a rrd graphic.
@@ -513,10 +549,25 @@ def plotRRDGraph( databaseName, type, client, machine, infos, logger = None ):
         innerColor = "54DE4F"
         outerColor = "1C4A1A"
     
+    totalNumberOfPoints = 24*60
+    maxNumberOfPoints = 600 
+    ratio = (totalNumberOfPoints/maxNumberOfPoints)
+         
+    #set intervals so they match with the parameters used when we created the databases. 
+    if type == "latency" :
+        interval = 1.0 #No need to multiply average by interval. It's the mean we want in the case of latency.
+    lastUpdate = getDatabaseTimeOfUpdate( client, machine, type )    
+    if ( lastUpdate - start ) < (10080 * 60):#less than a week 
+        interval = 1.0 * ratio
+    elif (lastUpdate - start) < (1460*240*60):
+        interval = 240.0 
+    else:
+        interval = 1440.0
+      
     title = buildTitle( type, client, infos.endDate, infos.timespan, minimum, maximum, mean )
-    
+
 #     try:
-    rrdtool.graph( imageName,'--imgformat', 'PNG','--width', '600','--height', '200','--start', "%i" %(start) ,'--end', "%s" %(end), '--vertical-label', '%s' %type,'--title', '%s'%title,'COMMENT: Minimum %s Maximum  %s Mean %.2f\c' %( minimum, maximum, mean), '--lower-limit','0','DEF:latency=%s:latency:AVERAGE'%databaseName, 'CDEF:realValue=latency,%i,*' %interval, 'AREA:realValue#%s:%s' %( innerColor, type ),'LINE1:realValue#%s:%s'%( outerColor, type ) )
+    rrdtool.graph( imageName,'--imgformat', 'PNG','--width', '600','--height', '200','--start', "%i" %(start) ,'--end', "%s" %(end), '--vertical-label', '%s' %type,'--title', '%s'%title,'COMMENT: Minimum %s Maximum  %s Mean %.2f\c' %( minimum, maximum, mean), '--lower-limit','0',"--step",'%s' %(ratio*60), 'DEF:%s=%s:%s:AVERAGE'%( type,databaseName,type), 'CDEF:realValue=%s,%i,*' %(type,interval), 'AREA:realValue#%s:%s' %( innerColor, type ),'LINE1:realValue#%s:%s'%( outerColor, type ) )
     
     print "Plotted : %s" %imageName
     if logger != None:
@@ -543,7 +594,8 @@ def generateRRDGraphics( infos, logger = None ):
         for client in infos.clientNames:
             
             for type in infos.types : 
-                databaseName = transferPickleToRRD.buildRRDFileName( type, client, machine )    
+                print "***********%s %s %s " %( type, client, machine ) 
+                databaseName = transferPickleToRRD.buildRRDFileName( type, client, machine ) 
                 plotRRDGraph( databaseName, type, client, machine, infos, logger )
                 
 
@@ -556,10 +608,10 @@ def main():
     
     localMachine = os.uname()[1] # /apps/px/log/ logs are stored elsewhere at the moment.
     
-    if not os.path.isdir( PXPaths.LOG + localMachine + '/' ):
-        os.makedirs( PXPaths.LOG + localMachine + '/', mode=0777 )
+    if not os.path.isdir( PXPaths.LOG  ):
+        os.makedirs( PXPaths.LOG , mode=0777 )
     
-    logger = Logger( PXPaths.LOG + localMachine + "/" + 'stats_' + 'rrd_graphs' + '.log.notb', 'INFO', 'TX' + 'rrd_transfer', bytes = True  ) 
+    logger = Logger( PXPaths.LOG  + 'stats_' + 'rrd_graphs' + '.log.notb', 'INFO', 'TX' + 'rrd_transfer', bytes = True  ) 
     
     logger = logger.getLogger()
        
