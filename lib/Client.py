@@ -129,7 +129,9 @@ class Client(object):
             if (len(words) >= 2 and not re.compile('^[ \t]*#').search(line)):
                 try:
                     if words[0] == 'imask': self.masks.append((words[1], currentDir, currentFileOption))  
+                    elif words[0] == 'accept': self.masks.append((words[1], currentDir, currentFileOption))  
                     elif words[0] == 'emask': self.masks.append((words[1],))
+                    elif words[0] == 'reject': self.masks.append((words[1],))
                     elif words[0] == 'directory': currentDir = words[1]
                     elif words[0] == 'filename': currentFileOption = words[1]
                     elif words[0] == 'destination':

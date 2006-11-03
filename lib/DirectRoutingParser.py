@@ -83,7 +83,7 @@ class DirectRoutingParser(FileParser):
                self.routingInfos[key]['clients']    = self.keyInfos[keyp]['clients']
                self.routingInfos[key]['subclients'] = {}
                self.routingInfos[key]['priority']   = self.keyInfos[keyp]['priority']
-               self.logger.debug("Key %s match pattern %s and was added" % (key,keyp) )
+               self.logger.debug("ADDED : key %s %s %s" % (key,','.join(self.keyInfos[keyp]['clients']),self.keyInfos[keyp]['priority']) )
                return self.routingInfos[key]['clients']
 
         self.logger.debug("Key %s did not match any pattern " % key )
@@ -99,7 +99,7 @@ class DirectRoutingParser(FileParser):
 
     def getClients(self,key):
         if self.routingInfos.has_key(key):
-           self.logger.debug("Key %s had direct routing" % key )
+           self.logger.debug("Key %s had direct routing : %s " % (key,self.routingInfos[key]['clients']) )
            return self.routingInfos[key]['clients']
         return self.getKeyClients(key)
 

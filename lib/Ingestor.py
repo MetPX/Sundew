@@ -219,7 +219,7 @@ class Ingestor(object):
                 pass
         return matchingFeedNames
 
-    def ingest(self, receptionName, ingestName, clientNames ):
+    def ingest(self, receptionName, ingestName, clientNames, header=None ):
         self.logger.debug("Reception Name: %s" % receptionName)
         dbName = self.getDBName(ingestName)
 
@@ -265,8 +265,12 @@ class Ingestor(object):
         if ingestName.find("PROBLEM_BULLETIN") is not -1:
             return 1
 
+        priority=None
+        if header != None :
+           priority = self.drp.getHeaderPriority(header)
+
         for name in clientNames:
-            clientQueueName = self.getClientQueueName(name, ingestName)
+            clientQueueName = self.getClientQueueName(name, ingestName, priority )
             self.createDir(os.path.dirname(clientQueueName), self.clientDirsCache)
             #try:
             #    os.link(dbName, clientQueueName)
@@ -385,7 +389,7 @@ class Ingestor(object):
 
                 # ingesting the file
 
-                self.ingest(file, ingestName, matchingClients )
+                self.ingest(file, ingestName, matchingClients, routeKey  )
                 os.unlink(file)
 
     def ingestSingleFile(self, igniter):
