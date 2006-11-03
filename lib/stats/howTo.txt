@@ -6,15 +6,14 @@ named COPYING in the root of the source directory tree.
 
 #######################################################################################
 ##
-## Name   : howTo.py 
+## Name        : howTo.py 
 ##  
-## Author : Nicholas Lemay  
+## Author      : Nicholas Lemay  
 ##
-## Date   : August 9th 2006
+## Last update : November 3rd 2006
 ##
-##
-## Goal   : Show proper usage of the library to user.
-##          Make use of the library easier to understand.
+## Goal        : Show proper usage of the library to user.
+##                
 ##                    
 ####################################################################################
 
@@ -131,22 +130,60 @@ How to use the stats library, step by step :
                    using crontab will be rendered useless since user needs to type password for 
                    every ssh connection... 
             
-                   
-                   
+----------------------------------------------------------
+| Step 3 - Getting the collected data into rrd databases. |                 
+----------------------------------------------------------  
+    transferPickleToRRD.py allows users to transfer pickled data 
+    that was saved using pickleUpdater.py into an rrd database. 
+    Such databases have a fixed size so they are very space efficient when using data 
+    that spans over a large amount of time and that precise information is not needed. 
+    rrdTool also offers to efficiently plot graphics based on the data contained in an rrd.
+    
+    We recommend managing the databases on the graphic producing machines since they 
+    allready need the pickle files from all the different machines.
+    
+    
+    Example 1
+        This will transfer the data coming from all tx/rx clients that are associated
+        with the machine named pxatx. This will take the data coming from the time of the last update. 
+        If this is the first update it will start from midnight of of the day of the call.
+        
+        transferPickleToRRD.py -m "pxatx"
+        
+    Example 2
+        Same as above, but for the combined data of all the clients associated with pds5 and pds6.    
+        
+        transferPickleToRRD.py -m "pds5,pds6"
+
+    
+    Example 3
+        This is an example that will often be used to start off transfers for a new machine.
+        User specifies the date for wich we first started pickling data. This first update will 
+        transfer the data that is comprised between 2005-08-08 00:00:00 2005-08-08 01:00:00.
+        Afterwards user has the choice to run up the next update in different batchs by specifying
+        dates as to not transfer all the data coming from the start of the pickling up to this day
+        or to do it all at once by not specifying an end date.  
+        
+        -f options specifies that user is only interested in tx log files.
+            
+        transferPickleToRRD.py -m "pds5,pds6" -f tx -e "2005-08-08 01:00:00"    
+     
+    
+    
  -------------------------------------- 
-|Step 3 - Producing Specific Graphics. |
+|Step 4 - Producing Specific Graphics. |
  --------------------------------------  
      
      ------------------
     |Preliminary steps |
      ------------------
-    Step 3.1 - Connect to the graphic producing machine.
+    Step 4.1 - Connect to the graphic producing machine.
     
-    Step 3.2 - Go in the /apps/px/lib/stats/ folder. 
+    Step 4.2 - Go in the /apps/px/lib/stats/ folder. 
     
-    Step 3.3 - Run the following to see how generateGRaphics.pyy works : python generateGraphics.py -h 
+    Step 4.4 - Run the following to see how generateGRaphics.pyy works : python generateGraphics.py -h 
     
-    Step 3.4 - Run generateGraphics.py with the parameters wanted to get the desired graphics
+    Step 4.4 - Run generateGraphics.py with the parameters wanted to get the desired graphics
     
      --------------------------------------------------------
     | How to have  the graphics you want:                   |
@@ -221,7 +258,7 @@ How to use the stats library, step by step :
     
             
  ---------------------------------------- 
-|Step 4 - Producing Graphics By Batchs. |
+|Step 5 - Producing Graphics By Batch. |
  ----------------------------------------  
      Example 1 
         Produce all tx and rx graphs for all clients found on pxatx. Only one machine is used so we 
@@ -244,31 +281,64 @@ How to use the stats library, step by step :
          
         generateAllGraphsForServer.py -m 'pds5,pds6' -c  -i -l 'pds,pds'       
  
+
+ ------------------------------------------------------- 
+|Step 6 - Producing Graphics for a wide period of time. |
+ -------------------------------------------------------  
+     Pickle files being quite large, and data details not being extremely important
+     over long periods of time means that pickle files will be kept for short periods of 
+     times, generally under a week. Therefore data consolidation has been implemented using 
+     rrdtool's round robin data base mechanisms.       
  
+ 
+     Example 1 
+        This will generate all possible yearly graphs for all the clients found on pds5 and pds6
+        based on the merged data of the two machines.
+        rx will have the folowing graphics  :"bytecount", "errors", "filecount"
+        tx will have the following graphics :"latency", "bytecount", "errors", "filesOverMaxLatency", "filecount"
+        
+        generateRRDGraphics.py -e "2006-10-10 15:13:00" -y --m "pds5,pds6"
+
+     
+     Example 2 
+        This will generate all possible monthly graphs for all the clients found on pxatx
+        based on the data pickled on that machine.
+        
+        generateRRDGraphics.py -e "2006-10-10 15:13:00" -m --machines "pxatx"
+                                 
+        
+     Example 3
+        This will generate all 5 weekly graphics for tx client named satnet-ice with the pickled data
+        coming from the pxatx machine 
+                    
+        generateRRDGraphics.py -e "2006-10-10 15:13:00" -w --machines "pxatx" -c "satnet-ice" -f tx
+     
+        
+        
  --------------------   
-| Step 4 - Utilities |
+| Step 7 - Utilities |
  --------------------
        
-    4.1 pickled times
+    7.1 pickled times
     
         To see the content of pickled-times file wich contain the time 
         of the last update of every client, on a specific machine use the folowing :
         
-        Step 4.1.1 - Connect on the machine.
-        Step 4.1.2 - Go to the /apps/px/lib/stats/ folder. 
-        Step 4.1.3 - run pickleSynchroniser.py 
+        Step 7.1.1 - Connect on the machine.
+        Step 7.1.2 - Go to the /apps/px/lib/stats/ folder. 
+        Step 7.1.3 - run pickleSynchroniser.py 
         
         This is very usefull for debugging.
     
         
-    4.2 pickleViewer    
+    7.2 pickleViewer    
         To see the content of pickle files containg the collected data on a
         specific machine use the folowing :
         
-        Step 4.2.1 - Connect on the machine.
-        Step 4.2.2 - Go to the /apps/px/lib/stats/ folder. 
-        Step 4.2.3 - Run pickleViewer.py -h to sse how it works
-        Step 4.2.4 - Run pickleSynchroniser.py with the parameters wanted to 
+        Step 7.2.1 - Connect on the machine.
+        Step 7.2.2 - Go to the /apps/px/lib/stats/ folder. 
+        Step 7.2.3 - Run pickleViewer.py -h to sse how it works
+        Step 7.2.4 - Run pickleSynchroniser.py with the parameters wanted to 
                      get the desired results:
     
          --------------------------------------------------------
@@ -285,20 +355,67 @@ How to use the stats library, step by step :
          This is very usefull for debugging.
     
          
-    4.3 pickleCleaner
+    7.3 pickleCleaner
         To cleanup all the created pickle files you can use the pickleCleaner utility.
         
         Default value is set to 5 days, wich means we'll keep the last 5 days worth of 
         pickles and delete everyting else. Otherwise you can specify the number of days as a parameter. 
         
         pickleCleaner.py 7  Will delete every pickle that is older than 7 days.
+    
+        
+    7.4 clean_dir.plx   
+        This utility allows users to cleanup any directory recursively. It uses a config file where you must
+        enter the directories you want to clean, the pattern (glob) to match, the
+        intervall of time that must be attained by a file for it to be deleted (specified in seconds (s),
+        minutes (m), hours (h) or days (d) and finally it you want the delete to be recursive or not.
+        
+        To delete graphs that are older than 4 days the following line is used :
+        
+        /apps/px/lib/stats/clean_dir.plx /apps/px/etc/clean.conf
+        
+        with /apps/px/etc/clean.conf containing the following line :
+        /apps/px/stats/graphs/        *           4:d            yes
+          
              
+    
+    7.5 setTimeOfLastUpdates.py
+        This utility is to be used to restart pickling from a certain point in time.
+        This is particularly usefull when errors occur, causes are corrected and data 
+        pickling needs to be redone.
+        
+        setTimeOfLastUpdates.py "2006-10-23 09:00:00" 
+        
+        This will remove the file containin the position where we last read a certain file
+        for each source/client. This will set 2006-10-23 09:00:00 as the time of the last
+        update in the pickled-times file for all of them also. 
+        
+        
+        
+    7.6 backupRRDDatabases.py
+        This program is to be used to backup rrd databases and their corresponding
+        time of update files. Backing up rrd databases at various point in time is a
+        recommended paractice in case newly entered data is not valid.
+         
+        To do so the user only has to execute backupRRDDatabases.py, it will take care of
+        backuping both folders and mark the backup folders with the current time. 
+        
+                 
+    
+    7.7 restoreRoundRobinDatabases.py
+         This program is to be used to restore the backed up databases from a certain date
+         and use them as the main databases
+         
+         Using restoreRoundRobinDatabases.py "2006-11-02 21:14:00" will take the
+         /apps/px/stats/databases.2006-11-02_21:14:00 and /apps/px/stats/DATABASE-UPDATES.2006-11-02_21:14:00
+         folders and set them as the main folder /apps/px/stats/databases and /apps/px/stats/DATABASE-UPDATES.
+         
          
  --------------------------------------
-| Step 5 Making it all work together : |
+| Step 8 Making it all work together : |
  --------------------------------------
  
-    Step 5.1 - Collect data first:
+    Step 8.1 - Collect data first:
     
         It would be pretty futile to try and synchronise data when none has been produced. 
         Producing graphics with empty data would also be useless. 
@@ -312,7 +429,7 @@ How to use the stats library, step by step :
         producing errors. Please set your updates a few minutes after the turn of the hour. 
     
     
-    Step 5.2 - Synchronise data 
+    Step 8.2 - Synchronise data 
         
         We recommend sychronising data only once its been updated. 
         
@@ -335,7 +452,12 @@ How to use the stats library, step by step :
         when users needs to.
                 
         
-    Step 5.3 - Produce graphics based on synchronised data.
+    Step 8.3 - Transfer synchronised data     
+        In order to be able to produce weekly monthly and yearly graphics, data must 
+        be consolidated in the rrd databases.        
+        
+    
+    Step 8.4 - Produce graphics based on synchronised data.
         
         Graphics will be produced up to the top of the current hour. 
         EX 15:00:00 if requested at 15:38:16
@@ -350,5 +472,5 @@ How to use the stats library, step by step :
         the graphic should be remade by the user as to have the right graphic...
  
  
-    Exp
+    
 
