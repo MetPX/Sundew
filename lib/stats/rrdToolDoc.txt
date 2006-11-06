@@ -13,7 +13,7 @@ named COPYING in the root of the source directory tree.
 #                                                       
 #                                                       
 # Author        : Nicholas Lemay
-# Last Update   : October 6th 2006
+# Last Update   : November 3rd 2006
 #
 ###################################################################################################
 
@@ -38,10 +38,17 @@ Creating the database :
 ------------------------------------------------------  
     rrdtool.create( databaseName, '--start','%s' %( startTime ), '--step', '60', 'DS:latency:GAUGE:60:U:U', 'RRA:AVERAGE:0:1:1440','RRA:MIN:0:1:1440', 'RRA:MAX:0:1:1440', 'RRA:AVERAGE:0:5:2016','RRA:MIN:0:5:2016','RRA:MAX:0:5:2016', 'RRA:AVERAGE:0:1440:3650','RRA:MIN:0:1440:3650','RRA:MAX:0:1440:3650' ) 
     
-This creates a database names databaseName, wich starts at startTime. 
-No data can be fed that has a date prior to startTime.
+This creates a database named databaseName, wich starts at startTime. 
+No data that has a date prior or equal to startTime will be accepted.
 
-Step allows to specify the frequency at wich data will be fed to the database.    
+Step allows to specify the frequency (in seconds) at wich data will be fed to the database.    
+
+DS(data source) specifies the name of the data we want to save in the database. 
+GAUGE is the type of calculation that is to be used( choices are GAUGE, COUNTER, DERIVE, ABSOLUTE)
+60 is the maximum amount of time for wich we will accep no data to be entered. If there is more
+than 60 secs between updates, values of non filled entries will be set to unknown.
+:u:u specifies that both minimum and maximum acepted values are unlimited.
+
 
 RRA's allows us to specify how data is to be consolidated inthe database.
 1st set of rra's : keep last 24 hours for daily graphs. Each line contains 1 minute of data. 
@@ -50,8 +57,23 @@ RRA's allows us to specify how data is to be consolidated inthe database.
                    ( 2016 * 5 combined entries of 60 seconds each )
 3rd set of rra's : keep last 10 years of data. Each line contains 24 hours of data.
                    ( 3650 * 1440 combined entries of 60 seconds each. )
-                   
-                   
+      
+                                
+Important note on database creation.
+--------------------------------------------------------
+RRA's behave on relative values, not absolutes. This means that if a database is created
+using a starting time of 13:16:56 and you specify an AVERAGE rra containing one hours worth
+of data, your first entry will be filled with data comprised between 13:16:56 and 14:16:56
+NOT between 13:16:56 and 14:00:00. While this does save the data in 1 hour wide entries, this will 
+make for most applications therefore it is recommended to start up databases at the closest point 
+of the furthest entry that is to be used.
+
+Examples : hourly entries needs the database to start at the top of the hour.    
+           daily entries need to start at the very start of the day. 
+           Yearly entries would probably need to start at the beginning of the month.
+          ( Handling monthly and yearly data is ackward and would probably require a few workarounds. )
+                              
+                                      
 Feeding the database with data :
 ------------------------------------------------------
 The following command must be executed to update the database names databaseName. 
@@ -67,24 +89,20 @@ Data must be added in chronological order. Data can never be set for dates prior
 of the most recent update. Because of that, first update must have a number of seconds higher than the 
 one of the date of creation of the database.
 
-Because of that, in transferPickleToRRD the databse created always has a creation date 1 minute older than
-the time at wich we want to set the first pair of data.
-
-
 
 Generating Graphs
 ------------------------------------------------------
 rrdtool.graph( imageName,'--imgformat', 'PNG','--width', '600','--height', '200','--start', "%i" %(start) ,'--end', "%s" %(end), '--vertical-label', '%s' %type,'--title', '%s'%title,'COMMENT: Minimum %s Maximum  %s Mean %.2f\c' %( minimum, maximum, mean), '--lower-limit','0','DEF:latency=%s:latency:AVERAGE'%databaseName, 'AREA:latency#cd5c5c:%s' %type,'LINE1:latency#8b0000:%s'%type)
 
-- Will create an image named imageName of the speciefied width and height.
+- Will create an image named imageName of the specified width and height.
 - Start and End must be expressed in seconds since epoch. Integer value only, no float will be accepted.
-- Label, comments, title speak for themselves. 
+- Label, comments and title speak for themselves. 
 - 'DEF:latency=%s:latency:AVERAGE'%databaseName means to get data from the AVERAGE RRA
    coming from database named databaseName and to store it in a variable named latency. 
 - Fetched data in preceding line will be comprised between start and end.
 - 'AREA:latency#cd5c5c:%s' %type means to draw an area style graph with the data found in the variable named latency.
 - 'LINE1:latency#8b0000:%s'%type means to draw a line1 style graph with the data found in the variable named latency.
-- The above plots th esame data twice. However having a line contour the area graph makes grphs looks much better.
+- The above plots the same data twice. However having a line contour the area graph makes graphs looks much better.
 - In both cases the #xxxxxx number helps specify the color of the graph.
 
                    
@@ -93,15 +111,15 @@ Database size :
 Database size, since it will never gow, has been found very acceptable. 
 
 Current testing configuration has us transfer all the pickled data from both rx and tx clients
-from machines called pds5 and pds6. This means around 75 clients. Tx clients have 5 databases each.
-Rx clients only have 3. All dabatases are made to be fed with data that is split by the minute.
+from machines called pxatx, pds5 and pds6. This means around 135 sources/clients. Tx clients have 
+5 databases each.Rx sources only have 3. All dabatases are made to be fed with data that is split by the minute.
 
 In each database, we currently keep the data archived in this fashion : 
-1- The mean,max and min of every minute saved up to the last 24 hours.
-2- The mean,max and min of every 5 minutes saved up to the last 24 hours.
+1- The mean,max and min of every minute saved up to the last 5 days.
+2- The mean,max and min of every hour minutes saved up to the last 14 days.
 3- The mean,max and min of every day saved up to the last 10 years.
 
-All this takes up less than 60 megs on the disk.
+All this takes up around 180 megs on the disk.
 
 
 Ressource pages :

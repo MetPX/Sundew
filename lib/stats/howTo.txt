@@ -5,12 +5,17 @@ named COPYING in the root of the source directory tree.
 """
 
 #######################################################################################
-##
-## Name        : howTo.py 
+##               _                 _____     _        _   
+##              | |               |_   _|   | |      | |  
+##              | |__   _____      _| | ___ | |___  _| |_ 
+##              | '_ \ / _ \ \ /\ / / |/ _ \| __\ \/ / __|
+##              | | | | (_) \ V  V /| | (_) | |_ >  <| |_ 
+## Name        :|_| |_|\___/ \_/\_/ \_/\___(_)__/_/\_\\__|
+## 
 ##  
 ## Author      : Nicholas Lemay  
 ##
-## Last update : November 3rd 2006
+## Last update : November 6th 2006
 ##
 ## Goal        : Show proper usage of the library to user.
 ##                
@@ -18,7 +23,48 @@ named COPYING in the root of the source directory tree.
 ####################################################################################
 
 
-How to use the stats library, step by step : 
+
+                
+----------Overview of how to use the library in function of time-------------------
+
+
+-------------------------------------------------------------Start-----------
+
+                                                              / \
+                        -------------------                    |
+                       |  Data collection. |                   |
+                       |    ( Step 1 )     |                   |
+                        -------------------                    |
+                              |                                |
+                              |                                |
+                              |                                |
+                              |                                |
+                              \/                               |                                  
+               ------------------------------      ------------------------    
+              | Pickle file synchronisation. |    |       Utilities        |   
+              |        ( Step 2 )            |    |       ( Step 7 )       |
+               ------------------------------      ------------------------
+                    |                \                         |
+                    |                 \                        |       
+                    |                  \                       |
+                    \/                 \/                      |
+  -------------------------   ------------------------         |
+ | Produce Short Graphics. | | Transfer pickle to rrd |        |          
+ |   ( Steps 4 and 5 )     | |    ( Step 3 )          |        |
+  ------------------------    ------------------------         |
+                                         |                     |
+                                         |                     |
+                                         \/                    |
+                                 ----------------------        |
+                                | Produce Wide Graphics |      |
+                                |    ( Step 6 )         |      | 
+                                 -----------------------       |                   
+                                                               |
+                                                               |
+                                                               \/
+--------------------------------------------------------------End------------
+
+
  
  --------------------------
 |Step 1 - Data collection. |
@@ -285,10 +331,10 @@ How to use the stats library, step by step :
  ------------------------------------------------------- 
 |Step 6 - Producing Graphics for a wide period of time. |
  -------------------------------------------------------  
-     Pickle files being quite large, and data details not being extremely important
+     Pickle files being quite large and data details not being extremely important
      over long periods of time means that pickle files will be kept for short periods of 
      times, generally under a week. Therefore data consolidation has been implemented using 
-     rrdtool's round robin data base mechanisms.       
+     rrdtool's round robin data base mechanism.       
  
  
      Example 1 
@@ -319,14 +365,14 @@ How to use the stats library, step by step :
 | Step 7 - Utilities |
  --------------------
        
-    7.1 pickled times
+    7.1 pickled times viewer
     
         To see the content of pickled-times file wich contain the time 
         of the last update of every client, on a specific machine use the folowing :
         
         Step 7.1.1 - Connect on the machine.
         Step 7.1.2 - Go to the /apps/px/lib/stats/ folder. 
-        Step 7.1.3 - run pickleSynchroniser.py 
+        Step 7.1.3 - run pickledTimesViewer.py 
         
         This is very usefull for debugging.
     
@@ -440,14 +486,8 @@ How to use the stats library, step by step :
         the next update.
         
         Since we recommend collecting data hourly, it is also recommended to synchronise
-        files hourly.
-        
-        This command is to be added onthe machine producing graphics... 
-        2 * * * * ssh pds@pds3-dev 'rsync -avzr -e ssh pds@pds5:/apps/px/log/ /apps/px/log/pds3-dev/'; ssh pds@pds3-dev 'python /apps/px/lib/stats/pickleUpdater.py-f rx >> /tmp/puOutput';ssh pds@pds3-dev 'python /apps/px/lib/stats/pickleUpdater.py -f tx' >> /tmp/puOutput;echo "should work">> /tmp/puOutput; /apps/px/lib/stats/pickleSynchroniser.py -l pds -m 'pds3-dev' >> /tmp/puOutput;ssh pds@pds4-dev 'rsync -avzr -e ssh pds@pds6:/apps/px/log/ /apps/px/log/pds4-dev/'; ssh pds@pds4-dev 'python /apps/px/lib/stats/pickleUpdater.py -f rx >> /tmp/puOutput';ssh pds@pds4-dev 'python /apps/px/lib/stats/pickleUpdater.py -f tx' >> /tmp/puOutput; /apps/px/lib/stats/pickleSynchroniser.py -l pds -m 'pds4-dev' >> /tmp/puOutput; /apps/px/lib/stats/generateAllGraphsForServer.py -m 'pds5,pds6' -c  -l "pds,pds" >> /tmp/puOutputs
-        
-        Environment variable needed by python, like PYTHONPATH, should be declared in crontab file or else programs
-        will not work.
-        
+        files hourly.        
+
         This way we make sure all data is up to date and all the latest graphs are produced and ready to be consulted 
         when users needs to.
                 
@@ -471,6 +511,74 @@ How to use the stats library, step by step :
         If a later data synchronisation occurs and retrieves data for hour 7 on the client producing machine, 
         the graphic should be remade by the user as to have the right graphic...
  
- 
+        
+        
+     Step 8.5 - Send graphics to other machines that need them.
+        This is done using scp 
+        scp /apps/px/stats/graphs/symlinks/* lvs1-op:/apps/pds/tools/Columbo/ColumboShow/graphs/ >>/dev/null 2>&1
+     
+     
+     
+     
+     Step 8.6 Putting it all together. 
+     
+     Here is a sample of a python file containg the list of all commands that are executed every hour 
+     on a graphic producing machine. This program ahd the reuirement to produce daily graphics for the pxatx 
+     machine and the pds5,pds6 combination. Pickling had to be done on machines different from the original machines.
+     Graphics then had to be uploaded to be uploaded on two machines named lvs1-op and lvs2-op. 
+      
+     Commands were set in a python files since crontab allows only for a
+     limited amount of characters to appear on the same command line.   
+     
+     
+     
+    #this block gets all the pxatx pickles and graphics done on the local machine. 
     
+    status, output = commands.getstatusoutput( "rsync -avzr --delete-before  -e ssh pds@pxatx:/apps/px/log/ %s >>/dev/null 2>&1 " %PATH_TO_LOGFILES )
+
+    status, output = commands.getstatusoutput( "python /apps/px/lib/stats/pickleUpdater.py -f rx  >>/dev/null 2>&1" )
+
+    status, output = commands.getstatusoutput( "python /apps/px/lib/stats/pickleUpdater.py -f tx >>/dev/null 2>&1" )
+
+    status, output = commands.getstatusoutput( "/apps/px/lib/stats/generateAllGraphsForServer.py -i -m 'pxatx' -l 'pds' >>/dev/null 2>&1 " )
+
+    
+    
+    #This block get all the pds5 pickles done on the pds3-dev machine. Pickles are then downloaded to the local machine.    
+    status, output = commands.getstatusoutput( "ssh pds@pds3-dev 'rsync -avzr --delete-before -e ssh pds@pds5:/apps/px/log/ /apps/px/log/pds3-dev/' >>/dev/n
+ull 2>&1" )
+
+    status, output = commands.getstatusoutput( "ssh pds@pds3-dev 'python /apps/px/lib/stats/pickleUpdater.py  -f rx'  >>/dev/null 2>&1 " )
+
+    status, output = commands.getstatusoutput( "ssh pds@pds3-dev 'python /apps/px/lib/stats/pickleUpdater.py -f tx' >>/dev/null 2>&1 " )
+
+    status, output = commands.getstatusoutput( "/apps/px/lib/stats/pickleSynchroniser.py -l pds -m 'pds3-dev' >>/dev/null 2>&1 " )
+
+    
+    
+    #This block get all the pds6 pickles done on the pds4-dev machine. Pickles are then downloaded to the local machine.
+    status, output = commands.getstatusoutput( "ssh pds@pds4-dev 'rsync -avzr --delete-before -e ssh pds@pds6:/apps/px/log/ /apps/px/log/pds4-dev/' >>/dev/n
+ull 2>&1" )
+
+    status, output = commands.getstatusoutput( "ssh pds@pds4-dev 'python /apps/px/lib/stats/pickleUpdater.py -f rx' >>/dev/null 2>&1" )
+
+    status, output = commands.getstatusoutput( "ssh pds@pds4-dev 'python /apps/px/lib/stats/pickleUpdater.py -f tx' >>/dev/null 2>&1" )
+
+    status, output = commands.getstatusoutput( "/apps/px/lib/stats/pickleSynchroniser.py -l pds -m 'pds4-dev' >>/dev/null 2>&1" )
+
+    #Once we have all the pickles from pds5 and pds6 we generate the graphs locally.
+    status, output = commands.getstatusoutput( "/apps/px/lib/stats/generateAllGraphsForServer.py -m 'pds5,pds6' -c  -l 'pds,pds' >>/dev/null 2>&1  " )
+
+    #Transfer the pickle data to the different databases. 
+    status, output = commands.getstatusoutput( "/apps/px/lib/stats/transferPickleToRRD.py -m 'pds5,pds6' >>/dev/null 2>&1" )
+
+    status, output = commands.getstatusoutput( "/apps/px/lib/stats/transferPickleToRRD.py -m 'pxatx' >>/dev/null 2>&1" )
+
+    #Transfer graphics to another machine that reqiuries them.
+    status, output = commands.getstatusoutput( "scp /apps/px/stats/graphs/symlinks/* lvs2-op:/apps/pds/tools/Columbo/ColumboShow/graphs/ >>/dev/null 2>&1")
+
+    #Transfer graphics to another machine that reqiuries them.
+    status, output = commands.getstatusoutput( "scp /apps/px/stats/graphs/symlinks/* lvs1-op:/apps/pds/tools/Columbo/ColumboShow/graphs/ >>/dev/null 2>&1") 
+     
+       
 
