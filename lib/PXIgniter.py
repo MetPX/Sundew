@@ -157,7 +157,27 @@ class PXIgniter(Igniter):
                self.reloadMode = True
 
          elif self.direction == 'transceiver':
-            pass
+            if self.type == 'aftn':
+                #if os.fork() == 0:
+                #    self.restart()
+                #    self.logger.info("%s %s has been reloaded by restarting it" % (self.direction.capitalize(), self.flow.name))
+                #else:
+                #    pass
+               # FIXME: Should be put in TransceiverAFTN code
+               # We assign the defaults, reread configuration file for the sourlient 
+               # and reread all configuration file for the clients (all this in __init__)
+               self.flow.__init__(self.flow.name, self.flow.logger)
+               self.gateway.mm.reloadMode = True 
+               self.gateway.mm.__init__(self.flow.logger, self.flow, True)
+
+               #self.gateway.mm.bullManager.extension = self.flow.extension
+               # Reset all the clients + sourlients names to which px can link (independantly of the routing table)
+               #self.gateway.mm.bullManager.drp.pxLinkables = self.flow.ingestor.allNames 
+               #self.gateway.mm.drp = self.gateway.mm.bullManager.drp
+               # Reparse the ROUTING_TABLE
+               #self.gateway.unBulletinManager.drp.reparse()
+               self.logger.info("%s has been reloaded" % self.direction.capitalize())
+                
       
    def reload(self):
       """
