@@ -90,6 +90,21 @@ of the most recent update. Because of that, first update must have a number of s
 one of the date of creation of the database.
 
 
+Important note on database updating technique.
+------------------------------------------------------
+RRD databases do not work like gnuplot. Pairs fed to the database must not be exactly like 
+gnuplot pairs or else the end result will be erronous. 
+
+With gnuplot feeding the pairs(1,10) and (2,25) would resultin the value 10 
+being drawn between 1 and 2  and 25 being drawn between 2 and 3. 
+
+With rrd, the opposite will happen. If you feed the database with the pairs(1,10) and (2,25)
+this will draw the value 10 between 0 and 1 and draw 25 between 1 and 2.
+
+Make sure you understand this priro to feeding the database or else your entire set of data will
+be corrupted. 
+
+
 Generating Graphs
 ------------------------------------------------------
 rrdtool.graph( imageName,'--imgformat', 'PNG','--width', '600','--height', '200','--start', "%i" %(start) ,'--end', "%s" %(end), '--vertical-label', '%s' %type,'--title', '%s'%title,'COMMENT: Minimum %s Maximum  %s Mean %.2f\c' %( minimum, maximum, mean), '--lower-limit','0','DEF:latency=%s:latency:AVERAGE'%databaseName, 'AREA:latency#cd5c5c:%s' %type,'LINE1:latency#8b0000:%s'%type)

@@ -193,8 +193,7 @@ def getOptionsFromParser( parser, logger = None  ):
     
         txNames = pxManager.getTxNames()               
         rxNames = pxManager.getRxNames() 
-        txNames = pxManager.getTxNames()
-        rxNames = pxManager.getRxNames()
+
         clients = []
         clients.extend( txNames )
         clients.extend( rxNames )
@@ -207,16 +206,13 @@ def getOptionsFromParser( parser, logger = None  ):
       
     #small workaround for pickle files        
     for i in range( len( machines ) ):
-        #print "machines[i] : %s" %machines[i]
         if machines[i] == 'pds5':
             machines[i] = 'pds3-dev'
         elif machines[i] == 'pds6' :
             machines[i] = 'pds4-dev'     
         elif machines[i] == "pxatx":
             machines[i] = localMachine
-            #print "should be ok"
-    
-    #print "************************* %s" %machines                
+              
     infos = _Infos( endTime = end, machines = machines, clients = clients, fileTypes = fileTypes )   
     
     return infos     
@@ -245,13 +241,12 @@ def getDatabaseTimeOfUpdate( client, machine, fileType, endTime ):
     lastUpdate = MyDateLib.getSecondsSinceEpoch( MyDateLib.getIsoTodaysMidnight( endTime ) ) 
     folder   = PXPaths.STATS + "DATABASE-UPDATES/%s/" %fileType
     fileName = folder + "%s_%s" %( client, machine )
-    #print "fileName : %s" %fileName
+
     if os.path.isfile( fileName ):
         
         fileHandle  = open( fileName, "r" )
         lastUpdate  = pickle.load( fileHandle )           
         fileHandle.close()     
-        #print "lastUpdate: %s" %lastUpdate
             
     return lastUpdate  
  
@@ -280,8 +275,6 @@ def setDatabaseTimeOfUpdate(  client, machine, fileType, timeOfUpdate ):
      
     folder   = PXPaths.STATS + "DATABASE-UPDATES/%s/" %fileType
     fileName = folder + "%s_%s" %( client, machine )   
-    
-    #print "machine : %s" %machine     
     
     fileHandle  = open( fileName, "w" )
     pickle.dump( timeOfUpdate, fileHandle )
@@ -382,31 +375,29 @@ def getPairsFromMergedData( statType, mergedData, logger = None  ):
                 if len( mergedData.statsCollection.fileEntries[i].means ) >=1 :
                     
                     if statType == "filesOverMaxLatency" :
-                        pairs.append( [MyDateLib.getSecondsSinceEpoch( mergedData.statsCollection.timeSeperators[i]), mergedData.statsCollection.fileEntries[i].filesOverMaxLatency ] )                      
+                        pairs.append( [ int(MyDateLib.getSecondsSinceEpoch( mergedData.statsCollection.timeSeperators[i]))+60, mergedData.statsCollection.fileEntries[i].filesOverMaxLatency ] )                      
                     
                     elif statType == "errors":
                         
-                        pairs.append( [MyDateLib.getSecondsSinceEpoch( mergedData.statsCollection.timeSeperators[i]), mergedData.statsCollection.fileEntries[i].totals[statType]] )
-                    #   print mergedData.statsCollection.fileEntries[i].totals[statType]
+                        pairs.append( [int(MyDateLib.getSecondsSinceEpoch( mergedData.statsCollection.timeSeperators[i])) +60, mergedData.statsCollection.fileEntries[i].totals[statType]] )
+                    
                     elif statType == "bytecount":
                     
-                        pairs.append( [ MyDateLib.getSecondsSinceEpoch(mergedData.statsCollection.timeSeperators[i]), mergedData.statsCollection.fileEntries[i].totals[statType]] )
-                        #print mergedData.statsCollection.fileEntries[i].means[statType]
+                        pairs.append( [ int(MyDateLib.getSecondsSinceEpoch(mergedData.statsCollection.timeSeperators[i])) +60, mergedData.statsCollection.fileEntries[i].totals[statType]] )
+                        
                     elif statType == "latency":
                     
-                        pairs.append( [ MyDateLib.getSecondsSinceEpoch(mergedData.statsCollection.timeSeperators[i]), mergedData.statsCollection.fileEntries[i].means[statType]] )  
-                        
-                    #    print mergedData.statsCollection.fileEntries[i].means[statType]
-                    elif statType == "filecount":
-                        pairs.append( [ MyDateLib.getSecondsSinceEpoch(mergedData.statsCollection.timeSeperators[i]), len(mergedData.statsCollection.fileEntries[i].values.productTypes)] )
-                    else:
-                        #raise KeyError 
-                        #print "statType was : %s " %statType 
-                        pairs.append( [ MyDateLib.getSecondsSinceEpoch(mergedData.statsCollection.timeSeperators[i]), 0.0 ])                    
-                else:
-                    #print "problem len < 1 "
+                        pairs.append( [ int(MyDateLib.getSecondsSinceEpoch(mergedData.statsCollection.timeSeperators[i])) +60, mergedData.statsCollection.fileEntries[i].means[statType]] )                          
                     
-                    pairs.append( [ MyDateLib.getSecondsSinceEpoch(mergedData.statsCollection.timeSeperators[i]), 0.0 ] )
+                    elif statType == "filecount":
+                        pairs.append( [ int(MyDateLib.getSecondsSinceEpoch(mergedData.statsCollection.timeSeperators[i])) +60, len(mergedData.statsCollection.fileEntries[i].values.productTypes)] )
+                    
+                    else:
+
+                        pairs.append( [ int(MyDateLib.getSecondsSinceEpoch(mergedData.statsCollection.timeSeperators[i])) +60, 0.0 ])                    
+                else:      
+                    
+                    pairs.append( [ int(MyDateLib.getSecondsSinceEpoch(mergedData.statsCollection.timeSeperators[i])) +60, 0.0 ] )
             
             
             except KeyError:
@@ -414,10 +405,10 @@ def getPairsFromMergedData( statType, mergedData, logger = None  ):
                     print "keyError statype was : %s" %statType
                     logger.error( "Error in getPairs." )
                     logger.error( "The %s stat type was not found in previously collected data." %statType )    
-                pairs.append( [ MyDateLib.getSecondsSinceEpoch(mergedData.statsCollection.timeSeperators[i]), 0.0 ] )
+                pairs.append( [ int(MyDateLib.getSecondsSinceEpoch(mergedData.statsCollection.timeSeperators[i])) +60, 0.0 ] )
                 sys.exit()    
             
-        #print pairs        
+               
         return pairs 
         
         
@@ -439,9 +430,7 @@ def getMergedData( client, fileType,  machines, startTime, endTime, logger = Non
         statsCollection = pickleMerging.mergePicklesFromDifferentMachines( logger = logger , startTime = MyDateLib.getIsoFromEpoch(startTime), endTime = MyDateLib.getIsoFromEpoch(endTime), client = client, fileType = fileType, machines = machines )                           
     
     else:#only one machine, only merge different hours together
-        #print "call used for single machine "
-        #print "%s %s %s %s %s %s" %(logger , MyDateLib.getIsoFromEpoch(startTime), MyDateLib.getIsoFromEpoch(endTime), client, fileType, machines[0])
-        
+       
         statsCollection = pickleMerging.mergePicklesFromDifferentHours( logger = logger , startTime = MyDateLib.getIsoFromEpoch(startTime), endTime = MyDateLib.getIsoFromEpoch(endTime), client = client, fileType = fileType, machine = machines[0] )
         
     
@@ -449,7 +438,7 @@ def getMergedData( client, fileType,  machines, startTime, endTime, logger = Non
     for machine in machines:
         combinedMachineName = combinedMachineName + machine
     
-    #Make sure that directory used here is of no importance.   
+       
     dataCollector =  ClientStatsPickler( client = client, statsTypes = types, directory = "", statsCollection = statsCollection, machine = combinedMachineName, logger = logger )
     
     return dataCollector    
@@ -467,12 +456,11 @@ def getPairs( client, machines, fileType, startTime, endTime, logger = None ):
     dataPairs = {}
     dataTypes  = getDataTypesAssociatedWithFileType( fileType ) 
     mergedData = getMergedData( client, fileType, machines, startTime, endTime, logger )
-    
-    #print "dataTypes : %s" %dataTypes
+        
     for dataType in dataTypes :  
         dataPairs[ dataType ]  = getPairsFromMergedData( dataType, mergedData, logger )
     
-    #print dataPairs    
+   
     return dataPairs
     
     
@@ -496,9 +484,9 @@ def updateRoundRobinDatabases(  client, machines, fileType, endTime, logger = No
     for key in dataPairs.keys():
         
         rrdFileName = buildRRDFileName( dataType = key, client = client, machine = combinedMachineName )        
-        #print rrdFileName
+        
         if not os.path.isfile( rrdFileName ):  
-            #print "startTime : %s " %startTime 
+            
             createRoundRobinDatabase( dataType = key, client = client, machine = combinedMachineName, startTime= startTime - 60 )
                       
         
@@ -592,10 +580,9 @@ def main():
     parser = createParser() 
    
     infos = getOptionsFromParser( parser, logger = logger )
-    #print "infos : %s" %infos.clients
-    transferPickleToRRD( infos, logger = logger )
-     
 
+    transferPickleToRRD( infos, logger = logger )
+   
 
 if __name__ == "__main__":
     main()
