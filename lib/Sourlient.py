@@ -91,9 +91,8 @@ class Sourlient(object):
                 self.ingestor.__init__(self)
             else:
                 self.ingestor = Ingestor(self)
-                self.printInfos(self)
+                #self.printInfos(self)
             self.ingestor.setClients()
-
 
     def readConfig(self):
         
