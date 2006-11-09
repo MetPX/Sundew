@@ -62,7 +62,8 @@ class Source(object):
         self.ingestion = ingestion                # do we want to start the ingestion...
         self.debug = False                        # If we want sections with debug code to be executed
         self.batch = 100                          # Number of files that will be read in each pass
-        self.masks = []                           # All the masks (imask and emask)
+        self.masks = []                           # All the masks (accept and reject)
+        self.masks_deprecated = []                # All the masks (imask and emask)
         self.tmasks = []                          # All the transformation maks (timask, temask)
         self.extension = ':MISSING:MISSING:MISSING:MISSING:'   # Extension to be added to the ingest name
         self.type = None                                       # Must be in ['filter','file','single-file', 'bulletin-file', 'am', 'wmo']
@@ -172,9 +173,13 @@ class Source(object):
                         else:
                             self.extension = ':' + words[1]
                     elif words[0] == 'accept': self.masks.append((words[1], currentDir, currentFileOption))
-                    elif words[0] == 'imask':  self.masks.append((words[1], currentDir, currentFileOption))
-                    elif words[0] == 'emask':  self.masks.append((words[1],))
                     elif words[0] == 'reject':  self.masks.append((words[1],))
+                    elif words[0] == 'imask':
+                        self.masks_deprecated.append((words[1], currentDir, currentFileOption))
+                        self.logger.warning("imask is deprecated... please use accept")
+                    elif words[0] == 'emask':
+                        self.masks_deprecated.append((words[1],))
+                        self.logger.warning("emask is deprecated... please use reject")
                     elif words[0] == 'timask': self.tmasks.append((words[1], currentTransformation))
                     elif words[0] == 'temask': self.tmasks.append((words[1],))
                     elif words[0] == 'transformation': currentTransformation = words[1]
@@ -218,6 +223,7 @@ class Source(object):
         config.close()
 
         if len(self.masks) > 0 : self.patternMatching = True
+        if len(self.masks_deprecated) > 0 : self.patternMatching = True
 
         self.logger.debug("Configuration file of source  %s has been read" % (self.name))
 
@@ -238,6 +244,15 @@ class Source(object):
     def fileMatchMask(self, filename):
     # IMPORTANT NOTE HERE FALLBACK BEHAVIOR IS TO ACCEPT THE FILE
     # THIS IS THE OPPOSITE OF THE CLIENT WHERE THE FALLBACK IS REJECT
+
+        # check against the deprecated masks
+        if len(self.masks_deprecated) > 0 :
+           for mask in self.masks:
+               if fnmatch.fnmatch(filename, mask[0]):
+                  try:
+                       if mask[2]: return True
+                  except:
+                       return False
 
         # check against the masks
         for mask in self.masks:
@@ -273,6 +288,10 @@ class Source(object):
         print("******************************************")
 
         for mask in self.masks:
+            print mask
+
+        print("*       Source Masks deprecated          *")
+        for mask in self.masks_deprecated:
             print mask
 
         print("==========================================================================")
