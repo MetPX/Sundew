@@ -165,6 +165,15 @@ class Sourlient(object):
     
 
     def _getMatchingMask(self, filename): 
+        if len(self.masks_deprecated) > 0 :
+           for mask in self.masks_deprecated:
+               if fnmatch.fnmatch(filename, mask[0]):
+                   try:
+                       if mask[2]:
+                           return mask
+                   except:
+                       return None
+
         for mask in self.masks:
             parts = re.findall( mask[0], filename )
             if len(parts) == 2 and parts[1] == '' : parts.pop(1)
