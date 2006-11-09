@@ -54,7 +54,7 @@ class DirectRoutingParser(FileParser):
 
     def getKeyFromHeader(self, header):
         key = header
-	if self.version != 0 : key = header.replace(' ','_')
+        if self.version != 0 : key = header.replace(' ','_')
         return key
 
     def getHeaderPriority(self, header):
@@ -101,8 +101,8 @@ class DirectRoutingParser(FileParser):
         words = line.split()
 
         if self.version == 0 :
-	   line = linex.strip().strip(':')
-	   words = line.split(':')
+           line = linex.strip().strip(':')
+           words = line.split(':')
 
         return words
 
@@ -144,8 +144,8 @@ class DirectRoutingParser(FileParser):
         file = self.openFile(self.filename)
 
         for line in file:
-	    if line[0] == '#' : continue
-	    words = self.getWordsFromLine(line)
+            if line[0] == '#' : continue
+            words = self.getWordsFromLine(line)
             if len(words) == 3: 
                 try:
                     if words[0] == 'clientAlias':
@@ -190,8 +190,8 @@ class DirectRoutingParser(FileParser):
         file = self.openFile(self.filename)
 
         for line in file:
-	    if line[0] == '#' : continue
-	    words = self.getWordsFromLine(line)
+            if line[0] == '#' : continue
+            words = self.getWordsFromLine(line)
             # Up to here: 0.2 s of execution time
             #print words
             #if (len(words) >= 2 and not re.compile('^[ \t]*#').search(line)): # Regex costs ~ 0.35 seconds (when compare to if len(words) >= 2)
@@ -364,9 +364,9 @@ class DirectRoutingParser(FileParser):
         duplicateHeaders = {}
 
         for line in file: 
-	    if line[0] == '#' : continue
-	    words = self.getWordsFromLine(line)
-	    #print words
+            if line[0] == '#' : continue
+            words = self.getWordsFromLine(line)
+            #print words
             # Up to here: 0.2 s of execution time
             #myprint words
             #if len(words) >= 2:
