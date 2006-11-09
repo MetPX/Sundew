@@ -189,13 +189,13 @@ class Client(object):
         return self.fx_script(filename, logger)
 
     def _getMatchingMask_Deprecated(self, filename): 
-           for mask in self.masks_deprecated:
-               if fnmatch.fnmatch(filename, mask[0]):
-                   try:
-                       if mask[2]:
+        for mask in self.masks_deprecated:
+            if fnmatch.fnmatch(filename, mask[0]):
+                try:
+                        if mask[2]:
                            return mask
-                   except:
-                       return None
+                except:
+                        return None
         return None
 
     def _getMatchingMask(self, filename): 
