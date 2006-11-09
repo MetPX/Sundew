@@ -54,18 +54,21 @@ class SenderFTP(object):
 
         if self.ftp == None : return
 
+        timex = AlarmFTP('FTP connection timeout')
+
         try    :
                   # gives 10 seconds to close the connection
-                  timex = AlarmFTP('FTP connection timeout')
                   timex.alarm(10)
 
                   self.ftp.quit()
 
                   timex.cancel()
         except :
+                  timex.cancel()
                   (type, value, tb) = sys.exc_info()
                   self.logger.warning("Could not close connection")
                   self.logger.warning(" Type: %s, Value: %s" % (type ,value))
+
 
     def dirPattern(self,file,basename,destDir,destName) :
         """
@@ -147,9 +150,11 @@ class SenderFTP(object):
     def ftpConnect(self, maxCount=200):
         count = 0
         while count < maxCount:
+
+            timex = AlarmFTP('FTP connection timeout')
+
             try:
                 # gives 30 seconds to open the connection
-                timex = AlarmFTP('FTP connection timeout')
                 timex.alarm(30)
 
                 ftp = ftplib.FTP(self.client.host, self.client.user, self.client.passwd)
@@ -164,14 +169,16 @@ class SenderFTP(object):
                 return ftp
 
             except FtpTimeoutException :
+                timex.cancel()
                 self.logger.error("FTP connection timed out after 30 seconds... retrying" )
 
             except:
+                timex.cancel()
                 count +=  1
                 (type, value, tb) = sys.exc_info()
                 self.logger.error("Unable to connect to %s (user:%s). Type: %s, Value: %s" % (self.client.host, self.client.user, type ,value))
                 time.sleep(5)   
-        
+
         self.logger.critical("We exit SenderFTP after %i unsuccessful try" % maxCount)
         sys.exit(2) 
 
@@ -294,8 +301,8 @@ class SenderFTP(object):
                    # it means that everything done to a file must be done
                    # within "timeout_send" seconds
 
+                   timex = AlarmFTP('FTP timeout')
                    if self.client.timeout_send > 0 :
-                      timex = AlarmFTP('FTP timeout')
                       timex.alarm(self.client.timeout_send)
 
                    # we are not in the proper directory
@@ -307,7 +314,7 @@ class SenderFTP(object):
                                  if self.dirMkdir(destDir):
                                     currentFTPDir = destDir
                          except:
-                                 if self.client.timeout_send > 0 : timex.cancel()
+                                 timex.cancel()
                                  (type, value, tb) = sys.exc_info()
                                  self.logger.error("Unable to mkdir: %s, Type: %s, Value:%s" % (destDir, type, value))
                                  time.sleep(1)
@@ -320,7 +327,7 @@ class SenderFTP(object):
                                 self.ftp.cwd(destDir)
                                 currentFTPDir = destDir
                          except ftplib.error_perm:
-                                if self.client.timeout_send > 0 : timex.cancel()
+                                timex.cancel()
                                 (type, value, tb) = sys.exc_info()
                                 self.logger.error("Unable to cwd to: %s, Type: %s, Value:%s" % (destDir, type, value))
                                 time.sleep(1)
@@ -358,11 +365,13 @@ class SenderFTP(object):
                           if self.client.lock[0] != '.' :
                              self.rm(ldestName)
 
-                          if self.client.timeout_send > 0 : timex.cancel()
+                          timex.cancel()
                           return
+
+                   timex.cancel()
     
                except FtpTimeoutException :
-                   if self.client.timeout_send > 0 : timex.cancel()
+                   timex.cancel()
                    self.logger.warning("SEND TIMEOUT (%i Bytes) File %s going to %s://%s@%s%s%s" % \
                                       (nbBytes, file, self.client.protocol, self.client.user, \
                                        self.client.host, destDirString, ldestName))
