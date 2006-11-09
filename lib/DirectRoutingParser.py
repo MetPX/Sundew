@@ -4,6 +4,7 @@
 #
 # Author: Louis-Philippe Theriault (original)
 #         Daniel Lemay (as a class with duplicates removal, alias and subclients directives)
+#         Michel Grenier (Routing 1 algo)
 #
 # Date: 2006-04-21
 #
@@ -20,6 +21,7 @@ class DirectRoutingParser(FileParser):
     def __init__(self, filename, pxLinkables=[], logger=None):
         FileParser.__init__(self, filename) # Routing filename ("/apps/px/etc/pxroute.conf")
         self.logger = logger            # Logger object
+        self.version = 0                # Routing file version  (0 or 1)
         self.routingInfos = {}          # Addressed by header name: self.routingInfos[header]['clients']
                                         #                           self.routingInfos[header]['subclients']
                                         #                           self.routingInfos[header]['priority']
@@ -49,6 +51,11 @@ class DirectRoutingParser(FileParser):
         self.aftnMap = {}
         self.goodClients = {}    
         self.badClients = {}    
+
+    def getKeyFromHeader(self, header):
+        key = header
+	if self.version != 0 : key = header.replace(' ','_')
+        return key
 
     def getHeaderPriority(self, header):
         return self.routingInfos[header]['priority']
@@ -89,6 +96,24 @@ class DirectRoutingParser(FileParser):
         self.logger.debug("Key %s did not match any pattern " % key )
         return None
 
+    def getWordsFromLine(self,linex):
+        line = linex.strip()
+        words = line.split()
+
+        if self.version == 0 :
+	   line = linex.strip().strip(':')
+	   words = line.split(':')
+
+        return words
+
+    def getClientsFromWord(self,word):
+        clients = word.split(',')
+
+        if self.version == 0 :
+           clients = word.split()
+
+        return clients
+
     def isRoutable(self, key):
         if self.routingInfos.has_key(key): return True
         for keyp in self.keyInfos :
@@ -118,21 +143,25 @@ class DirectRoutingParser(FileParser):
         self.clearInfos()
         file = self.openFile(self.filename)
 
-        for linex in file:
-            line = linex.strip()
-            words = line.split()
+        for line in file:
+	    if line[0] == '#' : continue
+	    words = self.getWordsFromLine(line)
             if len(words) == 3: 
                 try:
                     if words[0] == 'clientAlias':
-                        clients = self.removeDuplicate(words[2].split(','))
+                        clients = self.getClientsFromWord(words[2])
                         if len(clients) == 0:
-                           self.logger.warning("Line ignored : %s" % linex )
+                           self.logger.warning("Line ignored : %s" % line )
                            return
+                        clients = self.removeDuplicate(clients)
+
                         for client in clients[:]:
                             if self.aliasedClients.has_key(client):
                                 clients.remove(client)
                                 clients.extend(self.aliasedClients[client])
+
                         self.aliasedClients[words[1]] = self.removeDuplicate(clients)
+
                 except:
                     (type, value, tb) = sys.exc_info()
                     self.logger.error("Type: %s, Value: %s" % (type, value))
@@ -160,27 +189,29 @@ class DirectRoutingParser(FileParser):
         self.clearInfos()
         file = self.openFile(self.filename)
 
-        for linex in file:
-            line = linex.strip()
-            words = line.split()
+        for line in file:
+	    if line[0] == '#' : continue
+	    words = self.getWordsFromLine(line)
             # Up to here: 0.2 s of execution time
             #print words
             #if (len(words) >= 2 and not re.compile('^[ \t]*#').search(line)): # Regex costs ~ 0.35 seconds (when compare to if len(words) >= 2)
             if len(words) >= 2:
                 try:
                     if words[0] == 'subclient':
-                        clients = self.removeDuplicate(words[2].split(','))
+                        clients = self.getClientsFromWord(words[2])
                         if len(clients) == 0:
-                           self.logger.warning("Line ignored : %s" % linex )
+                           self.logger.warning("Line ignored : %s" % line )
                            continue
+                        clients = self.removeDuplicate(clients)
                         self.subClients[words[1]] = clients
                     elif words[0] == 'aftnMap':
                         self.aftnMap[words[1]] = words[2]
                     elif words[0] == 'clientAlias':
-                        clients = self.removeDuplicate(words[2].split(','))
+                        clients = self.getClientsFromWord(words[2])
                         if len(clients) == 0:
-                           self.logger.warning("Line ignored : %s" % linex )
+                           self.logger.warning("Line ignored : %s" % line )
                            continue
+                        clients = self.removeDuplicate(clients)
                         for client in clients[:]:
                             if self.aliasedClients.has_key(client):
                                 clients.remove(client)
@@ -194,7 +225,8 @@ class DirectRoutingParser(FileParser):
                          if len(words) == 4:
                             words.pop(0)
                             keyI     = words[0]
-                            clients  = words[1].split(',')
+                            clients  = self.getClientsFromWord(words[1])
+                            clients  = self.removeDuplicate(clients)
                             priority = words[2]
 
                          # the line had the form  key_accept key_pattern priority
@@ -206,7 +238,7 @@ class DirectRoutingParser(FileParser):
 
                          # the line had an erroneous form for a key_accept entry
                          else :
-                            self.logger.warning("Line ignored : %s" % linex )
+                            self.logger.warning("Line ignored : %s" % line )
                             continue
 
                          # Replace alias by their client list
@@ -229,22 +261,23 @@ class DirectRoutingParser(FileParser):
                          self.keyInfos[keyI]['priority'] = priority
 
                     # Here we have a "header line"
-                    elif words[0] == 'key':
+                    elif words[0] == 'key' or (self.version == 0 and len(words[0].split()) == 2) :
 
-                        if len(words) == 4:
-                           words.pop(0)
+                        if self.version != 0 : words.pop(0)
+
+                        if len(words) == 3:
                            entete   = words[0]
-                           clients  = words[1].split(',')
+                           clients  = self.getClientsFromWord(words[1])
+                           clients  = self.removeDuplicate(clients)
                            priority = words[2]
 
-                        elif len(words) == 3:
-                           words.pop(0)
+                        elif len(words) == 2:
                            entete   = words[0]
                            clients  = []
                            priority = words[1]
 
                         else :
-                           self.logger.warning("Line ignored : %s" % linex )
+                           self.logger.warning("Line ignored : %s" % line )
                            continue
 
                         self.routingInfos[entete] = {}
@@ -330,31 +363,34 @@ class DirectRoutingParser(FileParser):
         uniqueHeaders = {}
         duplicateHeaders = {}
 
-        for linex in file: 
-            line = linex.strip()
-            words = line.split()
+        for line in file: 
+	    if line[0] == '#' : continue
+	    words = self.getWordsFromLine(line)
+	    #print words
             # Up to here: 0.2 s of execution time
             #myprint words
             #if len(words) >= 2:
             if (len(words) >= 2 and not re.compile('^[ \t]*#').search(line)): # Regex costs ~ 0.35 seconds (when compare to if len(words) >= 2)
                 try:
                     if words[0] == 'subclient':
-                        subclients = words[2].split(',')
+                        subclients = self.getClientsFromWord(words[2])
                         if len(subclients) == 0:
-                           self.logger.warning("Line ignored : %s" % linex )
+                           self.logger.warning("Line ignored : %s" % line )
                            continue
                         self.subClients[words[1]] = self.removeDuplicate(subclients)
                         duplicateForSubclient = self.identifyDuplicate(subclients)
                         if duplicateForSubclient:
                             myprint("Subclient %s has duplicate(s): %s" % (words[1], duplicateForSubclient))
+                        #print(" subclient %s %s " % (words[1], self.subClients[words[1]] ) )
 
                     elif words[0] == 'aftnMap':
                         self.aftnMap[words[1]] = words[2]
+                        #print(" aftnMap %s %s " % (words[1], self.aftnMap[words[1]] ) )
 
                     elif words[0] == 'clientAlias': 
-                        clients = words[2].split(',')
+                        clients = self.getClientsFromWord(words[2])
                         if len(clients) == 0:
-                           self.logger.warning("Line ignored : %s" % linex )
+                           self.logger.warning("Line ignored : %s" % line )
                            continue
                         for client in clients[:]:
                             if self.aliasedClients.has_key(client):
@@ -364,6 +400,7 @@ class DirectRoutingParser(FileParser):
                         duplicateForAlias = self.identifyDuplicate(clients)
                         if duplicateForAlias:
                             myprint("Alias %s has duplicate(s): %s" % (words[1], duplicateForAlias))
+                        #print(" clientAlias %s %s " % (words[1], self.aliasedClients[words[1]] ) )
 
                     # Here we have an "accepted key pattern"
                     elif words[0] == 'key_accept':
@@ -372,7 +409,7 @@ class DirectRoutingParser(FileParser):
                         if len(words) == 4:
                            words.pop(0)
                            keyI     = words[0]
-                           clients  = words[1].split(',')
+                           clients  = self.getClientsFromWord(words[1])
                            priority = words[2]
 
                         # the line had the form  key_accept key_pattern priority
@@ -384,7 +421,7 @@ class DirectRoutingParser(FileParser):
 
                          # the line had an erroneous form for a key_accept entry
                         else :
-                           myprint("ERROR LINE : %s" % linex)
+                           myprint("ERROR LINE : %s" % line)
                            continue
 
                         # check that the key was not already given
@@ -414,22 +451,25 @@ class DirectRoutingParser(FileParser):
                         self.keyInfos[keyI] = {}
                         self.keyInfos[keyI]['clients']  = clients
                         self.keyInfos[keyI]['priority'] = priority
+                        #print(" key_accept %s %s %s" % (keyI, self.keyInfos[keyI]['clients'],self.keyInfos[keyI]['priority']))
 
                     # Here we have a "header line"
-                    elif words[0] == 'key':
+                    elif words[0] == 'key' or (self.version == 0 and len(words[0].split()) == 2) :
 
-                        if len(words) == 4:
-                           words.pop(0)
-                           clients  = words[1].split(',')
+                        if self.version != 0 : words.pop(0)
+
+                        if len(words) == 3:
+                           entete   = words[0]
+                           clients  = self.getClientsFromWord(words[1])
                            priority = words[2]
 
-                        elif len(words) == 3:
-                           words.pop(0)
+                        elif len(words) == 2:
+                           entete   = words[0]
                            clients  = []
                            priority = words[1]
 
                         else :
-                           myprint("ERROR LINE : %s" % linex)
+                           myprint("ERROR LINE : %s" % line)
                            continue
 
                         if uniqueHeaders.has_key(words[0]):
@@ -491,6 +531,7 @@ class DirectRoutingParser(FileParser):
                                     # Subclient is not defined
                                     myprint("%s has client %s and %s is not defined with a subclient directive" % (words[0], client, clientParts[0]))
                                     self.routingInfos[words[0]]['clients'].remove(client)
+                        #print(" key %s %s %s" % (words[0], self.routingInfos[words[0]]['clients'],self.keyInfos[keyI]['priority']))
 
                         
                 except:
