@@ -54,13 +54,14 @@ class Client(object):
         self.maxLength = 0                        # max Length of a message... limit use for segmentation, 0 means unused
 
         self.validation = True                    # Validation of the filename (prio + date)
-        self.patternMatching = True               # Verification of the emask and imask of the client before sending a file
+        self.patternMatching = True               # Verification of the accept and reject mask of the client before sending a file
         self.nodups = True                        # Check if the file has already been sent (md5sum present in the cache)
         self.mtime = 0                            # Integer indicating the number of seconds a file must not have
                                                   # been touched before being picked
 
         self.sorter = 'MultiKeysStringSorter'     # Class (or object) used to sort
-        self.masks = []                           # All the masks (imask and emask)
+        self.masks = []                           # All the masks (accept and reject)
+        self.masks_deprecated = []                # All the masks (imask and emask)
         self.url = None
         self.collection = None                    # Client do not participate in the collection effort
 
@@ -128,10 +129,16 @@ class Client(object):
             words = line.split()
             if (len(words) >= 2 and not re.compile('^[ \t]*#').search(line)):
                 try:
-                    if words[0] == 'imask': self.masks.append((words[1], currentDir, currentFileOption))  
-                    elif words[0] == 'accept': self.masks.append((words[1], currentDir, currentFileOption))  
-                    elif words[0] == 'emask': self.masks.append((words[1],))
+                    if   words[0] == 'accept': self.masks.append((words[1], currentDir, currentFileOption))  
                     elif words[0] == 'reject': self.masks.append((words[1],))
+
+                    elif words[0] == 'imask':
+                       self.masks_deprecated.append((words[1], currentDir, currentFileOption))  
+                       self.logger.warning("The use of imask is deprecated... you should be using accept")
+                    elif words[0] == 'emask':
+                       self.masks_deprecated.append((words[1],))
+                       self.logger.warning("The use of emask is deprecated... you should be using reject")
+
                     elif words[0] == 'directory': currentDir = words[1]
                     elif words[0] == 'filename': currentFileOption = words[1]
                     elif words[0] == 'destination':
@@ -181,7 +188,23 @@ class Client(object):
         if self.fx_script == None : return filename
         return self.fx_script(filename, logger)
 
+    def _getMatchingMask_Deprecated(self, filename): 
+           for mask in self.masks_deprecated:
+               if fnmatch.fnmatch(filename, mask[0]):
+                   try:
+                       if mask[2]:
+                           return mask
+                   except:
+                       return None
+        return None
+
     def _getMatchingMask(self, filename): 
+
+        # check for deprecated use
+        if len(self.masks_deprecated) > 0 :
+           return self._getMatchingMask_Deprecated(filename)
+
+        # new regexp mask usage
         for mask in self.masks:
             parts = re.findall( mask[0], filename )
             if len(parts) == 2 and parts[1] == '' : parts.pop(1)
@@ -260,6 +283,13 @@ class Client(object):
 
         for mask in self.masks:
             print mask
+
+        print("******************************************")
+        print("*       Client Masks                     *")
+        print("******************************************")
+
+        for mask in self.masks_deprecated:
+            print(" deprecated %s =" % mask )
         print("==========================================================================")
 
 if __name__ == '__main__':
