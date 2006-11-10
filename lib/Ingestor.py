@@ -69,6 +69,19 @@ class Ingestor(object):
            if self.source.name in self.allNames : self.allNames.remove(self.source.name)
            self.logger.info("Ingestor (source %s) can link files to clients: %s" % (source.name, self.allNames))
 
+    def setFeeds(self, feedNames ):
+        from Source import Source
+        sources = self.pxManager.getRxNames()
+        for name in feedNames :
+            if not name in sources : continue
+            instant = Source(name, self.logger, False)
+            if instant.type == 'am' or instant.type == 'wmo' :
+               self.logger.warning("Feed (source %s) will be ignored  (type %s)" % (name, instant.type) )
+               continue
+            self.feedNames.append(name)
+            self.feeds[name] = instant
+        self.logger.info("Ingestor (source %s) can link files to receiver: %s" % (self.source.name, self.feedNames))
+
     def createDir(self, dir, cacheManager):
         if cacheManager.find(dir) == None:
             try:
@@ -175,6 +188,16 @@ class Ingestor(object):
         """
         Verify if ingestName is matching one mask of a client
         """
+
+        if len(client.masks_deprecated) > 0 :
+           for mask in client.masks_deprecated:
+               if fnmatch.fnmatch(ingestName, mask[0]):
+                   try:
+                       if mask[2]:
+                           return True
+                   except:
+                       return False
+
         for mask in client.masks:
             parts = re.findall( mask[0], ingestName )
             if len(parts) == 2 and parts[1] == '' : parts.pop(1)
