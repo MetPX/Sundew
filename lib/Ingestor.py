@@ -290,7 +290,8 @@ class Ingestor(object):
 
         priority=None
         if header != None :
-           priority = self.drp.getHeaderPriority(header)
+           key      = self.drp.getKeyFromHeader(header)
+           priority = self.drp.getHeaderPriority(key)
 
         for name in clientNames:
             clientQueueName = self.getClientQueueName(name, ingestName, priority )
