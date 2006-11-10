@@ -47,7 +47,7 @@ else:#pds5 pds5 pxatx etc
 
 class _GraphicsInfos:
 
-    def __init__( self, directory, fileType, types, clientNames = None ,  timespan = 12, endDate = None, machines = ["pdsGG"]  ):
+    def __init__( self, directory, fileType, types, totals, clientNames = None ,  timespan = 12, endDate = None, machines = ["pdsGG"]  ):
 
             
         self.directory    = directory         # Directory where log files are located. 
@@ -57,7 +57,7 @@ class _GraphicsInfos:
         self.timespan     = timespan          # Number of hours we want to gather the data from. 
         self.endDate      = endDate           # Time when stats were queried.
         self.machines     = machines          # Machine from wich we want the data to be calculated.
-        
+        self.totals       = totals            # Make totals of all the specified clients 
         
         
 #################################################################
@@ -87,6 +87,7 @@ def getOptionsFromParser( parser ):
     endDate          = options.endDate.replace('"','').replace("'",'')
     fileType         = options.fileType.replace("'",'')
     individual       = options.individual
+    totals           = options.totals
     daily            = options.daily
     weekly           = options.weekly
     monthly          = options.monthly
@@ -212,7 +213,7 @@ def getOptionsFromParser( parser ):
     
     endDate = MyDateLib.getIsoWithRoundedHours( endDate )
     
-    infos = _GraphicsInfos( endDate = endDate, clientNames = clientNames,  directory = directory , types = types, timespan = timespan, machines = machines, fileType = fileType )   
+    infos = _GraphicsInfos( endDate = endDate, clientNames = clientNames,  directory = directory , types = types, timespan = timespan, machines = machines, fileType = fileType, totals = totals )   
             
     return infos 
        
@@ -349,6 +350,8 @@ def addOptions( parser ):
     parser.add_option("-s", "--span", action="store",type ="int", dest = "timespan", default=None, help="timespan( in hours) of the graphic.")
        
     parser.add_option("-t", "--types", type="string", dest="types", default="All",help="Types of data to look for.")   
+    
+    parser.add_option("--totals", action="store_true", dest = "totals", default=False, help="Create graphics based on the totals of all the values found for all specified clients or for a specific file type( tx, rx ).")
     
     parser.add_option("-w", "--weekly", action="store_true", dest = "weekly", default=False, help="Create weekly graph(s).")
     
@@ -655,16 +658,19 @@ def getInterval( startTime, timeOfLastUpdate, dataType  ):
 
     
         
-def plotRRDGraph( databaseName, type, fileType, client, machine, infos, logger = None ):
+def plotRRDGraph( databaseName, type, fileType, client, machine, infos, lastUpdate = None, logger = None ):
     """
         This method is used to produce a rrd graphic.
         
     """
     
-    lastUpdate = getDatabaseTimeOfUpdate( client, machine, fileType )
+    
     imageName  = buildImageName( type, client, machine, infos, logger )     
     end        = int ( MyDateLib.getSecondsSinceEpoch ( infos.endDate ) )  
     start      = end - ( infos.timespan * 60 * 60 ) 
+    
+    if lastUpdate == None :
+        lastUpdate = getDatabaseTimeOfUpdate( client, machine, fileType )
     
     interval = getInterval( start, lastUpdate, type  )
         
@@ -695,22 +701,150 @@ def plotRRDGraph( databaseName, type, fileType, client, machine, infos, logger =
         if logger != None:
             logger.error( "Error in generateRRDGraphics.plotRRDGraph. Unable to generate %s" %imageName )
         pass     
-      
+
         
+        
+def createNewDatabase( fileType, type, machine, start, infos, logger ):       
+    """
+        Creates a brand new database bases on fileType,type and machine.
+        
+        If a database with the same name allready exists, it will be removed.
+        
+        Databases are created with rras that are identical to those found in the 
+        transferPickleToRRD.py file. If databases are to change there they must be
+        changed here also.  
     
+    """
+    
+    combinedDatabaseName = PXPaths.STATS + "databases/combined/%s_%s_%s" %( fileType, type, machine )
+     
+        
+    if os.path.isfile( combinedDatabaseName ):
+        status, output = commands.getstatusoutput("rm %s " %combinedDatabaseName )
+        
+    elif not os.path.isdir( PXPaths.STATS + "databases/combined/" ):
+        os.makedirs( PXPaths.STATS + "databases/combined/" )       
+    
+    if infos.timespan <(5*24):# daily :
+        start = start - 60
+        rrdtool.create( combinedDatabaseName, '--start','%s' %( start ), '--step', '60', 'DS:%s:GAUGE:60:U:U' %type,'RRA:AVERAGE:0:1:7200','RRA:MIN:0:1:7200', 'RRA:MAX:0:1:7200' )
+        print "daily"     
+    elif infos.timespan >(5*24) and infos.timespan <(14*24):# weekly :  
+        start = start - (60*60)
+        rrdtool.create( combinedDatabaseName, '--start','%s' %( start ), '--step', '3600', 'DS:%s:GAUGE:3600:U:U' %type,'RRA:AVERAGE:0:1:336','RRA:MIN:0:1:336', 'RRA:MAX:0:1:336' )               
+        print "weekly"            
+    elif infos.timespan <(365*24):#monthly
+        start = start - (240*60)
+        rrdtool.create( combinedDatabaseName, '--start','%s' %( start ), '--step', '14400', 'DS:%s:GAUGE:14400:U:U' %type, 'RRA:AVERAGE:0:1:1460','RRA:MIN:0:1:1460','RRA:MAX:0:1:1460' )  
+        print "monthly"
+    else:#yearly
+        start = start - (1440*60)
+        rrdtool.create( combinedDatabaseName, '--start','%s' %( start ), '--step', '86400', 'DS:%s:GAUGE:86400:U:U' %type, 'RRA:AVERAGE:0:1:3650','RRA:MIN:0:1:3650','RRA:MAX:0:1:3650' ) 
+        print "yearly"
+    
+    return combinedDatabaseName
+    
+    
+    
+def getPairsFromAllDatabases( type, machine, start, end, infos, logger=None ):
+    """
+        This method gathers all the needed between start and end from all the
+        databases wich are of the specifed type and from the specified machine.
+        
+        It then makes only one entry per timestamp, and returns the 
+        ( timestamp, combinedValue ) pairs.
+        
+    """
+    
+    pairs = []
+    typeData = {}
+    
+    for client in infos.clientNames:#Gather all pairs for that type
+        
+        databaseName = transferPickleToRRD.buildRRDFileName( type, client, machine )
+        status, output = commands.getstatusoutput("rrdtool fetch %s  'AVERAGE' -s %s  -e %s" %( databaseName, start, end) )
+        output = output.split( "\n" )[2:]
+        typeData[client] = output
+    
+                    
+    for i in range( len(typeData[client]) ) :#make total of all clients for every timestamp
+        total = 0 
+        for client in infos.clientNames:
+            total = total + float( typeData[client][i].split( ":" )[1].replace(" ", "") )
+            #print " %s %s : %s " %(client,type,typeData[client][i].split( ":" )[1].replace(" ", ""))
+        if type == "latency":#latency is always an average
+            total = total / ( len( output ) )
+                        
+        pairs.append( [typeData[client][i].split( " " )[0].replace( ":", "" ), total] )   
+    
+    
+    return pairs
+    
+    
+    
+def createMergedDatabases( infos, logger = None ):
+    """
+        Gathers data from all needed databases.
+        
+        Creates new databases to hold merged data.
+        
+        Feeds new databases with merged data. 
+        
+        Returns the list of created databases names.
+         
+    """            
+
+    dataPairs  = {}
+    typeData   = {}
+    end        = int ( MyDateLib.getSecondsSinceEpoch ( infos.endDate ) )  
+    start      = end - ( infos.timespan * 60 * 60 ) 
+    databaseNames = {}
+    
+
+    for machine in infos.machines:
+        
+        for type in infos.types :         
+            typeData[type] = {}
+            pairs = getPairsFromAllDatabases( type, machine, start, end, infos, logger )                        
+            
+            combinedDatabaseName = createNewDatabase( infos.fileType, type, machine, start, infos, logger )
+                                                     
+            databaseNames[type] = combinedDatabaseName                            
+            
+            #update database with pairs 
+            #print "***********%s***********" %type       
+            for pair in pairs:
+            #    print '%s:%s' %( int(pair[0]), pair[1] ) 
+                rrdtool.update( combinedDatabaseName, '%s:%s' %( int(pair[0]), pair[1] ) )
+                 
+                
+    return databaseNames
+                    
+            
+            
 def generateRRDGraphics( infos, logger = None ):
     """
         This method generates all the graphics. 
         
     """    
     
-    for machine in infos.machines:
+    #print "************************************%s" %infos.endDate
+    if infos.totals: #Graphics based on total values from a group of clients.
+        databaseNames = createMergedDatabases( infos, logger )
         
-        for client in infos.clientNames:
+        #Make 2 title filename options either tx/rx...or list of clients
+        for machine in infos.machines:
+            for type in infos.types:
+                plotRRDGraph( databaseNames[type], type, infos.fileType, infos.fileType, machine, infos, lastUpdate =  MyDateLib.getSecondsSinceEpoch(infos.endDate), logger =logger )
+                
+    else:
+        for machine in infos.machines:
             
-            for type in infos.types : 
-                databaseName = transferPickleToRRD.buildRRDFileName( type, client, machine ) 
-                plotRRDGraph( databaseName, type, infos.fileType, client, machine, infos, logger )
+            for client in infos.clientNames:
+                
+                for type in infos.types : 
+                    databaseName = transferPickleToRRD.buildRRDFileName( type, client, machine ) 
+                    plotRRDGraph( databaseName, type, infos.fileType, client, machine, infos, logger )
                 
 
 
