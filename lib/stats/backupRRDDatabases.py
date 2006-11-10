@@ -44,21 +44,25 @@ def backupDatabases( timeOfBackup ):
     
     
     source = PXPaths.STATS + "databases"
-    destination = PXPaths.STATS + "databases" + ".%s" %timeOfBackup
-    status, output = commands.getstatusoutput( "cp -r %s %s" %( source, destination ) )
-    
+    destination = PXPaths.STATS + "databases_backups/" + "%s" %timeOfBackup
+    if not os.path.isdir( destination ):
+        os.makedirs( destination )
+    status, output = commands.getstatusoutput( "cp -r %s/* %s" %( source, destination ) )
+    print output    
     
     #limit number of backup
-    filePattern = PXPaths.STATS + "databases*"           
+    filePattern = PXPaths.STATS + "databases_backups/*"           
     fileNames = glob.glob( filePattern )  
     fileNames.sort()       
-    newList = [fileNames[0]]
-    fileNames.reverse()
-    newList = newList + fileNames[:-1]
     
-    if len( newList) > 5 :
-        for i in range( 5, len(newList) ):
-            status, output = commands.getstatusoutput( "rm -r %s " %( newList[i] ) ) 
+    if len( fileNames ) > 0:
+        newList = [fileNames[0]]
+        fileNames.reverse()
+        newList = newList + fileNames[:-1]
+    
+        if len( newList) > 20 :
+            for i in range( 20, len(newList) ):
+                status, output = commands.getstatusoutput( "rm -r %s " %( newList[i] ) ) 
     
     
     
@@ -70,20 +74,29 @@ def backupDatabaseUpdateTimes( timeOfBackup ):
     """
     
     source = PXPaths.STATS + "DATABASE-UPDATES"
-    destination = PXPaths.STATS + "DATABASE-UPDATES" + ".%s" %timeOfBackup
-    status, output = commands.getstatusoutput( "cp -r %s %s" %( source, destination ) )
+    destination = PXPaths.STATS + "DATABASE-UPDATES_BACKUPS/" + "%s" %timeOfBackup
     
+    if not os.path.isdir( destination ):
+        os.makedirs( destination )
+    status, output = commands.getstatusoutput( "cp -r %s/* %s" %( source, destination ) )
+    print output 
+
     #limit number of backups         
-    filePattern = PXPaths.STATS + "DATABASE-UPDATES*"          
+    filePattern = PXPaths.STATS + "DATABASE-UPDATES_BACKUPS/*"          
     fileNames = glob.glob( filePattern )  
     fileNames.sort()       
-    newList = [fileNames[0]]
-    fileNames.reverse()
-    newList = newList + fileNames[:-1]
     
-    if len( newList) > 5 :
-        for i in range( 5, len(newList) ):
-            status, output = commands.getstatusoutput( "rm -r %s " %( newList[i] ) )
+    if len( fileNames ) > 0 :
+    
+        newList = [fileNames[0]]
+        fileNames.reverse()
+        newList = newList + fileNames[:-1]
+    
+        if len( newList) > 20 :
+            for i in range( 20, len(newList) ):
+                status, output = commands.getstatusoutput( "rm -r %s " %( newList[i] ) )
+    
+
     
 def main():
     """
@@ -92,12 +105,14 @@ def main():
         recommended paractice in case newly entered data is not valid. 
         
     """
+    
     currentTime = time.time()        
     currentTime = MyDateLib.getIsoFromEpoch( currentTime )
     currentTime = MyDateLib.getIsoWithRoundedSeconds( currentTime )
     currentTime = currentTime.replace(" ", "_")
     backupDatabaseUpdateTimes( currentTime )
     backupDatabases( currentTime )
+    
     
 if __name__ == "__main__":
     main()                

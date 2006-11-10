@@ -40,10 +40,12 @@ def restoreDatabases( timeToRestore, currentTime ):
     backupRRDDatabases.backupDatabases( currentTime )
         
     #restore desired 
-    source = PXPaths.STATS + "databases.%s" %timeToRestore
+    source = PXPaths.STATS + "databases_backups/%s" %timeToRestore
     destination = PXPaths.STATS + "databases"
-    status, output = commands.getstatusoutput( "mv %s %s" %( source, destination ) )
-
+    status, output = commands.getstatusoutput( "rm -r %s" %( destination ) )
+    os.makedirs(destination)
+    status, output = commands.getstatusoutput( "cp -r %s/* %s" %( source, destination ) )
+    print output
 
 
 def restoreDatabaseUpdateTimes( timeToRestore, currentTime ):
@@ -57,10 +59,12 @@ def restoreDatabaseUpdateTimes( timeToRestore, currentTime ):
     backupRRDDatabases.backupDatabaseUpdateTimes( currentTime )
     
     #restore desired 
-    source = PXPaths.STATS + "DATABASE-UPDATES.%s" %timeToRestore
+    source = PXPaths.STATS + "DATABASE-UPDATES_BACKUPS/%s" %timeToRestore
     destination = PXPaths.STATS + "DATABASE-UPDATES" 
-    status, output = commands.getstatusoutput( "mv %s %s" %( source, destination ) )
-   
+    status, output = commands.getstatusoutput( "rm -r %s" %( destination ) )
+    os.makedirs(destination)
+    status, output = commands.getstatusoutput( "cp -rf %s/* %s" %( source, destination ) )
+    print output
             
             
 def main():
