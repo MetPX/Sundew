@@ -140,8 +140,9 @@ class bulletinManager:
 
         # ckeck if it is routable
         error  = False
-        entete = '_'.join(unBulletin.getHeader().split()[:2])
-        clist = self.drp.getClients(entete)
+        entete = ' '.join(unBulletin.getHeader().split()[:2])
+        key   = self.drp.getKeyFromHeader(entete)
+        clist = self.drp.getClients(key)
 
         # generate a file name.
         if clist != None :
@@ -212,8 +213,9 @@ class bulletinManager:
 
         # ckeck if it is routable
         error  = False
-        entete = '_'.join(unBulletin.getHeader().split()[:2])
-        clist = self.drp.getClients(entete)
+        entete = ' '.join(unBulletin.getHeader().split()[:2])
+        key   = self.drp.getKeyFromHeader(entete)
+        clist = self.drp.getClients(key)
 
         # generate a file name.
         if clist != None :
@@ -430,10 +432,11 @@ class bulletinManager:
             if self.drp != None:
             # Si les circuits sont activés
             # NB: Lève une exception si l'entête est introuvable
-                entete = '_'.join(bulletin.getHeader().split()[:2])
+                entete = ' '.join(bulletin.getHeader().split()[:2])
+                key = self.drp.getKeyFromHeader(entete)
                 #FIXME: remove -CIRCUIT after transition period.
-                newExtension = newExtension.replace('-CIRCUIT', self.drp.getHeaderPriority(entete))
-                newExtension = newExtension.replace('-PRIORITY', self.drp.getHeaderPriority(entete))
+                newExtension = newExtension.replace('-CIRCUIT', self.drp.getHeaderPriority(key))
+                newExtension = newExtension.replace('-PRIORITY', self.drp.getHeaderPriority(key))
 
             return newExtension
         else:
