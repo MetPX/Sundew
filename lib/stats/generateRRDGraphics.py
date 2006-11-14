@@ -501,7 +501,7 @@ def getGraphicsMinMaxMean( databaseName, startTime, endTime, interval, logger = 
 
         for meanTuple in meanTuples :            
             if meanTuple[0] != 'None' and meanTuple[0] != None :
-                realValue = ( meanTuple[0] * interval ) 
+                realValue = ( float(meanTuple[0]) * float(interval) ) 
                 if  realValue > max:
                     max = realValue
                 if realValue < min or min == None :
@@ -728,19 +728,19 @@ def createNewDatabase( fileType, type, machine, start, infos, logger ):
     if infos.timespan <(5*24):# daily :
         start = start - 60
         rrdtool.create( combinedDatabaseName, '--start','%s' %( start ), '--step', '60', 'DS:%s:GAUGE:60:U:U' %type,'RRA:AVERAGE:0:1:7200','RRA:MIN:0:1:7200', 'RRA:MAX:0:1:7200' )
-        print "daily"     
+        #print "daily"     
     elif infos.timespan >(5*24) and infos.timespan <(14*24):# weekly :  
         start = start - (60*60)
         rrdtool.create( combinedDatabaseName, '--start','%s' %( start ), '--step', '3600', 'DS:%s:GAUGE:3600:U:U' %type,'RRA:AVERAGE:0:1:336','RRA:MIN:0:1:336', 'RRA:MAX:0:1:336' )               
-        print "weekly"            
+        #print "weekly"            
     elif infos.timespan <(365*24):#monthly
         start = start - (240*60)
         rrdtool.create( combinedDatabaseName, '--start','%s' %( start ), '--step', '14400', 'DS:%s:GAUGE:14400:U:U' %type, 'RRA:AVERAGE:0:1:1460','RRA:MIN:0:1:1460','RRA:MAX:0:1:1460' )  
-        print "monthly"
+        #print "monthly"
     else:#yearly
         start = start - (1440*60)
         rrdtool.create( combinedDatabaseName, '--start','%s' %( start ), '--step', '86400', 'DS:%s:GAUGE:86400:U:U' %type, 'RRA:AVERAGE:0:1:3650','RRA:MIN:0:1:3650','RRA:MAX:0:1:3650' ) 
-        print "yearly"
+        #print "yearly"
     
     return combinedDatabaseName
     
@@ -770,8 +770,20 @@ def getPairsFromAllDatabases( type, machine, start, end, infos, logger=None ):
     for i in range( len(typeData[client]) ) :#make total of all clients for every timestamp
         total = 0 
         for client in infos.clientNames:
-            total = total + float( typeData[client][i].split( ":" )[1].replace(" ", "") )
-            #print " %s %s : %s " %(client,type,typeData[client][i].split( ":" )[1].replace(" ", ""))
+            try : 
+                data = typeData[client][i].split( ":" )[1].replace(" ", "")
+                if data != None and data != 'None':
+                    total = total + float( data )
+                elif logger != None: 
+                    logger.warning( "Could not find data for %s for present timestamp." %(client) )
+                         
+            except:
+                if logger != None :
+                    #print "Could not find data for %s for present timestamp." %(client)
+                    logger.warning( "Could not find data for %s for present timestamp." %(client) )
+                
+                
+        #print " %s %s : %s " %(client,type,typeData[client][i].split( ":" )[1].replace(" ", ""))
         if type == "latency":#latency is always an average
             total = total / ( len( output ) )
                         
