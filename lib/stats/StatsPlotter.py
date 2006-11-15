@@ -146,7 +146,7 @@ class StatsPlotter:
         
         date = self.currentTime.replace( "-","" ).replace( " ", "_")
         
-        fileName = PXPaths.GRAPHS + "%s/%s_%s_%s_%s_%shours_on_%s_for %s products.png" %( clientName, self.fileType, clientName, date, self.statsTypes, self.timespan, self.machines, self.productType )
+        fileName = PXPaths.GRAPHS + "%.50s/%s_%.50s_%s_%s_%shours_on_%.50s_for %.50s products.png" %( clientName, self.fileType, clientName, date, self.statsTypes, self.timespan, self.machines, self.productType )
         
         
         fileName = fileName.replace( '[', '').replace(']', '').replace(" ", "").replace( "'","" )               
@@ -389,7 +389,7 @@ class StatsPlotter:
                 
         statType = statType[0].upper() + statType[1:]             
               
-        title =  "%s for %s for a span of %s hours ending at %s\\n\\nMAX: %s  MEAN: %3.2f MIN: %s " %( statType, self.clientNames[i], self.timespan, self.currentTime,  maximum, self.means[i][typeCount], minimum )     
+        title =  "%s for %.50s for a span of %s hours ending at %s\\n\\nMAX: %s  MEAN: %3.2f MIN: %s " %( statType, self.clientNames[i], self.timespan, self.currentTime,  maximum, self.means[i][typeCount], minimum )     
         
         return title
         
@@ -412,7 +412,7 @@ class StatsPlotter:
         
         src         = self.imageName
         
-        destination = PXPaths.GRAPHS + "/symlinks/%s.png" %clientName
+        destination = PXPaths.GRAPHS + "/symlinks/%.50s.png" %clientName
 
         if not os.path.isdir( PXPaths.GRAPHS + "/symlinks/" ):
             os.makedirs( PXPaths.GRAPHS + "/symlinks/", mode=0777 )                                                      

@@ -40,14 +40,8 @@ PXPaths.normalPaths()
 
 localMachine = os.uname()[1]
 
-if localMachine == "pds3-dev" or localMachine == "pds4-dev" or localMachine == "lvs1-stage" :
+if localMachine == "pds3-dev" or localMachine == "pds4-dev" or localMachine == "lvs1-stage" or  localMachine == "logan1" or localMachine == "logan2" :
     PATH_TO_LOGFILES = PXPaths.LOG + localMachine + "/"
-    PXPaths.RX_CONF  = '/apps/px/stats/rx/'
-    PXPaths.TX_CONF  = '/apps/px/stats/tx/'
-    PXPaths.TRX_CONF = '/apps/px/stats/trx/'
-
-elif localMachine == "logan1" or localMachine == "logan2":
-    PATH_TO_LOGFILES = PXPaths.LOG + localMachine + "/" + localMachine + "/"
     PXPaths.RX_CONF  = '/apps/px/stats/rx/'
     PXPaths.TX_CONF  = '/apps/px/stats/tx/'
     PXPaths.TRX_CONF = '/apps/px/stats/trx/'

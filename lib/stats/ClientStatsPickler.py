@@ -47,14 +47,11 @@ PXPaths.normalPaths()
 
 localMachine = os.uname()[1]
 
-if localMachine == "pds3-dev" or localMachine == "pds4-dev" or localMachine == "lvs1-stage" :
+if localMachine == "pds3-dev" or localMachine == "pds4-dev" or localMachine == "lvs1-stage" or localMachine == "logan1" or localMachine == "logan2":
     PATH_TO_LOGFILES = PXPaths.LOG + localMachine + "/"
 
-elif localMachine == "logan1" or localMachine == "logan2":
-    PATH_TO_LOGFILES = PXPaths.LOG + localMachine + "/" + localMachine + "/"
-
 else:#pds5 pds5 pxatx etc
-    PATH_TO_LOGFILES = PXPaths.LOG  
+    PATH_TO_LOGFILES = PXPaths.LOG
     
     
 

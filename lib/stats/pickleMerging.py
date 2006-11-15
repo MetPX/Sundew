@@ -286,14 +286,16 @@ def mergePicklesFromDifferentMachines( logger = None , startTime = "2006-07-31 1
             needToMergeSameHoursPickle = False 
             pickleNames = createNonMergedPicklesList( currentTime = seperators[i], machines = machines, fileType = fileType, client = client )
             
-            #print "pickleNames : %s" %pickleNames
-            for pickle in pickleNames : #Verify every pickle implicated in merger.
-                
-                # if for some reason pickle has changed since last time
-                if vc.isDifferentFile( file = pickle, user = combinedMachineName,client = client ) == True : 
-                    #print "file : %s was found different" %pickle
-                    needToMergeSameHoursPickle = True 
-                    break 
+            if not os.path.isfile( mergedPickleNames[i] ):
+                needToMergeSameHoursPickle = True 
+            else:    
+                for pickle in pickleNames : #Verify every pickle implicated in merger.
+                    
+                    # if for some reason pickle has changed since last time
+                    if vc.isDifferentFile( file = pickle, user = combinedMachineName,client = client ) == True : 
+                        #print "file : %s was found different" %pickle
+                        needToMergeSameHoursPickle = True 
+                        break 
             
             if needToMergeSameHoursPickle == True :#First time or one element has changed   
                 #print "problem" 

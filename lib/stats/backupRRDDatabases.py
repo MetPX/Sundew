@@ -48,7 +48,7 @@ def backupDatabases( timeOfBackup ):
     if not os.path.isdir( destination ):
         os.makedirs( destination )
     status, output = commands.getstatusoutput( "cp -r %s/* %s" %( source, destination ) )
-    print output    
+    #print output    
     
     #limit number of backup
     filePattern = PXPaths.STATS + "databases_backups/*"           
@@ -79,7 +79,7 @@ def backupDatabaseUpdateTimes( timeOfBackup ):
     if not os.path.isdir( destination ):
         os.makedirs( destination )
     status, output = commands.getstatusoutput( "cp -r %s/* %s" %( source, destination ) )
-    print output 
+    #print output 
 
     #limit number of backups         
     filePattern = PXPaths.STATS + "DATABASE-UPDATES_BACKUPS/*"          

@@ -101,7 +101,7 @@ being drawn between 1 and 2  and 25 being drawn between 2 and 3.
 With rrd, the opposite will happen. If you feed the database with the pairs(1,10) and (2,25)
 this will draw the value 10 between 0 and 1 and draw 25 between 1 and 2.
 
-Make sure you understand this priro to feeding the database or else your entire set of data will
+Make sure you understand this prior to feeding the database or else your entire set of data will
 be corrupted. 
 
 
