@@ -343,7 +343,7 @@ def createRoundRobinDatabase( dataType, client, machine, startTime ):
     # 2nd  rra : keep last 14 days for weekly graphs. Each line contains 1 hours of data.
     # 3rd  rra : keep last 365 days for Monthly graphs. Each line contains 4 hours of data. 
     # 4th  rra : keep last 10 years of data. Each line contains 24 hours of data.
-    rrdtool.create( databaseName, '--start','%s' %( startTime ), '--step', '60', 'DS:%s:GAUGE:60:U:U' %dataType, 'RRA:AVERAGE:0:1:7200','RRA:MIN:0:1:7200', 'RRA:MAX:0:1:7200','RRA:AVERAGE:0:60:336','RRA:MIN:0:60:336', 'RRA:MAX:0:60:336','RRA:AVERAGE:0:240:1460','RRA:MIN:0:240:1460','RRA:MAX:0:240:1460', 'RRA:AVERAGE:0:1440:3650','RRA:MIN:0:1440:3650','RRA:MAX:0:1440:3650' )      
+    rrdtool.create( databaseName, '--start','%s' %( startTime ), '--step', '60', 'DS:%s:GAUGE:60:U:U' %dataType, 'RRA:AVERAGE:0.5:1:7200','RRA:MIN:0.5:1:7200', 'RRA:MAX:0.5:1:7200','RRA:AVERAGE:0.5:60:336','RRA:MIN:0.5:60:336', 'RRA:MAX:0.5:60:336','RRA:AVERAGE:0.5:240:1460','RRA:MIN:0.5:240:1460','RRA:MAX:0.5:240:1460', 'RRA:AVERAGE:0.5:1440:3650','RRA:MIN:0.5:1440:3650','RRA:MAX:0.5:1440:3650' )      
               
     print "created :%s" %databaseName   
     
