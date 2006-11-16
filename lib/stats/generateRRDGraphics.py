@@ -667,11 +667,11 @@ def getInterval( startTime, timeOfLastUpdate, dataType  ):
 
     if dataType == "latency" :
         interval = 1.0 #No need to multiply average by interval. It's the mean we want in the case of latency.
-    elif ( timeOfLastUpdate - startTime ) <= (7200 * 60):#less than a week 
+    elif ( timeOfLastUpdate - startTime ) < (7200 * 60):#less than a week 
         interval = 1.0
-    elif ( timeOfLastUpdate - startTime ) <= (20160 * 60):#less than two week
+    elif ( timeOfLastUpdate - startTime ) < (20160 * 60):#less than two week
         interval = 60.0
-    elif (timeOfLastUpdate - startTime) <= (1460*240*60):
+    elif (timeOfLastUpdate - startTime) < (1460*240*60):
         interval = 240.0 
     else:
         interval = 1440.0    
@@ -781,8 +781,12 @@ def getPairsFromAllDatabases( type, machine, start, end, infos, logger=None ):
         
     """
     
+    i = 0
     pairs = []
     typeData = {}
+    nbEntries = 0    
+    lastUpdate =0     
+    
     
     for client in infos.clientNames:#Gather all pairs for that type
         
@@ -791,27 +795,44 @@ def getPairsFromAllDatabases( type, machine, start, end, infos, logger=None ):
         output = output.split( "\n" )[2:]
         typeData[client] = output
     
-                    
-    for i in range( len(typeData[client]) ) :#make total of all clients for every timestamp
+ 
+    while lastUpdate ==0 and i < len( infos.clientNames ) : # in case some databases dont exist
+        lastUpdate = getDatabaseTimeOfUpdate( infos.clientNames[i], machine, infos.fileType )        
+        interval  =  getInterval( start, lastUpdate, "other" )           
+        nbEntries = int(( end-start ) / (interval * 60))
+        i = i + 1
+        
+        
+    for i in range( nbEntries ) :#make total of all clients for every timestamp
+        
         total = 0 
+        
         for client in infos.clientNames:
+            
             try : 
                 data = typeData[client][i].split( ":" )[1].replace(" ", "")
                 
                 if data != None and data != 'None' and data!= 'nan':
                     total = total + float( data )
+                    
+                    #if type == "errors":#for test
+                    #    print "%s: %s %s" %( client, MyDateLib.getIsoFromEpoch( start + ( i * interval * 60) ),float(data) )
+                
                 elif logger != None: 
                     logger.warning( "Could not find data for %s for present timestamp." %(client) )
                          
             except:
+                
                 if logger != None :                    
                     logger.warning( "Could not find data for %s for present timestamp." %(client) )
                              
+        
         if type == "latency":#latency is always an average
             total = total / ( len( output ) )
-                        
+                     
+        
         pairs.append( [typeData[client][i].split( " " )[0].replace( ":", "" ), total] )   
-    
+
     
     return pairs
     
