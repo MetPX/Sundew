@@ -799,13 +799,13 @@ def getPairsFromAllDatabases( type, machine, start, end, infos, logger=None ):
     while lastUpdate ==0 and i < len( infos.clientNames ) : # in case some databases dont exist
         lastUpdate = getDatabaseTimeOfUpdate( infos.clientNames[i], machine, infos.fileType )        
         interval  =  getInterval( start, lastUpdate, "other" )           
-        nbEntries = int(( end-start ) / (interval * 60))
+        nbEntries = int(( end-start ) / (interval * 60)) + 1 
         i = i + 1
         
         
     for i in range( nbEntries ) :#make total of all clients for every timestamp
         
-        total = 0 
+        total = 0.0
         
         for client in infos.clientNames:
             
@@ -815,8 +815,8 @@ def getPairsFromAllDatabases( type, machine, start, end, infos, logger=None ):
                 if data != None and data != 'None' and data!= 'nan':
                     total = total + float( data )
                     
-                    #if type == "errors":#for test
-                    #    print "%s: %s %s" %( client, MyDateLib.getIsoFromEpoch( start + ( i * interval * 60) ),float(data) )
+#                     if type == "errors":#for test
+#                        print "%s: %s %s" %( client, MyDateLib.getIsoFromEpoch( start + ( i * interval * 60) ),float(data)*24*60 )
                 
                 elif logger != None: 
                     logger.warning( "Could not find data for %s for present timestamp." %(client) )
@@ -832,7 +832,9 @@ def getPairsFromAllDatabases( type, machine, start, end, infos, logger=None ):
                      
         
         pairs.append( [typeData[client][i].split( " " )[0].replace( ":", "" ), total] )   
-
+        
+#         if type == "errors":#for test
+#             print "Will update with : %s    %s" %(typeData[client][i].split( " " )[0].replace( ":", "" ), total)
     
     return pairs
     

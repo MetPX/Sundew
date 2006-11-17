@@ -58,6 +58,14 @@ RRA's allows us to specify how data is to be consolidated inthe database.
 3rd set of rra's : keep last 10 years of data. Each line contains 24 hours of data.
                    ( 3650 * 1440 combined entries of 60 seconds each. )
       
+                   
+For each rra's, the 0 value means that 0% of unknown data is allowed for each entry.
+In current program settings this value has been set to 0.5 as to allow some hours to 
+have a few minutes with empty data,especially the very first hour where the database 
+was created since rrd doesnt allow to update the very first minute of that hour. This 
+behaviour causes an RRA witha setting of 0% to discard an entire day of data based 
+on a single minute of empty data.
+ 
                                 
 Important note on database creation.
 --------------------------------------------------------
@@ -103,6 +111,22 @@ this will draw the value 10 between 0 and 1 and draw 25 between 1 and 2.
 
 Make sure you understand this prior to feeding the database or else your entire set of data will
 be corrupted. 
+
+
+Note on data accuracy.
+-----------------------------------------------------
+When using the AVERAGE consolidation function(CF), data will be consolidated 
+into a single point based on the average of all the points used.
+ 
+While transferring data points into an average and then adding up that average to make
+anoother data point in combined databases we have found that some data accuracy was lost.
+
+In one example where all the data fed was verified as being exact, the rounding of the first point
+combined with the rounding of the sum of all those rounded points transformed an expected sum of
+7348 into 7344. 
+
+4/7348 = 0.0005 wich means that approximatly .05% of data accuracy being lost.    
+
 
 
 Generating Graphs
