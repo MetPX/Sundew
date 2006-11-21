@@ -46,7 +46,7 @@ else:#pds5 pds5 pxatx etc
     
 class _GraphicsInfos:
 
-    def __init__( self, directory, fileType, types, totals, clientNames = None ,  timespan = 12, endDate = None, machines = ["pdsGG"]  ):
+    def __init__( self, directory, fileType, types, totals, clientNames = None ,  timespan = 12, endDate = None, machines = ["pdsGG"], link = False  ):
 
             
         self.directory    = directory         # Directory where log files are located. 
@@ -57,6 +57,8 @@ class _GraphicsInfos:
         self.endDate      = endDate           # Time when stats were queried.
         self.machines     = machines          # Machine from wich we want the data to be calculated.
         self.totals       = totals            # Make totals of all the specified clients 
+        self.link         = link              # Whether or not to create symlinks for images. 
+        
         
         
 #################################################################
@@ -91,7 +93,7 @@ def getOptionsFromParser( parser ):
     weekly           = options.weekly
     monthly          = options.monthly
     yearly           = options.yearly    
-    
+    link             = options.link
     
     counter = 0  
     specialParameters = [daily, monthly, weekly, yearly]
@@ -212,7 +214,7 @@ def getOptionsFromParser( parser ):
     
     endDate = MyDateLib.getIsoWithRoundedHours( endDate )
     
-    infos = _GraphicsInfos( endDate = endDate, clientNames = clientNames,  directory = directory , types = types, timespan = timespan, machines = machines, fileType = fileType, totals = totals )   
+    infos = _GraphicsInfos( endDate = endDate, clientNames = clientNames,  directory = directory , types = types, timespan = timespan, machines = machines, fileType = fileType, totals = totals, link = link  )   
             
     return infos 
        
@@ -341,6 +343,8 @@ def addOptions( parser ):
     parser.add_option("-f", "--fileType", action="store", type="string", dest="fileType", default='tx', help="Type of log files wanted.")                     
     
     parser.add_option("-i", "--individual", action="store_true", dest = "individual", default=False, help="Dont combine data from specified machines. Create graphs for every machine independently")
+    
+    parser.add_option("-l", "--link", action="store_true", dest = "link", default=False, help="Create a link file for the generated image.")
         
     parser.add_option("-m", "--monthly", action="store_true", dest = "monthly", default=False, help="Create monthly graph(s).")
      
@@ -678,8 +682,59 @@ def getInterval( startTime, timeOfLastUpdate, dataType  ):
         
     return interval
 
+
     
+def getLinkDestination( type, client, infos ):
+    """
+       This method returns the absolute path to the symbolic 
+       link to create based on the time of creation of the 
+       graphic and the span of the graphic.
+    
+    """
+    graphicType = "weekly"
+    endDateInSeconds = MyDateLib.getSecondsSinceEpoch( infos.endDate )
+    
+    
+    if infos.timespan >= 365*24:
+        graphicType = "yearly"
+    elif infos.timespan >= 28*24:
+        graphicType = "monthly"    
+
+    if graphicType == "weekly":
+        fileName =  time.strftime( "%W", time.gmtime( endDateInSeconds ) )
+    elif graphicType == "monthly":
+        fileName =  time.strftime( "%b", time.gmtime( endDateInSeconds ) )
+    elif graphicType == "yearly":
+        fileName =  time.strftime( "%Y", time.gmtime( endDateInSeconds ) )
+    
+    
+    destination = PXPaths.GRAPHS + "symlinks/%s/%s/%s/%.50s.png" %( graphicType, client, type, fileName )
+    
+    return destination    
+    
+         
+    
+def createLink( client, type, imageName, infos ):
+    """
+        Create a symbolic link in the appropriate 
+        folder to the file named imageName.
         
+    """ 
+   
+    src         = imageName
+    destination = getLinkDestination( type, client, infos )
+
+    if not os.path.isdir( os.path.dirname( destination ) ):
+        os.makedirs( os.path.dirname( destination ), mode=0777 )                                                      
+    
+    if os.path.isfile( destination ):
+        os.remove( destination )
+    
+    print "src : %s dest : %s" %(src,destination)    
+    os.symlink( src, destination )    
+    
+    
+    
 def plotRRDGraph( databaseName, type, fileType, client, machine, infos, lastUpdate = None, logger = None ):
     """
         This method is used to produce a rrd graphic.
@@ -694,6 +749,7 @@ def plotRRDGraph( databaseName, type, fileType, client, machine, infos, lastUpda
     if lastUpdate == None :
         lastUpdate = getDatabaseTimeOfUpdate( client, machine, fileType )
     
+    print "lastUpdate : %s" %lastUpdate
     interval = getInterval( start, lastUpdate, type  )
         
     minimum, maximum, mean = getGraphicsMinMaxMean( databaseName, start, end, interval )
@@ -711,18 +767,21 @@ def plotRRDGraph( databaseName, type, fileType, client, machine, infos, lastUpda
                    
     title = buildTitle( type, client, infos.endDate, infos.timespan, minimum, maximum, mean )
 
-    try:
-        rrdtool.graph( imageName,'--imgformat', 'PNG','--width', '800','--height', '200','--start', "%i" %(start) ,'--end', "%s" %(end), '--vertical-label', '%s' %type,'--title', '%s'%title,'COMMENT: Minimum: %s     Maximum: %s     Mean: %s\c' %( minimum, maximum, mean), '--lower-limit','0','DEF:%s=%s:%s:AVERAGE'%( type,databaseName,type), 'CDEF:realValue=%s,%i,*' %(type,interval), 'AREA:realValue#%s:%s' %( innerColor, type ),'LINE1:realValue#%s:%s'%( outerColor, type ) )
+#     try:
+    rrdtool.graph( imageName,'--imgformat', 'PNG','--width', '800','--height', '200','--start', "%i" %(start) ,'--end', "%s" %(end), '--vertical-label', '%s' %type,'--title', '%s'%title,'COMMENT: Minimum: %s     Maximum: %s     Mean: %s\c' %( minimum, maximum, mean), '--lower-limit','0','DEF:%s=%s:%s:AVERAGE'%( type,databaseName,type), 'CDEF:realValue=%s,%i,*' %(type,interval), 'AREA:realValue#%s:%s' %( innerColor, type ),'LINE1:realValue#%s:%s'%( outerColor, type ) )
+
+    if infos.link == True:
+        createLink( client, type, imageName, infos )
     
-        print "Plotted : %s" %imageName
-        if logger != None:
-            logger.info(  "Plotted : %s" %imageName )
+    print "Plotted : %s" %imageName
+    if logger != None:
+        logger.info(  "Plotted : %s" %imageName )
        
     
-    except :
-        if logger != None:
-            logger.error( "Error in generateRRDGraphics.plotRRDGraph. Unable to generate %s" %imageName )
-        pass     
+#     except :
+#         if logger != None:
+#             logger.error( "Error in generateRRDGraphics.plotRRDGraph. Unable to generate %s" %imageName )
+#         pass     
 
         
         
@@ -899,7 +958,7 @@ def generateRRDGraphics( infos, logger = None ):
                 
                 for type in infos.types : 
                     databaseName = transferPickleToRRD.buildRRDFileName( type, client, machine ) 
-                    plotRRDGraph( databaseName, type, infos.fileType, client, machine, infos, logger )
+                    plotRRDGraph( databaseName, type, infos.fileType, client, machine, infos,lastUpdate =  MyDateLib.getSecondsSinceEpoch(infos.endDate), logger = logger )
                 
 
 
