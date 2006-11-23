@@ -169,34 +169,46 @@ def updatePickles( parameters ):
     
         if parameters.individualLogMachineNames[i] != parameters.picklingMachines[i]: 
             
-            status, output = commands.getstatusoutput( "ssh %s@%s 'rsync -avzr --delete-before -e ssh %s@%s:/apps/px/log/ /apps/px/log/%s/' >>/dev/null 2>&1" %( parameters.picklingMachinesLogins[i], parameters.picklingMachines[i], parameters.logMachinesLogins[i] ,parameters.individualLogMachineNames[i] , parameters.picklingMachines[i] ) )
+            if parameters.picklingMachines[i] != LOCAL_MACHINE :#pickling to be done elsewhere
+                
+                status, output = commands.getstatusoutput( "ssh %s@%s 'rsync -avzr --delete-before -e ssh %s@%s:/apps/px/log/ /apps/px/log/%s/' >>/dev/null 2>&1" %( parameters.picklingMachinesLogins[i], parameters.picklingMachines[i], parameters.logMachinesLogins[i] ,parameters.individualLogMachineNames[i] , parameters.picklingMachines[i] ) )
+                
+                #print output
+                
+                print "ssh %s@%s 'rsync -avzr --delete-before -e ssh %s@%s:/apps/px/log/ /apps/px/log/%s/' >>/dev/null 2>&1" %( parameters.picklingMachinesLogins[i], parameters.picklingMachines[i], parameters.logMachinesLogins[i] ,parameters.individualLogMachineNames[i] , parameters.picklingMachines[i] )
             
-            #print "ssh %s@%s 'rsync -avzr --delete-before -e ssh %s@%s:/apps/px/log/ /apps/px/log/%s/' >>/dev/null 2>&1" %( parameters.picklingMachinesLogins[i], parameters.picklingMachines[i], parameters.logMachinesLogins[i] ,parameters.individualLogMachineNames[i] , parameters.picklingMachines[i] )
-        
+            
+            else:
+                status, output = commands.getstatusoutput( "rsync -avzr --delete-before -e ssh %s@%s:/apps/px/log/ /apps/px/log/%s/ >>/dev/null 2>&1" %( parameters.logMachinesLogins[i] ,parameters.individualLogMachineNames[i] , parameters.picklingMachines[i] ) )
+                
+                print "rsync -avzr --delete-before -e ssh %s@%s:/apps/px/log/ /apps/px/log/%s/ >>/dev/null 2>&1" %(parameters.logMachinesLogins[i] ,parameters.individualLogMachineNames[i] , parameters.picklingMachines[i] )   
             
         if parameters.picklingMachines[i] != LOCAL_MACHINE :#pickling to be done elsewhere            
                             
             status, output = commands.getstatusoutput( "ssh %s@%s 'python /apps/px/lib/stats/pickleUpdater.py  -f rx'  >>/dev/null 2>&1 " %( parameters.picklingMachinesLogins[i], parameters.picklingMachines[i] ) )
-                
-            #print "ssh %s@%s 'python /apps/px/lib/stats/pickleUpdater.py  -f rx'  >>/dev/null 2>&1 " %( parameters.picklingMachinesLogins[i], parameters.picklingMachines[i] )
+            print output
+            print "ssh %s@%s 'python /apps/px/lib/stats/pickleUpdater.py  -f rx'  >>/dev/null 2>&1 " %( parameters.picklingMachinesLogins[i], parameters.picklingMachines[i] )
             
             status, output = commands.getstatusoutput( "ssh %s@%s 'python /apps/px/lib/stats/pickleUpdater.py -f tx' >>/dev/null 2>&1 " %( parameters.picklingMachinesLogins[i], parameters.picklingMachines[i] ) )
-            
-            #print "ssh %s@%s 'python /apps/px/lib/stats/pickleUpdater.py -f tx' >>/dev/null 2>&1 " %( parameters.picklingMachinesLogins[i], parameters.picklingMachines[i] )             
+            print output
+            print "ssh %s@%s 'python /apps/px/lib/stats/pickleUpdater.py -f tx' >>/dev/null 2>&1 " %( parameters.picklingMachinesLogins[i], parameters.picklingMachines[i] )             
             
             status, output = commands.getstatusoutput( "/apps/px/lib/stats/pickleSynchroniser.py -l %s -m %s >>/dev/null 2>&1 " %( parameters.picklingMachinesLogins[i], parameters.picklingMachines[i] ) )      
-                        
-            #print "/apps/px/lib/stats/pickleSynchroniser.py -l %s -m %s >>/dev/null 2>&1 " %( parameters.picklingMachinesLogins[i], parameters.picklingMachines[i] )
+            print output            
+            print "/apps/px/lib/stats/pickleSynchroniser.py -l %s -m %s >>/dev/null 2>&1 " %( parameters.picklingMachinesLogins[i], parameters.picklingMachines[i] )
             
+            
+        
+        
         else: # pickling is to be done locally. Log files may or may not reside elsewhere.
             
             status, output = commands.getstatusoutput( "python /apps/px/lib/stats/pickleUpdater.py -f rx  >>/dev/null 2>&1" )
-            
-            #print "python /apps/px/lib/stats/pickleUpdater.py -f rx  >>/dev/null 2>&1"
+            print output
+            print "python /apps/px/lib/stats/pickleUpdater.py -f rx  >>/dev/null 2>&1"
             
             status, output = commands.getstatusoutput( "python /apps/px/lib/stats/pickleUpdater.py -f tx >>/dev/null 2>&1" )
-            
-            #print "python /apps/px/lib/stats/pickleUpdater.py -f tx >>/dev/null 2>&1"
+            print output
+            print "python /apps/px/lib/stats/pickleUpdater.py -f tx >>/dev/null 2>&1"
             
             
 def generateGraphics( parameters ):
@@ -220,10 +232,10 @@ def generateGraphics( parameters ):
         
         if "," in couple :
             status, output = commands.getstatusoutput( "/apps/px/lib/stats/generateAllGraphsForServer.py -m %s -c  -l %s>>/dev/null 2>&1  " %(couple.replace( "'","" ),logins.replace( "'","" )) )
-
+            print output
         else:
             status, output = commands.getstatusoutput( "/apps/px/lib/stats/generateAllGraphsForServer.py -i -m %s -l %s >>/dev/null 2>&1 " %( couple.replace( "'","" ),logins.replace( "'","" ) ) )    
-           
+            print output
         
         start = start + len( couple.split( "," )  )  
 
@@ -239,7 +251,7 @@ def uploadGraphicFiles( parameters ):
     for i in range ( len( parameters.uploadMachines ) ):
         status, output = commands.getstatusoutput( "scp /apps/px/stats/graphs/symlinks/* %s@%s:/apps/pds/tools/Columbo/ColumboShow/graphs/ >>/dev/null 2>&1" %( parameters.uploadMachinesLogins[i], parameters.uploadMachines[i] ) )
         
-        #print "scp /apps/px/stats/graphs/symlinks/* %s@%s:/apps/pds/tools/Columbo/ColumboShow/graphs/ >>/dev/null 2>&1" %( parameters.uploadMachinesLogins[i], parameters.uploadMachines[i] )
+        print "scp /apps/px/stats/graphs/symlinks/* %s@%s:/apps/pds/tools/Columbo/ColumboShow/graphs/ >>/dev/null 2>&1" %( parameters.uploadMachinesLogins[i], parameters.uploadMachines[i] )
         
 
 def updateDatabases( parameters ):
@@ -250,9 +262,14 @@ def updateDatabases( parameters ):
         
     for machine in parameters.databaseMachines : 
         status, output = commands.getstatusoutput( "/apps/px/lib/stats/transferPickleToRRD.py -m %s >>/dev/null 2>&1" %machine )
-        #print  "/apps/px/lib/stats/transferPickleToRRD.py -m '%s' >>/dev/null 2>&1" %machine
+        print  "/apps/px/lib/stats/transferPickleToRRD.py -m '%s' >>/dev/null 2>&1" %machine
 
-        
+
+def getGraphicsForWebPages( ):
+    """
+    """
+    x =1
+                    
 def main():
     """
         Gets all the parameters from config file.
@@ -266,9 +283,10 @@ def main():
     parameters = getParametersFromConfigurationFile()
     validateParameters( parameters )
     updatePickles( parameters )
-    generateGraphics( parameters )
-    updateDatabases( parameters )
-    uploadGraphicFiles( parameters )
+    #generateGraphics( parameters )
+    #updateDatabases( parameters )
+    #getGraphicsForWebPages()
+    #uploadGraphicFiles( parameters )
             
     print "Finished."
     
