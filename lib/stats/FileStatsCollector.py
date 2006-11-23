@@ -392,7 +392,7 @@ class FileStatsCollector:
                         #elif lineType == "[OTHER]" :               
                 except:                
                     
-                    if logger != none :
+                    if logger != None :
                         logger.error("could not find %s value in line %s." %( statstype,line ) ) 
                         logger.error("value was replaced by 0.")
                     
@@ -587,9 +587,9 @@ class FileStatsCollector:
             fileSize = os.stat(file)[6]
             
             line, lineType, position  = self.findFirstInterestingLine( fileHandle, fileSize )
-            print "endTime : %s" %endTime  
-            print "line returned : %s" %line
-            print "coming from file named : %s" %file
+            #print "endTime : %s" %endTime  
+            #print "line returned : %s" %line
+            #print "coming from file named : %s" %file
 
            
             if line != "" :                                        
@@ -604,7 +604,7 @@ class FileStatsCollector:
                     
                 neededValues = self.findValues( neededTypes, line, lineType,fileType = self.fileType,logger= self.logger )    
                 
-                print "neededValues : %s" %neededValues
+                #print "neededValues : %s" %neededValues
                 #print 
                 #add values general to the line we are treating 
                 self.fileEntries[ entryCount ].files.append( neededValues[ "fileName" ] )
@@ -613,7 +613,7 @@ class FileStatsCollector:
                 self.fileEntries[ entryCount ].values.rows = self.fileEntries[ entryCount ].values.rows + 1
                 
                 
-                if filledAnEntry == False :
+                if filledAnEntry == False :#in case of numerous files
                     self.firstFilledEntry = entryCount 
                     filledAnEntry = True 
                 elif entryCount < self.firstFilledEntry:
@@ -648,14 +648,17 @@ class FileStatsCollector:
                 
             if line == "" :
                 #print "read the entire file allready"
-                self.lastFilledEntry  = entryCount                  
+                if entryCount > self.lastFilledEntry:#in case of numerous files
+                    self.lastFilledEntry  = entryCount                  
                 self.lastReadPosition = 0
-
+                previousPosition      = 0
+                
             else:
-                print "last line read : %s " %line
-                self.lastFilledEntry  = entryCount                  
+                if entryCount > self.lastFilledEntry :#in case of numerous files
+                    self.lastFilledEntry  = entryCount                  
+                
                 self.lastReadPosition = previousPosition #If we haven't met eof we don't wana loose an interesting 
-
+                #print "last line read : %s position is : %s" %(line,self.lastReadPosition)
             
             fileHandle.close()             
                 
