@@ -15,9 +15,14 @@ named COPYING in the root of the source directory tree.
 #
 #############################################################################################
 """
-
 import sys, time
+sys.path.insert(1,sys.path[0] + '/../lib/importedLibs')
+
+import PXPaths
 from FileParser import FileParser
+from Logger import Logger
+
+PXPaths.normalPaths()
 
 class TAFParser(FileParser):
     
@@ -150,15 +155,23 @@ class TAFParser(FileParser):
                         countProblem += 1
                         #sys.exit()
                 except:
-                    print newLines
-                    print line
-                    print parts
-                    print self.filename
-                    raise
+                    if self.logger:
+                        self.logger.debug(newLines)
+                        self.logger.debug(line)
+                        self.logger.debug(parts)
+                        self.logger.error("An error occurs in %s" % self.filename)
+                    else:
+                        print newLines
+                        print line
+                        print parts
+                        print("An error occurs in %s" % self.filename)
+                    break
 
             if countProblem:
-                #print "Problem Count: %d" % countProblem
                 pass
+                #print "Problem Count: %d" % countProblem
+                #if self.logger:
+                    #self.logger.info("%d problem(s) for %s" % (countProblem, self.filename))
 
     def printInfos(self):
         pass
@@ -214,7 +227,11 @@ if __name__ == '__main__':
     nbFiles = 0
     nbStations = 0
 
-    sp = TAFParser('')
+    logger = Logger(PXPaths.LOG + 'TAFParser.log', 'DEBUG', 'TAFP') 
+    logger = logger.getLogger()
+    logger.info("StartTAF parsing")
+
+    sp = TAFParser('', logger)
     sp.printErrors = False
     sp.type = 'INT'
 
@@ -248,3 +265,7 @@ if __name__ == '__main__':
     """
 
     sfc = StationFileCreator('/apps/px/etc/stations_TAF.conf', stations=sp.stations)
+    logger.info("Number of files: %d" % nbFiles)
+    logger.info("Number of headers: %d" % len(sp.stations))
+    logger.info("Number of stations: %d" % nbStations)
+    logger.info("/apps/px/etc/stations_TAF.conf has been created")
