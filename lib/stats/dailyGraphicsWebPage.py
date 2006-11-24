@@ -117,7 +117,7 @@ def main():
         """ %(rxName)
     
         print """    
-            <td bgcolor="#66CCFF" width = "25%%" >   Days :   <a target ="%s" href="%ssymlinks/daily/%s/%s">%s   </a><a target ="%s" href="%ssymlinks/daily/%s/%s">%s   </a><a target ="%s" href="%ssymlinks/daily/%s/%s">%s   </a><a target ="%s" href="%ssymlinks/daily/%s/%s">%s   </a><a target ="%s" href="%ssymlinks/daily/%s/%s">%s   </a><a target ="%s" href="%ssymlinks/daily/%s/%s">%s   </a><a target ="%s" href="%ssymlinks/daily/%s/%s">%s   </a></td>
+            <td bgcolor="#66CCFF" width = "25%%" >   Days :   <a target ="%s" href="%ssymlinks/daily/%s/%s.png">%s   </a><a target ="%s" href="%ssymlinks/daily/%s/%s.png">%s   </a><a target ="%s" href="%ssymlinks/daily/%s/%s.png">%s   </a><a target ="%s" href="%ssymlinks/daily/%s/%s.png">%s   </a><a target ="%s" href="%ssymlinks/daily/%s/%s.png">%s   </a><a target ="%s" href="%ssymlinks/daily/%s/%s.png">%s   </a><a target ="%s" href="%ssymlinks/daily/%s/%s.png">%s   </a></td>
         """%( rxName,PXPaths.GRAPHS,rxName,days[0],days[0], rxName,PXPaths.GRAPHS,rxName,days[1],days[1], rxName,PXPaths.GRAPHS,rxName,days[2],days[2],rxName,PXPaths.GRAPHS,rxName,days[3],days[3], rxName,PXPaths.GRAPHS,rxName,days[4],days[4], rxName,PXPaths.GRAPHS,rxName,days[5],days[5], rxName,PXPaths.GRAPHS,rxName,days[6],days[6] )   
                  
     
@@ -144,7 +144,7 @@ def main():
         """ %(txName)
         
         print """    
-            <td bgcolor="#66CCFF" width = "25%%" >   Days :   <a target ="%s" href="%ssymlinks/daily/%s/%s">%s   </a><a target ="%s" href="%ssymlinks/daily/%s/%s">%s   </a><a target ="%s" href="%ssymlinks/daily/%s/%s">%s   </a><a target ="%s" href="%ssymlinks/daily/%s/%s">%s   </a><a target ="%s" href="%ssymlinks/daily/%s/%s">%s   </a><a target ="%s" href="%ssymlinks/daily/%s/%s">%s   </a><a target ="%s" href="%ssymlinks/daily/%s/%s">%s   </a></td>
+            <td bgcolor="#66CCFF" width = "25%%" >   Days :   <a target ="%s" href="%ssymlinks/daily/%s/%s.png">%s   </a><a target ="%s" href="%ssymlinks/daily/%s/%s.png">%s   </a><a target ="%s" href="%ssymlinks/daily/%s/%s.png">%s   </a><a target ="%s" href="%ssymlinks/daily/%s/%s.png">%s   </a><a target ="%s" href="%ssymlinks/daily/%s/%s.png">%s   </a><a target ="%s" href="%ssymlinks/daily/%s/%s.png">%s   </a><a target ="%s" href="%ssymlinks/daily/%s/%s.png">%s   </a></td>
         """%( txName,PXPaths.GRAPHS,txName,days[0],days[0], txName,PXPaths.GRAPHS,txName,days[1],days[1], txName,PXPaths.GRAPHS,txName,days[2],days[2],txName,PXPaths.GRAPHS,txName,days[3],days[3], txName,PXPaths.GRAPHS,txName,days[4],days[4], txName,PXPaths.GRAPHS,txName,days[5],days[5], txName,PXPaths.GRAPHS,txName,days[6],days[6] )         
 
         

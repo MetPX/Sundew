@@ -105,10 +105,10 @@ def main():
         <br>
          <table width="100%" border="1" cellspacing="5" cellpadding="5" bgcolor="#cccccc" bordercolor="#CCCCCC" frame = void > 
         <tr>    
-            <td bgcolor="#006699" width = "25%">Client</td>
-            <td bgcolor="#006699" width = "25%">Bytecount</td>
-            <td bgcolor="#006699" width = "25%">Filecount</td>
-            <td bgcolor="#006699" width = "25%">Errors</td>
+            <td bgcolor="#006699" width = "25%"><font color = "white">Client</font></td>
+            <td bgcolor="#006699" width = "25%"><font color = "white">Bytecount</font></td>
+            <td bgcolor="#006699" width = "25%"><font color = "white">Filecount</font></td>
+            <td bgcolor="#006699" width = "25%"><font color = "white">Errors<</font>/td>
         </tr>   
         
     
@@ -148,12 +148,12 @@ def main():
     <table width="100%%" border="1" cellspacing="5" cellpadding="5" bgcolor="#cccccc" bordercolor="#CCCCCC" frame = void >    
         <tr>
 
-            <td bgcolor="#006699" width = "16.66%%">Client</td>
-            <td bgcolor="#006699" width = "16.66%%">Latency</td>
-            <td bgcolor="#006699" width = "16.66%%">Latencies over 15 secs.</td>
-            <td bgcolor="#006699" width = "16.66%%">Bytecount</td>
-            <td bgcolor="#006699" width = "16.66%%">Filecount</td>
-            <td bgcolor="#006699" width = "16.66%%">Errors</td>
+            <td bgcolor="#006699" width = "16.66%%"><font color = "white">Client</font></td>
+            <td bgcolor="#006699" width = "16.66%%"><font color = "white">Latency</font></td>
+            <td bgcolor="#006699" width = "16.66%%"><font color = "white">Latencies over 15 secs.</font></td>
+            <td bgcolor="#006699" width = "16.66%%"><font color = "white">Bytecount</font></td>
+            <td bgcolor="#006699" width = "16.66%%"><font color = "white">Filecount</font></td>
+            <td bgcolor="#006699" width = "16.66%%"><font color = "white">Errors</font></td>
             
         </tr>  
       

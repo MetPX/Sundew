@@ -400,6 +400,7 @@ class StatsPlotter:
             an shorter, easier to read name. 
             
         """
+        
         clientName = ""
         
         if len( self.clientNames ) == 0:
@@ -412,15 +413,22 @@ class StatsPlotter:
         
         src         = self.imageName
         
-        destination = PXPaths.GRAPHS + "/symlinks/%.50s.png" %clientName
+        firstDestination = PXPaths.GRAPHS + "/symlinks/%.50s.png" %clientName
 
         if not os.path.isdir( PXPaths.GRAPHS + "/symlinks/" ):
             os.makedirs( PXPaths.GRAPHS + "/symlinks/", mode=0777 )                                                      
         
-        if os.path.isfile( destination ):
-            os.remove( destination )
+        if os.path.isfile( firstDestination ):
+            os.remove( firstDestination )
         
-        os.symlink( src, destination )
+        os.symlink( src, firstDestination )
+        
+        secondDestination = 
+        
+        
+        
+        
+        
         
         
          

@@ -94,16 +94,22 @@ def main():
             <title> PX Graphics </title>
         </head>    
         <body text="#000000" link="#FFFFFF" vlink="000000" bgcolor="#CCCCCC" >
-        
+        <STYLE>
+            <!--
+            A{text-decoration:none}
+            -->
+        </STYLE>
         <br>
         <h2>Weekly graphics for RX sources from MetPx.</h2>
         <br>
         <table width="100%" border="1" cellspacing="5" cellpadding="5" bgcolor="#cccccc" bordercolor="#CCCCCC" frame = void > 
         <tr>    
-            <td bgcolor="#006699" width = "25%" >Client</td>
-            <td bgcolor="#006699" width = "25%">Bytecount</td>
-            <td bgcolor="#006699" width = "25%">Filecount</td>
-            <td bgcolor="#006699" width = "25%">Errors</td>
+            
+            <td bgcolor="#006699" width = "25%" ><font color = "white">Sources</font></td>
+            <td bgcolor="#006699" width = "25%"><font color = "white">Bytecount</font></td>
+            <td bgcolor="#006699" width = "25%"><font color = "white">Filecount</font></td>
+            <td bgcolor="#006699" width = "25%"><font color = "white">Errors</font></td>
+            
         </tr>         
     
     """     
@@ -115,18 +121,18 @@ def main():
         """ %(rxName)
     
         print """    
-            <td bgcolor="#66CCFF" width = "25%%" >Weeks: <a target ="%s" href="%ssymlinks/weekly/bytecount/%s/%s">%s </a><a target ="%s" href="%ssymlinks/weekly/bytecount/%s/%s">%s </a><a target ="%s" href="%ssymlinks/weekly/bytecount/%s/%s">%s </a><a target ="%s" href="%ssymlinks/weekly/bytecount/%s/%s">%s </a><a target ="%s" href="%ssymlinks/weekly/bytecount/%s/%s">%s </a></td>
+            <td bgcolor="#66CCFF" width = "25%%" >Weeks &nbsp;:&nbsp; <a target ="%s" href="%ssymlinks/weekly/bytecount/%s/%s.png">%s </a><a target ="%s" href="%ssymlinks/weekly/bytecount/%s/%s.png">%s </a><a target ="%s" href="%ssymlinks/weekly/bytecount/%s/%s.png">%s </a><a target ="%s" href="%ssymlinks/weekly/bytecount/%s/%s.png">%s </a><a target ="%s" href="%ssymlinks/weekly/bytecount/%s/%s.png">%s </a></td>
         """%( rxName,PXPaths.GRAPHS,rxName,weekNumbers[0],weekNumbers[0], rxName,PXPaths.GRAPHS,rxName,weekNumbers[1],weekNumbers[1], rxName,PXPaths.GRAPHS,rxName,weekNumbers[2],weekNumbers[2], rxName,PXPaths.GRAPHS,rxName,weekNumbers[3],weekNumbers[3], rxName,PXPaths.GRAPHS,rxName,weekNumbers[4],weekNumbers[4] )       
     
     
         
         print """    
-            <td bgcolor="#66CCFF" width = "25%%" >Weeks: <a target ="%s" href="%ssymlinks/weekly/filecount/%s/%s">%s </a><a target ="%s" href="%ssymlinks/weekly/filecount/%s/%s">%s </a><a target ="%s" href="%ssymlinks/weekly/filecount/%s/%s">%s </a><a target ="%s" href="%ssymlinks/weekly/filecount/%s/%s">%s </a><a target ="%s" href="%ssymlinks/weekly/filecount/%s/%s">%s </a></td>
+            <td bgcolor="#66CCFF" width = "25%%" >Weeks &nbsp;:&nbsp; <a target ="%s" href="%ssymlinks/weekly/filecount/%s/%s.png">%s </a><a target ="%s" href="%ssymlinks/weekly/filecount/%s/%s.png">%s </a><a target ="%s" href="%ssymlinks/weekly/filecount/%s/%s.png">%s </a><a target ="%s" href="%ssymlinks/weekly/filecount/%s/%s.png">%s </a><a target ="%s" href="%ssymlinks/weekly/filecount/%s/%s.png">%s </a></td>
         """%( rxName,PXPaths.GRAPHS,rxName,weekNumbers[0],weekNumbers[0], rxName,PXPaths.GRAPHS,rxName,weekNumbers[1],weekNumbers[1], rxName,PXPaths.GRAPHS,rxName,weekNumbers[2],weekNumbers[2], rxName,PXPaths.GRAPHS,rxName,weekNumbers[3],weekNumbers[3], rxName,PXPaths.GRAPHS,rxName,weekNumbers[4],weekNumbers[4] )   
         
         
         print """    
-            <td bgcolor="#66CCFF" width = "25%%" >Weeks: <a target ="%s" href="%ssymlinks/weekly/errors/%s/%s">%s </a><a target ="%s" href="%ssymlinks/weekly/errors/%s/%s">%s </a><a target ="%s" href="%ssymlinks/weekly/errors/%s/%s">%s </a><a target ="%s" href="%ssymlinks/weekly/errors/%s/%s">%s </a><a target ="%s" href="%ssymlinks/weekly/errors/%s/%s">%s </a></td>
+            <td bgcolor="#66CCFF" width = "25%%" >Weeks &nbsp;: &nbsp;<a target ="%s" href="%ssymlinks/weekly/errors/%s/%s.png">%s </a><a target ="%s" href="%ssymlinks/weekly/errors/%s/%s.png">%s </a><a target ="%s" href="%ssymlinks/weekly/errors/%s/%s.png">%s </a><a target ="%s" href="%ssymlinks/weekly/errors/%s/%s.png">%s </a><a target ="%s" href="%ssymlinks/weekly/errors/%s/%s.png">%s </a></td>
         """%( rxName,PXPaths.GRAPHS,rxName,weekNumbers[0],weekNumbers[0], rxName,PXPaths.GRAPHS,rxName,weekNumbers[1],weekNumbers[1], rxName,PXPaths.GRAPHS,rxName,weekNumbers[2],weekNumbers[2], rxName,PXPaths.GRAPHS,rxName,weekNumbers[3],weekNumbers[3], rxName,PXPaths.GRAPHS,rxName,weekNumbers[4],weekNumbers[4] )                              
     
         
@@ -140,12 +146,12 @@ def main():
     <table width="100%%" border="1" cellspacing="5" cellpadding="5" bgcolor="#cccccc" bordercolor="#CCCCCC" frame = void >    
         <tr>
 
-            <td bgcolor="#006699" width = "16.66%%">Client</td>
-            <td bgcolor="#006699" width = "16.66%%">Latency</td>
-            <td bgcolor="#006699" width = "16.66%%">Files Over Maximum Latency</td>
-            <td bgcolor="#006699" width = "16.66%%">Bytecount</td>
-            <td bgcolor="#006699" width = "16.66%%">Filecount</td>
-            <td bgcolor="#006699" width = "16.66%%">Errors</td>
+            <td bgcolor="#006699" width = "16.66%%"><font color = "white">Client</font></td>
+            <td bgcolor="#006699" width = "16.66%%"><font color = "white">Latency</font></td>
+            <td bgcolor="#006699" width = "16.66%%"><font color = "white">Files Over Maximum Latency</font></td>
+            <td bgcolor="#006699" width = "16.66%%"><font color = "white">Bytecount</font></td>
+            <td bgcolor="#006699" width = "16.66%%"><font color = "white">Filecount</font></td>
+            <td bgcolor="#006699" width = "16.66%%"><font color = "white">Errors</font></td>
             
         </tr>
     
@@ -156,23 +162,23 @@ def main():
         """ %(txName)
         
         print """    
-            <td bgcolor="#66CCFF" width = "16.66%%" >Weeks: <a target ="%s" href="%ssymlinks/weekly/latency/%s/%s">%s  </a><a target ="%s" href="%ssymlinks/weekly/latency/%s/%s">%s  </a><a target ="%s" href="%ssymlinks/weekly/latency/%s/%s">%s  </a><a target ="%s" href="%ssymlinks/weekly/latency/%s/%s">%s  </a><a target ="%s" href="%ssymlinks/weekly/latency/%s/%s">%s  </a></td>
+            <td bgcolor="#66CCFF" width = "16.66%%" >Weeks:    <a target ="%s" href="%ssymlinks/weekly/latency/%s/%s.png">%s  </a><a target ="%s" href="%ssymlinks/weekly/latency/%s/%s.png">%s  </a><a target ="%s" href="%ssymlinks/weekly/latency/%s/%s.png">%s  </a><a target ="%s" href="%ssymlinks/weekly/latency/%s/%s.png">%s  </a><a target ="%s" href="%ssymlinks/weekly/latency/%s/%s.png">%s  </a></td>
         """%( txName,PXPaths.GRAPHS,txName,weekNumbers[0],weekNumbers[0], txName,PXPaths.GRAPHS,txName,weekNumbers[1],weekNumbers[1], txName,PXPaths.GRAPHS,txName,weekNumbers[2],weekNumbers[2], txName,PXPaths.GRAPHS,txName,weekNumbers[3],weekNumbers[3], txName,PXPaths.GRAPHS,txName,weekNumbers[4],weekNumbers[4] )    
         
         print """    
-            <td bgcolor="#66CCFF" width = "16.66%%" >Weeks: <a target ="%s" href="%ssymlinks/weekly/filesOverMaxLatency/%s/%s">%s  </a><a target ="%s" href="%ssymlinks/weekly/filesOverMaxLatency/%s/%s">%s </a><a target ="%s" href="%ssymlinks/weekly/filesOverMaxLatency/%s/%s">%s </a><a target ="%s" href="%ssymlinks/weekly/filesOverMaxLatency/%s/%s">%s </a><a target ="%s" href="%ssymlinks/weekly/filesOverMaxLatency/%s/%s">%s </a></td>
+            <td bgcolor="#66CCFF" width = "16.66%%" >Weeks:    <a target ="%s" href="%ssymlinks/weekly/filesOverMaxLatency/%s/%s.png">%s  </a><a target ="%s" href="%ssymlinks/weekly/filesOverMaxLatency/%s/%s.png">%s </a><a target ="%s" href="%ssymlinks/weekly/filesOverMaxLatency/%s/%s.png">%s </a><a target ="%s" href="%ssymlinks/weekly/filesOverMaxLatency/%s/%s.png">%s </a><a target ="%s" href="%ssymlinks/weekly/filesOverMaxLatency/%s/%s.png">%s </a></td>
         """%( txName,PXPaths.GRAPHS,txName,weekNumbers[0],weekNumbers[0], txName,PXPaths.GRAPHS,txName,weekNumbers[1],weekNumbers[1], txName,PXPaths.GRAPHS,txName,weekNumbers[2],weekNumbers[2], txName,PXPaths.GRAPHS,txName,weekNumbers[3],weekNumbers[3], txName,PXPaths.GRAPHS,txName,weekNumbers[4],weekNumbers[4] )    
         
         print """    
-            <td bgcolor="#66CCFF" width = "16.66%%" >Weeks: <a target ="%s" href="%ssymlinks/weekly/bytecount/%s/%s">%s </a><a target ="%s" href="%ssymlinks/weekly/bytecount/%s/%s">%s </a><a target ="%s" href="%ssymlinks/weekly/bytecount/%s/%s">%s </a><a target ="%s" href="%ssymlinks/weekly/bytecount/%s/%s">%s </a><a target ="%s" href="%ssymlinks/weekly/bytecount/%s/%s">%s </a></td>
+            <td bgcolor="#66CCFF" width = "16.66%%" >Weeks:    <a target ="%s" href="%ssymlinks/weekly/bytecount/%s/%s.png">%s </a><a target ="%s" href="%ssymlinks/weekly/bytecount/%s/%s.png">%s </a><a target ="%s" href="%ssymlinks/weekly/bytecount/%s/%s.png">%s </a><a target ="%s" href="%ssymlinks/weekly/bytecount/%s/%s.png">%s </a><a target ="%s" href="%ssymlinks/weekly/bytecount/%s/%s.png">%s </a></td>
         """%( txName,PXPaths.GRAPHS,txName,weekNumbers[0],weekNumbers[0], txName,PXPaths.GRAPHS,txName,weekNumbers[1],weekNumbers[1], txName,PXPaths.GRAPHS,txName,weekNumbers[2],weekNumbers[2], txName,PXPaths.GRAPHS,txName,weekNumbers[3],weekNumbers[3], txName,PXPaths.GRAPHS,txName,weekNumbers[4],weekNumbers[4] )    
         
         print """    
-            <td bgcolor="#66CCFF" width = "16.66%%" >Weeks: <a target ="%s" href="%ssymlinks/weekly/filecount/%s/%s">%s </a><a target ="%s" href="%ssymlinks/weekly/filecount/%s/%s">%s </a><a target ="%s" href="%ssymlinks/weekly/filecount/%s/%s">%s </a><a target ="%s" href="%ssymlinks/weekly/filecount/%s/%s">%s </a><a target ="%s" href="%ssymlinks/weekly/filecount/%s/%s">%s </a></td>
+            <td bgcolor="#66CCFF" width = "16.66%%" >Weeks:    <a target ="%s" href="%ssymlinks/weekly/filecount/%s/%s.png">%s     </a><a target ="%s" href="%ssymlinks/weekly/filecount/%s/%s.png">%s     </a><a target ="%s" href="%ssymlinks/weekly/filecount/%s/%s.png">%s    </a><a target ="%s" href="%ssymlinks/weekly/filecount/%s/%s.png">%s     </a><a target ="%s" href="%ssymlinks/weekly/filecount/%s/%s.png">%s     </a></td>
         """%( txName,PXPaths.GRAPHS,txName,weekNumbers[0],weekNumbers[0], txName,PXPaths.GRAPHS,txName,weekNumbers[1],weekNumbers[1], txName,PXPaths.GRAPHS,txName,weekNumbers[2],weekNumbers[2], txName,PXPaths.GRAPHS,txName,weekNumbers[3],weekNumbers[3], txName,PXPaths.GRAPHS,txName,weekNumbers[4],weekNumbers[4] )    
         
         print """    
-            <td bgcolor="#66CCFF" width = "16.66%%" >Weeks: <a target ="%s" href="%ssymlinks/weekly/errors/%s/%s">%s </a><a target ="%s" href="%ssymlinks/weekly/errors/%s/%s">%s </a><a target ="%s" href="%ssymlinks/weekly/errors/%s/%s">%s </a><a target ="%s" href="%ssymlinks/weekly/errors/%s/%s">%s </a><a target ="%s" href="%ssymlinks/weekly/errors/%s/%s">%s </a></td>
+            <td bgcolor="#66CCFF" width = "16.66%%" >Weeks:    <a target ="%s" href="%ssymlinks/weekly/errors/%s/%s.png">%s     </a><a target ="%s" href="%ssymlinks/weekly/errors/%s/%s.png">%s    </a><a target ="%s" href="%ssymlinks/weekly/errors/%s/%s.png">%s    </a><a target ="%s" href="%ssymlinks/weekly/errors/%s/%s.png">%s     </a><a target ="%s" href="%ssymlinks/weekly/errors/%s/%s.png">%s    </a></td>
         """%( txName,PXPaths.GRAPHS,txName,weekNumbers[0],weekNumbers[0], txName,PXPaths.GRAPHS,txName,weekNumbers[1],weekNumbers[1], txName,PXPaths.GRAPHS,txName,weekNumbers[2],weekNumbers[2], txName,PXPaths.GRAPHS,txName,weekNumbers[3],weekNumbers[3], txName,PXPaths.GRAPHS,txName,weekNumbers[4],weekNumbers[4] )    
  
         

@@ -708,7 +708,7 @@ def getLinkDestination( type, client, infos ):
         fileName =  time.strftime( "%Y", time.gmtime( endDateInSeconds ) )
     
     
-    destination = PXPaths.GRAPHS + "symlinks/%s/%s/%s/%.50s.png" %( graphicType, client, type, fileName )
+    destination = PXPaths.GRAPHS + "symlinks/%s/%s/%s/%.50s.png" %( graphicType, type , client, fileName )
     
     return destination    
     

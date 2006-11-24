@@ -72,7 +72,7 @@ def getIndividualValues( values ):
     values = values.split( ";" )
     
     for value in values :
-        individualValues.extend( value.split( "," ) )
+        individualValues.extend( value.split( "," ) )getGraphicsForWebPages.py
         
     return individualValues
     
@@ -267,9 +267,29 @@ def updateDatabases( parameters ):
 
 def getGraphicsForWebPages( ):
     """
+        Launchs the getGraphicsForWebPages.py
+        program. 
+        
     """
-    x =1
-                    
+    
+    status, output = commands.getstatusoutput("/apps/px/lib/stats/getGraphicsForWebPages.py")
+                        
+
+
+def updateWebPages()
+    """
+        Lauchs all the programs that 
+        update the different web pages. 
+            
+    """ 
+       
+    status, output = commands.getstatusoutput( "/apps/px/lib/stats/dailyGraphicsWebPage.py" )
+    status, output = commands.getstatusoutput( "/apps/px/lib/stats/weeklyGraphicsWebPage.py" )
+    status, output = commands.getstatusoutput( "/apps/px/lib/stats/monthlyGraphicsWebPage.py" )
+    status, output = commands.getstatusoutput( "/apps/px/lib/stats/yearlyGraphicsWebPage.py" )
+
+    
+    
 def main():
     """
         Gets all the parameters from config file.
@@ -283,10 +303,11 @@ def main():
     parameters = getParametersFromConfigurationFile()
     validateParameters( parameters )
     updatePickles( parameters )
-    #generateGraphics( parameters )
-    #updateDatabases( parameters )
-    #getGraphicsForWebPages()
-    #uploadGraphicFiles( parameters )
+    updateDatabases( parameters )
+    generateGraphics( parameters )
+    getGraphicsForWebPages()
+    updateWebPages()
+    uploadGraphicFiles( parameters )
             
     print "Finished."
     
