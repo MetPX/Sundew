@@ -30,6 +30,30 @@ from PXManager import *
 
 localMachine = os.uname()[1]
 
+
+def updateConfigurationFiles( machine, login ):
+    """
+        rsync .conf files from designated machine to local machine
+        to make sure we're up to date.
+
+    """
+
+    if not os.path.isdir( '/apps/px/stats/rx/' ):
+        os.makedirs(  '/apps/px/stats/rx/' , mode=0777 )
+    if not os.path.isdir( '/apps/px/stats/tx/'  ):
+        os.makedirs( '/apps/px/stats/tx/', mode=0777 )
+    if not os.path.isdir( '/apps/px/stats/trx/' ):
+        os.makedirs(  '/apps/px/stats/trx/', mode=0777 )
+
+
+    status, output = commands.getstatusoutput( "rsync -avzr --delete-before -e ssh %s@%s:/apps/px/etc/rx/ /apps/px/stats/rx/%s/"  %( login, machine, machine ) )
+    #print output # for debugging only
+
+    status, output = commands.getstatusoutput( "rsync -avzr  --delete-before -e ssh %s@%s:/apps/px/etc/tx/ /apps/px/stats/tx/%s/"  %( login, machine, machine ) )
+    #print output # for debugging only
+    
+    
+    
 def getRxTxNames( machine ):
     """
         Returns a tuple containg RXnames and TXnames that we've rsync'ed 
@@ -42,6 +66,7 @@ def getRxTxNames( machine ):
     
     remoteMachines= [ "pds3-dev", "pds4-dev","lvs1-stage", "logan1", "logan2" ]
     if localMachine in remoteMachines :#These values need to be set here.
+        updateConfigurationFiles( machine, "pds" )
         PXPaths.RX_CONF  = '/apps/px/stats/rx/%s/'  %machine
         PXPaths.TX_CONF  = '/apps/px/stats/tx/%s/'  %machine
         PXPaths.TRX_CONF = '/apps/px/stats/trx/%s/' %machine

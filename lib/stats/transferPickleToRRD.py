@@ -65,6 +65,27 @@ class _Infos:
         self.fileTypes = fileTypes # Filetypes of each clients.
 
         
+def updateConfigurationFiles( machine, login ):
+    """
+        rsync .conf files from designated machine to local machine
+        to make sure we're up to date.
+
+    """
+
+    if not os.path.isdir( '/apps/px/stats/rx/' ):
+        os.makedirs(  '/apps/px/stats/rx/' , mode=0777 )
+    if not os.path.isdir( '/apps/px/stats/tx/'  ):
+        os.makedirs( '/apps/px/stats/tx/', mode=0777 )
+    if not os.path.isdir( '/apps/px/stats/trx/' ):
+        os.makedirs(  '/apps/px/stats/trx/', mode=0777 )
+
+
+    status, output = commands.getstatusoutput( "rsync -avzr --delete-before -e ssh %s@%s:/apps/px/etc/rx/ /apps/px/stats/rx/%s/"  %( login, machine, machine ) )
+    #print output # for debugging only
+
+    status, output = commands.getstatusoutput( "rsync -avzr  --delete-before -e ssh %s@%s:/apps/px/etc/tx/ /apps/px/stats/tx/%s/"  %( login, machine, machine ) )
+    #print output # for debugging only
+        
         
 def createParser( ):
     """ 
@@ -161,7 +182,10 @@ def getOptionsFromParser( parser, logger = None  ):
     
     if machines[0] == 'ALL' : 
         machines = [ 'pds5','pds6' ]
-        
+    
+    for machine in machines:
+        updateConfigurationFiles( machine, "pds" )
+                
     #init fileTypes array HERE     
     if clients[0] == "ALL" and fileTypes[0] != "":
         print "Error. Filetypes cannot be specified when all clients are to be updated." 

@@ -69,6 +69,8 @@ DEVELOPMENT REQUIREMENTS :
 
 - Library must be able to display such graphic to a user within an acceptable time frame.( < 40 sec )    
   
+- Library must give access to graphics through the Columbo web interface. 
+ 
 - Library must allow user to specify the following options for data collection and graphics production :
   machine name, current time, source/client name, file type.
 
@@ -272,17 +274,35 @@ Dealing with remote machines
   for by a user.  
 
 
+Graphic interface :
+--------------------------------------------------------------
+Up to date graphics are made avaiable to users using a simple link represented by a 
+small graphic image within Columbo's PX Circuits tab. 
+
+The other graphics are avaible on the following web pages : dailyGraphs.html,
+weeklyGraphs.html, monthlyGraphs.html and yearlyGraphs.html.
+
+Daily graphs gives users the acces to the daily graphics of the past 7 days. 
+Weekly graphs gives users the access to the weekly graphs of the past 5 weeks.
+Monthly graphs gives users the access to the monthly graphs of the past 3 months.
+Yearly graphs gives users the access to the yearly graphs of the past 3 years.
+
+
 
 List of files included in the stats library are :
 --------------------------------------------------------------
 - ClientGraphicProducer.py  
 - ClientStatsPickler.py 
 - cpickleWrapper.py
+- dailyGraphicsWebPage.py
 - DirectoryFileCollector.py    
 - FileStatsCollector.py 
 - generateGraphics.py
 - generateRRDGraphics.py
 - generateAllGraphsForServer.py
+- getGraphicsForWebPages.py
+- launchGraphCreation.py
+- monthlyGraphicsWebPage.py
 - MyDateLib.py
 - pickleCleaner.py 
 - pickleMerging.py
@@ -293,7 +313,13 @@ List of files included in the stats library are :
 - pickledTimesViewer.py
 - PickleVersionChecker.py
 - transferPickleToRRD.py
+- weeklyGraphicsWebPage.py
+- yearlyGraphicsWebPage.py
 
+
+Note : Files that start with a lower case character are executable programs.
+       Files that start wiht an upper case character contain contain class'
+       to be used as objects.
 
 These library files are required by the stats library :
 -------------------------------------------------------------------
@@ -333,6 +359,8 @@ one of the programs of the library.
 File interaction : 
 -------------------
 
+------------------------------------------------------------------------------
+                                   
                                    PickleVersionChecker
                                               /\
                           FileStatsCollector  |          StatsPlotter  
@@ -349,9 +377,24 @@ transferPickleToRRD |  pickleUpdater                      generateGraphics
                     |                                          /\         
                     |                                          |
      generateRRDGraphics                        generateAllGraphsForServer                
-                
-                
-                
+     
+     
+-------------------------------------------------------------------------------
+                               / \
+                                |
+                                |
+|------------------------|      | 
+| weeklyGraphicsWebPage  |      |
+| monthlyGraphicsWebPage |      |                    
+| dailyGraphicsWebPage   |/_____|
+| yearlyGraphicsWebPage  |\     |        
+|------------------------|      |                          
+                                |
+                                |
+                                |                
+                         launchGraphCreation   
+       
+     
 --Note : x-->y means x uses y            
 
 ---------------------------------------------------------------------------------------------------
@@ -393,7 +436,12 @@ Quick File Overview
                      
                      Also handles exceptions when trying to open a file that does not exist.
                  
-                         
+                     
+-dailyGraphicsWebPage.py : Generate a web page named dailyGraphs.html that gives users acces
+                            to the daily graphics of the past seven days of all the sources and
+                            clients of the current machines. 
+                            
+                                                     
 -DirectoryFileCollector.py  :  This file is used to gather all the interesting files present in 
                                a specific directory.  
                                
@@ -431,14 +479,23 @@ Quick File Overview
                              Otherwise it is similar to generateGraphics and generateAllGraphsForServer
                              as it allow to create graphs from command line and for as many sources/clients
                              as desired.                          
+                             
                                      
+- getGraphicsForWebPages.py : This program is to be called hourly within a crontab or through another program
+                              like launchGraphCreation.py. It was built to ensure that through time 
+                              the graphics required by the different web pages present or updated.
+
+                              
+-monthlyGraphicsWebPage.py : Generate a web page named monthlyGraphs.html that gives users acces
+                             to the monthly graphics of the past 3 months of all the sources and
+                             clients of the current machines.                                
                      
+                             
 -MyDateLib.py     : Temporary file wich contains date manipulation methods I have been working on.
                     They probably should be addded to the regular DateLib.py once they are found to 
-                    be usefull and reliable.   
-                    
-
-                                                       
+                    be usefull and reliable.                      
+                                  
+                                         
 -pickleMerging.py : This file contains the methods needed to combine data found in different pickle
                     files that are covering the same time period. Example : Data that comes from the
                     same source/client but from different machines.
@@ -485,7 +542,13 @@ Quick File Overview
                        that was saved using pickleUpdater.py into an rrd database.
                        In turn, the rrd database can be used to plot graphics using rrdTool.            
                     
-         
+-weeklyGraphicsWebPage.py : Generate a web page named weeklyGraphs.html that gives users acces
+                            to the weekly graphics of the past five days of all the sources and
+                            clients of the current machines.  
+                            
+-yearlyGraphicsWebPage.py : Generate a web page named yearlyGraphs.html that gives users acces
+                            to the yearly graphics of the past three years of all the sources and
+                            clients of the current machines.                                        
 
 File system 
 ---------------------------------------------------------------------------------------------------
@@ -653,7 +716,10 @@ USAGE:
 
 Todo, bugs etc....
 ---------------------------------------------------------------------------------------------------
-To be completed...    
+Building a pickle file and stats logfile monitoring system would be nice.
+It would help us make sure that the data represented in graphics is accurate and that the 10 years 
+wide data is not polluted with erronous data.
+   
        
 
 

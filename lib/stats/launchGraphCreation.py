@@ -72,7 +72,7 @@ def getIndividualValues( values ):
     values = values.split( ";" )
     
     for value in values :
-        individualValues.extend( value.split( "," ) )getGraphicsForWebPages.py
+        individualValues.extend( value.split( "," ) )
         
     return individualValues
     
@@ -276,7 +276,7 @@ def getGraphicsForWebPages( ):
                         
 
 
-def updateWebPages()
+def updateWebPages():
     """
         Lauchs all the programs that 
         update the different web pages. 

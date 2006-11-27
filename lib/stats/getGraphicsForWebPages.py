@@ -7,7 +7,11 @@ named COPYING in the root of the source directory tree.
 ##########################################################################
 ##
 ## Name   : getGraphicsForWebPages.py 
-##  
+## 
+## Description : Gathers all the .png graphics required by the following 
+##               web pages: dailyGraphs.html, weeklyGraphs.html, 
+##               monthlyGraphs.html, yearlyGraphs.html
+##                 
 ## Author : Nicholas Lemay  
 ##
 ## Date   : November 22nd 2006
@@ -31,7 +35,7 @@ def updateThisYearsGraphs( currentTime ):
         via the web pages.
         
     """
-    x =1 
+
     
     status, output = commands.getstatusoutput( "/apps/px/lib/stats/generateRRDGraphics.py -y -l -f tx --machines 'pds5,pds6' " )
     
@@ -83,7 +87,7 @@ def updateThisMonthsGraphs( currentTime ):
         via the web pages.
         
     """
-    x =1 
+
     
     status, output = commands.getstatusoutput( "/apps/px/lib/stats/generateRRDGraphics.py -m -l -f tx --machines 'pds5,pds6' " )
     
@@ -166,7 +170,7 @@ def updateThisWeeksGraphs( currentTime ):
         via the web pages.    
             
     """
-    x =1 
+
     
     status, output = commands.getstatusoutput( "/apps/px/lib/stats/generateRRDGraphics.py -w -l -f tx --machines 'pds5,pds6' " )
     
@@ -237,8 +241,7 @@ def main():
     """
     
     """
-    currentTime = 1167611100
-    #time.time()
+    currentTime = time.time()
     
     setCurrentGraphsAsDailyGraphs( currentTime )
     
@@ -258,7 +261,7 @@ def main():
             updateThisMonthsGraphs( currentTime)
             setLastMonthsGraphs( currentTime )        
         else:
-            updateThisMonthsGraphs( currentTime)    
+            updateThisMonthsGraphs( currentTime )    
         
         #print "day in year : %s" %int(time.strftime( "%j", time.gmtime( currentTime ) ))
         if int(time.strftime( "%j", time.gmtime( currentTime ) )) == 1:#first day of year
@@ -266,8 +269,10 @@ def main():
             setLastYearsGraphs( currentTime )
         else:
             updateThisYearsGraphs( currentTime )     
-
-             
+    
+    else:
+        updateThisWeeksGraphs( currentTime )
+            
     
 if __name__ == "__main__" :
     main()
