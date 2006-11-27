@@ -19,7 +19,8 @@ named COPYING in the root of the source directory tree.
 #############################################################################
 
 import os, sys, time, shutil, glob,commands
-import PXPaths
+import PXPaths, MyDateLib
+from MyDateLib import *
 
 
 PXPaths.normalPaths()
@@ -35,15 +36,15 @@ def updateThisYearsGraphs( currentTime ):
         via the web pages.
         
     """
-
+    end = MyDateLib.getIsoFromEpoch(currentTime)
     
-    status, output = commands.getstatusoutput( "/apps/px/lib/stats/generateRRDGraphics.py -y -l -f tx --machines 'pds5,pds6' " )
+    status, output = commands.getstatusoutput( "/apps/px/lib/stats/generateRRDGraphics.py -y -l -f tx --machines 'pds5,pds6' -e '%s'" %end )
     
-    status, output = commands.getstatusoutput( "/apps/px/lib/stats/generateRRDGraphics.py -y -l -f rx --machines 'pds5,pds6' " )
+    status, output = commands.getstatusoutput( "/apps/px/lib/stats/generateRRDGraphics.py -y -l -f rx --machines 'pds5,pds6' -e '%s'" %end )
     
-    status, output = commands.getstatusoutput( "/apps/px/lib/stats/generateRRDGraphics.py -y -l -f tx --machines 'pxatx' " )
+    status, output = commands.getstatusoutput( "/apps/px/lib/stats/generateRRDGraphics.py -y -l -f tx --machines 'pxatx' -e '%s'" %end )
     
-    status, output = commands.getstatusoutput( "/apps/px/lib/stats/generateRRDGraphics.py -y -l -f rx --machines 'pxatx' " )
+    status, output = commands.getstatusoutput( "/apps/px/lib/stats/generateRRDGraphics.py -y -l -f rx --machines 'pxatx' -e '%s'" %end )
     
     
     
@@ -61,19 +62,21 @@ def setLastYearsGraphs( currentTime ):
     lastYear   = time.strftime( "%Y", time.gmtime( currentTime - ( 365*24*60*60 ) ) )
     thisYear   = time.strftime( "%Y", time.gmtime( currentTime ) )
     
-    filePattern = PXPaths.GRAPHS + "symlinks/monthly/*/%s.png" %( thisYear )    
+    filePattern = PXPaths.GRAPHS + "symlinks/monthly/*/*/%s.png" %( thisYear )    
     
     yearlyGraphs = glob.glob( filePattern )
         
     for graph in yearlyGraphs:
         clientName = os.path.basename( os.path.dirname( graph ) )
-        dest = PXPaths.GRAPHS + "symlinks/yearly/%s/%s.png" %( clientName, lastYear )
+        graphType  = os.path.basename(os.path.dirname( os.path.dirname( graph ) ) )        
+        dest = PXPaths.GRAPHS + "symlinks/yearly/%s/%s/%s.png" %( graphType, clientName, lastYear )
         
         if not os.path.isdir( os.path.dirname(dest) ):
             os.makedirs( os.path.dirname(dest) )
         shutil.copyfile( graph, dest )   
         
         #print "copy %s to %s " %(graph, dest)
+        
         
         
 def updateThisMonthsGraphs( currentTime ):
@@ -88,16 +91,17 @@ def updateThisMonthsGraphs( currentTime ):
         
     """
 
+    end = MyDateLib.getIsoFromEpoch(currentTime)
+
+    status, output = commands.getstatusoutput( "/apps/px/lib/stats/generateRRDGraphics.py -m -l -f tx --machines 'pds5,pds6' -e '%s'" %end )
     
-    status, output = commands.getstatusoutput( "/apps/px/lib/stats/generateRRDGraphics.py -m -l -f tx --machines 'pds5,pds6' " )
+    status, output = commands.getstatusoutput( "/apps/px/lib/stats/generateRRDGraphics.py -m -l -f rx --machines 'pds5,pds6' -e '%s'" %end)
     
-    status, output = commands.getstatusoutput( "/apps/px/lib/stats/generateRRDGraphics.py -m -l -f rx --machines 'pds5,pds6' " )
+    status, output = commands.getstatusoutput( "/apps/px/lib/stats/generateRRDGraphics.py -m -l -f tx --machines 'pxatx' -e '%s'" %end )
     
-    status, output = commands.getstatusoutput( "/apps/px/lib/stats/generateRRDGraphics.py -m -l -f tx --machines 'pxatx' " )
+    status, output = commands.getstatusoutput( "/apps/px/lib/stats/generateRRDGraphics.py -m -l -f rx --machines 'pxatx' -e '%s'" %end )
     
-    status, output = commands.getstatusoutput( "/apps/px/lib/stats/generateRRDGraphics.py -m -l -f rx --machines 'pxatx' " )
-    
-    
+     
     
     
 def setLastMonthsGraphs( currentTime ):
@@ -114,13 +118,14 @@ def setLastMonthsGraphs( currentTime ):
     lastMonth   = time.strftime( "%b", time.gmtime( currentTime - ( 30*24*60*60 ) ) )
     thisMonth   = time.strftime( "%b", time.gmtime( currentTime ) )
     
-    filePattern = PXPaths.GRAPHS + "symlinks/monthly/*/%s.png" %( thisMonth )    
+    filePattern = PXPaths.GRAPHS + "symlinks/monthly/*/*/%s.png" %( thisMonth )    
     
     monthlyGraphs = glob.glob( filePattern )
         
     for graph in monthlyGraphs:
         clientName = os.path.basename( os.path.dirname( graph ) )
-        dest = PXPaths.GRAPHS + "symlinks/monthly/%s/%s.png" %( clientName, lastMonth )
+        graphType  = os.path.basename(os.path.dirname( os.path.dirname( graph ) ) )        
+        dest = PXPaths.GRAPHS + "symlinks/monthly/%s/%s/%s.png" %( graphType, clientName, lastMonth )
         
         if not os.path.isdir( os.path.dirname(dest) ):
             os.makedirs( os.path.dirname(dest) )    
@@ -143,15 +148,16 @@ def setLastWeeksGraphs( currentTime ):
     lastWeeksNumber   = time.strftime( "%W", time.gmtime( currentTime - ( 7*24*60*60 ) ) )
     thisWeeksNumber   = time.strftime( "%W", time.gmtime( currentTime ))
     
-    filePattern = PXPaths.GRAPHS + "symlinks/weekly/*/%s.png" %( thisWeeksNumber )    
+    filePattern = PXPaths.GRAPHS + "symlinks/weekly/*/*/%s.png" %( thisWeeksNumber )    
     
     weeklyGraphs = glob.glob( filePattern )
-    
-    
+       
     
     for graph in weeklyGraphs:
         clientName = os.path.basename( os.path.dirname( graph ) )
-        dest = PXPaths.GRAPHS + "symlinks/weekly/%s/%s.png" %( clientName, lastWeeksNumber )
+        graphType  = os.path.basename(os.path.dirname( os.path.dirname( graph ) ) )        
+        
+        dest = PXPaths.GRAPHS + "symlinks/weekly/%s/%s/%s.png" %( graphType, clientName, lastWeeksNumber )
         if not os.path.isdir( os.path.dirname( dest ) ):
             os.makedirs( os.path.dirname( dest ) )
         
@@ -159,6 +165,7 @@ def setLastWeeksGraphs( currentTime ):
         #print "copy %s   to   %s " %( graph, dest )
     
     
+        
 def updateThisWeeksGraphs( currentTime ):
     """
     
@@ -171,14 +178,15 @@ def updateThisWeeksGraphs( currentTime ):
             
     """
 
+    end = MyDateLib.getIsoFromEpoch(currentTime)
+
+    status, output = commands.getstatusoutput( "/apps/px/lib/stats/generateRRDGraphics.py -w -l -f tx --machines 'pds5,pds6' -e '%s'" %end )
     
-    status, output = commands.getstatusoutput( "/apps/px/lib/stats/generateRRDGraphics.py -w -l -f tx --machines 'pds5,pds6' " )
+    status, output = commands.getstatusoutput( "/apps/px/lib/stats/generateRRDGraphics.py -w -l -f rx --machines 'pds5,pds6' -e '%s'" %end )
     
-    status, output = commands.getstatusoutput( "/apps/px/lib/stats/generateRRDGraphics.py -w -l -f rx --machines 'pds5,pds6' " )
+    status, output = commands.getstatusoutput( "/apps/px/lib/stats/generateRRDGraphics.py -w -l -f tx --machines 'pxatx' -e '%s'" %end )
     
-    status, output = commands.getstatusoutput( "/apps/px/lib/stats/generateRRDGraphics.py -w -l -f tx --machines 'pxatx' " )
-    
-    status, output = commands.getstatusoutput( "/apps/px/lib/stats/generateRRDGraphics.py -w -l -f rx --machines 'pxatx' " )
+    status, output = commands.getstatusoutput( "/apps/px/lib/stats/generateRRDGraphics.py -w -l -f rx --machines 'pxatx' -e '%s'" %end )
     
     
 def setYesterdaysGraphs( currentTime ):
@@ -250,20 +258,18 @@ def main():
         
         setYesterdaysGraphs( currentTime )
         
-        if  time.strftime( "%a", time.gmtime( currentTime ) ) == 'MON':#first day of week
+        if  time.strftime( "%a", time.gmtime( currentTime ) ) == 'Mon':#first day of week
             updateThisWeeksGraphs( currentTime )
             setLastWeeksGraphs( currentTime )
         else:
             updateThisWeeksGraphs( currentTime )
             
-        #print "day in month : %s" %int(time.strftime( "%d", time.gmtime( currentTime ) ))
         if int(time.strftime( "%d", time.gmtime( currentTime ) )) == 1:#first day of month
             updateThisMonthsGraphs( currentTime)
             setLastMonthsGraphs( currentTime )        
         else:
-            updateThisMonthsGraphs( currentTime )    
+            updateThisMonthsGraphs( currentTime )            
         
-        #print "day in year : %s" %int(time.strftime( "%j", time.gmtime( currentTime ) ))
         if int(time.strftime( "%j", time.gmtime( currentTime ) )) == 1:#first day of year
             updateThisYearsGraphs( currentTime )
             setLastYearsGraphs( currentTime )
@@ -271,7 +277,7 @@ def main():
             updateThisYearsGraphs( currentTime )     
     
     else:
-        updateThisWeeksGraphs( currentTime )
+        udateThisWeeksGraphs( currentTime )
             
     
 if __name__ == "__main__" :
