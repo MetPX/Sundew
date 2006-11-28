@@ -112,10 +112,8 @@ def main():
     
     #Redirect output towards html page to generate.    
     fileHandle = open( "monthlyGraphs.html" , 'w' )
-    old_stdout = sys.stdout 
-    sys.stdout = fileHandle  
      
-    print """
+    fileHandle.write(  """
     <html>
         <head>
             <title> PX Graphics </title>
@@ -155,31 +153,31 @@ def main():
         </tr>   
         
     
-    """
+    """ )
     
     
     
     for rxName in rxNames :
-        print """<tr> <td bgcolor="#99FF99" width = "25%%" > %s </td>
-        """ %(rxName)
+        fileHandle.write(  """<tr> <td bgcolor="#99FF99" width = "25%%" > %s </td>
+        """ %(rxName) )
     
-        print """    
+        fileHandle.write(  """    
             <td bgcolor="#66CCFF" width = "25%%" >Months&nbsp;:&nbsp;<a target ="popup" href="%s" onClick="wopen('%ssymlinks/monthly/bytecount/%s/%s.png', 'popup', 875, 240); return false;">%s&nbsp;</a><a target ="popup" href="%s" onClick="wopen('%ssymlinks/monthly/bytecount/%s/%s.png', 'popup', 875, 240); return false;">%s&nbsp;</a><a target ="popup" href="%s" onClick="wopen('%ssymlinks/monthly/bytecount/%s/%s.png', 'popup', 875, 240); return false;">%s&nbsp;</a></td>
-        """%( rxName,PXPaths.GRAPHS,rxName,months[0],months[0], rxName,PXPaths.GRAPHS,rxName,months[1],months[1], rxName,PXPaths.GRAPHS,rxName,months[2],months[2] )       
+        """%( rxName,PXPaths.GRAPHS,rxName,months[0],months[0], rxName,PXPaths.GRAPHS,rxName,months[1],months[1], rxName,PXPaths.GRAPHS,rxName,months[2],months[2] )   )    
     
     
         
-        print """    
+        fileHandle.write(  """    
             <td bgcolor="#66CCFF" width = "25%%" >Months&nbsp;:&nbsp;<a target ="popup" href="%s" onClick="wopen('%ssymlinks/monthly/filecount/%s/%s.png', 'popup', 875, 240); return false;">%s&nbsp;</a><a target ="popup" href="%s" onClick="wopen('%ssymlinks/monthly/filecount/%s/%s.png', 'popup', 875, 240); return false;">%s&nbsp;</a><a target ="popup" href="%s" onClick="wopen('%ssymlinks/monthly/filecount/%s/%s.png', 'popup', 875, 240); return false;">%s&nbsp;</a></td>
-        """%( rxName,PXPaths.GRAPHS,rxName,months[0],months[0], rxName,PXPaths.GRAPHS,rxName,months[1],months[1], rxName,PXPaths.GRAPHS,rxName,months[2],months[2] )   
+        """%( rxName,PXPaths.GRAPHS,rxName,months[0],months[0], rxName,PXPaths.GRAPHS,rxName,months[1],months[1], rxName,PXPaths.GRAPHS,rxName,months[2],months[2] )  ) 
         
         
-        print """    
+        fileHandle.write(  """    
             <td bgcolor="#66CCFF" width = "25%%" >Months&nbsp;:&nbsp;<a target ="popup" href="%s" onClick="wopen('%ssymlinks/monthly/errors/%s/%s.png', 'popup', 875, 240); return false;">%s&nbsp;</a><a target ="popup" href="%s" onClick="wopen('%ssymlinks/monthly/errors/%s/%s.png', 'popup', 875, 240); return false;">%s&nbsp;</a><a target ="popup" href="%s" onClick="wopen('%ssymlinks/monthly/errors/%s/%s.png', 'popup', 875, 240); return false;">%s&nbsp;</a></td>
-        """%( rxName,PXPaths.GRAPHS,rxName,months[0],months[0], rxName,PXPaths.GRAPHS,rxName,months[1],months[1], rxName,PXPaths.GRAPHS,rxName,months[2],months[2] )    
+        """%( rxName,PXPaths.GRAPHS,rxName,months[0],months[0], rxName,PXPaths.GRAPHS,rxName,months[1],months[1], rxName,PXPaths.GRAPHS,rxName,months[2],months[2] ) )   
               
     
-    print """
+    fileHandle.write(  """
 
     </table>
     
@@ -201,35 +199,35 @@ def main():
         </tr>  
       
     
-    """          
+    """   )       
         
     for txName in txNames : 
-        print """<tr> <td bgcolor="#99FF99" width = "16.66%%" > %s </td>
-        """ %(txName)
+        fileHandle.write(  """<tr> <td bgcolor="#99FF99" width = "16.66%%" > %s </td>
+        """ %(txName) )
         
-        print """    
+        fileHandle.write(  """    
             <td bgcolor="#66CCFF" width = "16.66%%" >Months: <a target ="popup" href="%s" onClick="wopen('%ssymlinks/monthly/latency/%s/%s.png', 'popup', 875, 240); return false;">%s&nbsp;</a><a target ="popup" href="%s" onClick="wopen('%ssymlinks/monthly/latency/%s/%s.png', 'popup', 875, 240); return false;">%s&nbsp;</a><a target ="popup" href="%s" onClick="wopen('%ssymlinks/monthly/latency/%s/%s.png', 'popup', 875, 240); return false;">%s</a></td>
-        """%( txName,PXPaths.GRAPHS,txName,months[0],months[0], txName,PXPaths.GRAPHS,txName,months[1],months[1], txName,PXPaths.GRAPHS,txName,months[2],months[2] )    
+        """%( txName,PXPaths.GRAPHS,txName,months[0],months[0], txName,PXPaths.GRAPHS,txName,months[1],months[1], txName,PXPaths.GRAPHS,txName,months[2],months[2] ) )   
         
-        print """    
+        fileHandle.write(  """    
             <td bgcolor="#66CCFF" width = "16.66%%" >Months: <a target ="popup" href="%s" onClick="wopen('%ssymlinks/monthly/filesOverMaxLatency/%s/%s.png', 'popup', 875, 240); return false;">%s&nbsp;</a><a target ="popup" href="%s" onClick="wopen('%ssymlinks/monthly/filesOverMaxLatency/%s/%s.png', 'popup', 875, 240); return false;">%s&nbsp;</a><a target ="popup" href="%s" onClick="wopen('%ssymlinks/monthly/filesOverMaxLatency/%s/%s.png', 'popup', 875, 240); return false;">%s</a></td>
-        """%( txName,PXPaths.GRAPHS,txName,months[0],months[0], txName,PXPaths.GRAPHS,txName,months[1],months[1], txName,PXPaths.GRAPHS,txName,months[2],months[2] )    
+        """%( txName,PXPaths.GRAPHS,txName,months[0],months[0], txName,PXPaths.GRAPHS,txName,months[1],months[1], txName,PXPaths.GRAPHS,txName,months[2],months[2] )    )
         
-        print """    
+        fileHandle.write(  """    
             <td bgcolor="#66CCFF" width = "16.66%%" >Months: <a target ="popup" href="%s" onClick="wopen('%ssymlinks/monthly/bytecount/%s/%s.png', 'popup', 875, 240); return false;">%s&nbsp;</a><a target ="popup" href="%s" onClick="wopen('%ssymlinks/monthly/bytecount/%s/%s.png', 'popup', 875, 240); return false;">%s&nbsp;</a><a target ="popup" href="%s" onClick="wopen('%ssymlinks/monthly/bytecount/%s/%s.png', 'popup', 875, 240); return false;">%s</a></td>
-        """%( txName,PXPaths.GRAPHS,txName,months[0],months[0], txName,PXPaths.GRAPHS,txName,months[1],months[1], txName,PXPaths.GRAPHS,txName,months[2],months[2] )    
+        """%( txName,PXPaths.GRAPHS,txName,months[0],months[0], txName,PXPaths.GRAPHS,txName,months[1],months[1], txName,PXPaths.GRAPHS,txName,months[2],months[2] ) )   
         
-        print """    
+        fileHandle.write(  """    
             <td bgcolor="#66CCFF" width = "16.66%%" >Months: <a target ="popup" href="%s" onClick="wopen('%ssymlinks/monthly/filecount/%s/%s.png', 'popup', 875, 240); return false;">%s&nbsp;</a><a target ="popup" href="%s" onClick="wopen('%ssymlinks/monthly/filecount/%s/%s.png', 'popup', 875, 240); return false;">%s&nbsp;</a><a target ="popup" href="%s" onClick="wopen('%ssymlinks/monthly/filecount/%s/%s.png', 'popup', 875, 240); return false;">%s</a></td>
-        """%( txName,PXPaths.GRAPHS,txName,months[0],months[0], txName,PXPaths.GRAPHS,txName,months[1],months[1], txName,PXPaths.GRAPHS,txName,months[2],months[2] )    
+        """%( txName,PXPaths.GRAPHS,txName,months[0],months[0], txName,PXPaths.GRAPHS,txName,months[1],months[1], txName,PXPaths.GRAPHS,txName,months[2],months[2] )    )
         
-        print """    
+        fileHandle.write(  """    
             <td bgcolor="#66CCFF" width = "16.66%%" >Months: <a target ="popup" href="%s" onClick="wopen('%ssymlinks/monthly/errors/%s/%s.png', 'popup', 875, 240); return false;">%s&nbsp;</a><a target ="popup" href="%s" onClick="wopen('%ssymlinks/monthly/errors/%s/%s.png', 'popup', 875, 240); return false;">%s&nbsp;</a><a target ="popup" href="%s" onClick="wopen('%ssymlinks/monthly/errors/%s/%s.png', 'popup', 875, 240); return false;">%s</a></td>
-        """%( txName,PXPaths.GRAPHS,txName,months[0],months[0], txName,PXPaths.GRAPHS,txName,months[1],months[1], txName,PXPaths.GRAPHS,txName,months[2],months[2] )        
+        """%( txName,PXPaths.GRAPHS,txName,months[0],months[0], txName,PXPaths.GRAPHS,txName,months[1],months[1], txName,PXPaths.GRAPHS,txName,months[2],months[2] ) ) 
 
         
 
-    print """
+    fileHandle.write(  """
         </tr>
 
     </table>
@@ -239,10 +237,10 @@ def main():
     
     
     
-    """        
+    """  )      
                 
     fileHandle.close()                 
-    sys.stdout = old_stdout #resets standard output  
+     
 
 
 if __name__ == "__main__":

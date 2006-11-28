@@ -110,10 +110,9 @@ def main():
     
     #Redirect output towards html page to generate.    
     fileHandle = open( "dailyGraphs.html" , 'w' )
-    old_stdout = sys.stdout 
-    sys.stdout = fileHandle  
+ 
      
-    print """
+    fileHandle.write( """
     <html>
         <head>
             <title> PX Graphics </title>
@@ -130,20 +129,20 @@ def main():
         </tr>   
         
     
-    """
+    """)
     
     
     
     for rxName in rxNames :
-        print """<tr> <td bgcolor="#99FF99" width = "25%%" > %s </td>
-        """ %(rxName)
+        fileHandle.write( """<tr> <td bgcolor="#99FF99" width = "25%%" > %s </td>
+        """ %(rxName))
     
-        print """    
+        fileHandle.write(  """    
             <td bgcolor="#66CCFF" width = "25%%" >   Days :   <a target ="%s" href="%ssymlinks/daily/%s/%s.png">%s   </a><a target ="%s" href="%ssymlinks/daily/%s/%s.png">%s   </a><a target ="%s" href="%ssymlinks/daily/%s/%s.png">%s   </a><a target ="%s" href="%ssymlinks/daily/%s/%s.png">%s   </a><a target ="%s" href="%ssymlinks/daily/%s/%s.png">%s   </a><a target ="%s" href="%ssymlinks/daily/%s/%s.png">%s   </a><a target ="%s" href="%ssymlinks/daily/%s/%s.png">%s   </a></td>
-        """%( rxName,PXPaths.GRAPHS,rxName,days[0],days[0], rxName,PXPaths.GRAPHS,rxName,days[1],days[1], rxName,PXPaths.GRAPHS,rxName,days[2],days[2],rxName,PXPaths.GRAPHS,rxName,days[3],days[3], rxName,PXPaths.GRAPHS,rxName,days[4],days[4], rxName,PXPaths.GRAPHS,rxName,days[5],days[5], rxName,PXPaths.GRAPHS,rxName,days[6],days[6] )   
+        """%( rxName,PXPaths.GRAPHS,rxName,days[0],days[0], rxName,PXPaths.GRAPHS,rxName,days[1],days[1], rxName,PXPaths.GRAPHS,rxName,days[2],days[2],rxName,PXPaths.GRAPHS,rxName,days[3],days[3], rxName,PXPaths.GRAPHS,rxName,days[4],days[4], rxName,PXPaths.GRAPHS,rxName,days[5],days[5], rxName,PXPaths.GRAPHS,rxName,days[6],days[6] )  ) 
                  
     
-    print """
+    fileHandle.write(  """
 
     </table>  
        
@@ -159,19 +158,19 @@ def main():
         </tr>  
       
     
-    """          
+    """   )       
         
     for txName in txNames : 
-        print """<tr> <td bgcolor="#99FF99" width = "16.66%%" > %s </td>
-        """ %(txName)
+        fileHandle.write( """<tr> <td bgcolor="#99FF99" width = "16.66%%" > %s </td>
+        """ %(txName) )
         
-        print """    
+        fileHandle.write(  """    
             <td bgcolor="#66CCFF" width = "25%%" >   Days :   <a target ="%s" href="%ssymlinks/daily/%s/%s.png">%s   </a><a target ="%s" href="%ssymlinks/daily/%s/%s.png">%s   </a><a target ="%s" href="%ssymlinks/daily/%s/%s.png">%s   </a><a target ="%s" href="%ssymlinks/daily/%s/%s.png">%s   </a><a target ="%s" href="%ssymlinks/daily/%s/%s.png">%s   </a><a target ="%s" href="%ssymlinks/daily/%s/%s.png">%s   </a><a target ="%s" href="%ssymlinks/daily/%s/%s.png">%s   </a></td>
-        """%( txName,PXPaths.GRAPHS,txName,days[0],days[0], txName,PXPaths.GRAPHS,txName,days[1],days[1], txName,PXPaths.GRAPHS,txName,days[2],days[2],txName,PXPaths.GRAPHS,txName,days[3],days[3], txName,PXPaths.GRAPHS,txName,days[4],days[4], txName,PXPaths.GRAPHS,txName,days[5],days[5], txName,PXPaths.GRAPHS,txName,days[6],days[6] )         
+        """%( txName,PXPaths.GRAPHS,txName,days[0],days[0], txName,PXPaths.GRAPHS,txName,days[1],days[1], txName,PXPaths.GRAPHS,txName,days[2],days[2],txName,PXPaths.GRAPHS,txName,days[3],days[3], txName,PXPaths.GRAPHS,txName,days[4],days[4], txName,PXPaths.GRAPHS,txName,days[5],days[5], txName,PXPaths.GRAPHS,txName,days[6],days[6] )  )       
 
         
 
-    print """
+    fileHandle.write(  """
         </tr>
 
     </table>
@@ -181,10 +180,10 @@ def main():
     
     
     
-    """        
+    """ )       
                 
     fileHandle.close()                 
-    sys.stdout = old_stdout #resets standard output  
+    
 
 
 if __name__ == "__main__":
