@@ -277,7 +277,7 @@ def main():
             updateThisYearsGraphs( currentTime )     
     
     else:
-        udateThisWeeksGraphs( currentTime )
+        updateThisWeeksGraphs( currentTime )
             
     
 if __name__ == "__main__" :
