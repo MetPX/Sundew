@@ -119,19 +119,44 @@ def main():
     <html>
         <head>
             <title> PX Graphics </title>
+            
+            <script>             
+                function wopen(url, name, w, h){
+                // This function was taken on www.boutell.com
+                    w += 32;
+                    h += 96;
+                    var win = window.open(url,
+                    name,
+                    'width=' + w + ', height=' + h + ', ' +
+                    'location=no, menubar=no, ' +
+                    'status=no, toolbar=no, scrollbars=no, resizable=no');
+                    win.resizeTo(w, h);
+                    win.focus();
+                }         
+            </script>              
+            
+            
         </head>    
-        <body text="#000000" link="#FFFFFF" vlink="000000" bgcolor="#CCCCCC" >
         
-        <br>
-        <h2>Yearly graphics for RX sources from MetPx.</h2>
-        <br>
-         <table width="100%" border="1" cellspacing="5" cellpadding="5" bgcolor="#cccccc" bordercolor="#CCCCCC" frame = void > 
-        <tr>    
-            <td bgcolor="#006699" width = "25%"><font color = "white">Client</font></td>
-            <td bgcolor="#006699" width = "25%"><font color = "white">Bytecount</font></td>
-            <td bgcolor="#006699" width = "25%"><font color = "white">Filecount</font></td>
-            <td bgcolor="#006699" width = "25%"><font color = "white">Errors<</font>/td>
-        </tr>   
+        <body text="#000000" link="#FFFFFF" vlink="000000" bgcolor="#CCCCCC" >
+            
+            <STYLE>
+                <!--
+                A{text-decoration:none}
+                -->
+            </STYLE>
+            
+            <br>
+            <h2>Yearly graphics for RX sources from MetPx.</h2>
+            <br>
+            
+            <table width="100%" border="1" cellspacing="5" cellpadding="5" bgcolor="#cccccc" bordercolor="#CCCCCC" frame = void > 
+            <tr>    
+                <td bgcolor="#006699" width = "25%"><font color = "white">Client</font></td>
+                <td bgcolor="#006699" width = "25%"><font color = "white">Bytecount</font></td>
+                <td bgcolor="#006699" width = "25%"><font color = "white">Filecount</font></td>
+                <td bgcolor="#006699" width = "25%"><font color = "white">Errors</font></td>
+            </tr>   
         
     
     """
@@ -143,18 +168,18 @@ def main():
         """ %(rxName)
     
         print """    
-            <td bgcolor="#66CCFF" width = "25%%" >Years: <a target ="%s" href="%ssymlinks/yearly/bytecount/%s/%s">%s </a><a target ="%s" href="%ssymlinks/yearly/bytecount/%s/%s">%s </a><a target ="%s" href="%ssymlinks/yearly/bytecount/%s/%s">%s </a></td>
+            <td bgcolor="#66CCFF" width = "25%%" >Years&nbsp;:&nbsp;<a target ="popup" href="%s" onClick="wopen('%ssymlinks/yearly/bytecount/%s/%s.png', 'popup', 875, 240); return false;">%s&nbsp;</a><a target ="popup" href="%s" onClick="wopen('%ssymlinks/yearly/bytecount/%s/%s.png', 'popup', 875, 240); return false;">%s&nbsp;</a><a target ="popup" href="%s" onClick="wopen('%ssymlinks/yearly/bytecount/%s/%s.png', 'popup', 875, 240); return false;">%s&nbsp;</a></td>
         """%( rxName,PXPaths.GRAPHS,rxName,years[0],years[0], rxName,PXPaths.GRAPHS,rxName,years[1],years[1], rxName,PXPaths.GRAPHS,rxName,years[2],years[2] )       
     
     
         
         print """    
-            <td bgcolor="#66CCFF" width = "25%%" >Years: <a target ="%s" href="%ssymlinks/yearly/filecount/%s/%s">%s </a><a target ="%s" href="%ssymlinks/yearly/filecount/%s/%s">%s </a><a target ="%s" href="%ssymlinks/yearly/filecount/%s/%s">%s </a></td>
+            <td bgcolor="#66CCFF" width = "25%%" >Years&nbsp;:&nbsp;<a target ="popup" href="%s" onClick="wopen('%ssymlinks/yearly/filecount/%s/%s.png', 'popup', 875, 240); return false;">%s&nbsp;</a><a target ="popup" href="%s" onClick="wopen('%ssymlinks/yearly/filecount/%s/%s.png', 'popup', 875, 240); return false;">%s&nbsp;</a><a target ="popup" href="%s" onClick="wopen('%ssymlinks/yearly/filecount/%s/%s.png', 'popup', 875, 240); return false;">%s&nbsp;</a></td>
         """%( rxName,PXPaths.GRAPHS,rxName,years[0],years[0], rxName,PXPaths.GRAPHS,rxName,years[1],years[1], rxName,PXPaths.GRAPHS,rxName,years[2],years[2] )   
         
         
         print """    
-            <td bgcolor="#66CCFF" width = "25%%" >Years: <a target ="%s" href="%ssymlinks/yearly/errors/%s/%s">%s </a><a target ="%s" href="%ssymlinks/yearly/errors/%s/%s">%s </a><a target ="%s" href="%ssymlinks/yearly/errors/%s/%s">%s </a></td>
+            <td bgcolor="#66CCFF" width = "25%%" >Years&nbsp;:&nbsp;<a target ="popup" href="%s" onClick="wopen('%ssymlinks/yearly/errors/%s/%s.png', 'popup', 875, 240); return false;">%s&nbsp;</a><a target ="popup" href="%s" onClick="wopen('%ssymlinks/yearly/errors/%s/%s.png', 'popup', 875, 240); return false;">%s&nbsp;</a><a target ="popup" href="%s" onClick="wopen('%ssymlinks/yearly/errors/%s/%s.png', 'popup', 875, 240); return false;">%s&nbsp;</a></td>
         """%( rxName,PXPaths.GRAPHS,rxName,years[0],years[0], rxName,PXPaths.GRAPHS,rxName,years[1],years[1], rxName,PXPaths.GRAPHS,rxName,years[2],years[2] )    
               
     
@@ -187,23 +212,23 @@ def main():
         """ %(txName)
         
         print """    
-            <td bgcolor="#66CCFF" width = "16.66%%" >Years: <a target ="%s" href="%ssymlinks/yearly/latency/%s/%s">%s  </a><a target ="%s" href="%ssymlinks/yearly/latency/%s/%s">%s  </a><a target ="%s" href="%ssymlinks/yearly/latency/%s/%s">%s  </a></td>
+            <td bgcolor="#66CCFF" width = "16.66%%" >Years:<a target ="popup" href="%s" onClick="wopen('%ssymlinks/yearly/latency/%s/%s.png', 'popup', 875, 240); return false;">%s&nbsp;</a><a target ="popup" href="%s" onClick="wopen('%ssymlinks/yearly/latency/%s/%s.png', 'popup', 875, 240); return false;">%s&nbsp;</a><a target ="popup" href="%s" onClick="wopen('%ssymlinks/yearly/latency/%s/%s.png', 'popup', 875, 240); return false;">%s</a></td>
         """%( txName,PXPaths.GRAPHS,txName,years[0],years[0], txName,PXPaths.GRAPHS,txName,years[1],years[1], txName,PXPaths.GRAPHS,txName,years[2],years[2] )    
         
         print """    
-            <td bgcolor="#66CCFF" width = "16.66%%" >Years: <a target ="%s" href="%ssymlinks/yearly/filesOverMaxLatency/%s/%s">%s  </a><a target ="%s" href="%ssymlinks/yearly/filesOverMaxLatency/%s/%s">%s </a><a target ="%s" href="%ssymlinks/yearly/filesOverMaxLatency/%s/%s">%s </a></td>
+            <td bgcolor="#66CCFF" width = "16.66%%" >Years:<a target ="popup" href="%s" onClick="wopen('%ssymlinks/yearly/filesOverMaxLatency/%s/%s.png', 'popup', 875, 240); return false;">%s&nbsp;</a><a target ="popup" href="%s" onClick="wopen('%ssymlinks/yearly/filesOverMaxLatency/%s/%s.png', 'popup', 875, 240); return false;">%s&nbsp;</a><a target ="popup" href="%s" onClick="wopen('%ssymlinks/yearly/filesOverMaxLatency/%s/%s.png', 'popup', 875, 240); return false;">%s</a></td>
         """%( txName,PXPaths.GRAPHS,txName,years[0],years[0], txName,PXPaths.GRAPHS,txName,years[1],years[1], txName,PXPaths.GRAPHS,txName,years[2],years[2] )    
         
         print """    
-            <td bgcolor="#66CCFF" width = "16.66%%" >Years: <a target ="%s" href="%ssymlinks/yearly/bytecount/%s/%s">%s </a><a target ="%s" href="%ssymlinks/yearly/bytecount/%s/%s">%s </a><a target ="%s" href="%ssymlinks/yearly/bytecount/%s/%s">%s </a></td>
+            <td bgcolor="#66CCFF" width = "16.66%%" >Years:<a target ="popup" href="%s" onClick="wopen('%ssymlinks/yearly/bytecount/%s/%s.png', 'popup', 875, 240); return false;">%s&nbsp;</a><a target ="popup" href="%s" onClick="wopen('%ssymlinks/yearly/bytecount/%s/%s.png', 'popup', 875, 240); return false;">%s&nbsp;</a><a target ="popup" href="%s" onClick="wopen('%ssymlinks/yearly/bytecount/%s/%s.png', 'popup', 875, 240); return false;">%s</a></td>
         """%( txName,PXPaths.GRAPHS,txName,years[0],years[0], txName,PXPaths.GRAPHS,txName,years[1],years[1], txName,PXPaths.GRAPHS,txName,years[2],years[2] )    
         
         print """    
-            <td bgcolor="#66CCFF" width = "16.66%%" >Years: <a target ="%s" href="%ssymlinks/yearly/filecount/%s/%s">%s </a><a target ="%s" href="%ssymlinks/yearly/filecount/%s/%s">%s </a><a target ="%s" href="%ssymlinks/yearly/filecount/%s/%s">%s </a></td>
+            <td bgcolor="#66CCFF" width = "16.66%%" >Years:<a target ="popup" href="%s" onClick="wopen('%ssymlinks/yearly/filecount/%s/%s.png', 'popup', 875, 240); return false;">%s&nbsp;</a><a target ="popup" href="%s" onClick="wopen('%ssymlinks/yearly/filecount/%s/%s.png', 'popup', 875, 240); return false;">%s&nbsp;</a><a target ="popup" href="%s" onClick="wopen('%ssymlinks/yearly/filecount/%s/%s.png', 'popup', 875, 240); return false;">%s</a></td>
         """%( txName,PXPaths.GRAPHS,txName,years[0],years[0], txName,PXPaths.GRAPHS,txName,years[1],years[1], txName,PXPaths.GRAPHS,txName,years[2],years[2] )    
         
         print """    
-            <td bgcolor="#66CCFF" width = "16.66%%" >Years: <a target ="%s" href="%ssymlinks/yearly/errors/%s/%s">%s </a><a target ="%s" href="%ssymlinks/yearly/errors/%s/%s">%s </a><a target ="%s" href="%ssymlinks/yearly/errors/%s/%s">%s </a></td>
+            <td bgcolor="#66CCFF" width = "16.66%%" >Years:<a target ="popup" href="%s" onClick="wopen('%ssymlinks/yearly/errors/%s/%s.png', 'popup', 875, 240); return false;">%s&nbsp;</a><a target ="popup" href="%s" onClick="wopen('%ssymlinks/yearly/errors/%s/%s.png', 'popup', 875, 240); return false;">%s&nbsp;</a><a target ="popup" href="%s" onClick="wopen('%ssymlinks/yearly/errors/%s/%s.png', 'popup', 875, 240); return false;">%s</a></td>
         """%( txName,PXPaths.GRAPHS,txName,years[0],years[0], txName,PXPaths.GRAPHS,txName,years[1],years[1], txName,PXPaths.GRAPHS,txName,years[2],years[2] )        
 
         
