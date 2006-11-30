@@ -122,7 +122,7 @@ class DiskReader:
 
         elif isinstance(self.flow, Client.Client) or isinstance(self.flow, Sourlient.Sourlient):
 
-           if len(self.flow.masks_deprecated) :
+           if len(self.flow.masks_deprecated) > 0 :
               for mask in self.flow.masks_deprecated:
                   if fnmatch.fnmatch(basename, mask[0]):
                      try:

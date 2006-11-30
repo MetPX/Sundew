@@ -246,8 +246,9 @@ class Source(object):
     # THIS IS THE OPPOSITE OF THE CLIENT WHERE THE FALLBACK IS REJECT
 
         # check against the deprecated masks
+
         if len(self.masks_deprecated) > 0 :
-           for mask in self.masks:
+           for mask in self.masks_deprecated:
                if fnmatch.fnmatch(filename, mask[0]):
                   try:
                        if mask[2]: return True

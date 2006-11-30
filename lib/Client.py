@@ -188,21 +188,17 @@ class Client(object):
         if self.fx_script == None : return filename
         return self.fx_script(filename, logger)
 
-    def _getMatchingMask_Deprecated(self, filename): 
-        for mask in self.masks_deprecated:
-            if fnmatch.fnmatch(filename, mask[0]):
-                try:
-                        if mask[2]:
-                           return mask
-                except:
-                        return None
-        return None
-
     def _getMatchingMask(self, filename): 
 
         # check for deprecated use
         if len(self.masks_deprecated) > 0 :
-           return self._getMatchingMask_Deprecated(filename)
+           for mask in self.masks_deprecated:
+               if fnmatch.fnmatch(filename, mask[0]):
+                  try:
+                          if mask[2]:
+                             return mask
+                  except:
+                          return None
 
         # new regexp mask usage
         for mask in self.masks:
