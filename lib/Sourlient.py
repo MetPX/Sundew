@@ -76,7 +76,8 @@ class Sourlient(object):
                                                   # been touched before being picked
 
         self.sorter = 'MultiKeysStringSorter'     # Class (or object) used to sort
-        self.masks = []                           # All the masks (imask and emask)
+        self.masks = []                           # All the masks (accept and reject)
+        self.masks_deprecated = []                # All the masks (imask and emask)
         self.collection = None                    # Sourlient do not participate in the collection effort
         self.slow = False                         # Sleeps are added when we want to be able to decrypt log entries
 
@@ -125,8 +126,10 @@ class Sourlient(object):
                             self.logger.error("Extension (%s) for source %s has wrong number of fields" % (words[1], self.name))
                         else:
                             self.extension = ':' + words[1]
-                    if words[0] == 'imask': self.masks.append((words[1], currentDir, currentFileOption))  
-                    elif words[0] == 'emask': self.masks.append((words[1],))
+                    if   words[0] == 'accept': self.masks.append((words[1], currentDir, currentFileOption))  
+                    elif words[0] == 'imask' : self.masks_deprecated.append((words[1], currentDir, currentFileOption))  
+                    elif words[0] == 'emask' : self.masks_deprecated.append((words[1],))
+                    elif words[0] == 'reject': self.masks_deprecated.append((words[1],))
                     elif words[0] == 'subscriber': self.subscriber =  isTrue(words[1])
                     elif words[0] == 'validation': self.validation =  isTrue(words[1])
                     elif words[0] == 'noduplicates': self.nodups =  isTrue(words[1])
@@ -165,6 +168,7 @@ class Sourlient(object):
     
 
     def _getMatchingMask(self, filename): 
+
         if len(self.masks_deprecated) > 0 :
            for mask in self.masks_deprecated:
                if fnmatch.fnmatch(filename, mask[0]):
