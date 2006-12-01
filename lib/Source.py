@@ -173,13 +173,9 @@ class Source(object):
                         else:
                             self.extension = ':' + words[1]
                     elif words[0] == 'accept': self.masks.append((words[1], currentDir, currentFileOption))
-                    elif words[0] == 'reject':  self.masks.append((words[1],))
-                    elif words[0] == 'imask':
-                        self.masks_deprecated.append((words[1], currentDir, currentFileOption))
-                        self.logger.warning("imask is deprecated... please use accept")
-                    elif words[0] == 'emask':
-                        self.masks_deprecated.append((words[1],))
-                        self.logger.warning("emask is deprecated... please use reject")
+                    elif words[0] == 'reject': self.masks.append((words[1],))
+                    elif words[0] == 'imask': self.masks_deprecated.append((words[1], currentDir, currentFileOption))
+                    elif words[0] == 'emask': self.masks_deprecated.append((words[1],))
                     elif words[0] == 'timask': self.tmasks.append((words[1], currentTransformation))
                     elif words[0] == 'temask': self.tmasks.append((words[1],))
                     elif words[0] == 'transformation': currentTransformation = words[1]

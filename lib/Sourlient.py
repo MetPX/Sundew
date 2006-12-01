@@ -127,9 +127,9 @@ class Sourlient(object):
                         else:
                             self.extension = ':' + words[1]
                     if   words[0] == 'accept': self.masks.append((words[1], currentDir, currentFileOption))  
+                    elif words[0] == 'reject': self.masks.append((words[1],))
                     elif words[0] == 'imask' : self.masks_deprecated.append((words[1], currentDir, currentFileOption))  
                     elif words[0] == 'emask' : self.masks_deprecated.append((words[1],))
-                    elif words[0] == 'reject': self.masks_deprecated.append((words[1],))
                     elif words[0] == 'subscriber': self.subscriber =  isTrue(words[1])
                     elif words[0] == 'validation': self.validation =  isTrue(words[1])
                     elif words[0] == 'noduplicates': self.nodups =  isTrue(words[1])

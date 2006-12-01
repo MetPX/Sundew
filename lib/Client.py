@@ -132,12 +132,8 @@ class Client(object):
                     if   words[0] == 'accept': self.masks.append((words[1], currentDir, currentFileOption))  
                     elif words[0] == 'reject': self.masks.append((words[1],))
 
-                    elif words[0] == 'imask':
-                       self.masks_deprecated.append((words[1], currentDir, currentFileOption))  
-                       self.logger.warning("The use of imask is deprecated... you should be using accept")
-                    elif words[0] == 'emask':
-                       self.masks_deprecated.append((words[1],))
-                       self.logger.warning("The use of emask is deprecated... you should be using reject")
+                    elif words[0] == 'imask': self.masks_deprecated.append((words[1], currentDir, currentFileOption))  
+                    elif words[0] == 'emask': self.masks_deprecated.append((words[1],))
 
                     elif words[0] == 'directory': currentDir = words[1]
                     elif words[0] == 'filename': currentFileOption = words[1]
