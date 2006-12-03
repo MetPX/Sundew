@@ -58,7 +58,7 @@ class PXManager(SystemManager):
             return clientNames + sourlientNames + sourceNames + aliases
 
     def getFlowQueueName(self, flow, drp=None, filename=None, priority=None):
-        types = {'TX': PXPaths.TXQ, 'RX':PXPaths.RXQ, 'TRX': PXPaths.TXQ}
+        types = {'TX': PXPaths.TXQ, 'FX':PXPaths.FXQ, 'RX':PXPaths.RXQ, 'TRX': PXPaths.TXQ}
         type, flowNames = self.getFlowType(flow, drp)
 
         # No type or flow is an alias
@@ -73,6 +73,8 @@ class PXManager(SystemManager):
         if filename:
             if types[type] == PXPaths.TXQ:
                 flowQueueName += '/' + str(priority) + '/' + time.strftime("%Y%m%d%H", time.gmtime()) + '/' + filename
+            elif types[type] == PXPaths.FXQ:
+                flowQueueName += '/' + filename
             elif types[type] == PXPaths.RXQ:
                 flowQueueName += '/' + filename
 
@@ -127,9 +129,11 @@ class PXManager(SystemManager):
         self.createDir(PXPaths.BIN)
         self.createDir(PXPaths.LIB)
         self.createDir(PXPaths.LOG)
+        self.createDir(PXPaths.FX_CONF)
         self.createDir(PXPaths.RX_CONF)
         self.createDir(PXPaths.TX_CONF)
         self.createDir(PXPaths.TRX_CONF)
+        self.createDir(PXPaths.FXQ)
         self.createDir(PXPaths.RXQ)
         self.createDir(PXPaths.TXQ)
         self.createDir(PXPaths.DB)
@@ -393,7 +397,7 @@ class PXManager(SystemManager):
 
     def setFxPaths(self):
         """
-        Set a list of receivers' path. We choose receivers that have a .conf file in RX_CONF.
+        Set a list of receivers' path. We choose receivers that have a .conf file in FX_CONF.
         We don't verify if these receivers have a process associated to them.
         """
         fxPaths = []

@@ -35,6 +35,7 @@ class SystemManager:
         self.shouldRunRxNames = []             # Names are based on filenames found in RX_CONF and the presence of a .lock in RXQ
         self.shouldRunTxNames = []             # Names are based on filenames found in TX_CONF and the presence of a .lock in TXQ
         self.shouldRunTRxNames = []            # Names are based on filenames found in TRX_CONF and the presence of a .lock in RXQ
+        self.runningFxNames = []               # We only keep the Fx for which we can find a PID
         self.runningRxNames = []               # We only keep the Rx for which we can find a PID
         self.runningTxNames = []               # We only keep the Tx for which we can find a PID 
         self.runningTRxNames = []              # We only keep the TRx for which we can find a PID 
@@ -64,8 +65,18 @@ class SystemManager:
     ##########################################################################################################
     # Should be running Names (sources, clients and transceivers): 
     ##########################################################################################################
+    def getShouldRunFxNames(self):
+        return self.shouldRunFxNames
+
     def getShouldRunRxNames(self):
         return self.shouldRunRxNames
+
+    def setShouldRunFxNames(self):
+        """
+        Set a list of filters' name. We choose receivers that have a .conf file in FX_CONF
+        and we verify that these receivers have a .lock associated to them.
+        """
+        raise SystemManagerException('Abstract method: not implemented in SystemManager Class')
 
     def setShouldRunRxNames(self):
         """
@@ -96,8 +107,18 @@ class SystemManager:
     ##########################################################################################################
     # Running Names (sources, clients and transceivers): 
     ##########################################################################################################
+    def getRunningFxNames(self):
+        return self.runningFxNames
+
     def getRunningRxNames(self):
         return self.runningRxNames
+
+    def setRunningFxNames(self):
+        """
+        Set a list of filters' name. We choose filters that have a .conf file in FX_CONF
+        and we verify that these filters have a .lock and a process associated to them.
+        """
+        raise SystemManagerException('Abstract method: not implemented in SystemManager Class')
 
     def setRunningRxNames(self):
         """
