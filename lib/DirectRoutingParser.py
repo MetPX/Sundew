@@ -18,10 +18,10 @@ from FileParser import FileParser
 
 class DirectRoutingParser(FileParser):
 
-    def __init__(self, filename, pxLinkables=[], logger=None):
+    def __init__(self, filename, pxLinkables=[], logger=None, version = 0):
         FileParser.__init__(self, filename) # Routing filename ("/apps/px/etc/pxroute.conf")
         self.logger = logger            # Logger object
-        self.version = 0                # Routing file version  (0 or 1)
+        self.version = version          # Routing file version  (0 or 1)
         self.routingInfos = {}          # Addressed by header name: self.routingInfos[header]['clients']
                                         #                           self.routingInfos[header]['subclients']
                                         #                           self.routingInfos[header]['priority']
