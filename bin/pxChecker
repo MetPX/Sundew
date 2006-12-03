@@ -57,18 +57,22 @@ class PXChecker:
 
         if DEBUG:
             print "*************** All names (.conf) **************"
+            print self.manager.getFxNames()
             print self.manager.getRxNames()
             print self.manager.getTxNames()
             print self.manager.getTRxNames()
             print "*************** Should run names (.conf + .lock) **************"
+            print self.manager.getShouldRunFxNames()
             print self.manager.getShouldRunRxNames()
             print self.manager.getShouldRunTxNames()
             print self.manager.getShouldRunTRxNames()
             print "************** Running names (.conf + .lock + ps -p pid) *************"
+            print self.manager.getRunningFxNames()
             print self.manager.getRunningRxNames()
             print self.manager.getRunningTxNames()
             print self.manager.getRunningTRxNames()
             print "************** Should  run but not running names *************"
+            print self.manager.getNotRunningFxNames()
             print self.manager.getNotRunningRxNames()
             print self.manager.getNotRunningTxNames()
             print self.manager.getNotRunningTRxNames()
@@ -78,6 +82,12 @@ class PXChecker:
             self.logger.info("Receiver %s has been restarted by pxChecker" % name)
             if os.fork() == 0:
                 os.execl(PXPaths.BIN + "pxReceiver" , "pxReceiver", name, "restart")
+
+        # Restart filters
+        for name in self.manager.getNotRunningFxNames():
+            self.logger.info("Filter %s has been restarted by pxChecker" % name)
+            if os.fork() == 0:
+                os.execl(PXPaths.BIN + "pxFilter" , "pxFilter", name, "restart")
 
         # Restart senders
         for name in self.manager.getNotRunningTxNames():

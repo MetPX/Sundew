@@ -109,6 +109,6 @@ example 2: %prog start       => will start all filters
     igniter.setFlow(filter)
     
     igniter.setGateway('DUMMY')
-    filter.ingestor.ingestFile(igniter)
+    filter.ingestor.ingestSingleFile(igniter)
 
     gateway.run()
