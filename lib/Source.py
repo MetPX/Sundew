@@ -64,6 +64,8 @@ class Source(object):
         self.batch = 100                          # Number of files that will be read in each pass
         self.masks = []                           # All the masks (accept and reject)
         self.masks_deprecated = []                # All the masks (imask and emask)
+        self.routemask = False                    # use accept and parenthesis in mask to create a key and route with it
+        self.routing_version = 0                  # directRouting version setting
         self.tmasks = []                          # All the transformation maks (timask, temask)
         self.extension = ':MISSING:MISSING:MISSING:MISSING:'   # Extension to be added to the ingest name
         self.type = None                                       # Must be in ['filter','file','single-file', 'bulletin-file', 'am', 'wmo']
@@ -174,6 +176,8 @@ class Source(object):
                             self.extension = ':' + words[1]
                     elif words[0] == 'accept': self.masks.append((words[1], currentDir, currentFileOption))
                     elif words[0] == 'reject': self.masks.append((words[1],))
+                    elif words[0] == 'routemask': self.routemask = isTrue(words[1])
+                    elif words[0] == 'routing_version': self.routing_version = int(words[1])
                     elif words[0] == 'imask': self.masks_deprecated.append((words[1], currentDir, currentFileOption))
                     elif words[0] == 'emask': self.masks_deprecated.append((words[1],))
                     elif words[0] == 'timask': self.tmasks.append((words[1], currentTransformation))
@@ -229,12 +233,11 @@ class Source(object):
 
     def getTransformation(self, filename):
         for mask in self.tmasks:
-            parts = re.findall( mask[0], filename )
-            if len(parts) == 2 and parts[1] == '' : parts.pop(1)
-            if len(parts) == 1 :
-               if len(mask) == 2 : return mask[1]
-               return None
-
+            if fnmatch.fnmatch(filename, mask[0]):
+                try:
+                    return mask[1]
+                except:
+                    return None
         return None
 
     def fileMatchMask(self, filename):
@@ -278,6 +281,7 @@ class Source(object):
         print("mtime: %s" % source.mtime)
         print("Sorter: %s" % source.sorter)
         print("Routing table: %s" % source.routingTable)
+        print("Route with Mask: %s" % source.routemask)
         print("FX script: %s" % source.execfile)
         
         print("******************************************")
