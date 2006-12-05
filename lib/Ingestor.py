@@ -375,12 +375,12 @@ class Ingestor(object):
 
                 # routing clients (accept mask)
 
-		if self.source.routemask :
+                if self.source.routemask :
                    potentials = []
                    key = self.getRouteKey(ingestName)
-		   if key != None :
-		      lst = self.drp.getClients(key)
-		      if lst != None : potentials = lst
+                   if key != None :
+                      lst = self.drp.getClients(key)
+                      if lst != None : potentials = lst
 
                 # ingesting the file
                 matchingClients  = self.getMatchingClientNamesFromMasks(ingestName, potentials )
