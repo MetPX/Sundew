@@ -35,13 +35,19 @@ class RoutingFileCreator(FileCreator):
         for sub in keys: 
             subClients = self.drp.subClients.get(sub, [])
             subClients.sort()
-            self.file.write("subclient %s %s\n" % (sub, ','.join(subClients)))
+            if self.drp.version == 0 :
+                   self.file.write("subclient %s %s\n" % (sub, ' '.join(subClients)))
+            else :
+                   self.file.write("subclient %s %s\n" % (sub, ','.join(subClients)))
     
     def createAFTNMapSection(self):
         keys = self.drp.aftnMap.keys()
         keys.sort()
         for mapping in keys:
-            self.file.write("aftnMap %s %s\n" % (mapping, ','.join(self.drp.aftnMap[mapping]) ))
+            if self.drp.version == 0 :
+                   self.file.write("aftnMap %s %s\n" % (mapping, ' '.join(self.drp.aftnMap[mapping]) ))
+            else :
+                   self.file.write("aftnMap %s %s\n" % (mapping, ','.join(self.drp.aftnMap[mapping]) ))
 
     def createClientAliasesSection(self):
         keys = self.drp.aliasedClients.keys()
@@ -49,7 +55,10 @@ class RoutingFileCreator(FileCreator):
         for alias in keys:
             clients = self.drp.aliasedClients.get(alias, [])
             clients.sort()
-            self.file.write("clientAlias %s %s\n" % (alias, ','.join(clients)))
+            if self.drp.version == 0 :
+                   self.file.write("clientAlias %s %s\n" % (alias, ' '.join(clients)))
+            else :
+                   self.file.write("clientAlias %s %s\n" % (alias, ','.join(clients)))
 
     def createHeadersSection(self):
         headers = self.drp.routingInfos.keys()
@@ -58,7 +67,10 @@ class RoutingFileCreator(FileCreator):
         for header in headers:
             clients = self.drp.originalClients[header]
             clients.sort()
-            self.file.write("key %s %s %s\n" % (header, ','.join(clients), self.drp.getHeaderPriority(header)))
+            if self.drp.version == 0 :
+                   self.file.write("%s:%s:%s\n" % (header, ' '.join(clients), self.drp.getHeaderPriority(header)))
+            else :
+                   self.file.write("key %s %s %s\n" % (header, ','.join(clients), self.drp.getHeaderPriority(header)))
 
     def createKeyAcceptSection(self):
         keys = self.drp.keyInfos.keys()
@@ -98,9 +110,10 @@ class RoutingFileCreator(FileCreator):
         self.createClientAliasesSection()
         self.file.write(bottom)
 
-        self.file.write(top(words[5]))
-        self.createKeyAcceptSection()
-        self.file.write(bottom)
+        if self.drp.version == 1 :
+           self.file.write(top(words[5]))
+           self.createKeyAcceptSection()
+           self.file.write(bottom)
 
         self.file.write(top(words[4]))
         self.createHeadersSection()
