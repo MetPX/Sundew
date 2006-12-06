@@ -232,7 +232,7 @@ class Ingestor(object):
                 pass
         return matchingFeedNames
 
-    def ingest(self, receptionName, ingestName, clientNames ):
+    def ingest(self, receptionName, ingestName, clientNames, priority=None ):
         self.logger.debug("Reception Name: %s" % receptionName)
         dbName = self.getDBName(ingestName)
 
@@ -277,7 +277,7 @@ class Ingestor(object):
             return 1
 
         for name in clientNames:
-            clientQueueName = self.getClientQueueName(name, ingestName)
+            clientQueueName = self.getClientQueueName(name, ingestName, priority)
             self.createDir(os.path.dirname(clientQueueName), self.clientDirsCache)
             #try:
             #    os.link(dbName, clientQueueName)
@@ -373,19 +373,21 @@ class Ingestor(object):
 
                 potentials = self.clientNames + self.filterNames
 
-                # routing clients (accept mask)
+                # routing clients and priority (accept mask + routing info)
 
+                priority = None
                 if self.source.routemask :
                    potentials = []
                    key = self.getRouteKey(ingestName)
                    if key != None :
                       lst = self.drp.getClients(key)
                       if lst != None : potentials = lst
+                      priority = self.drp.getHeaderPriority(key)
 
                 # ingesting the file
                 matchingClients  = self.getMatchingClientNamesFromMasks(ingestName, potentials )
                 self.logger.debug("Matching (from patterns) client names: %s" % matchingClients)
-                self.ingest(file, ingestName, matchingClients )
+                self.ingest(file, ingestName, matchingClients, priority )
                 os.unlink(file)
 
     def ingestBulletinFile(self, igniter):
