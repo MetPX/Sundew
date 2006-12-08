@@ -254,16 +254,39 @@ def uploadGraphicFiles( parameters ):
         print "scp /apps/px/stats/graphs/symlinks/* %s@%s:/apps/pds/tools/Columbo/ColumboShow/graphs/ >>/dev/null 2>&1" %( parameters.uploadMachinesLogins[i], parameters.uploadMachines[i] )
         
 
+        
+def transferToDatabaseAlreadyRunning():
+    """
+        Returns whether or not a transfer from pickle 
+        to rrd databases is allresdy running.
+        
+    """
+    
+    alreadyRuns = False 
+    status, output = commands.getstatusoutput( "ps -ax " ) 
+    lines = output.splitlines()
+    
+    for line in lines:        
+        if "transferPickleToRRD.py" in line and "R" in line.split()[2]:
+            alreadyRuns = True
+            break    
+        
+    return alreadyRuns
+    
+    
+    
 def updateDatabases( parameters ):
     """
         Updates all the required databases by transferring the
         data found in the pickle files into rrd databases files.
     """
+    if transferToDatabaseAlreadyRunning() == False :    
+        for machine in parameters.databaseMachines : 
+            status, output = commands.getstatusoutput( "/apps/px/lib/stats/transferPickleToRRD.py -m '%s'" %machine )
+            print  "/apps/px/lib/stats/transferPickleToRRD.py -m '%s' >>/dev/null 2>&1" %machine
+            print "output:%s" %output
         
-    for machine in parameters.databaseMachines : 
-        status, output = commands.getstatusoutput( "/apps/px/lib/stats/transferPickleToRRD.py -m %s >>/dev/null 2>&1" %machine )
-        print  "/apps/px/lib/stats/transferPickleToRRD.py -m '%s' >>/dev/null 2>&1" %machine
-
+        
 
 def getGraphicsForWebPages( ):
     """
