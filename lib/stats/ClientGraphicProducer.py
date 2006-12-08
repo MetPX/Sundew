@@ -86,7 +86,7 @@ class ClientGraphicProducer:
         if self.logger is None: # Enable logging
             if not os.path.isdir( PXPaths.LOG ):
                 os.makedirs( PXPaths.LOG , mode=0777 )
-            self.logger = Logger( PXPaths.LOG  + 'stats_' + self.loggerName + '.log', 'INFO', 'TX' + self.loggerName, bytes = True  ) 
+            self.logger = Logger( PXPaths.LOG  + 'stats_' + self.loggerName + '.log.notb', 'INFO', 'TX' + self.loggerName, bytes = True  ) 
             self.logger = self.logger.getLogger()
                 
 
@@ -124,7 +124,7 @@ class ClientGraphicProducer:
                 self.logger.debug( "Call to mergeHourlyPickles." )
                 self.logger.debug( "Parameters used : %s %s %s" %( startTime, endTime, client ) )
             
-            if len( self.machines ) > 1 :  
+            if len( self.machines ) > 1 :    
                 statsCollection = pickleMerging.mergePicklesFromDifferentMachines( logger = self.logger , startTime = startTime, endTime = endTime, client = client, fileType = self.fileType, machines = self.machines )
                                     
             else:#only one machine, only merge different hours together
