@@ -109,8 +109,10 @@ def main():
     
     
     #Redirect output towards html page to generate.    
-    fileHandle = open( "dailyGraphs.html" , 'w' )
- 
+    if not os.path.isdir("/apps/px/stats/webPages/"):
+        os.makedirs( "/apps/px/stats/webPages/" )
+    fileHandle = open( "/apps/px/stats/webPages/dailyGraphs.html" , 'w' )
+
      
     fileHandle.write( """
     <html>
@@ -147,7 +149,7 @@ def main():
     </table>  
        
     <br>
-    <h2>Yearly graphics for TX Clients from MetPx.</h2>
+    <h2>Daily graphics for TX Clients from MetPx.</h2>
     <br>
     <table width="100%%" border="1" cellspacing="5" cellpadding="5" bgcolor="#cccccc" bordercolor="#CCCCCC" frame = void >    
         <tr>
