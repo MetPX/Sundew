@@ -179,6 +179,7 @@ def getPreviousMonitoringJob( currentTime ):
     return previousMonitoringJob
         
         
+    
 def getTimeOfLastFilledEntry( name, startTime ):
     """
         Returns the time of the last
@@ -188,7 +189,7 @@ def getTimeOfLastFilledEntry( name, startTime ):
     """    
     
     file  = "/apps/px/stats/statsMonitoring/lastEntryFilledTimes"
-    timeOfLastFilledEntry = ""
+    #timeOfLastFilledEntry = ""
     
     if os.path.isfile( file ):
         fileHandle      = open( file, "r" )
@@ -197,12 +198,13 @@ def getTimeOfLastFilledEntry( name, startTime ):
         
         if name not in times.keys():
             timeOfLastFilledEntry = startTime
-            
+        else:
+            timeOfLastFilledEntry = times[name]     
     else:
     
         timeOfLastFilledEntry = startTime 
                 
-    
+   
     return timeOfLastFilledEntry
     
     
@@ -216,8 +218,7 @@ def saveTimeOfLastFilledEntry( name, timeOfLastFilledEntry ):
     """    
     
     file  = "/apps/px/stats/statsMonitoring/lastEntryFilledTimes"
-    timeOfLastFilledEntry = ""
-    
+       
     if os.path.isfile( file ):
         fileHandle      = open( file, "r" )
         times = pickle.load( fileHandle )
@@ -227,7 +228,7 @@ def saveTimeOfLastFilledEntry( name, timeOfLastFilledEntry ):
         times= {}
 
     times[ name ]  =  timeOfLastFilledEntry           
-    
+    #print "time to be saved for %s : %s" %( name, timeOfLastFilledEntry)
     fileHandle = open( file, "w" )
     pickle.dump( times, fileHandle )
     fileHandle.close()
@@ -285,9 +286,7 @@ def verifyFreeDiskSpace( parameters, report ):
         
         status, output = commands.getstatusoutput( "df %s" %foldersToVerify[i] )
         
-        if status == 0 :
-            #print "output : %s" %output
-            #output = output.splitlines()[1]        
+        if status == 0 :     
             diskUsage = output.split()[11].replace( "%", "")
             
             if int(diskUsage) > parameters.maxUsages[i]:    
@@ -399,8 +398,7 @@ def findFirstInterestingLinesPosition( file, startTime, endtime, lastReadPositio
         line = fileHandle.readline()            
             
         if line != "" :
-            timeOfEntry = line.split( "," )[0]
-            #print "timeOfEntry : %s startTime %s" %(timeOfEntry, startTime)
+            timeOfEntry = line.split( "," )[0]            
             if timeOfEntry >= startTime :
                 lineFound = True 
             if timeOfEntry >= endtime :
@@ -581,10 +579,10 @@ def updateConfigurationFiles( machine, login ):
 
 
     status, output = commands.getstatusoutput( "rsync -avzr --delete-before -e ssh %s@%s:/apps/px/etc/rx/ /apps/px/stats/rx/%s/"  %( login, machine, machine) )
-    #print output # for debugging only
+
 
     status, output = commands.getstatusoutput( "rsync -avzr  --delete-before -e ssh %s@%s:/apps/px/etc/tx/ /apps/px/stats/tx/%s/"  %( login, machine, machine ) )
-    #print output # for debugging only
+
    
 
 
@@ -688,11 +686,8 @@ def getFoldersAndFilesAssociatedWith( client, fileType, machines, startTime, end
             if folder not in folders.keys():
                 folders[folder] = []
                 
-            folders[folder].append( fileName )
-            
-            
-    #print folders
-                
+            folders[folder].append( fileName )                      
+               
     
     return folders
     
@@ -744,7 +739,7 @@ def verifyPicklePresence( parameters, report ):
         
         for txName in txNames:
             folders = getFoldersAndFilesAssociatedWith( txName, "tx", machine, startTime , parameters.endTime )
-            #print files
+
             
             for folder in folders.keys():
                 if os.path.isdir( folder ):
@@ -769,7 +764,7 @@ def verifyPicklePresence( parameters, report ):
             
         for rxName in rxNames:
             folders = getFoldersAndFilesAssociatedWith( rxName, "rx", machine, parameters.startTime, parameters.endTime )
-            #print files
+
             
             for folder in folders.keys():
                 if os.path.isdir( folder ):
@@ -814,11 +809,13 @@ def gapInErrorLog( name, start, end, errorLog )  :
     """
     
     gapFound = False 
+    difference = None 
     gapInErrorLog = False 
     lastTimeThisGapWasfound = ""
     
     for line in errorLog:
         try:
+        
             splitLine = line.split()
             logEntryTime = MyDateLib.getIsoWithRoundedSeconds( splitLine[1] + " " + splitLine[2][:-4] )
             lastEntryTime = MyDateLib.getIsoWithRoundedSeconds( splitLine[9] + " " + splitLine[10] )
@@ -829,40 +826,65 @@ def gapInErrorLog( name, start, end, errorLog )  :
                 if logEntryTime > start:
                     gapFound = True 
                 lastTimeThisGapWasfound =  logEntryTime 
-            
+                
+                if logEntryTime >= end:
+                    break
             
             elif splitLine[3].replace( ":", "" ) == name and lastEntryTime > start :#newer entry was found for same name 
                 break
             
-            elif logEntryTime > end :#in case file is newer than time of end of verification
+            elif logEntryTime >= end :#in case file is newer than time of end of verification
                 break
-        except:
-            print line
-    
-    if gapFound == True and lastTimeThisGapWasfound <= end:
-        if ( ( MyDateLib.getSecondsSinceEpoch(end) -  MyDateLib.getSecondsSinceEpoch(lastTimeThisGapWasfound) ) / 60 ) <= 1 :         
-            gapInErrorLog = True 
+                
+        except:#no date present for last transmission...
+            pass
             
+
+    if gapFound == True and lastTimeThisGapWasfound <= end:
+
+        if abs( ( MyDateLib.getSecondsSinceEpoch(end) -  MyDateLib.getSecondsSinceEpoch(lastTimeThisGapWasfound) ) / 60 ) <= 1 :         
+            gapInErrorLog = True 
+ 
+                  
     return gapInErrorLog
 
 
+def getSortedTextFiles( files ):
+    """
+        Takes a series of size-based rotating 
+        log files and sorts them in chronological 
+        order.
+        
+    """     
+       
+    files.sort()                
+    files.reverse()                      
+            
+    return files
     
-def getOutdatedTransmissionsLog( file ):
+    
+def getOutdatedTransmissionsLog( file, startTime ):
     """
         Takes a standard transmisson error log 
         and retunrs only the lines containing 
         infos about outdated transmissions. 
     
-    """        
+    """  
+          
+    errorLog = []  
+    files = glob.glob( file + "*")
+    files = getSortedTextFiles( files )
     
-    errorLog = []    
-    fileHandle = open( file, "r")
-    lines = fileHandle.readlines()
     
-    for line in lines :
-        if "outdated" in line:
-            errorLog.append( line )    
+    for file in files :  
+        fileHandle = open( file, "r")
+        lines = fileHandle.readlines()
     
+        for line in lines :
+            splitLine = line.split()
+            entryTime = splitLine[1] + " " + splitLine[2][:-4]
+            if "outdated" in line and entryTime >= startTime :
+                errorLog.append( line )           
     
     return errorLog
     
@@ -931,7 +953,7 @@ def verifyPickleContent( parameters, report ):
     """
     
     newReportLines = ""
-    errorLog = getOutdatedTransmissionsLog( parameters.errorsLogFile )          
+    errorLog = getOutdatedTransmissionsLog( parameters.errorsLogFile,parameters.startTime )          
     
     for machine in parameters.machines:
         
@@ -975,7 +997,7 @@ def getParameters():
          
     """           
     
-    currentTime = MyDateLib.getIsoFromEpoch( time.time() )   
+    currentTime = MyDateLib.getIsoFromEpoch( time.time() )  #"2006-12-07 00:00:00" 
     timeOfLastUpdate = getPreviousMonitoringJob( currentTime )      
     emails, machines, files, folders, maxUsages, errorsLogFile, maxSettingsFile = getParametersFromConfigurationFile()
     maximumGaps = getMaximumGaps( maxSettingsFile )
@@ -1219,7 +1241,7 @@ def updateRequiredfiles():
         
     """    
     
-    status, output = commands.getstatusoutput( "scp pds@lvs1-op:/apps/pds/tools/Columbo/ColumboShow/log/PX_Errors.txt /apps/px/stats/statsMonitoring/PX_Errors.txt >>/dev/null 2>&1" )
+    status, output = commands.getstatusoutput( "scp pds@lvs1-op:/apps/pds/tools/Columbo/ColumboShow/log/PX_Errors.txt* /apps/px/stats/statsMonitoring/ >>/dev/null 2>&1" )
     
     status, output = commands.getstatusoutput( "scp pds@lvs1-op:/apps/pds/tools/Columbo/etc/maxSettings.conf /apps/px/stats/statsMonitoring/maxSettings.conf >>/dev/null 2>&1" ) 
     
