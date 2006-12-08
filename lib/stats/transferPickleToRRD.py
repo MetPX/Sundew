@@ -514,7 +514,8 @@ def updateRoundRobinDatabases(  client, machines, fileType, endTime, logger = No
             for pair in dataPairs[ key ]:
                 rrdtool.update( rrdFileName, '%s:%s' %( int(pair[0]), pair[1] ) ) 
 
-            #print "updated : %s for %s in a file named : %s" %( key,client,rrdFileName )
+            if logger != None :
+                logger.info( "Updated  %s db for %s in db named : %s" %( key, client, rrdFileName ) )
         
         else:
             if logger != None :
