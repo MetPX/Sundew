@@ -1,70 +1,25 @@
-"""
-MetPX Copyright (C) 2004-2006  Environment Canada
-MetPX comes with ABSOLUTELY NO WARRANTY; For details type see the file
-named COPYING in the root of the source directory tree.
-"""
-
-#######################################################################################
-##               _                 _____     _        _   
-##              | |               |_   _|   | |      | |  
-##              | |__   _____      _| | ___ | |___  _| |_ 
-##              | '_ \ / _ \ \ /\ / / |/ _ \| __\ \/ / __|
-##              | | | | (_) \ V  V /| | (_) | |_ >  <| |_ 
-## Name        :|_| |_|\___/ \_/\_/ \_/\___(_)__/_/\_\\__|
-## 
+################################################################################
+##
+## MetPX Copyright (C) 2004-2006  Environment Canada
+## MetPX comes with ABSOLUTELY NO WARRANTY; For details type see the file
+## named COPYING in the root of the source directory tree.
+##
+##
+## Name   : howTo.py 
 ##  
-## Author      : Nicholas Lemay  
+## Author : Nicholas Lemay  
 ##
-## Last update : November 6th 2006
+## Last update : December 11th 2006
 ##
-## Goal        : Show proper usage of the library to user.
-##                
+##
+## Goal   : Show proper usage of the library to users.
+##          
 ##                    
-####################################################################################
+################################################################################
 
 
-
-                
-----------Overview of how to use the library in function of time-------------------
-
-
--------------------------------------------------------------Start-----------
-
-                                                              / \
-                        -------------------                    |
-                       |  Data collection. |                   |
-                       |    ( Step 1 )     |                   |
-                        -------------------                    |
-                              |                                |
-                              |                                |
-                              |                                |
-                              |                                |
-                              \/                               |                                  
-               ------------------------------      ------------------------    
-              | Pickle file synchronisation. |    |       Utilities        |   
-              |        ( Step 2 )            |    |       ( Step 7 )       |
-               ------------------------------      ------------------------
-                    |                \                         |
-                    |                 \                        |       
-                    |                  \                       |
-                    \/                 \/                      |
-  -------------------------   ------------------------         |
- | Produce Short Graphics. | | Transfer pickle to rrd |        |          
- |   ( Steps 4 and 5 )     | |    ( Step 3 )          |        |
-  ------------------------    ------------------------         |
-                                         |                     |
-                                         |                     |
-                                         \/                    |
-                                 ----------------------        |
-                                | Produce Wide Graphics |      |
-                                |    ( Step 6 )         |      | 
-                                 -----------------------       |                   
-                                                               |
-                                                               |
-                                                               \/
---------------------------------------------------------------End------------
-
-
+How to use the stats library, step by step : 
+--------------------------------------------
  
  --------------------------
 |Step 1 - Data collection. |
@@ -74,26 +29,31 @@ named COPYING in the root of the source directory tree.
     |Preliminary steps |
      ------------------
      
-    Data collection must be done localy. Data collected will be saved in pickle files.
+    Data collection must be done localy. Data collected will be saved in
+    pickle files.
     
     Step 1.1 - Connect on the machine where you want to collect data  
     
     Step 1.2 - Go in the /apps/px/lib/stats/ folder
     
-    Step 1.3 - Run the following to see how pickleUpdater.py works : python pickleUpdater.py -h 
+    Step 1.3 - Run the following to see how pickleUpdater.py works 
+               python pickleUpdater.py -h 
     
-    Step 1.4 - Run pickleUpdater.py with the wanted parameters to update the needed clients.
+    Step 1.4 - Run pickleUpdater.py with the wanted parameters to update
+               the needed clients.
    
          
     ---------------------------------------------------------
    | How to have pickleUpdater.py do what you want it to do: |
     ---------------------------------------------------------
+        
         Step 1.4.1
             Update All tx or rx client found on the machine up to now :
                     pickleUpdater.py -f tx
                     pickleUpdater.py -f rx
             
-            Note : These two commands will be the most used of any commands that can be used with pickle updates.        
+            Note These two commands will be the most used of any commands
+            that can be used with pickle updates.        
         
         Step 1.4.2
             update a certain tx client :
@@ -106,16 +66,20 @@ named COPYING in the root of the source directory tree.
             update a certain tx client up to a certain date :
             pickleUpdater.py -f tx -c satnet -d "2006-08-08 12:15:00"
             
-            ***Very usefull to start off a new client. At first, you use pickleUpdater with  
-            the first hour where the client started as parameter. 
+            ***Very usefull to start off a new client. At first, you use
+            pickleUpdater with  the first hour where the client started
+            as parameter. 
             
-            Once this has been done, you update it up to now using : pickleUpdater.py -f tx -c satnet
-            and the application will update the data up to now no matter how many hours
-            or days there has been since the first hour.      
+            Once this has been done, you update it up to now using : 
+                    pickleUpdater.py -f tx -c satnet
+            and the application will update the data up to now no matter
+            how many hours or days there has been since the first hour.      
         
             
         Step 1.4.4
-            Update only one type of data for a client (not recommended since it limits the graphics that can be produced 
+            Update only one type of data for a client
+            Note : not recommended since it limits the graphics that can be 
+                   later produced 
             
             pickleUpdater.py -f tx -c satnet -t bytecount             
         
@@ -132,10 +96,12 @@ named COPYING in the root of the source directory tree.
     
     Step 2.2 - Go in the /apps/px/lib/stats/ folder. 
     
-    Step 2.3 - Run the following to see how pickleSynchroniser.py works : python pickleSynchroniser.py -h 
+    Step 2.3 - Run the following to see how pickleSynchroniser.py works :
+               python pickleSynchroniser.py -h 
     
-    Step 2.4 - Run pickleSynchroniser.py with the parameters wanted to get the desired results:
-    
+    Step 2.4 - Run pickleSynchroniser.py with the parameters wanted to 
+               get the desired results.
+   
     --------------------------------------------------------------
    | How to have pickleSynchroniser.py do what you want it to do: |
     --------------------------------------------------------------
@@ -151,7 +117,7 @@ named COPYING in the root of the source directory tree.
             
             Update data from a specific machine :
             
-            pickleSynchroniser.py -m "pds5" 
+            pickleSynchroniser.py -m "pds5"
         
             Note : Might be obligatory if all machines have different ssh logins.
         
@@ -159,232 +125,293 @@ named COPYING in the root of the source directory tree.
             
             Update data from a specific client of a machine 
             
-            pickleSynchroniser.py -m "pds5" -c "satnet" 
+            pickleSynchroniser.py -m "pds5" -c "satnet"
             
-            Note : this will make updating very long if done client per client and is
-            thus not recommended.
+            Note : this will make updating very long if done client per client
+                   and is thus not recommended.
         
             
        Example 4
         
-            Specify wich ssh login to use when connecting to the machines to update :
+            Specify wich ssh login to use when connecting to the machines to
+            update :
             
             pickleSynchroniser.py -m "pds5" -c "satnet" -l "myLogin"
         
-            Note : It is recommended that you use a login that has instant access to
-                   the machine when using pickleSynchroniser.py or else automatic updates
-                   using crontab will be rendered useless since user needs to type password for 
-                   every ssh connection... 
+            Note : It is recommended that you use a login that has instant 
+                   access tothe machine when using pickleSynchroniser.py or else
+                   automatic updates using crontab will be useless since user
+                   needs to type password for every ssh connection... 
+ 
+                   
+ ------------------------------------            
+| Step 3  Feeding the databases.     |
+ ----------------------------------- 
+                   
+    ------------------
+   |Preliminary steps |
+    ------------------
+    Step 3.1 - Connect to the machine containing the pickles
+              ( usually the graphics machine).
+    
+    Step 3.2 - Go in the /apps/px/lib/stats/ folder. 
+    
+    Step 3.3 - Run the following to see how transferPickleToRRD.py works :
+               python transferPickleToRRD.py -h 
+    
+    Step 3.4 - Run transferPickleToRRD.py with the parameters wanted to
+               transfer pickled data into rrd databases.  
+  
+     --------------------------------------------------------
+    | How to tranfer the pickles you want :                  |
+     --------------------------------------------------------     
+        Example 1
+        
+        python transferPickleToRRD.py -m machine
+        
+        This tranfers all the currently active tx and rx clients/sources pickle 
+        files that are found between the time of he last transfer up to the top
+        of the current hour. This is the simplest and most used option of
+        transferPickleToRRD.py
+        
+        
+        Example 2
+        
+        python transferPickleToRRD.py -m machine -e "2006-12-10 01:00:00"
+        
+        Same as above but for files between time of last update and 2006-12-10
+        01:00:00.This is usefull for testing purposes, if more recent pickels 
+        aren't available at the moment or if user wants to update database for
+        shorter periods as to not have to transfer data for hours on end. 
+        
+        Example 3
+        python transferPickleToRRD.py -m machine -c client -f tx 
+           
+        Same as #1 except that we only transfer the pickles for a single
+        tx client. 
+             
+        
+                            
+ ----------------------------- 
+|Step 4- Producing Graphics. |
+ -----------------------------  
+     
+     ------------------------------------------------ 
+    | 4.1 Producing graphics based on pickle files.  |         
+     ------------------------------------------------   
+     
+        ------------------
+        |Preliminary steps |
+        ------------------
+        Step 4.1.1 - Connect to the graphic producing machine.
+        
+        Step 4.1.2 - Go in the /apps/px/lib/stats/ folder. 
+        
+        Step 4.1.3 - Run the following to see how generateGRaphics.py works 
+                     python generateGraphics.py -h 
+        
+        Step 4.1.4 - Run generateGraphics.py with the parameters wanted to 
+                     get the desired graphics
+       
+        --------------------------------------------------------
+        | How to have  the graphics you want:                   |
+        --------------------------------------------------------
+            Example 1
+                produce a graphic for satnet, for the past 12 hours for each
+                of the data types supported by tx files coming from data 
+                collected on all machines.
+                
+                generateGraphics.py -c satnet
+                
+            Example 2
+                produce a graphic for satnet and amis, for the past 12 hours for
+                each of the data type supported by tx files coming from data 
+                collected on all machines.
+                
+                generateGraphics.py -c "satnet,amis"
+    
+            Example 3
+                produce a graphic for satnet, for the past 5 hours for each of
+                the data type supported by tx files coming from data collected
+                on all machines.
+                
+                generateGraphics.py -c satnet -s 5
+                 
+            Example 4
+                produce a graphic for client, for the past 12 hours for each of
+                the data type supported by rx files coming from data collected
+                on all machines.
+                
+                generateGraphics.py -c satnet -f rx   
+                
+            Example 5
+                produce a graphic for satnet, for the past 12 hours for each of 
+                the data type supported by tx files coming from data collected 
+                on pds5 machine.
+                
+                generateGraphics.py -c satnet -m pds5
+                
+            Example 6
+                produce a graphic for satnet, for the past 12 hours for each of
+                the data type supported by tx files coming from data collected 
+                on all machines. Use only data relative to product that contain
+                the name WXB 
+                
+                
+                generateGraphics.py -c satnet  -p WXB   
+                
+                
+            Example 7
+                produce a graphic for satnet, for the entire day of october 8th
+                2005 for each of the data type supported by tx files coming from
+                data collected on all machines.
+                
+                generateGraphics.py -c satnet -s 24 -d "2005-10-08 01:00:00"
+                
             
-----------------------------------------------------------
-| Step 3 - Getting the collected data into rrd databases. |                 
-----------------------------------------------------------  
-    transferPickleToRRD.py allows users to transfer pickled data 
-    that was saved using pickleUpdater.py into an rrd database. 
-    Such databases have a fixed size so they are very space efficient when using data 
-    that spans over a large amount of time and that precise information is not needed. 
-    rrdTool also offers to efficiently plot graphics based on the data contained in an rrd.
+            Example 8
+                produce the same graphic but only for latency 
+                
+                generateGraphics.py -c satnet -s 24 -d "2005-10-08 01:00:00"
+                 -t latency     
     
-    We recommend managing the databases on the graphic producing machines since they 
-    allready need the pickle files from all the different machines.
-    
-    
-    Example 1
-        This will transfer the data coming from all tx/rx clients that are associated
-        with the machine named pxatx. This will take the data coming from the time of the last update. 
-        If this is the first update it will start from midnight of of the day of the call.
-        
-        transferPickleToRRD.py -m "pxatx"
-        
-    Example 2
-        Same as above, but for the combined data of all the clients associated with pds5 and pds6.    
-        
-        transferPickleToRRD.py -m "pds5,pds6"
+            
+            Example 9
+                produce the same graphic but only for latency and errors
+                
+                generateGraphics.py -c satnet -s 24 -d "2005-10-08 01:00:00"
+                 -t "latency,errors"
+                            
+                        
+            Example 10
+                5 hour graphic, requested at 5h15 on august 8th 2006, for 
+                rxclient, using data collected only for products containing 
+                WXBO in their name, using data collected on pds5 and 6 
+                
+                generateGraphics.py -c rxclient -d "2006-08-08 05:15:00" -f rx
+                -m "pds5,pds6" -p WXBO -s 5 -t "bytecount,errors"   
 
-    
-    Example 3
-        This is an example that will often be used to start off transfers for a new machine.
-        User specifies the date for wich we first started pickling data. This first update will 
-        transfer the data that is comprised between 2005-08-08 00:00:00 2005-08-08 01:00:00.
-        Afterwards user has the choice to run up the next update in different batchs by specifying
-        dates as to not transfer all the data coming from the start of the pickling up to this day
-        or to do it all at once by not specifying an end date.  
-        
-        -f options specifies that user is only interested in tx log files.
             
-        transferPickleToRRD.py -m "pds5,pds6" -f tx -e "2005-08-08 01:00:00"    
+            
+     ------------------------------------------------------------- 
+    | 4.2 Producing graphics based on databases.                  |         
+     -------------------------------------------------------------   
      
-    
-    
- -------------------------------------- 
-|Step 4 - Producing Specific Graphics. |
- --------------------------------------  
-     
+        ------------------
+        |Preliminary steps |
+        ------------------
+        Step 4.2.1 - Connect to the graphic producing machine.
+        
+        Step 4.2.2 - Go in the /apps/px/lib/stats/ folder. 
+        
+        Step 4.2.3 - Run the following to see how generateRRDGraphics.py works :
+                     generateRRDGraphics.py -h 
+        
+        Step 4.2.4 - Run generateRRDGraphics.pywith the parameters wanted
+                     to get the desired graphics     
+        
+         -------------------------------------------------------
+        | How to have the graphics you want :                   |
+         -------------------------------------------------------
+            
+            Example 1
+            
+            python generateRRDGraphics.py -m -l -f tx --machines 'pds5,pds6'
+             -e '2006-10-10 01:00:00'
+            
+            Creates monthly graphics for all the tx client from the combined
+            data of the files found on pds5 and pds6. Since this is a tx client,
+            5 graphic types will be created : errors, bytecount, filecount, 
+            filesOverMaxLatency and latency.
+            
+            The end of the week will be  2006-10-10 01:00:00. Graphics will 
+            show all data comprised between 2006-10-03 01:00:00 and 2006-10-10
+            01:00:00. The -l option creates a symbolic link to the 
+            graphics so that it can be viewed from the web page interface. 
+            
+            
+            Example 2
+            
+            python generateRRDGraphics.py -m -l -f rx --machines 'pds5,pds6' 
+            -e '2006-10-10 01:00:00'
+            
+            Same as 1 but with rx sources. This will generate 3 graphic types : 
+            bytecount, errors and filecount.
+            
+            
+            Example 3
+            python generateRRDGraphics.py -m -l -f tx --machines -c client
+            'pds5,pds6' -e '2006-10-10 01:00:00'
+            
+            Same as 1 but only for a single specific tx client.    
+        
+            Example 4 
+            
+            python generateRRDGraphics.py -m -l -f tx --machines 'pds5,pds6'
+             -e '2006-10-10 01:00:00' --totals
+            
+            Same as 1 except that instead of creating a single graphic per tx
+            client, it draws a single graphics for all the clients based on the 
+            total of all the data associated with all the tx clients.
+            
+        
+        
+ ----------------------------     
+| Step 5 - Generating the    |
+| the web pages.             |
+ ----------------------------    
+  
      ------------------
     |Preliminary steps |
      ------------------
-    Step 4.1 - Connect to the graphic producing machine.
+    Step 5.1 - Connect to the graphic producing machine.
     
-    Step 4.2 - Go in the /apps/px/lib/stats/ folder. 
+    Step 5.2 - Go in the /apps/px/lib/stats/ folder. 
     
-    Step 4.4 - Run the following to see how generateGRaphics.pyy works : python generateGraphics.py -h 
+    Step 5.3 - Get the graphics required by the web pages by running
+               python getGraphicsForWebPages.py
     
-    Step 4.4 - Run generateGraphics.py with the parameters wanted to get the desired graphics
-    
-     --------------------------------------------------------
-    | How to have  the graphics you want:                   |
-     --------------------------------------------------------
-        Example 1
-            produce a graphic for satnet, for the past 12 hours for each of the 
-            data type supported by tx files coming from data collected on all machines.
-            
-            generateGraphics.py -c satnet
-            
-        Example 2
-            produce a graphic for satnet and amis, for the past 12 hours for each of the 
-            data type supported by tx files coming from data collected on all machines.
-            
-            generateGraphics.py -c "satnet,amis"
-
-        Example 3
-            produce a graphic for satnet, for the past 5 hours for each of the 
-            data type supported by tx files coming from data collected on all machines.
-            
-            generateGraphics.py -c satnet -s 5
-            
-        Example 4
-            produce a graphic for client, for the past 12 hours for each of the 
-            data type supported by rx files coming from data collected on all machines.
-            
-            generateGraphics.py -c satnet -f rx   
-            
-        Example 5
-            produce a graphic for satnet, for the past 12 hours for each of the 
-            data type supported by tx files coming from data collected on pds5 machine.
-            
-            generateGraphics.py -c satnet -m pds5
-            
-        Example 6
-            produce a graphic for satnet, for the past 12 hours for each of the 
-            data type supported by tx files coming from data collected on all machines. 
-            Use only data relative to product that contain the name WXB 
-             
-            
-            generateGraphics.py -c satnet  -p WXB   
-            
-            
-        Example 7
-            produce a graphic for satnet, for the entire day of october 8th 2005 for
-            each of the data type supported by tx files coming from data collected on 
-            all machines.
-            
-            generateGraphics.py -c satnet -s 24 -d "2005-10-08 01:00:00"
-            
-        
-        Example 8
-            produce the same graphic but only for latency 
-            
-            generateGraphics.py -c satnet -s 24 -d "2005-10-08 01:00:00" -t latency     
- 
-        
-        Example 9
-            produce the same graphic but only for latency and errors
-            
-            generateGraphics.py -c satnet -s 24 -d "2005-10-08 01:00:00" -t "latency,errors"
-                        
-                       
-        Example 10
-            5 hour graphic, requested at 5h15 on august 8th 2006, for rxclient, using 
-            data collected only for products containing WXBO in their name, using data
-            collected on pds5 and 6 
-            
-            generateGraphics.py -c rxclient -d "2006-08-08 05:15:00" -f rx -m "pds5,pds6"
-            -p WXBO -s 5 -t "bytecount,errors"   
-
-    
-            
- ---------------------------------------- 
-|Step 5 - Producing Graphics By Batch. |
- ----------------------------------------  
-     Example 1 
-        Produce all tx and rx graphs for all clients found on pxatx. Only one machine is used so we 
-        graphs for individual machines(-i)
-        
-        generateAllGraphsForServer.py -i -m 'pxatx' -l 'pds'
+     -----------------------
+    | Updating the webPages |
+     -----------------------
      
-     Example 2 
-        Produce all tx and rx graphs for all clients found on pxatx. Two machines are specified here and 
-        both contain data for the same clients. We thus want to combine(-c) the data coming from both machines 
-        and produce graphs for the resulting merger only.   
-        
-        generateAllGraphsForServer.py -m 'pds5,pds6' -c  -l 'pds,pds'
-                                 
-     Example 3
-        Produce all tx and rx graphs for all clients found on pxatx. Two machines are specified here and 
-        both contain data for the same clients. Contrary to the previous example, user wants to have graphics for
-        the data resulting from the merger(-c) of both machine but also wants to see graphics wich use the data from
-        each individual machines(-i).   
-         
-        generateAllGraphsForServer.py -m 'pds5,pds6' -c  -i -l 'pds,pds'       
- 
-
- ------------------------------------------------------- 
-|Step 6 - Producing Graphics for a wide period of time. |
- -------------------------------------------------------  
-     Pickle files being quite large and data details not being extremely important
-     over long periods of time means that pickle files will be kept for short periods of 
-     times, generally under a week. Therefore data consolidation has been implemented using 
-     rrdtool's round robin data base mechanism.       
- 
- 
-     Example 1 
-        This will generate all possible yearly graphs for all the clients found on pds5 and pds6
-        based on the merged data of the two machines.
-        rx will have the folowing graphics  :"bytecount", "errors", "filecount"
-        tx will have the following graphics :"latency", "bytecount", "errors", "filesOverMaxLatency", "filecount"
-        
-        generateRRDGraphics.py -e "2006-10-10 15:13:00" -y --m "pds5,pds6"
-
-     
-     Example 2 
-        This will generate all possible monthly graphs for all the clients found on pxatx
-        based on the data pickled on that machine.
-        
-        generateRRDGraphics.py -e "2006-10-10 15:13:00" -m --machines "pxatx"
-                                 
-        
-     Example 3
-        This will generate all 5 weekly graphics for tx client named satnet-ice with the pickled data
-        coming from the pxatx machine 
-                    
-        generateRRDGraphics.py -e "2006-10-10 15:13:00" -w --machines "pxatx" -c "satnet-ice" -f tx
-     
-        
-        
+    Step 5.4 - Update the web page containing daily graphics by running 
+               python dailyGraphicsWebPage.py
+    Step 5.5 - Update the web page containing weekly graphics by running
+               python weeklyGraphicsWebPage.py
+    Step 5.6 - Update the web page containing monthly graphics by running
+               python monthlyGraphicsWebPage.py
+    Step 5.7 - Update the web page containing yearly graphics by running
+               python yearlyGraphicsWebPage.py
+                      
+    
+    
+               
  --------------------   
-| Step 7 - Utilities |
+| Step 6 - Utilities |
  --------------------
        
-    7.1 pickled times viewer
+    6.1 pickled times
     
-        To see the content of pickled-times file wich contain the time 
-        of the last update of every client, on a specific machine use the folowing :
+        To see the content of the pickled-times file wich contains the time 
+        of the last update of every client, on a specific machine use the
+        folowing :
         
-        Step 7.1.1 - Connect on the machine.
-        Step 7.1.2 - Go to the /apps/px/lib/stats/ folder. 
-        Step 7.1.3 - run pickledTimesViewer.py 
+        Step 6.1.1 - Connect on the machine.
+        Step 6.1.2 - Go to the /apps/px/lib/stats/ folder. 
+        Step 6.1.3 - run pickledTimesViewer.py 
         
         This is very usefull for debugging.
     
         
-    7.2 pickleViewer    
+    6.2 pickleViewer    
         To see the content of pickle files containg the collected data on a
         specific machine use the folowing :
         
-        Step 7.2.1 - Connect on the machine.
-        Step 7.2.2 - Go to the /apps/px/lib/stats/ folder. 
-        Step 7.2.3 - Run pickleViewer.py -h to sse how it works
-        Step 7.2.4 - Run pickleSynchroniser.py with the parameters wanted to 
+        Step 6.2.1 - Connect on the machine.
+        Step 6.2.2 - Go to the /apps/px/lib/stats/ folder. 
+        Step 6.2.3 - Run pickleViewer.py -h to sse how it works
+        Step 6.2.4 - Run pickleSynchroniser.py with the parameters wanted to 
                      get the desired results:
     
          --------------------------------------------------------
@@ -392,193 +419,107 @@ named COPYING in the root of the source directory tree.
          --------------------------------------------------------
          Example 1
             View a specific pickle
-                pickleViewer.py /apps/px/stats/pickles/amis/20060808/tx/lvs1-dev_00
+            pickleViewer.py /apps/px/stats/pickles/amis/20060808/tx/lvs1-dev_00
                 
          Example 2
             Dump the content of the pickle in a text file for easier viewing.
-            pickleViewer.py /apps/px/stats/pickles/amis/20060808/tx/lvs1-dev_00 /myHomeFolder/outputFile.txt.
+            pickleViewer.py /apps/px/stats/pickles/amis/20060808/tx/lvs1-dev_00 
+            /myHomeFolder/outputFile.txt.
         
          This is very usefull for debugging.
-    
          
-    7.3 pickleCleaner
-        To cleanup all the created pickle files you can use the pickleCleaner utility.
+         
+     6.3 pickleCleaner
+         This file is to be used to cleanup the saved pickle files. 
+         Simply run pickleCleaner.py and it will remove any folder containing
+         pickle files older than x days.
+         
+         
+     6.4 clean_dir.pxl
+         This file is to be used to remove from any folder the files that are
+         older than x amount of time.
+         
+         See /apps/px/etc/clean.conf to see how to set the config files so that
+         files a removed correctly.    
+     
+         
+     6.5 setTimeOfLastUpdate
+        This file is used to modify the content of the pickled times file.
+        If done properly, this will set back the time of the last update of 
+        the pickle files and for pickleUpdater.py to regenerate pickle files
+        during the next update. This will be very usefull if errors are found
+        within pickle files during monitoring and that a user has corrected the
+        cause and wants to correct the pickle files.
         
-        Default value is set to 5 days, wich means we'll keep the last 5 days worth of 
-        pickles and delete everyting else. Otherwise you can specify the number of days as a parameter. 
+        python setTimeOfLastUpdate.py "2006-10-10 01:00:00"
+     
         
-        pickleCleaner.py 7  Will delete every pickle that is older than 7 days.
-    
-        
-    7.4 clean_dir.plx   
-        This utility allows users to cleanup any directory recursively. It uses a config file where you must
-        enter the directories you want to clean, the pattern (glob) to match, the
-        intervall of time that must be attained by a file for it to be deleted (specified in seconds (s),
-        minutes (m), hours (h) or days (d) and finally it you want the delete to be recursive or not.
-        
-        To delete graphs that are older than 4 days the following line is used :
-        
-        /apps/px/lib/stats/clean_dir.plx /apps/px/etc/clean.conf
-        
-        with /apps/px/etc/clean.conf containing the following line :
-        /apps/px/stats/graphs/        *           4:d            yes
+     6.6 backupRRDDatabases
+         Backups the currrent databases. One a time entry has been filled within
+         an rrd database, it cannot be modified. Because of that, database 
+         backups should be  done rather frequently so that if an error is 
+         inserted within the db a user can use the back up database and insert 
+         the corrected value at the next update.
+         
+         python backupRRDDatabases.py
+     
+         
+     6.7 restoreRoundRobinDatabases.py
+         This program is to be used in conjunction with the backupRRDDatabases
+         utility. When a database is backed up, the backup file will have the
+         time of the backup witten in it's name. When a user wants to restore
+         that database it only needs to specify the time of the backup to the
+         restoreRoundRobinDatabases utility. 
+         
+         python restoreRoundRobinDatabases.py "2006-10-10 01:00:00"
           
-             
-    
-    7.5 setTimeOfLastUpdates.py
-        This utility is to be used to restart pickling from a certain point in time.
-        This is particularly usefull when errors occur, causes are corrected and data 
-        pickling needs to be redone.
-        
-        setTimeOfLastUpdates.py "2006-10-23 09:00:00" 
-        
-        This will remove the file containin the position where we last read a certain file
-        for each source/client. This will set 2006-10-23 09:00:00 as the time of the last
-        update in the pickled-times file for all of them also. 
-        
-        
-        
-    7.6 backupRRDDatabases.py
-        This program is to be used to backup rrd databases and their corresponding
-        time of update files. Backing up rrd databases at various point in time is a
-        recommended paractice in case newly entered data is not valid.
-         
-        To do so the user only has to execute backupRRDDatabases.py, it will take care of
-        backuping both folders and mark the backup folders with the current time. 
-        
-                 
-    
-    7.7 restoreRoundRobinDatabases.py
-         This program is to be used to restore the backed up databases from a certain date
-         and use them as the main databases
-         
-         Using restoreRoundRobinDatabases.py "2006-11-02 21:14:00" will take the
-         /apps/px/stats/databases.2006-11-02_21:14:00 and /apps/px/stats/DATABASE-UPDATES.2006-11-02_21:14:00
-         folders and set them as the main folder /apps/px/stats/databases and /apps/px/stats/DATABASE-UPDATES.
-         
          
  --------------------------------------
-| Step 8 Making it all work together : |
+| Step 7 Making it all work together : |
  --------------------------------------
  
-    Step 8.1 - Collect data first:
+    7.1 launchGraphCreation.py
     
-        It would be pretty futile to try and synchronise data when none has been produced. 
-        Producing graphics with empty data would also be useless. 
+        As previously explained, for a proper se of all the functions
+        of the stats library, each step should be done in the right order.
+        The suggested order being used right now in the launchGraphCreation.py 
+        file is the following 
         
-        We recommend updating the data for every client at every hour. 
+        1- Pickle update
+        2- Pickle synchronisation
+        3- Database updates
+        4- Graphic generations
+        5- Graphic update for web pages
+        6- Web pages
+        7(optional)Upload of some graphic files to a machine that requires them.
         
-        Data is plit up in pickle covering an entire hour each. It this makes sense to 
-        produce them as early as possible so they can be used where needed.
-        
-        Collecting data right at the turn of the hour should not be done and will be prone to
-        producing errors. Please set your updates a few minutes after the turn of the hour. 
+        The above program is launched once per hour using a crontab entry.
+        The current entry on one of the machines is the following :
+        8 * * * * /apps/px/lib/stats/launchGraphCreation.py > /dev/null 2>&1
     
+        Note : PYTHONPATH environment wich is needed by python should be declared
+               incrontab file or else programs will not work.       
+  
+        
+ -------------------
+| Step 8 Monitoring |
+ -------------------
     
-    Step 8.2 - Synchronise data 
-        
-        We recommend sychronising data only once its been updated. 
-        
-        The sooner the better since it will be available to the user who wants 
-        to produce graphs. If data collection takes longer than expected, data 
-        will not be totally collected during the time of the synchronisation.
-        In that case it will not be avaiable to the destination machine untill
-        the next update.
-        
-        Since we recommend collecting data hourly, it is also recommended to synchronise
-        files hourly.        
-
-        This way we make sure all data is up to date and all the latest graphs are produced and ready to be consulted 
-        when users needs to.
-                
-        
-    Step 8.3 - Transfer synchronised data     
-        In order to be able to produce weekly monthly and yearly graphics, data must 
-        be consolidated in the rrd databases.        
-        
+    8.1 statsMonitor.py
     
-    Step 8.4 - Produce graphics based on synchronised data.
+        This program is to be used to detect any anomalies within the different 
+        tasks done within the stats library.
         
-        Graphics will be produced up to the top of the current hour. 
-        EX 15:00:00 if requested at 15:38:16
+        It is recommended to run this program once a day to keep execution time
+        of the monitoring program short and also to make sure errors don't
+        corrupt the data and graphics for a long time.  
         
-        If data doesnt exist for a certain hour it will be repalced by empty data 
-        for that hour. This will show up as a warning in the log files.
-        
-        If data was not synchronised at the time of the graphics production and 
-        lets say hours 7 was missing. 
-        
-        If a later data synchronisation occurs and retrieves data for hour 7 on the client producing machine, 
-        the graphic should be remade by the user as to have the right graphic...
+        See /apps/px/stats/statsMonitoring/statsMonitoring.conf to see how to 
+        configure the statsMonitor program.
  
-        
-        
-     Step 8.5 - Send graphics to other machines that need them.
-        This is done using scp 
-        scp /apps/px/stats/graphs/symlinks/* lvs1-op:/apps/pds/tools/Columbo/ColumboShow/graphs/ >>/dev/null 2>&1
-     
-     
-     
-     
-     Step 8.6 Putting it all together. 
-     
-     Here is a sample of a python file containg the list of all commands that are executed every hour 
-     on a graphic producing machine. This program ahd the reuirement to produce daily graphics for the pxatx 
-     machine and the pds5,pds6 combination. Pickling had to be done on machines different from the original machines.
-     Graphics then had to be uploaded to be uploaded on two machines named lvs1-op and lvs2-op. 
-      
-     Commands were set in a python files since crontab allows only for a
-     limited amount of characters to appear on the same command line.   
-     
-     
-     
-    #this block gets all the pxatx pickles and graphics done on the local machine. 
-    
-    status, output = commands.getstatusoutput( "rsync -avzr --delete-before  -e ssh pds@pxatx:/apps/px/log/ %s >>/dev/null 2>&1 " %PATH_TO_LOGFILES )
-
-    status, output = commands.getstatusoutput( "python /apps/px/lib/stats/pickleUpdater.py -f rx  >>/dev/null 2>&1" )
-
-    status, output = commands.getstatusoutput( "python /apps/px/lib/stats/pickleUpdater.py -f tx >>/dev/null 2>&1" )
-
-    status, output = commands.getstatusoutput( "/apps/px/lib/stats/generateAllGraphsForServer.py -i -m 'pxatx' -l 'pds' >>/dev/null 2>&1 " )
-
-    
-    
-    #This block get all the pds5 pickles done on the pds3-dev machine. Pickles are then downloaded to the local machine.    
-    status, output = commands.getstatusoutput( "ssh pds@pds3-dev 'rsync -avzr --delete-before -e ssh pds@pds5:/apps/px/log/ /apps/px/log/pds3-dev/' >>/dev/n
-ull 2>&1" )
-
-    status, output = commands.getstatusoutput( "ssh pds@pds3-dev 'python /apps/px/lib/stats/pickleUpdater.py  -f rx'  >>/dev/null 2>&1 " )
-
-    status, output = commands.getstatusoutput( "ssh pds@pds3-dev 'python /apps/px/lib/stats/pickleUpdater.py -f tx' >>/dev/null 2>&1 " )
-
-    status, output = commands.getstatusoutput( "/apps/px/lib/stats/pickleSynchroniser.py -l pds -m 'pds3-dev' >>/dev/null 2>&1 " )
-
-    
-    
-    #This block get all the pds6 pickles done on the pds4-dev machine. Pickles are then downloaded to the local machine.
-    status, output = commands.getstatusoutput( "ssh pds@pds4-dev 'rsync -avzr --delete-before -e ssh pds@pds6:/apps/px/log/ /apps/px/log/pds4-dev/' >>/dev/n
-ull 2>&1" )
-
-    status, output = commands.getstatusoutput( "ssh pds@pds4-dev 'python /apps/px/lib/stats/pickleUpdater.py -f rx' >>/dev/null 2>&1" )
-
-    status, output = commands.getstatusoutput( "ssh pds@pds4-dev 'python /apps/px/lib/stats/pickleUpdater.py -f tx' >>/dev/null 2>&1" )
-
-    status, output = commands.getstatusoutput( "/apps/px/lib/stats/pickleSynchroniser.py -l pds -m 'pds4-dev' >>/dev/null 2>&1" )
-
-    #Once we have all the pickles from pds5 and pds6 we generate the graphs locally.
-    status, output = commands.getstatusoutput( "/apps/px/lib/stats/generateAllGraphsForServer.py -m 'pds5,pds6' -c  -l 'pds,pds' >>/dev/null 2>&1  " )
-
-    #Transfer the pickle data to the different databases. 
-    status, output = commands.getstatusoutput( "/apps/px/lib/stats/transferPickleToRRD.py -m 'pds5,pds6' >>/dev/null 2>&1" )
-
-    status, output = commands.getstatusoutput( "/apps/px/lib/stats/transferPickleToRRD.py -m 'pxatx' >>/dev/null 2>&1" )
-
-    #Transfer graphics to another machine that reqiuries them.
-    status, output = commands.getstatusoutput( "scp /apps/px/stats/graphs/symlinks/* lvs2-op:/apps/pds/tools/Columbo/ColumboShow/graphs/ >>/dev/null 2>&1")
-
-    #Transfer graphics to another machine that reqiuries them.
-    status, output = commands.getstatusoutput( "scp /apps/px/stats/graphs/symlinks/* lvs1-op:/apps/pds/tools/Columbo/ColumboShow/graphs/ >>/dev/null 2>&1") 
-     
-       
-
+ 
+ 
+ 
+ 
+ 
+ 
