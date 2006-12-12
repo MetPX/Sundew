@@ -245,7 +245,8 @@ def buildReportHeader( parameters ):
     
     reportHeader = "\n\n"
     reportHeader = reportHeader + "Stats monitor results\n----------------------------------------------------------------------------------------------------------------------------------\n"
-    reportHeader = reportHeader + "Time of test      : %s\n" %parameters.endTime
+    reportHeader = reportHeader + "Time of test : %s\n" %parameters.endTime
+    reportHeader = reportHeader + "Time of previous test : %s\n" %parameters.startTime
     reportHeader = reportHeader + "Machine name      : %s\nConfig file  used : %s\n" %( LOCAL_MACHINE, PXPaths.STATS + "statsMonitoring/statsMonitoring.conf" )
     
     return reportHeader
@@ -385,28 +386,29 @@ def findFirstInterestingLinesPosition( file, startTime, endtime, lastReadPositio
         
         
     """       
-    
+
     lineFound = False
     line      = None
     fileHandle = open( file, 'r') 
     fileHandle.seek( lastReadPosition )
-    
+    foundValidLine = False 
     
     while lineFound == False and line != "":
         
         lastReadPosition = fileHandle.tell()
-        line = fileHandle.readline()            
-            
+        line = fileHandle.readline()                       
+        
         if line != "" :
             timeOfEntry = line.split( "," )[0]            
             if timeOfEntry >= startTime :
+                foundValidLine = True 
                 lineFound = True 
             if timeOfEntry >= endtime :
-                line      = "" 
-    
+                foundValidLine = False 
+ 
     fileHandle.close()         
     
-    return lastReadPosition, lineFound, line
+    return lastReadPosition, foundValidLine, line
     
     
     
@@ -465,16 +467,20 @@ def findHoursWithNoEntries( logs, startTime, endTime ):
     logs = getSortedLogs( logs )     
     hoursBetweenStartAndEnd = findHoursBetween( startTime, endTime )     
     
-    while i <  len( hoursBetweenStartAndEnd )  and j < len( logs ):
+    while i < ( len( hoursBetweenStartAndEnd )-1)  and j < len( logs ):
+               
+        startTime = hoursBetweenStartAndEnd[i]
+        endTime   = hoursBetweenStartAndEnd[i+1]
         
         lastReadPosition, lineFound, line = findFirstInterestingLinesPosition( logs[j], startTime, endTime, lastReadPosition )        
         
-        if lineFound == True and line == "": #not eof,line found > endtime
+        if lineFound == False and line != "": #not eof,line found > endtime
             hoursWithNoEntries.append( hoursBetweenStartAndEnd[i] )        
-        elif line == "": #file is over
-            j = j +1
         
-        i = i + 1
+        if line == "": #file is over
+            j = j + 1
+        else:
+            i = i + 1
     
         
     if i < ( len( hoursBetweenStartAndEnd ) - 1 ):#if j terminated prior to i.
@@ -504,7 +510,7 @@ def verifyStatsLogs( parameters, report ,logger = None ):
     
     warningsWereFound = False
     newReportLines = ""
-    logTypes = [ "graphs", "pickling", "rrd_graphs","rrd_transfer" ]
+    logTypes = [ "rrd_transfer" ] # "graphs", "pickling", "rrd_graphs",
     verificationTimeSpan =  (MyDateLib.getSecondsSinceEpoch( parameters.endTime ) - MyDateLib.getSecondsSinceEpoch( parameters.startTime )) / (60*60) 
     
     for logType in logTypes:
@@ -517,20 +523,19 @@ def verifyStatsLogs( parameters, report ,logger = None ):
         
         if logs == [] and verificationTimeSpan >= 1:#if at least an hour between start and end 
             
-            warningWereFound = True
+            warningsWereFound = True
             newReportLines = newReportLines + "\nWarning : Not a single log entry within %s log files was found between %s and %s. Please investigate. \n "%( logType, parameters.startTime, parameters.endTime )
          
         elif logs != []:   
-        
             hoursWithNoEntries = findHoursWithNoEntries( logs, parameters.startTime, parameters.endTime )
             
             if hoursWithNoEntries != []:
-               warningWereFound = True
+               warningsWereFound = True
                
                newReportLines = newReportLines + "Warning : Not a single log entry within %s log files was found for these hours : %s. Please investigate. \n " %( logType, str(hoursWithNoEntries).replace( "[", "").replace( "]", "") )
                        
              
-    if warningWereFound :
+    if warningsWereFound :
         report = report + "\n\nThe following stats log files warnings were found : \n"
         report = report + "----------------------------------------------------------------------------------------------------------------------------------\n"            
         report = report + newReportLines 
@@ -1263,20 +1268,18 @@ def main():
     report = buildReportHeader( parameters )
     report = verifyFreeDiskSpace( parameters, report )    
     report = verifyPicklePresence( parameters, report )    
-    #print report
-    report = verifyPickleContent( parameters, report ) 
-       
+    report = verifyPickleContent( parameters, report )        
     report = verifyStatsLogs( parameters, report )    
     report = verifyFileVersions( parameters, report  )    
     report = verifyCrontab(  report  )   
     report = verifyWebPages( parameters, report )
     report = verifyGraphs( parameters, report ) 
+    
     savePreviousMonitoringJob( parameters  )    
     
     sendReportByEmail( parameters, report  )
-    
-    #print parameters
-    
+    #print report 
+        
     
     
 if __name__ == "__main__":

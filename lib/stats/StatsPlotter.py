@@ -146,7 +146,7 @@ class StatsPlotter:
         
         date = self.currentTime.replace( "-","" ).replace( " ", "_")
         
-        fileName = PXPaths.GRAPHS + "%.50s/%s_%.50s_%s_%s_%shours_on_%.50s_for %.50s products.png" %( clientName, self.fileType, clientName, date, self.statsTypes, self.timespan, self.machines, self.productType )
+        fileName = PXPaths.GRAPHS + "%.50s/%s_%.50s_%s_%s_%shours_on_%s_for %s products.png" %( clientName, self.fileType, clientName, date, self.statsTypes, self.timespan, self.machines, self.productType )
         
         
         fileName = fileName.replace( '[', '').replace(']', '').replace(" ", "").replace( "'","" )               
@@ -389,7 +389,7 @@ class StatsPlotter:
                 
         statType = statType[0].upper() + statType[1:]             
               
-        title =  "%s for %.50s for a span of %s hours ending at %s\\n\\nMAX: %s  MEAN: %3.2f MIN: %s " %( statType, self.clientNames[i], self.timespan, self.currentTime,  maximum, self.means[i][typeCount], minimum )     
+        title =  "%s for %s for a span of %s hours ending at %s\\n\\nMAX: %s  MEAN: %3.2f MIN: %s " %( statType, self.clientNames[i], self.timespan, self.currentTime,  maximum, self.means[i][typeCount], minimum )     
         
         return title
         
@@ -400,7 +400,6 @@ class StatsPlotter:
             an shorter, easier to read name. 
             
         """
-        
         clientName = ""
         
         if len( self.clientNames ) == 0:
@@ -413,22 +412,15 @@ class StatsPlotter:
         
         src         = self.imageName
         
-        firstDestination = PXPaths.GRAPHS + "/symlinks/%.50s.png" %clientName
+        destination = PXPaths.GRAPHS + "/symlinks/columbo/%s.png" %clientName
 
-        if not os.path.isdir( PXPaths.GRAPHS + "/symlinks/" ):
-            os.makedirs( PXPaths.GRAPHS + "/symlinks/", mode=0777 )                                                      
+        if not os.path.isdir( os.path.dirname( destination ) ):
+            os.makedirs(  os.path.dirname( destination ), mode=0777 )                                                      
         
-        if os.path.isfile( firstDestination ):
-            os.remove( firstDestination )
+        if os.path.isfile( destination ):
+            os.remove( destination )
         
-        os.symlink( src, firstDestination )
-        
-        secondDestination = 
-        
-        
-        
-        
-        
+        os.symlink( src, destination )
         
         
          
@@ -674,7 +666,7 @@ class StatsPlotter:
         
         self.graph( 'set label "Time of max. : %s" at screen .545, screen %3.2f' % ( ( timeOfMax, (.20+(nbGraphs) *.40)  )))
         
-        self.graph( 'set label "# of errors : %.0f" at screen .545, screen %3.2f' % ( self.nbErrors[i], (.18+(nbGraphs) *.40) ) )
+        self.graph( 'set label "# of errors : %.f" at screen .545, screen %3.2f' % ( self.nbErrors[i], (.18+(nbGraphs) *.40) ) )
       
                 
                 

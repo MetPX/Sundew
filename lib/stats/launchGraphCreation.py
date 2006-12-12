@@ -249,7 +249,7 @@ def uploadGraphicFiles( parameters ):
     
    
     for i in range ( len( parameters.uploadMachines ) ):
-        status, output = commands.getstatusoutput( "scp /apps/px/stats/graphs/symlinks/* %s@%s:/apps/pds/tools/Columbo/ColumboShow/graphs/ >>/dev/null 2>&1" %( parameters.uploadMachinesLogins[i], parameters.uploadMachines[i] ) )
+        status, output = commands.getstatusoutput( "scp /apps/px/stats/graphs/symlinks/columbo/* %s@%s:/apps/pds/tools/Columbo/ColumboShow/graphs/ >>/dev/null 2>&1" %( parameters.uploadMachinesLogins[i], parameters.uploadMachines[i] ) )
         
         print "scp /apps/px/stats/graphs/symlinks/* %s@%s:/apps/pds/tools/Columbo/ColumboShow/graphs/ >>/dev/null 2>&1" %( parameters.uploadMachinesLogins[i], parameters.uploadMachines[i] )
         
@@ -312,7 +312,19 @@ def updateWebPages():
     status, output = commands.getstatusoutput( "/apps/px/lib/stats/yearlyGraphicsWebPage.py" )
 
     
+def monitorActivities():
+    """
+        Monitors all the activities that occured during 
+        the course of this program. Report is sent out by mail
+        to recipients specified in the config file.
+    """    
+    currentHour = int( MyDateLib.getIsoFromEpoch( time.time() ).split()[1].split(":")[0] )
     
+    if currentHour %4 == 0:
+        status, output = commands.getstatusoutput( "/apps/px/lib/stats/statsMonitor.py" )
+
+        
+        
 def main():
     """
         Gets all the parameters from config file.
@@ -331,7 +343,7 @@ def main():
     getGraphicsForWebPages()
     updateWebPages()
     uploadGraphicFiles( parameters )
-            
+    monitorActivities()        
     print "Finished."
     
     
