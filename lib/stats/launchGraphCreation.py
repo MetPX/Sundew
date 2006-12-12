@@ -15,9 +15,9 @@ named COPYING in the root of the source directory tree.
 #############################################################################
 
 import os, sys, commands
-import PXPaths
+import PXPaths, MyDateLib
 from ConfigParser import ConfigParser
-
+from MyDateLib import *
 
 PXPaths.normalPaths()
 LOCAL_MACHINE = os.uname()[1]
