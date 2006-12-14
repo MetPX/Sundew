@@ -38,13 +38,13 @@ def updateThisYearsGraphs( currentTime ):
     """
     end = MyDateLib.getIsoFromEpoch(currentTime)
     
-    status, output = commands.getstatusoutput( "/apps/px/lib/stats/generateRRDGraphics.py -y -l -f tx --machines 'pds5,pds6' -e '%s'" %end )
+    status, output = commands.getstatusoutput( "/apps/px/lib/stats/generateRRDGraphics.py -y -l -f tx --machines 'pds5,pds6' --date '%s'" %end )
     
-    status, output = commands.getstatusoutput( "/apps/px/lib/stats/generateRRDGraphics.py -y -l -f rx --machines 'pds5,pds6' -e '%s'" %end )
+    status, output = commands.getstatusoutput( "/apps/px/lib/stats/generateRRDGraphics.py -y -l -f rx --machines 'pds5,pds6' --date '%s'" %end )
     
-    status, output = commands.getstatusoutput( "/apps/px/lib/stats/generateRRDGraphics.py -y -l -f tx --machines 'pxatx' -e '%s'" %end )
+    status, output = commands.getstatusoutput( "/apps/px/lib/stats/generateRRDGraphics.py -y -l -f tx --machines 'pxatx' --date '%s'" %end )
     
-    status, output = commands.getstatusoutput( "/apps/px/lib/stats/generateRRDGraphics.py -y -l -f rx --machines 'pxatx' -e '%s'" %end )
+    status, output = commands.getstatusoutput( "/apps/px/lib/stats/generateRRDGraphics.py -y -l -f rx --machines 'pxatx' --date '%s'" %end )
     
     
     
@@ -93,13 +93,13 @@ def updateThisMonthsGraphs( currentTime ):
 
     end = MyDateLib.getIsoFromEpoch(currentTime)
 
-    status, output = commands.getstatusoutput( "/apps/px/lib/stats/generateRRDGraphics.py -m -l -f tx --machines 'pds5,pds6' -e '%s'" %end )
+    status, output = commands.getstatusoutput( "/apps/px/lib/stats/generateRRDGraphics.py -m -l -f tx --machines 'pds5,pds6' --date '%s'" %end )
     
-    status, output = commands.getstatusoutput( "/apps/px/lib/stats/generateRRDGraphics.py -m -l -f rx --machines 'pds5,pds6' -e '%s'" %end)
+    status, output = commands.getstatusoutput( "/apps/px/lib/stats/generateRRDGraphics.py -m -l -f rx --machines 'pds5,pds6' --date'%s'" %end)
     
-    status, output = commands.getstatusoutput( "/apps/px/lib/stats/generateRRDGraphics.py -m -l -f tx --machines 'pxatx' -e '%s'" %end )
+    status, output = commands.getstatusoutput( "/apps/px/lib/stats/generateRRDGraphics.py -m -l -f tx --machines 'pxatx' --date'%s'" %end )
     
-    status, output = commands.getstatusoutput( "/apps/px/lib/stats/generateRRDGraphics.py -m -l -f rx --machines 'pxatx' -e '%s'" %end )
+    status, output = commands.getstatusoutput( "/apps/px/lib/stats/generateRRDGraphics.py -m -l -f rx --machines 'pxatx' --date '%s'" %end )
     
      
     
@@ -180,13 +180,13 @@ def updateThisWeeksGraphs( currentTime ):
 
     end = MyDateLib.getIsoFromEpoch(currentTime)
 
-    status, output = commands.getstatusoutput( "/apps/px/lib/stats/generateRRDGraphics.py -w -l -f tx --machines 'pds5,pds6' -e '%s'" %end )
+    status, output = commands.getstatusoutput( "/apps/px/lib/stats/generateRRDGraphics.py -w -l -f tx --machines 'pds5,pds6' --date '%s'" %end )
     
-    status, output = commands.getstatusoutput( "/apps/px/lib/stats/generateRRDGraphics.py -w -l -f rx --machines 'pds5,pds6' -e '%s'" %end )
+    status, output = commands.getstatusoutput( "/apps/px/lib/stats/generateRRDGraphics.py -w -l -f rx --machines 'pds5,pds6' --date '%s'" %end )
     
-    status, output = commands.getstatusoutput( "/apps/px/lib/stats/generateRRDGraphics.py -w -l -f tx --machines 'pxatx' -e '%s'" %end )
+    status, output = commands.getstatusoutput( "/apps/px/lib/stats/generateRRDGraphics.py -w -l -f tx --machines 'pxatx' --date '%s'" %end )
     
-    status, output = commands.getstatusoutput( "/apps/px/lib/stats/generateRRDGraphics.py -w -l -f rx --machines 'pxatx' -e '%s'" %end )
+    status, output = commands.getstatusoutput( "/apps/px/lib/stats/generateRRDGraphics.py -w -l -f rx --machines 'pxatx' --date '%s'" %end )
     
     
 def setYesterdaysGraphs( currentTime ):
