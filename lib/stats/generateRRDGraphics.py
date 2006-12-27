@@ -749,7 +749,7 @@ def buildImageName(  type, client, machine, infos, logger = None ):
                     
     date = infos.endTime.replace( "-","" ).replace( " ", "_")
     
-    fileName = PXPaths.GRAPHS + "%s/rrdgraphs/%s_%s_%s_%s_%s%s_on_%s.png" %( client, infos.fileType, client, date, type, span, timeMeasure, machine )
+    fileName = PXPaths.GRAPHS + "others/rrd/%s/%s_%s_%s_%s_%s%s_on_%s.png" %( client, infos.fileType, client, date, type, span, timeMeasure, machine )
     
     
     fileName = fileName.replace( '[', '').replace(']', '').replace(" ", "").replace( "'","" )               
@@ -897,7 +897,7 @@ def getLinkDestination( type, client, infos ):
         fileName =  time.strftime( "%Y", time.gmtime( endTimeInSeconds ) )
     
     
-    destination = PXPaths.GRAPHS + "symlinks/%s/%s/%s/%.50s.png" %( graphicType, type , client, fileName )
+    destination = PXPaths.GRAPHS + "webGraphics/%s/%s/%s/%.50s.png" %( graphicType, type , client, fileName )
     
     return destination    
     
