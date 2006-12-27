@@ -24,28 +24,19 @@ import os, time, getopt, random, pickle, PXPaths
 import MyDateLib, pickleMerging, PXManager
 import ClientStatsPickler
 import rrdtool
+import generalStatsLibraryMethods
+
+from   generalStatsLibraryMethods import *
 from   ClientStatsPickler import *
 from   optparse  import OptionParser
 from   PXPaths   import *
 from   PXManager import *
-from   MyDateLib import *
-from   Logger    import *     
+from   MyDateLib import *    
 from   Logger    import *       
 
 PXPaths.normalPaths()             
 
-localMachine = os.uname()[1]
-
-if localMachine == "pds3-dev" or localMachine == "pds4-dev" or localMachine == "lvs1-stage" or localMachine == "logan1" or localMachine == "logan2":
-
-    PATH_TO_LOGFILES = PXPaths.LOG + localMachine + "/"
-    PXPaths.RX_CONF  = '/apps/px/stats/rx/'
-    PXPaths.TX_CONF  = '/apps/px/stats/tx/'
-    PXPaths.TRX_CONF = '/apps/px/stats/trx/'
-
-else:#pds5 pds5 pxatx etc
-    PATH_TO_LOGFILES = PXPaths.LOG
-    
+LOCAL_MACHINE = os.uname()[1]   
     
 #################################################################
 #                                                               #
@@ -62,29 +53,8 @@ class _Infos:
         self.endTime   = endTime   # Ending time of the pickle->rrd transfer.         
         self.clients   = clients   # Clients for wich to do the updates.
         self.machines  = machines  # Machines on wich resides these clients.
-        self.fileTypes = fileTypes # Filetypes of each clients.
-
+        self.fileTypes = fileTypes # Filetypes of each clients.        
         
-def updateConfigurationFiles( machine, login ):
-    """
-        rsync .conf files from designated machine to local machine
-        to make sure we're up to date.
-
-    """
-
-    if not os.path.isdir( '/apps/px/stats/rx/' ):
-        os.makedirs(  '/apps/px/stats/rx/' , mode=0777 )
-    if not os.path.isdir( '/apps/px/stats/tx/'  ):
-        os.makedirs( '/apps/px/stats/tx/', mode=0777 )
-    if not os.path.isdir( '/apps/px/stats/trx/' ):
-        os.makedirs(  '/apps/px/stats/trx/', mode=0777 )
-
-
-    status, output = commands.getstatusoutput( "rsync -avzr --delete-before -e ssh %s@%s:/apps/px/etc/rx/ /apps/px/stats/rx/%s/"  %( login, machine, machine ) )
-    #print output # for debugging only
-
-    status, output = commands.getstatusoutput( "rsync -avzr  --delete-before -e ssh %s@%s:/apps/px/etc/tx/ /apps/px/stats/tx/%s/"  %( login, machine, machine ) )
-    #print output # for debugging only
         
         
 def createParser( ):
@@ -184,7 +154,8 @@ def getOptionsFromParser( parser, logger = None  ):
         machines = [ 'pds5','pds6' ]
     
     for machine in machines:
-        updateConfigurationFiles( machine, "pds" )
+        if machine != LOCAL_MACHINE:
+            generalStatsLibraryMethods.updateConfigurationFiles( machine, "pds" )
                 
     #init fileTypes array HERE     
     if clients[0] == "ALL" and fileTypes[0] != "":
@@ -199,19 +170,8 @@ def getOptionsFromParser( parser, logger = None  ):
         print "Program terminated."
         sys.exit()          
     
-    elif clients[0] == 'ALL' :
-        print "Using all clients options."
-        pxManager = PXManager()
-        
-        remoteMachines = [ "pds3-dev", "pds4-dev","lvs1-stage", "logan1", "logan2" ]
-        if localMachine in remoteMachines :#These values need to be set here.
-            PXPaths.RX_CONF  = '/apps/px/stats/rx/%s/'  %machines[0]
-            PXPaths.TX_CONF  = '/apps/px/stats/tx/%s/'  %machines[0]
-            PXPaths.TRX_CONF = '/apps/px/stats/trx/%s/' %machines[0]
-        pxManager.initNames() # Now you must call this method  
-    
-        txNames = pxManager.getTxNames()               
-        rxNames = pxManager.getRxNames() 
+    elif clients[0] == 'ALL' :        
+        rxNames, txNames = generalStatsLibraryMethods.getRxTxNames( LOCAL_MACHINE, machines[0] )
 
         clients = []
         clients.extend( txNames )
@@ -221,16 +181,8 @@ def getOptionsFromParser( parser, logger = None  ):
         for txName in txNames:
             fileTypes.append( "tx" )
         for rxName in rxNames:
-            fileTypes.append( "rx" )                  
+            fileTypes.append( "rx" )                 
       
-    #small workaround for pickle files        
-    for i in range( len( machines ) ):
-        if machines[i] == 'pds5':
-            machines[i] = 'pds3-dev'
-        elif machines[i] == 'pds6' :
-            machines[i] = 'pds4-dev'     
-        elif machines[i] == "pxatx":
-            machines[i] = localMachine
               
     infos = _Infos( endTime = end, machines = machines, clients = clients, fileTypes = fileTypes )   
     
@@ -246,25 +198,21 @@ def getDatabaseTimeOfUpdate( client, machine, fileType, endTime ):
         Otherwise returns None 
         
     """ 
-    if machine == 'pds3-dev':
-        machine = 'pds5'
-    elif machine == 'pds4-dev':
-        machine = 'pds6'
-    elif machine == 'pds3-devpds4-dev':
-        machine = 'pds5pds6'    
-    elif machine == 'pds4-devpds3-dev':
-        machine = 'pds6pds5'
-    elif machine == localMachine :
-        machine = "pxatx"
 
     lastUpdate = MyDateLib.getSecondsSinceEpoch( MyDateLib.getIsoTodaysMidnight( endTime ) ) 
     folder   = PXPaths.STATS + "DATABASE-UPDATES/%s/" %fileType
     fileName = folder + "%s_%s" %( client, machine )
-
+    print "fileName to be loaded : %s" %fileName
+    
     if os.path.isfile( fileName ):
         
-        fileHandle  = open( fileName, "r" )
-        lastUpdate  = pickle.load( fileHandle )           
+        try :
+            fileHandle  = open( fileName, "r" )
+            lastUpdate  = pickle.load( fileHandle )           
+        except:
+            lastUpdate = MyDateLib.getSecondsSinceEpoch( MyDateLib.getIsoTodaysMidnight( endTime ) ) 
+            pass
+        
         fileHandle.close()     
             
     return lastUpdate  
@@ -278,23 +226,11 @@ def setDatabaseTimeOfUpdate(  client, machine, fileType, timeOfUpdate ):
         Usefull for testing. Round Robin Databae cannot be updates with 
         dates prior to the date of the last update.
         
-    """   
-    
-    if machine == 'pds3-dev':
-        machine = 'pds5'
-    elif machine == 'pds4-dev':
-        machine = 'pds6'
-    elif machine == 'pds3-devpds4-dev':
-        machine = 'pds5pds6'    
-    elif machine == 'pds4-devpds3-dev':
-        machine = 'pds6pds5'
-    elif machine == localMachine :
-        machine = "pxatx"
-    
+    """      
      
     folder   = PXPaths.STATS + "DATABASE-UPDATES/%s/" %fileType
     fileName = folder + "%s_%s" %( client, machine )   
-    
+    print "fileName to be saved : %s" %fileName
     fileHandle  = open( fileName, "w" )
     pickle.dump( timeOfUpdate, fileHandle )
     fileHandle.close()
@@ -330,19 +266,7 @@ def buildRRDFileName( dataType, client, machine ):
                combine the name of the machines together. ex pds5 pds6 becomes pds5pds6
                just like in the pickle names.  
         
-    """
-    
-    if machine == 'pds3-dev':
-        machine = 'pds5'
-    elif machine == 'pds4-dev':
-        machine = 'pds6'
-    elif machine == 'pds3-devpds4-dev':
-        machine = 'pds5pds6'    
-    elif machine == 'pds4-devpds3-dev':
-        machine = 'pds6pds5'
-    elif machine == localMachine :
-        machine = "pxatx"
-           
+    """         
         
     return PXPaths.STATS + "databases/%s/%s_%s" %( dataType, client, machine )    
         
@@ -378,9 +302,6 @@ def getPairsFromMergedData( statType, mergedData, logger = None  ):
         This method is used to create the data couples used to feed an rrd database.
         
     """
-    
-    if logger != None :
-        logger.debug( "Call to getPairs received." )
     
     pairs = []        
     nbEntries = len( mergedData.statsCollection.timeSeperators ) - 1     
@@ -565,13 +486,9 @@ def createPaths():
         Create a series of required paths. 
     """            
        
-    localMachine = os.uname()[1] # /apps/px/log/ logs are stored elsewhere at the moment.
-    
+        
     dataTypes = [ "latency", "bytecount", "errors", "filesOverMaxLatency", "filecount" ]
     
-    
-    if not os.path.isdir( PATH_TO_LOGFILES ):
-        os.makedirs( PATH_TO_LOGFILES, mode=0777 )
         
     for dataType in dataTypes:
         if not os.path.isdir( PXPaths.STATS + "databases/%s/" %dataType ):

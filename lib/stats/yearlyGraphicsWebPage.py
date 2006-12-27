@@ -25,58 +25,13 @@ named COPYING in the root of the source directory tree.
 
 
 
-import os, time,sys
+import os, time, sys
+import generalStatsLibraryMethods
+from generalStatsLibraryMethods import *
 from PXPaths   import * 
 from PXManager import *
 
-localMachine = os.uname()[1]
-
-def updateConfigurationFiles( machine, login ):
-    """
-        rsync .conf files from designated machine to local machine
-        to make sure we're up to date.
-
-    """
-
-    if not os.path.isdir( '/apps/px/stats/rx/' ):
-        os.makedirs(  '/apps/px/stats/rx/' , mode=0777 )
-    if not os.path.isdir( '/apps/px/stats/tx/'  ):
-        os.makedirs( '/apps/px/stats/tx/', mode=0777 )
-    if not os.path.isdir( '/apps/px/stats/trx/' ):
-        os.makedirs(  '/apps/px/stats/trx/', mode=0777 )
-
-
-    status, output = commands.getstatusoutput( "rsync -avzr --delete-before -e ssh %s@%s:/apps/px/etc/rx/ /apps/px/stats/rx/%s/"  %( login, machine, machine ) )
-    #print output # for debugging only
-
-    status, output = commands.getstatusoutput( "rsync -avzr  --delete-before -e ssh %s@%s:/apps/px/etc/tx/ /apps/px/stats/tx/%s/"  %( login, machine, machine ) )
-    #print output # for debugging only
-    
-    
-
-def getRxTxNames( machine ):
-    """
-        Returns a tuple containg RXnames and TXnames that we've rsync'ed 
-        using updateConfigurationFiles
-         
-    """    
-                        
-    pxManager = PXManager()
-    
-    
-    remoteMachines= [ "pds3-dev", "pds4-dev","lvs1-stage", "logan1", "logan2" ]
-    if localMachine in remoteMachines :#These values need to be set here.
-        updateConfigurationFiles( machine, "pds" )        
-        PXPaths.RX_CONF  = '/apps/px/stats/rx/%s/'  %machine
-        PXPaths.TX_CONF  = '/apps/px/stats/tx/%s/'  %machine
-        PXPaths.TRX_CONF = '/apps/px/stats/trx/%s/' %machine
-    pxManager.initNames() # Now you must call this method  
-    
-    txNames = pxManager.getTxNames()               
-    rxNames = pxManager.getRxNames()  
-
-    return rxNames, txNames 
-    
+LOCAL_MACHINE = os.uname()[1]
     
     
 def getYears():
@@ -99,8 +54,8 @@ def main():
     
 
     
-    rxNames,txNames = getRxTxNames("pds5")
-    pxatxrxNames,pxatxtxNames = getRxTxNames("pxatx")
+    rxNames, txNames = generalStatsLibraryMethods.getRxTxNames( LOCAL_MACHINE, "pds5" )
+    pxatxrxNames, pxatxtxNames = generalStatsLibraryMethods.getRxTxNames( LOCAL_MACHINE, "pxatx" )
     
     rxNames.extend(pxatxrxNames)
     txNames.extend(pxatxtxNames)
@@ -111,9 +66,10 @@ def main():
     
     
     #Redirect output towards html page to generate.    
-    fileHandle = open( "yearlyGraphs.html" , 'w' )
+    if not os.path.isdir("/apps/px/stats/webPages/"):
+        os.makedirs( "/apps/px/stats/webPages/" )     
+    fileHandle = open( "/apps/px/stats/webPages/yearlyGraphs.html" , 'w' )
 
-     
     fileHandle.write(  """
     <html>
         <head>
@@ -167,18 +123,18 @@ def main():
         """ %(rxName) )
     
         fileHandle.write(  """    
-            <td bgcolor="#66CCFF" width = "25%%" >Years&nbsp;:&nbsp;<a target ="popup" href="%s" onClick="wopen('%ssymlinks/yearly/bytecount/%s/%s.png', 'popup', 875, 240); return false;">%s&nbsp;</a><a target ="popup" href="%s" onClick="wopen('%ssymlinks/yearly/bytecount/%s/%s.png', 'popup', 875, 240); return false;">%s&nbsp;</a><a target ="popup" href="%s" onClick="wopen('%ssymlinks/yearly/bytecount/%s/%s.png', 'popup', 875, 240); return false;">%s&nbsp;</a></td>
+            <td bgcolor="#66CCFF" width = "25%%" >Years&nbsp;:&nbsp;<a target ="popup" href="%s" onClick="wopen('%swebGraphics/yearly/bytecount/%s/%s.png', 'popup', 875, 240); return false;">%s&nbsp;</a><a target ="popup" href="%s" onClick="wopen('%swebGraphics/yearly/bytecount/%s/%s.png', 'popup', 875, 240); return false;">%s&nbsp;</a><a target ="popup" href="%s" onClick="wopen('%swebGraphics/yearly/bytecount/%s/%s.png', 'popup', 875, 240); return false;">%s&nbsp;</a></td>
         """%( rxName,PXPaths.GRAPHS,rxName,years[0],years[0], rxName,PXPaths.GRAPHS,rxName,years[1],years[1], rxName,PXPaths.GRAPHS,rxName,years[2],years[2] )  )     
     
     
         
         fileHandle.write(  """    
-            <td bgcolor="#66CCFF" width = "25%%" >Years&nbsp;:&nbsp;<a target ="popup" href="%s" onClick="wopen('%ssymlinks/yearly/filecount/%s/%s.png', 'popup', 875, 240); return false;">%s&nbsp;</a><a target ="popup" href="%s" onClick="wopen('%ssymlinks/yearly/filecount/%s/%s.png', 'popup', 875, 240); return false;">%s&nbsp;</a><a target ="popup" href="%s" onClick="wopen('%ssymlinks/yearly/filecount/%s/%s.png', 'popup', 875, 240); return false;">%s&nbsp;</a></td>
+            <td bgcolor="#66CCFF" width = "25%%" >Years&nbsp;:&nbsp;<a target ="popup" href="%s" onClick="wopen('%swebGraphics/yearly/filecount/%s/%s.png', 'popup', 875, 240); return false;">%s&nbsp;</a><a target ="popup" href="%s" onClick="wopen('%swebGraphics/yearly/filecount/%s/%s.png', 'popup', 875, 240); return false;">%s&nbsp;</a><a target ="popup" href="%s" onClick="wopen('%swebGraphics/yearly/filecount/%s/%s.png', 'popup', 875, 240); return false;">%s&nbsp;</a></td>
         """%( rxName,PXPaths.GRAPHS,rxName,years[0],years[0], rxName,PXPaths.GRAPHS,rxName,years[1],years[1], rxName,PXPaths.GRAPHS,rxName,years[2],years[2] )   )
         
         
         fileHandle.write(  """    
-            <td bgcolor="#66CCFF" width = "25%%" >Years&nbsp;:&nbsp;<a target ="popup" href="%s" onClick="wopen('%ssymlinks/yearly/errors/%s/%s.png', 'popup', 875, 240); return false;">%s&nbsp;</a><a target ="popup" href="%s" onClick="wopen('%ssymlinks/yearly/errors/%s/%s.png', 'popup', 875, 240); return false;">%s&nbsp;</a><a target ="popup" href="%s" onClick="wopen('%ssymlinks/yearly/errors/%s/%s.png', 'popup', 875, 240); return false;">%s&nbsp;</a></td>
+            <td bgcolor="#66CCFF" width = "25%%" >Years&nbsp;:&nbsp;<a target ="popup" href="%s" onClick="wopen('%swebGraphics/yearly/errors/%s/%s.png', 'popup', 875, 240); return false;">%s&nbsp;</a><a target ="popup" href="%s" onClick="wopen('%swebGraphics/yearly/errors/%s/%s.png', 'popup', 875, 240); return false;">%s&nbsp;</a><a target ="popup" href="%s" onClick="wopen('%swebGraphics/yearly/errors/%s/%s.png', 'popup', 875, 240); return false;">%s&nbsp;</a></td>
         """%( rxName,PXPaths.GRAPHS,rxName,years[0],years[0], rxName,PXPaths.GRAPHS,rxName,years[1],years[1], rxName,PXPaths.GRAPHS,rxName,years[2],years[2] )    )
               
     
@@ -211,23 +167,23 @@ def main():
         """ %(txName) )
         
         fileHandle.write(  """    
-            <td bgcolor="#66CCFF" width = "16.66%%" >Years:<a target ="popup" href="%s" onClick="wopen('%ssymlinks/yearly/latency/%s/%s.png', 'popup', 875, 240); return false;">%s&nbsp;</a><a target ="popup" href="%s" onClick="wopen('%ssymlinks/yearly/latency/%s/%s.png', 'popup', 875, 240); return false;">%s&nbsp;</a><a target ="popup" href="%s" onClick="wopen('%ssymlinks/yearly/latency/%s/%s.png', 'popup', 875, 240); return false;">%s</a></td>
+            <td bgcolor="#66CCFF" width = "16.66%%" >Years:<a target ="popup" href="%s" onClick="wopen('%swebGraphics/yearly/latency/%s/%s.png', 'popup', 875, 240); return false;">%s&nbsp;</a><a target ="popup" href="%s" onClick="wopen('%swebGraphics/yearly/latency/%s/%s.png', 'popup', 875, 240); return false;">%s&nbsp;</a><a target ="popup" href="%s" onClick="wopen('%swebGraphics/yearly/latency/%s/%s.png', 'popup', 875, 240); return false;">%s</a></td>
         """%( txName,PXPaths.GRAPHS,txName,years[0],years[0], txName,PXPaths.GRAPHS,txName,years[1],years[1], txName,PXPaths.GRAPHS,txName,years[2],years[2] ) )   
         
         fileHandle.write(  """    
-            <td bgcolor="#66CCFF" width = "16.66%%" >Years:<a target ="popup" href="%s" onClick="wopen('%ssymlinks/yearly/filesOverMaxLatency/%s/%s.png', 'popup', 875, 240); return false;">%s&nbsp;</a><a target ="popup" href="%s" onClick="wopen('%ssymlinks/yearly/filesOverMaxLatency/%s/%s.png', 'popup', 875, 240); return false;">%s&nbsp;</a><a target ="popup" href="%s" onClick="wopen('%ssymlinks/yearly/filesOverMaxLatency/%s/%s.png', 'popup', 875, 240); return false;">%s</a></td>
+            <td bgcolor="#66CCFF" width = "16.66%%" >Years:<a target ="popup" href="%s" onClick="wopen('%swebGraphics/yearly/filesOverMaxLatency/%s/%s.png', 'popup', 875, 240); return false;">%s&nbsp;</a><a target ="popup" href="%s" onClick="wopen('%swebGraphics/yearly/filesOverMaxLatency/%s/%s.png', 'popup', 875, 240); return false;">%s&nbsp;</a><a target ="popup" href="%s" onClick="wopen('%swebGraphics/yearly/filesOverMaxLatency/%s/%s.png', 'popup', 875, 240); return false;">%s</a></td>
         """%( txName,PXPaths.GRAPHS,txName,years[0],years[0], txName,PXPaths.GRAPHS,txName,years[1],years[1], txName,PXPaths.GRAPHS,txName,years[2],years[2] ) )
         
         fileHandle.write(  """    
-            <td bgcolor="#66CCFF" width = "16.66%%" >Years:<a target ="popup" href="%s" onClick="wopen('%ssymlinks/yearly/bytecount/%s/%s.png', 'popup', 875, 240); return false;">%s&nbsp;</a><a target ="popup" href="%s" onClick="wopen('%ssymlinks/yearly/bytecount/%s/%s.png', 'popup', 875, 240); return false;">%s&nbsp;</a><a target ="popup" href="%s" onClick="wopen('%ssymlinks/yearly/bytecount/%s/%s.png', 'popup', 875, 240); return false;">%s</a></td>
+            <td bgcolor="#66CCFF" width = "16.66%%" >Years:<a target ="popup" href="%s" onClick="wopen('%swebGraphics/yearly/bytecount/%s/%s.png', 'popup', 875, 240); return false;">%s&nbsp;</a><a target ="popup" href="%s" onClick="wopen('%swebGraphics/yearly/bytecount/%s/%s.png', 'popup', 875, 240); return false;">%s&nbsp;</a><a target ="popup" href="%s" onClick="wopen('%swebGraphics/yearly/bytecount/%s/%s.png', 'popup', 875, 240); return false;">%s</a></td>
         """%( txName,PXPaths.GRAPHS,txName,years[0],years[0], txName,PXPaths.GRAPHS,txName,years[1],years[1], txName,PXPaths.GRAPHS,txName,years[2],years[2] )    )
         
         fileHandle.write(  """    
-            <td bgcolor="#66CCFF" width = "16.66%%" >Years:<a target ="popup" href="%s" onClick="wopen('%ssymlinks/yearly/filecount/%s/%s.png', 'popup', 875, 240); return false;">%s&nbsp;</a><a target ="popup" href="%s" onClick="wopen('%ssymlinks/yearly/filecount/%s/%s.png', 'popup', 875, 240); return false;">%s&nbsp;</a><a target ="popup" href="%s" onClick="wopen('%ssymlinks/yearly/filecount/%s/%s.png', 'popup', 875, 240); return false;">%s</a></td>
+            <td bgcolor="#66CCFF" width = "16.66%%" >Years:<a target ="popup" href="%s" onClick="wopen('%swebGraphics/yearly/filecount/%s/%s.png', 'popup', 875, 240); return false;">%s&nbsp;</a><a target ="popup" href="%s" onClick="wopen('%swebGraphics/yearly/filecount/%s/%s.png', 'popup', 875, 240); return false;">%s&nbsp;</a><a target ="popup" href="%s" onClick="wopen('%swebGraphics/yearly/filecount/%s/%s.png', 'popup', 875, 240); return false;">%s</a></td>
         """%( txName,PXPaths.GRAPHS,txName,years[0],years[0], txName,PXPaths.GRAPHS,txName,years[1],years[1], txName,PXPaths.GRAPHS,txName,years[2],years[2] )  )  
         
         fileHandle.write(  """    
-            <td bgcolor="#66CCFF" width = "16.66%%" >Years:<a target ="popup" href="%s" onClick="wopen('%ssymlinks/yearly/errors/%s/%s.png', 'popup', 875, 240); return false;">%s&nbsp;</a><a target ="popup" href="%s" onClick="wopen('%ssymlinks/yearly/errors/%s/%s.png', 'popup', 875, 240); return false;">%s&nbsp;</a><a target ="popup" href="%s" onClick="wopen('%ssymlinks/yearly/errors/%s/%s.png', 'popup', 875, 240); return false;">%s</a></td>
+            <td bgcolor="#66CCFF" width = "16.66%%" >Years:<a target ="popup" href="%s" onClick="wopen('%swebGraphics/yearly/errors/%s/%s.png', 'popup', 875, 240); return false;">%s&nbsp;</a><a target ="popup" href="%s" onClick="wopen('%swebGraphics/yearly/errors/%s/%s.png', 'popup', 875, 240); return false;">%s&nbsp;</a><a target ="popup" href="%s" onClick="wopen('%swebGraphics/yearly/errors/%s/%s.png', 'popup', 875, 240); return false;">%s</a></td>
         """%( txName,PXPaths.GRAPHS,txName,years[0],years[0], txName,PXPaths.GRAPHS,txName,years[1],years[1], txName,PXPaths.GRAPHS,txName,years[2],years[2] ) )       
 
         

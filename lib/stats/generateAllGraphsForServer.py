@@ -28,7 +28,8 @@ named COPYING in the root of the source directory tree.
 
 import os, time, pwd, sys, getopt, commands, fnmatch, pickle
 import PXPaths 
-
+import generalStatsLibraryMethods
+from generalStatsLibraryMethods import *
 from optparse  import OptionParser
 from PXPaths   import * 
 from PXManager import *
@@ -36,7 +37,7 @@ from MyDateLib import *
 
 PXPaths.normalPaths()
 
-localMachine = os.uname()[1]
+LOCAL_MACHINE  = os.uname()[1]
 
 #################################################################
 #                                                               #
@@ -207,53 +208,6 @@ def getOptionsFromParser( parser ):
 #####################PROGRAM SECTION#############################
 #                                                               #
 #################################################################     
-def updateConfigurationFiles( machine, login ):
-    """
-        rsync .conf files from designated machine to local machine
-        to make sure we're up to date.
-    
-    """  
-    
-    if not os.path.isdir( '/apps/px/stats/rx/%s/' %machine):
-        os.makedirs(  '/apps/px/stats/rx/%s/' %machine, mode=0777 )
-    if not os.path.isdir( '/apps/px/stats/tx/%s' %machine ):
-        os.makedirs( '/apps/px/stats/tx/%s/' %machine , mode=0777 )
-    if not os.path.isdir( '/apps/px/stats/trx/%s/' %machine ):
-        os.makedirs(  '/apps/px/stats/trx/%s/' %machine, mode=0777 )       
-
-        
-    status, output = commands.getstatusoutput( "rsync -avzr --delete-before -e ssh %s@%s:/apps/px/etc/rx/ /apps/px/stats/rx/%s/"  %( login, machine, machine) ) 
-    #print output # for debugging only
-    
-    status, output = commands.getstatusoutput( "rsync -avzr --delete-before -e ssh %s@%s:/apps/px/etc/tx/ /apps/px/stats/tx/%s/"  %( login, machine, machine) )  
-    #print output # for debugging only
-
-
-
-def getRxTxNames( machine ):
-    """
-        Returns a tuple containg RXnames and TXnames that we've rsync'ed 
-        using updateConfigurationFiles
-         
-    """    
-                        
-    pxManager = PXManager()
-    
-    
-    remoteMachines= [ "pds3-dev", "pds4-dev","lvs1-stage", "logan1", "logan2" ]
-    if localMachine in remoteMachines :#These values need to be set here.
-        PXPaths.RX_CONF  = '/apps/px/stats/rx/%s/'  %machine
-        PXPaths.TX_CONF  = '/apps/px/stats/tx/%s/'  %machine
-        PXPaths.TRX_CONF = '/apps/px/stats/trx/%s/' %machine
-    pxManager.initNames() # Now you must call this method  
-    
-    txNames = pxManager.getTxNames()               
-    rxNames = pxManager.getRxNames()  
-
-    return rxNames, txNames 
-
-        
-        
 def generateGraphsForIndividualMachines( infos ) :
     """
         Generate graphs for every specified machine withoout
@@ -262,8 +216,8 @@ def generateGraphsForIndividualMachines( infos ) :
     """       
              
     for i in range ( len( infos.machines ) ) :      
-                                                        
-        rxNames, txNames = getRxTxNames( infos.machines[i] )  
+                                                       
+        rxNames, txNames = generalStatsLibraryMethods.getRxTxNames( LOCAL_MACHINE, infos.machines[i] )  
         j=0 
         for txName in txNames :    
             pid = os.fork()#create child process
@@ -319,8 +273,9 @@ def generateGraphsForPairedMachines( infos ) :
     
     """        
     
-    rxNames, txNames = getRxTxNames( infos.machines[0] )  
-            
+    rxNames, txNames = generalStatsLibraryMethods.getRxTxNames( LOCAL_MACHINE, infos.machines[0] )  
+    #print infos.machines    
+    #print txNames    
     infos.combinedName = str(infos.machines).replace( ' ','' ).replace( '[','' ).replace( ']', '' )        
      
            
@@ -330,10 +285,13 @@ def generateGraphsForPairedMachines( infos ) :
         pid = os.fork()#create child process
         
         if pid == 0 :#child process
+            
             status, output = commands.getstatusoutput( "python /apps/px/lib/stats/generateGraphics.py -m %s -f tx -c %s -d '%s' -s %s  -l" %( infos.combinedName, txName, infos.date, infos.timespan ) )
+            #print output
             sys.exit()    #terminate child process
     
         else:
+            #print "wait"
             j = j + 1
             if j %10 == 0:
                 while True:#wait on all non terminated child process'
@@ -386,9 +344,6 @@ def main():
     parser = createParser( )  #will be used to parse options 
     
     infos = getOptionsFromParser( parser )    
-    
-    for i in range ( len( infos.machines ) ) :
-        updateConfigurationFiles( infos.machines[i], infos.logins[i] )
     
     if infos.individual == True :    
         generateGraphsForIndividualMachines( infos )   

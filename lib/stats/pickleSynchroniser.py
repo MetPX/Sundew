@@ -32,18 +32,14 @@ from   Logger import *
 
 PXPaths.normalPaths()
 
-localMachine = os.uname()[1]
-
-MACHINE_LIST = 'cmisx-spare1'
-
+LOCAL_MACHINE = os.uname()[1]
 
 
 def getOptionsFromParser( parser ):
     """
         
         This method parses the argv received when the program was called
-        It takes the params wich have been passed by the user and sets them 
-        in the corresponding fields of the hlE variable.    
+        and returns the parameters.    
  
     """ 
 
@@ -115,7 +111,7 @@ def addOptions( parser ):
    
     parser.add_option( "-l", "--login", action="store", type="string", dest="login", default="pds", help = "SSH login name to be used to connect to machines." ) 
     
-    parser.add_option( "-m", "--machines", action="store", type="string", dest="machines", default=MACHINE_LIST, help = "Machine on wich the update is run." ) 
+    parser.add_option( "-m", "--machines", action="store", type="string", dest="machines", default=LOCAL_MACHINE, help = "Machine on wich the update is run." ) 
     
     parser.add_option( "-o", "--output", action="store", type="string", dest="output", default="", help = "File to be used as log file." ) 
     

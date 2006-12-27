@@ -62,14 +62,14 @@ def setLastYearsGraphs( currentTime ):
     lastYear   = time.strftime( "%Y", time.gmtime( currentTime - ( 365*24*60*60 ) ) )
     thisYear   = time.strftime( "%Y", time.gmtime( currentTime ) )
     
-    filePattern = PXPaths.GRAPHS + "symlinks/monthly/*/*/%s.png" %( thisYear )    
+    filePattern = PXPaths.GRAPHS + "webGraphics/monthly/*/*/%s.png" %( thisYear )    
     
     yearlyGraphs = glob.glob( filePattern )
         
     for graph in yearlyGraphs:
         clientName = os.path.basename( os.path.dirname( graph ) )
         graphType  = os.path.basename(os.path.dirname( os.path.dirname( graph ) ) )        
-        dest = PXPaths.GRAPHS + "symlinks/yearly/%s/%s/%s.png" %( graphType, clientName, lastYear )
+        dest = PXPaths.GRAPHS + "webGraphics/yearly/%s/%s/%s.png" %( graphType, clientName, lastYear )
         
         if not os.path.isdir( os.path.dirname(dest) ):
             os.makedirs( os.path.dirname(dest) )
@@ -118,14 +118,14 @@ def setLastMonthsGraphs( currentTime ):
     lastMonth   = time.strftime( "%b", time.gmtime( currentTime - ( 30*24*60*60 ) ) )
     thisMonth   = time.strftime( "%b", time.gmtime( currentTime ) )
     
-    filePattern = PXPaths.GRAPHS + "symlinks/monthly/*/*/%s.png" %( thisMonth )    
+    filePattern = PXPaths.GRAPHS + "webGraphics/monthly/*/*/%s.png" %( thisMonth )    
     
     monthlyGraphs = glob.glob( filePattern )
         
     for graph in monthlyGraphs:
         clientName = os.path.basename( os.path.dirname( graph ) )
         graphType  = os.path.basename(os.path.dirname( os.path.dirname( graph ) ) )        
-        dest = PXPaths.GRAPHS + "symlinks/monthly/%s/%s/%s.png" %( graphType, clientName, lastMonth )
+        dest = PXPaths.GRAPHS + "webGraphics/monthly/%s/%s/%s.png" %( graphType, clientName, lastMonth )
         
         if not os.path.isdir( os.path.dirname(dest) ):
             os.makedirs( os.path.dirname(dest) )    
@@ -148,7 +148,7 @@ def setLastWeeksGraphs( currentTime ):
     lastWeeksNumber   = time.strftime( "%W", time.gmtime( currentTime - ( 7*24*60*60 ) ) )
     thisWeeksNumber   = time.strftime( "%W", time.gmtime( currentTime ))
     
-    filePattern = PXPaths.GRAPHS + "symlinks/weekly/*/*/%s.png" %( thisWeeksNumber )    
+    filePattern = PXPaths.GRAPHS + "webGraphics/weekly/*/*/%s.png" %( thisWeeksNumber )    
     
     weeklyGraphs = glob.glob( filePattern )
        
@@ -157,7 +157,7 @@ def setLastWeeksGraphs( currentTime ):
         clientName = os.path.basename( os.path.dirname( graph ) )
         graphType  = os.path.basename(os.path.dirname( os.path.dirname( graph ) ) )        
         
-        dest = PXPaths.GRAPHS + "symlinks/weekly/%s/%s/%s.png" %( graphType, clientName, lastWeeksNumber )
+        dest = PXPaths.GRAPHS + "webGraphics/weekly/%s/%s/%s.png" %( graphType, clientName, lastWeeksNumber )
         if not os.path.isdir( os.path.dirname( dest ) ):
             os.makedirs( os.path.dirname( dest ) )
         
@@ -200,7 +200,7 @@ def setYesterdaysGraphs( currentTime ):
         never have to be modified again.    
     """
     
-    filePattern = PXPaths.GRAPHS + "symlinks/*.png"
+    filePattern = PXPaths.GRAPHS + "webGraphics/columbo/*.png"
     yesterday   = time.strftime( "%a", time.gmtime( currentTime  - (24*60*60) ))
     
     currentGraphs = glob.glob( filePattern )  
@@ -208,7 +208,7 @@ def setYesterdaysGraphs( currentTime ):
     
     for graph in currentGraphs:
         clientName = os.path.basename(graph).replace( ".png","" )
-        dest =  PXPaths.GRAPHS + "symlinks/daily/%s/%s.png" %( clientName, yesterday )
+        dest =  PXPaths.GRAPHS + "webGraphics/daily/%s/%s.png" %( clientName, yesterday )
         if not os.path.isdir( os.path.dirname(dest) ):
             os.makedirs( os.path.dirname(dest) )
         shutil.copyfile( graph, dest )    
@@ -229,7 +229,7 @@ def setCurrentGraphsAsDailyGraphs( currentTime )  :
           
     """
 
-    filePattern = PXPaths.GRAPHS + "symlinks/*.png"
+    filePattern = PXPaths.GRAPHS + "webGraphics/columbo/*.png"
     currentDay = time.strftime( "%a", time.gmtime( currentTime ) )
     
     currentGraphs = glob.glob( filePattern )
@@ -238,7 +238,7 @@ def setCurrentGraphsAsDailyGraphs( currentTime )  :
     
     for graph in currentGraphs:
         clientName = os.path.basename(graph).replace( ".png","" )
-        dest =  PXPaths.GRAPHS + "symlinks/daily/%s/%s.png" %( clientName,currentDay )
+        dest =  PXPaths.GRAPHS + "webGraphics/daily/%s/%s.png" %( clientName,currentDay )
         if not os.path.isdir( os.path.dirname(dest) ):
             os.makedirs( os.path.dirname( dest ) )
         shutil.copyfile( graph, dest )

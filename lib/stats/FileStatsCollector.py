@@ -41,7 +41,7 @@ from   Logger                 import *
 
 PXPaths.normalPaths()
 
-localMachine = os.uname()[1]
+LOCAL_MACHINE = os.uname()[1]
 
 
 MINUTE = 60
@@ -106,7 +106,7 @@ class FileStatsCollector:
     
     """
     
-    def __init__( self, files = None, fileType = "tx", statsTypes = [ "latency", "errors","bytecount" ], startTime = '2005-08-30 20:06:59', endTime = '2005-08-30 20:06:59', interval=1*MINUTE, totalWidth = HOUR, firstFilledEntry = 0, lastFilledEntry = 0, lastReadPosition = 0, maxLatency = 15, fileEntries = None, logger = None ):
+    def __init__( self, files = None, fileType = "tx", statsTypes = [ "latency", "errors","bytecount" ], startTime = '2005-08-30 20:06:59', endTime = '2005-08-30 20:06:59', interval=1*MINUTE, totalWidth = HOUR, firstFilledEntry = 0, lastFilledEntry = 0, maxLatency = 15, fileEntries = None, logger = None ):
         """ 
             Constructor. All values can be set from the constructor by the user but recommend usage
             is to set sourceFile and statsType. The class contains other methods to set the other values
@@ -133,7 +133,6 @@ class FileStatsCollector:
         self.maxLatency       = maxLatency                # Acceptable limit for a latency. 
         self.firstFilledEntry = firstFilledEntry          # Last entry for wich we calculated mean max etc....
         self.lastFilledEntry  = lastFilledEntry           # Last entry we filled with data. 
-        self.lastReadPosition = lastReadPosition          # Last line filled in this stats collection.
         self.loggerName       = 'fileStatsCollector'      # Name of the logger if none is specified.
         self.logger           = logger                    # Logger
         
@@ -464,10 +463,8 @@ class FileStatsCollector:
             Otherwise, we stop at the first interesting line within the range
             of the data we want to collect.
         
-        """
-        
-        #print "------------------------------------------------------"
-        
+        """       
+              
         line                 = ""
         lineType             = None 
         backupLine           = ""
@@ -478,37 +475,16 @@ class FileStatsCollector:
         if self.logger != None :
             self.logger.debug( "Call to findFirstInterestingLine received." )
         
+        firstLine      = fileHandle.readline()
+        position       = fileHandle.tell()
         
-        if self.lastReadPosition != 0:
-            
-            fileHandle.seek( self.lastReadPosition, 0 )
-            #position = fileHandle.tell()                        
+        #In case of traceback line
+        isInteresting, linetype = FileStatsCollector.isInterestingLine( firstLine, usage = "departure", types = self.statsTypes ) 
+        while isInteresting == False and firstLine != "" :  
             firstLine = fileHandle.readline()
-            #print "firstLine read : %s" %firstLine
-            position = fileHandle.tell()
-            
-            #In case of traceback line
-            isInteresting,lineType = FileStatsCollector.isInterestingLine( firstLine, usage = "departure",types = self.statsTypes  )
-            while isInteresting == False and firstLine != "":
-                #print "enters first while"
-                firstLine = fileHandle.readline()
-                position = fileHandle.tell()
-                isInteresting,lineType = FileStatsCollector.isInterestingLine( firstLine, usage = "departure", types = self.statsTypes )
-                #print firstLine
-            #print firstLine
-        
-        else:
-            #print "file not previously read!?!?"
-            firstLine      = fileHandle.readline()
-            position       = fileHandle.tell()
-            
-            #In case of traceback line
-            isInteresting, linetype = FileStatsCollector.isInterestingLine( firstLine, usage = "departure", types = self.statsTypes ) 
-            while isInteresting == False and firstLine != "" :  
-                firstLine = fileHandle.readline()
-                position  = fileHandle.tell()
-                isInteresting, linetype = FileStatsCollector.isInterestingLine( firstLine, usage = "departure", types = self.statsTypes )               
-                #print firstLine    
+            position  = fileHandle.tell()
+            isInteresting, linetype = FileStatsCollector.isInterestingLine( firstLine, usage = "departure", types = self.statsTypes )               
+            #print firstLine    
                                                  
         fileHandle.seek( position, 0 )
         line = firstLine 
@@ -650,16 +626,13 @@ class FileStatsCollector:
                 #print "read the entire file allready"
                 if entryCount > self.lastFilledEntry:#in case of numerous files
                     self.lastFilledEntry  = entryCount                  
-                self.lastReadPosition = 0
                 previousPosition      = 0
                 
             else:
                 if entryCount > self.lastFilledEntry :#in case of numerous files
                     self.lastFilledEntry  = entryCount                  
                 
-                self.lastReadPosition = previousPosition #If we haven't met eof we don't wana loose an interesting 
-                #print "last line read : %s position is : %s" %(line,self.lastReadPosition)
-            
+           
             fileHandle.close()             
                 
     

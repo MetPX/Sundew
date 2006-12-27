@@ -33,23 +33,15 @@ from   Logger    import *
 from   Logger    import *       
 
 
-PXPaths.normalPaths()   
+PXPaths.normalPaths()
 
-if localMachine == "pds3-dev" or localMachine == "pds4-dev" or localMachine == "lvs1-stage" or localMachine == "logan1" or localMachine == "logan2":
-    PATH_TO_LOGFILES = PXPaths.LOG + localMachine + "/"
-
-else:#pds5 pds5 pxatx etc
-    PATH_TO_LOGFILES = PXPaths.LOG
-
-
+LOCAL_MACHINE = os.uname()[1]
     
     
 class _GraphicsInfos:
 
-    def __init__( self, directory, fileType, types, totals, clientNames = None ,  timespan = 12, startTime = None, endTime = None, machines = ["pdsGG"], link = False  ):
-
-            
-        self.directory    = directory         # Directory where log files are located. 
+    def __init__( self, fileType, types, totals, clientNames = None ,  timespan = 12, startTime = None, endTime = None, machines = ["pdsGG"], link = False  ):            
+        
         self.fileType     = fileType          # Type of log files to be used.    
         self.types        = types             # Type of graphics to produce. 
         self.clientNames  = clientNames or [] # Client name we need to get the data from.
@@ -401,12 +393,12 @@ def getOptionsFromParser( parser ):
         
         
     if clientNames[0] == "ALL":
-        updateConfigurationFiles( machines[0], "pds" )
+        rxNames, txNames = generalStatsLibraryMethods.getRxTxNames( LOCAL_MACHINE, machines[0] )
         #get rx tx names accordingly.         
         if fileType == "tx":    
-            clientNames = getNames( "tx", machines[0] )  
+            clientNames = txNames  
         else:
-            clientNames = getNames( "rx", machines[0] )      
+            clientNames = rxNames    
             
     
     try :
@@ -450,85 +442,13 @@ def getOptionsFromParser( parser ):
                     
         machines = [ combinedMachineName ]              
                 
-    directory = PATH_TO_LOGFILES
+    
     
     end = MyDateLib.getIsoWithRoundedHours( end )
     
-    infos = _GraphicsInfos( startTime = start, endTime = end, clientNames = clientNames,  directory = directory , types = types, timespan = timespan, machines = machines, fileType = fileType, totals = totals, link = link  )   
+    infos = _GraphicsInfos( startTime = start, endTime = end, clientNames = clientNames, types = types, timespan = timespan, machines = machines, fileType = fileType, totals = totals, link = link  )   
             
-    return infos 
-       
-    
-    
-def updateConfigurationFiles( machine, login ):
-    """
-        rsync .conf files from designated machine to local machine
-        to make sure we're up to date.
-
-    """
-
-    if not os.path.isdir( '/apps/px/stats/rx/' ):
-        os.makedirs(  '/apps/px/stats/rx/' , mode=0777 )
-    if not os.path.isdir( '/apps/px/stats/tx/'  ):
-        os.makedirs( '/apps/px/stats/tx/', mode=0777 )
-    if not os.path.isdir( '/apps/px/stats/trx/' ):
-        os.makedirs(  '/apps/px/stats/trx/', mode=0777 )
-
-
-    status, output = commands.getstatusoutput( "rsync -avzr --delete-before -e ssh %s@%s:/apps/px/etc/rx/ /apps/px/stats/rx/%s/"  %( login, machine, machine ) )
-    #print output # for debugging only
-
-    status, output = commands.getstatusoutput( "rsync -avzr  --delete-before -e ssh %s@%s:/apps/px/etc/tx/ /apps/px/stats/tx/%s/"  %( login, machine, machine ) )
-    #print output # for debugging only
-    
-        
-                
-def getNames( fileType, machine ):
-    """
-        Returns a tuple containing RXnames or TXnames that we've rsync'ed 
-        using updateConfigurationFiles
-         
-    """    
-                        
-    pxManager = PXManager()
-    
-    remoteMachines = [ "pds3-dev", "pds4-dev","lvs1-stage", "logan1", "logan2" ]
-    if localMachine in remoteMachines :#These values need to be set here.
-        updateConfigurationFiles( machine, "pds" )  
-        PXPaths.RX_CONF  = '/apps/px/stats/rx/%s/'  %machine
-        PXPaths.TX_CONF  = '/apps/px/stats/tx/%s/'  %machine
-        PXPaths.TRX_CONF = '/apps/px/stats/trx/%s/' %machine
-    pxManager.initNames() # Now you must call this method  
-    
-    if fileType == "tx":
-        names = pxManager.getTxNames()               
-    else:
-        names = pxManager.getRxNames()  
-
-    return names 
-        
-    
-    
-def updateConfigurationFiles( machine, login ):
-    """
-        rsync .conf files from designated machine to local machine
-        to make sure we're up to date.
-    
-    """  
-    
-    if not os.path.isdir( '/apps/px/stats/rx/%s/' %machine):
-        os.makedirs(  '/apps/px/stats/rx/%s/' %machine, mode=0777 )
-    if not os.path.isdir( '/apps/px/stats/tx/%s' %machine ):
-        os.makedirs( '/apps/px/stats/tx/%s/' %machine , mode=0777 )
-    if not os.path.isdir( '/apps/px/stats/trx/%s/' %machine ):
-        os.makedirs(  '/apps/px/stats/trx/%s/' %machine, mode=0777 )       
-
-        
-    status, output = commands.getstatusoutput( "rsync -avzr --delete-before -e ssh %s@%s:/apps/px/etc/rx/ /apps/px/stats/rx/%s/"  %( login, machine, machine) ) 
-
-    
-    status, output = commands.getstatusoutput( "rsync -avzr --delete-before -e ssh %s@%s:/apps/px/etc/tx/ /apps/px/stats/tx/%s/"  %( login, machine, machine) )  
-
+    return infos                       
 
 
 def createParser( ):
@@ -595,7 +515,7 @@ def addOptions( parser ):
         
     """
     
-    localMachine = os.uname()[1]
+    
     
     parser.add_option("-c", "--clients", action="store", type="string", dest="clients", default="ALL",
                         help="Clients' names")
@@ -616,7 +536,7 @@ def addOptions( parser ):
         
     parser.add_option("-m", "--monthly", action="store_true", dest = "monthly", default=False, help="Create monthly graph(s).")
      
-    parser.add_option( "--machines", action="store", type="string", dest="machines", default=localMachine, help = "Machines for wich you want to collect data." )   
+    parser.add_option( "--machines", action="store", type="string", dest="machines", default=LOCAL_MACHINE, help = "Machines for wich you want to collect data." )   
     
     parser.add_option("-s", "--span", action="store",type ="int", dest = "timespan", default=None, help="timespan( in hours) of the graphic.")
        
@@ -1231,10 +1151,8 @@ def main():
     """
         Gathers options, then makes call to generateRRDGraphics   
     
-    """    
-    
-    localMachine = os.uname()[1] # /apps/px/log/ logs are stored elsewhere at the moment.
-    
+    """        
+        
     if not os.path.isdir( PXPaths.LOG  ):
         os.makedirs( PXPaths.LOG , mode=0777 )
     

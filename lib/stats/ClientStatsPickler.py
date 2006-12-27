@@ -16,10 +16,10 @@ named COPYING in the root of the source directory tree.
 ##         
 ##          Stats will be collected for this client using fileStatsCollector.
 ##       
-##          It needs the file DirectoryFileCollector.py to collect all the file entries. 
+##          It needs the file LogFileCollector.py to collect all the file entries. 
 ##          
 ##          It needs the FileStatsCollector.py to collect the stats from each file   
-##          that DirectoryFileCollector.py finds. 
+##          that LogFileCollector.py finds. 
 ## 
 ##          Specified directory needs to contain only valid files.  
 ##
@@ -30,29 +30,22 @@ named COPYING in the root of the source directory tree.
 import os 
 import pickle
 import cPickle
-import DirectoryFileCollector
+import LogFileCollector
 import cpickleWrapper
 import PXPaths
 import Logger
 from   Logger                 import Logger
-from   Logger import *
+from   Logger                 import *
 from   Numeric                import *
 from   FileStatsCollector     import *
 from   random                 import *
-from   DirectoryFileCollector import *
-from   FileStatsCollector     import *
+from   LogFileCollector       import *
 from   MyDateLib              import *
+from generalStatsLibraryMethods import *
 
 PXPaths.normalPaths()
 
-localMachine = os.uname()[1]
-
-if localMachine == "pds3-dev" or localMachine == "pds4-dev" or localMachine == "lvs1-stage" or localMachine == "logan1" or localMachine == "logan2":
-    PATH_TO_LOGFILES = PXPaths.LOG + localMachine + "/"
-
-else:#pds5 pds5 pxatx etc
-    PATH_TO_LOGFILES = PXPaths.LOG
-    
+LOCAL_MACHINE = os.uname()[1]   
     
 
 class ClientStatsPickler:
@@ -82,7 +75,7 @@ class ClientStatsPickler:
             self.logger = self.logger.getLogger()
            
         self.statsCollection  = statsCollection or FileStatsCollector( logger = self.logger )
-        self.fileCollection   = DirectoryFileCollector( directory = directory, logger = self.logger )       
+        self.fileCollection   = LogFileCollector( directory = directory, logger = self.logger )       
         
         
         
@@ -168,7 +161,7 @@ class ClientStatsPickler:
         filePickle = PXPaths.STATS + "PICKLED_FILE_POSITIONS" 
         
         #Find up to date file list. 
-        self.fileCollection =  DirectoryFileCollector( startTime  = startTime , endTime = endTime, directory = directory, lastLineRead = "", fileType = fileType, client = self.client, logger = self.logger )   
+        self.fileCollection =  LogFileCollector( startTime  = startTime , endTime = endTime, directory = directory, lastLineRead = "", logType = fileType, name = self.client, logger = self.logger )   
         
         
         temp  = self.logger#Need to remove current logger temporarily
@@ -192,18 +185,9 @@ class ClientStatsPickler:
         
         if self.pickleName == "":
             self.pickleName = ClientStatsPickler.buildThisHoursFileName( client = self.client, currentTime = startTime, machine = self.machine, fileType = fileType )
-        
-        positions = {}
-        
-        if os.path.isfile( filePickle ):
-            positions = cpickleWrapper.load ( filePickle ) 
-        try :
-            lastReadPosition = positions[ fileType + "_" + self.client] 
-        except:
-            lastReadPosition = 0
     
             
-        self.statsCollection = FileStatsCollector( files = self.fileCollection.entries, fileType = fileType, statsTypes = types, startTime = MyDateLib.getIsoWithRoundedHours( startTime ), endTime = endTime, interval = interval, totalWidth = 1*HOUR, lastReadPosition = lastReadPosition, logger = self.logger )
+        self.statsCollection = FileStatsCollector( files = self.fileCollection.entries, fileType = fileType, statsTypes = types, startTime = MyDateLib.getIsoWithRoundedHours( startTime ), endTime = endTime, interval = interval, totalWidth = 1*HOUR, logger = self.logger )
         
         #Temporarily delete logger to make sure no duplicated lines appears in log file.
         temp  = self.logger
@@ -227,16 +211,8 @@ class ClientStatsPickler:
                 self.statsCollection.logger = temp
             
             if self.logger != None:
-                self.logger.info( "Saved pickle named : %s " %self.pickleName )
-                            
-            positions = {}
-                
-            if os.path.isfile( filePickle ):
-                positions = cpickleWrapper.load ( filePickle ) 
-            
-            positions[ fileType + "_" + self.client] =  self.statsCollection.lastReadPosition
-            cpickleWrapper.save ( object = positions, filename = filePickle )  
-                 
+                self.logger.info( "Saved pickle named : %s " %self.pickleName )                          
+               
                 
     
              
@@ -288,12 +264,13 @@ def main():
     """
             small test case. Tests if everything works plus gives an idea on proper usage.
     """
-        
+    pathToLogFiles =  generalStatsLibraryMethods.getPathToLogFiles( LOCAL_MACHINE, LOCAL_MACHINE )
+   
     types = [ "latency","errors","bytecount" ]    
       
-    cs = ClientStatsPickler( client = "satnet", directory = PATH_TO_LOGFILES )
+    cs = ClientStatsPickler( client = "satnet", directory = pathToLogFiles )
     
-    cs.collectStats( types, directory = PATH_TO_LOGFILES, fileType = "tx", startTime = '2006-07-16 01:00:12', endTime = "2006-07-16 01:59:12", interval = 1*MINUTE )  
+    cs.collectStats( types, directory = pathToLogFiles, fileType = "tx", startTime = '2006-07-16 01:00:12', endTime = "2006-07-16 01:59:12", interval = 1*MINUTE )  
             
     cs.printStats()        
     

@@ -58,7 +58,7 @@ def cleanPickles( dirsToKeep ):
             
             if innerFolder not in dirsToKeep:
                 status, output = commands.getstatusoutput("rm -rf %s " %completePath )
-                #print "deleted : %s " %completePath
+                print "deleted : %s " %completePath
                 
     
     

@@ -136,7 +136,7 @@ class StatsPlotter:
         
         date = self.currentTime.replace( "-","" ).replace( " ", "_")
         
-        fileName = PXPaths.GRAPHS + "%.50s/%s_%.50s_%s_%s_%shours_on_%s_for %s products.png" %( clientName, self.fileType, clientName, date, self.statsTypes, self.timespan, self.machines, self.productType )
+        fileName = PXPaths.GRAPHS + "others/gnuplot/%.50s/%s_%.50s_%s_%s_%shours_on_%s_for %s products.png" %( clientName, self.fileType, clientName, date, self.statsTypes, self.timespan, self.machines, self.productType )
         
         
         fileName = fileName.replace( '[', '').replace(']', '').replace(" ", "").replace( "'","" )               
@@ -406,7 +406,7 @@ class StatsPlotter:
         
         src         = self.imageName
         
-        destination = PXPaths.GRAPHS + "/symlinks/columbo/%s.png" %clientName
+        destination = PXPaths.GRAPHS + "webGraphics/columbo/%s.png" %clientName
 
         if not os.path.isdir( os.path.dirname( destination ) ):
             os.makedirs(  os.path.dirname( destination ), mode=0777 )                                                      

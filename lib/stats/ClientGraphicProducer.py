@@ -38,17 +38,11 @@ from MyDateLib import MyDateLib
 from StatsPlotter import StatsPlotter
 from ClientStatsPickler import *
 from FileStatsCollector import FileStatsCollector, _FileStatsEntry
+from generalStatsLibraryMethods import *
 
 PXPaths.normalPaths()
 
-localMachine = os.uname()[1]
-
-if localMachine == "pds3-dev" or localMachine == "pds4-dev" or localMachine == "lvs1-stage" or localMachine == "logan1" or localMachine == "logan2":
-    PATH_TO_LOGFILES = PXPaths.LOG + localMachine + "/"
-
-else:#pds5 pds5 pxatx etc
-    PATH_TO_LOGFILES = PXPaths.LOG  
-
+LOCAL_MACHINE = os.uname()[1]
 
 
 class ClientGraphicProducer:
@@ -170,16 +164,13 @@ if __name__ == "__main__":
         
     """
     
-    gp = ClientGraphicProducer( clientNames = [ 'amis' ], timespan = 24, currentTime = "2006-08-01 18:15:00",productType = "All", directory = PATH_TO_LOGFILES, fileType = "tx" )  
+    pathToLogFiles = generalStatsLibraryMethods.directory.getPathToLogFiles( LOCAL_MACHINE, LOCAL_MACHINE )
+    
+    gp = ClientGraphicProducer( clientNames = [ 'amis' ], timespan = 24, currentTime = "2006-08-01 18:15:00",productType = "All", directory = pathToLogFiles, fileType = "tx" )  
     
     gp.produceGraphicWithHourlyPickles( types = [ "bytecount","latency","errors" ], now = False   )
     
-    
-    
-    
-#     gp = ClientGraphicProducer( clientNames = [ 'satnet' ], timespan = 12, currentTime = "2006-07-20 05:15:00",productType = "", directory =PXPaths.LOG, fileType = "tx" )  
-#     
-#     gp.produceGraphic( types = [ "bytecount","latency","errors" ], now = False   )
+
 
 
     

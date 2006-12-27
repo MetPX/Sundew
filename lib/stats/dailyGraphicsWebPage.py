@@ -24,58 +24,13 @@ named COPYING in the root of the source directory tree.
 ##############################################################################
 
 import os, time,sys
+import generalStatsLibraryMethods
+
 from PXPaths   import * 
 from PXManager import *
+from generalStatsLibraryMethods import *
 
-localMachine = os.uname()[1]
-
-def updateConfigurationFiles( machine, login ):
-    """
-        rsync .conf files from designated machine to local machine
-        to make sure we're up to date.
-
-    """
-
-    if not os.path.isdir( '/apps/px/stats/rx/' ):
-        os.makedirs(  '/apps/px/stats/rx/' , mode=0777 )
-    if not os.path.isdir( '/apps/px/stats/tx/'  ):
-        os.makedirs( '/apps/px/stats/tx/', mode=0777 )
-    if not os.path.isdir( '/apps/px/stats/trx/' ):
-        os.makedirs(  '/apps/px/stats/trx/', mode=0777 )
-
-
-    status, output = commands.getstatusoutput( "rsync -avzr --delete-before -e ssh %s@%s:/apps/px/etc/rx/ /apps/px/stats/rx/%s/"  %( login, machine, machine ) )
-    #print output # for debugging only
-
-    status, output = commands.getstatusoutput( "rsync -avzr  --delete-before -e ssh %s@%s:/apps/px/etc/tx/ /apps/px/stats/tx/%s/"  %( login, machine, machine ) )
-    #print output # for debugging only
-
-    
-    
-def getRxTxNames( machine ):
-    """
-        Returns a tuple containg RXnames and TXnames that we've rsync'ed 
-        using updateConfigurationFiles
-         
-    """    
-                        
-    pxManager = PXManager()
-    
-    
-    remoteMachines= [ "pds3-dev", "pds4-dev","lvs1-stage", "logan1", "logan2" ]
-    if localMachine in remoteMachines :#These values need to be set here.
-        updateConfigurationFiles( machine, "pds" )
-        PXPaths.RX_CONF  = '/apps/px/stats/rx/%s/'  %machine
-        PXPaths.TX_CONF  = '/apps/px/stats/tx/%s/'  %machine
-        PXPaths.TRX_CONF = '/apps/px/stats/trx/%s/' %machine
-    pxManager.initNames() # Now you must call this method  
-    
-    txNames = pxManager.getTxNames()               
-    rxNames = pxManager.getRxNames()  
-
-    return rxNames, txNames 
-    
-    
+LOCAL_MACHINE = os.uname()[1]          
     
 def getDays():
     """
@@ -97,8 +52,8 @@ def main():
     
 
     
-    rxNames,txNames = getRxTxNames("pds5")
-    pxatxrxNames,pxatxtxNames = getRxTxNames("pxatx")
+    rxNames,txNames = generalStatsLibraryMethods.getRxTxNames( LOCAL_MACHINE, "pds5" )
+    pxatxrxNames,pxatxtxNames = generalStatsLibraryMethods.getRxTxNames( LOCAL_MACHINE, "pxatx" )
     
     rxNames.extend(pxatxrxNames)
     txNames.extend(pxatxtxNames)
@@ -140,7 +95,7 @@ def main():
         """ %(rxName))
     
         fileHandle.write(  """    
-            <td bgcolor="#66CCFF" width = "25%%" >   Days :   <a target ="%s" href="%ssymlinks/daily/%s/%s.png">%s   </a><a target ="%s" href="%ssymlinks/daily/%s/%s.png">%s   </a><a target ="%s" href="%ssymlinks/daily/%s/%s.png">%s   </a><a target ="%s" href="%ssymlinks/daily/%s/%s.png">%s   </a><a target ="%s" href="%ssymlinks/daily/%s/%s.png">%s   </a><a target ="%s" href="%ssymlinks/daily/%s/%s.png">%s   </a><a target ="%s" href="%ssymlinks/daily/%s/%s.png">%s   </a></td>
+            <td bgcolor="#66CCFF" width = "25%%" >   Days :   <a target ="%s" href="%swebGraphics/daily/%s/%s.png">%s   </a><a target ="%s" href="%swebGraphics/daily/%s/%s.png">%s   </a><a target ="%s" href="%swebGraphics/daily/%s/%s.png">%s   </a><a target ="%s" href="%swebGraphics/daily/%s/%s.png">%s   </a><a target ="%s" href="%swebGraphics/daily/%s/%s.png">%s   </a><a target ="%s" href="%swebGraphics/daily/%s/%s.png">%s   </a><a target ="%s" href="%swebGraphics/daily/%s/%s.png">%s   </a></td>
         """%( rxName,PXPaths.GRAPHS,rxName,days[0],days[0], rxName,PXPaths.GRAPHS,rxName,days[1],days[1], rxName,PXPaths.GRAPHS,rxName,days[2],days[2],rxName,PXPaths.GRAPHS,rxName,days[3],days[3], rxName,PXPaths.GRAPHS,rxName,days[4],days[4], rxName,PXPaths.GRAPHS,rxName,days[5],days[5], rxName,PXPaths.GRAPHS,rxName,days[6],days[6] )  ) 
                  
     
@@ -167,7 +122,7 @@ def main():
         """ %(txName) )
         
         fileHandle.write(  """    
-            <td bgcolor="#66CCFF" width = "25%%" >   Days :   <a target ="%s" href="%ssymlinks/daily/%s/%s.png">%s   </a><a target ="%s" href="%ssymlinks/daily/%s/%s.png">%s   </a><a target ="%s" href="%ssymlinks/daily/%s/%s.png">%s   </a><a target ="%s" href="%ssymlinks/daily/%s/%s.png">%s   </a><a target ="%s" href="%ssymlinks/daily/%s/%s.png">%s   </a><a target ="%s" href="%ssymlinks/daily/%s/%s.png">%s   </a><a target ="%s" href="%ssymlinks/daily/%s/%s.png">%s   </a></td>
+            <td bgcolor="#66CCFF" width = "25%%" >   Days :   <a target ="%s" href="%swebGraphics/daily/%s/%s.png">%s   </a><a target ="%s" href="%swebGraphics/daily/%s/%s.png">%s   </a><a target ="%s" href="%swebGraphics/daily/%s/%s.png">%s   </a><a target ="%s" href="%swebGraphics/daily/%s/%s.png">%s   </a><a target ="%s" href="%swebGraphics/daily/%s/%s.png">%s   </a><a target ="%s" href="%swebGraphics/daily/%s/%s.png">%s   </a><a target ="%s" href="%swebGraphics/daily/%s/%s.png">%s   </a></td>
         """%( txName,PXPaths.GRAPHS,txName,days[0],days[0], txName,PXPaths.GRAPHS,txName,days[1],days[1], txName,PXPaths.GRAPHS,txName,days[2],days[2],txName,PXPaths.GRAPHS,txName,days[3],days[3], txName,PXPaths.GRAPHS,txName,days[4],days[4], txName,PXPaths.GRAPHS,txName,days[5],days[5], txName,PXPaths.GRAPHS,txName,days[6],days[6] )  )       
 
         

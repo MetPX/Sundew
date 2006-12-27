@@ -24,14 +24,16 @@ named COPYING in the root of the source directory tree.
 
 
 import os, time, sys
+import generalStatsLibraryMethods
 from optparse import OptionParser
 from ConfigParser import ConfigParser
 from ClientGraphicProducer import *
+from generalStatsLibraryMethods import *
 import PXPaths
 
 PXPaths.normalPaths()
 
-localMachine = os.uname()[1]
+LOCAL_MACHINE = os.uname()[1]
 
 class _GraphicsInfos:
 
@@ -143,24 +145,7 @@ def getOptionsFromParser( parser ):
         print "Program terminated."
         sys.exit()
     
-    directory = PXPaths.LOG + localMachine + "/"
-    
-    
-    #workaround to be removed after its installed on real machines
-    for i in range ( len( machines ) ) :
-    
-        #small workaround for temporary test machines    
-        if machines[i] == "pds5" :
-            machines[i] = "pds3-dev"
-        elif machines[i] == "pds6" :
-            machines[i] = "pds4-dev"
-        elif machines[i] == "pxatx" :#thus far all graphic machines make pickels for pxatx
-            machines[i] = localMachine
-        else:
-            machines[i] = machines[i]
-            
-        #end of workaround
-       
+    directory =  generalStatsLibraryMethods.getPathToLogFiles( LOCAL_MACHINE, machines[0] )
     
     infos = _GraphicsInfos( collectUpToNow = collectUpToNow, currentTime = currentTime, clientNames = clientNames,  directory = directory , types = types, fileType = fileType, timespan = timespan, productType = productType, machines = machines, link = link )
     
@@ -230,9 +215,7 @@ def addOptions( parser ):
     """
         This method is used to add all available options to the option parser.
         
-    """
-    
-    localMachine = os.uname()[1]
+    """      
     
     parser.add_option("-c", "--clients", action="store", type="string", dest="clients", default="satnet",
                         help="Clients' names")
@@ -243,7 +226,7 @@ def addOptions( parser ):
    
     parser.add_option("-l", "--link", action="store_true", dest = "link", default=False, help="Create a link file for the generated image.")
     
-    parser.add_option( "-m", "--machines", action="store", type="string", dest="machines", default=localMachine, help = "Machines for wich you want to collect data." ) 
+    parser.add_option( "-m", "--machines", action="store", type="string", dest="machines", default=LOCAL_MACHINE, help = "Machines for wich you want to collect data." ) 
     
     parser.add_option("-n", "--collectUpToNow", action="store_true", dest = "collectUpToNow", default=False, help="Collect data up to current second.")
     
