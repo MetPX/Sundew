@@ -218,8 +218,9 @@ class Client(object):
         """
         mask = self._getMatchingMask(filename)
         if mask:
-            timeSuffix = ''
-            firstPart = filename.split(':')[0]
+            timeSuffix   = ''
+            parts        = filename.split(':')
+            firstPart    = parts[0]
             destFileName = filename
             for spec in mask[2].split(':'):
                 if spec == 'WHATFN':
@@ -231,11 +232,13 @@ class Client(object):
                     else:
                         destFileName = headParts[0] 
                 elif spec == 'NONE':
-                    destFileName =  filename
+                    destFileName = ':'.join(parts[:-1])
+                    if destFileName[-1] == ':' : destFileName = destFileName[:-1]
                 elif re.compile('DESTFN=.*').match(spec):
                     destFileName = spec[7:]
                 elif spec == 'TIME':
                     timeSuffix = ':' + time.strftime("%Y%m%d%H%M%S", time.gmtime())
+                    if parts[-1][0] == '2' : timeSuffix = ':' + parts[-1]
                 else:
                     self.logger.error("Don't understand this DESTFN parameter: %s" % spec)
                     return (None, None) 
