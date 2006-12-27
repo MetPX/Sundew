@@ -232,8 +232,10 @@ class Client(object):
                     else:
                         destFileName = headParts[0] 
                 elif spec == 'SENDER':
-                    if parts[5][:6] == 'SENDER' : 
-                       destFileName = parts[5].split('=')[1] 
+                    if len(parts[4]) == 1 : sender = parts[6]
+                    else                  : sender = parts[5]
+                    if sender[:6] == 'SENDER' : 
+                       destFileName = sender.split('=')[1] 
                 elif spec == 'NONE':
                     if len(parts[4]) == 1 : destFileName = ':'.join(parts[:6])
                     else                  : destFileName = ':'.join(parts[:5])
