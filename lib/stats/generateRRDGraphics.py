@@ -23,7 +23,8 @@ named COPYING in the root of the source directory tree.
 
 import os, time, getopt, rrdtool, shutil  
 import ClientStatsPickler, MyDateLib, pickleMerging, PXManager, PXPaths, transferPickleToRRD
-
+import generalStatsLibraryMethods
+from   generalStatsLibraryMethods import *
 from   ClientStatsPickler import *
 from   optparse  import OptionParser
 from   PXPaths   import *
@@ -877,9 +878,12 @@ def getCopyDestination( type, client, infos ):
        This method returns the absolute path to the copy 
        to create based on the time of creation of the 
        graphic and the span of the graphic.
+       
+       Precondition : graphic type must be either weekly, monthly or yearly. 
     
     """
     
+    oneDay = 24*60*60
     graphicType = "weekly"
     endTimeInSeconds = MyDateLib.getSecondsSinceEpoch( infos.endTime )
     
@@ -890,11 +894,11 @@ def getCopyDestination( type, client, infos ):
         graphicType = "monthly"    
 
     if graphicType == "weekly":
-        fileName =  time.strftime( "%W", time.gmtime( endTimeInSeconds ) )
+        fileName =  time.strftime( "%W", time.gmtime( endTimeInSeconds - oneDay ) )
     elif graphicType == "monthly":
-        fileName =  time.strftime( "%b", time.gmtime( endTimeInSeconds ) )
+        fileName =  time.strftime( "%b", time.gmtime( endTimeInSeconds - oneDay ) )
     elif graphicType == "yearly":
-        fileName =  time.strftime( "%Y", time.gmtime( endTimeInSeconds ) )
+        fileName =  time.strftime( "%Y", time.gmtime( endTimeInSeconds - oneDay ) )
     
     
     destination = PXPaths.GRAPHS + "webGraphics/%s/%s/%s/%.50s.png" %( graphicType, type , client, fileName )

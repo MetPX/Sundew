@@ -11,6 +11,11 @@ named COPYING in the root of the source directory tree.
 ## Description : Gathers all the .png graphics required by the following 
 ##               web pages: dailyGraphs.html, weeklyGraphs.html, 
 ##               monthlyGraphs.html, yearlyGraphs.html
+##
+## Note        : Graphics are gathered for all the rx/tx sources/clients 
+##               present in the pds5,pds6 and pxatx mahcines. This has been 
+##               hardcoded here since it is also hardocded within the web 
+##               pages.  
 ##                 
 ## Author : Nicholas Lemay  
 ##
@@ -29,55 +34,41 @@ PXPaths.normalPaths()
 def updateThisYearsGraphs( currentTime ):
     """
         This method generates new yearly graphs
-        for all the rx and tx names.
-        
-        It then set a symbolic link to that file 
-        in the appropriate folder as to be accessible
-        via the web pages.
-        
+        for all the rx and tx names.       
+       
     """
+    
     end = MyDateLib.getIsoFromEpoch(currentTime)
     
-    status, output = commands.getstatusoutput( "/apps/px/lib/stats/generateRRDGraphics.py -y --copy -f tx --machines 'pds5,pds6' --date '%s'" %end )
+    status, output = commands.getstatusoutput( "/apps/px/lib/stats/generateRRDGraphics.py -y --copy -f tx --machines 'pds5,pds6' --date '%s' --fixedCurrent" %end )
     
-    status, output = commands.getstatusoutput( "/apps/px/lib/stats/generateRRDGraphics.py -y --copy -f rx --machines 'pds5,pds6' --date '%s'" %end )
+    status, output = commands.getstatusoutput( "/apps/px/lib/stats/generateRRDGraphics.py -y --copy -f rx --machines 'pds5,pds6' --date '%s' --fixedCurrent" %end )
     
-    status, output = commands.getstatusoutput( "/apps/px/lib/stats/generateRRDGraphics.py -y --copy -f tx --machines 'pxatx' --date '%s'" %end )
+    status, output = commands.getstatusoutput( "/apps/px/lib/stats/generateRRDGraphics.py -y --copy -f tx --machines 'pxatx' --date '%s' --fixedCurrent" %end )
     
-    status, output = commands.getstatusoutput( "/apps/px/lib/stats/generateRRDGraphics.py -y --copy -f rx --machines 'pxatx' --date '%s'" %end )
+    status, output = commands.getstatusoutput( "/apps/px/lib/stats/generateRRDGraphics.py -y --copy -f rx --machines 'pxatx' --date '%s' --fixedCurrent" %end )
     
     
     
 def setLastYearsGraphs( currentTime ):
     """
-        This method generates new yearly graphs
-        for all the rx and tx names.
-        
-        It then set a symbolic link with last years 
-        name in the appropriate folder and should
-        never have to be modified again.
+        This method generates all the yearly graphs
+        of the previous year.
+
         
     """
     
-    lastYear   = time.strftime( "%Y", time.gmtime( currentTime - ( 365*24*60*60 ) ) )
-    thisYear   = time.strftime( "%Y", time.gmtime( currentTime ) )
+    end = MyDateLib.getIsoFromEpoch(currentTime)
     
-    filePattern = PXPaths.GRAPHS + "webGraphics/monthly/*/*/%s.png" %( thisYear )    
+    status, output = commands.getstatusoutput( "/apps/px/lib/stats/generateRRDGraphics.py -y --copy -f tx --machines 'pds5,pds6' --date '%s' --fixedPrevious" %end )
     
-    yearlyGraphs = glob.glob( filePattern )
+    status, output = commands.getstatusoutput( "/apps/px/lib/stats/generateRRDGraphics.py -y --copy -f rx --machines 'pds5,pds6' --date '%s' --fixedPrevious" %end )
+    
+    status, output = commands.getstatusoutput( "/apps/px/lib/stats/generateRRDGraphics.py -y --copy -f tx --machines 'pxatx' --date '%s' --fixedPrevious " %end )
+    
+    status, output = commands.getstatusoutput( "/apps/px/lib/stats/generateRRDGraphics.py -y --copy -f rx --machines 'pxatx' --date '%s' --fixedPrevious" %end )
         
-    for graph in yearlyGraphs:
-        clientName = os.path.basename( os.path.dirname( graph ) )
-        graphType  = os.path.basename(os.path.dirname( os.path.dirname( graph ) ) )        
-        dest = PXPaths.GRAPHS + "webGraphics/yearly/%s/%s/%s.png" %( graphType, clientName, lastYear )
-        
-        if not os.path.isdir( os.path.dirname(dest) ):
-            os.makedirs( os.path.dirname(dest) )
-        shutil.copyfile( graph, dest )   
-        
-        #print "copy %s to %s " %(graph, dest)
-        
-        
+         
         
 def updateThisMonthsGraphs( currentTime ):
     """
@@ -85,84 +76,55 @@ def updateThisMonthsGraphs( currentTime ):
         This method generates new monthly graphs
         for all the rx and tx names.
         
-        It then set a symbolic link to that file 
-        in the appropriate folder as to be accessible
-        via the web pages.
-        
     """
 
     end = MyDateLib.getIsoFromEpoch(currentTime)
 
-    status, output = commands.getstatusoutput( "/apps/px/lib/stats/generateRRDGraphics.py -m --copy -f tx --machines 'pds5,pds6' --date '%s'" %end )
+    status, output = commands.getstatusoutput( "/apps/px/lib/stats/generateRRDGraphics.py -m --copy -f tx --machines 'pds5,pds6' --date '%s' --fixedCurrent" %end )
     
-    status, output = commands.getstatusoutput( "/apps/px/lib/stats/generateRRDGraphics.py -m --copy -f rx --machines 'pds5,pds6' --date'%s'" %end)
+    status, output = commands.getstatusoutput( "/apps/px/lib/stats/generateRRDGraphics.py -m --copy -f rx --machines 'pds5,pds6' --date'%s' --fixedCurrent" %end)
     
-    status, output = commands.getstatusoutput( "/apps/px/lib/stats/generateRRDGraphics.py -m --copy -f tx --machines 'pxatx' --date'%s'" %end )
+    status, output = commands.getstatusoutput( "/apps/px/lib/stats/generateRRDGraphics.py -m --copy -f tx --machines 'pxatx' --date'%s' --fixedCurrent" %end )
     
-    status, output = commands.getstatusoutput( "/apps/px/lib/stats/generateRRDGraphics.py -m --copy -f rx --machines 'pxatx' --date '%s'" %end )
+    status, output = commands.getstatusoutput( "/apps/px/lib/stats/generateRRDGraphics.py -m --copy -f rx --machines 'pxatx' --date '%s' --fixedCurrent" %end )
     
      
     
     
 def setLastMonthsGraphs( currentTime ):
     """
-        This method generates new monthly graphs
-        for all the rx and tx names.
-        
-        It then set a symbolic link with last months 
-        name in the appropriate folder and should
-        never have to be modified again.
+        This method generates all the monthly graphs
+        for the previous month.
         
     """
     
-    lastMonth   = time.strftime( "%b", time.gmtime( currentTime - ( 30*24*60*60 ) ) )
-    thisMonth   = time.strftime( "%b", time.gmtime( currentTime ) )
+    end = MyDateLib.getIsoFromEpoch(currentTime)
+
+    status, output = commands.getstatusoutput( "/apps/px/lib/stats/generateRRDGraphics.py -m --copy -f tx --machines 'pds5,pds6' --date '%s' --fixedPrevious" %end )
     
-    filePattern = PXPaths.GRAPHS + "webGraphics/monthly/*/*/%s.png" %( thisMonth )    
+    status, output = commands.getstatusoutput( "/apps/px/lib/stats/generateRRDGraphics.py -m --copy -f rx --machines 'pds5,pds6' --date'%s' --fixedPrevious" %end)
     
-    monthlyGraphs = glob.glob( filePattern )
-        
-    for graph in monthlyGraphs:
-        clientName = os.path.basename( os.path.dirname( graph ) )
-        graphType  = os.path.basename(os.path.dirname( os.path.dirname( graph ) ) )        
-        dest = PXPaths.GRAPHS + "webGraphics/monthly/%s/%s/%s.png" %( graphType, clientName, lastMonth )
-        
-        if not os.path.isdir( os.path.dirname(dest) ):
-            os.makedirs( os.path.dirname(dest) )    
-        shutil.copyfile( graph, dest )    
-        #print "copy %s   to   %s " %( graph,dest )
+    status, output = commands.getstatusoutput( "/apps/px/lib/stats/generateRRDGraphics.py -m --copy -f tx --machines 'pxatx' --date'%s' --fixedPrevious" %end )
+    
+    status, output = commands.getstatusoutput( "/apps/px/lib/stats/generateRRDGraphics.py -m --copy -f rx --machines 'pxatx' --date '%s' --fixedPrevious" %end )
     
     
        
 def setLastWeeksGraphs( currentTime ):
     """
-        This method generates new wekly graphs
-        for all the rx and tx names.
-        
-        It then set a symbolic link with last years 
-        name in the appropriate folder and should
-        never have to be modified again.
-        
+        Generates all the graphics of the previous week.
+                
     """
     
-    lastWeeksNumber   = time.strftime( "%W", time.gmtime( currentTime - ( 7*24*60*60 ) ) )
-    thisWeeksNumber   = time.strftime( "%W", time.gmtime( currentTime ))
+    end = MyDateLib.getIsoFromEpoch( currentTime )
+
+    status, output = commands.getstatusoutput( "/apps/px/lib/stats/generateRRDGraphics.py -w --copy -f tx --machines 'pds5,pds6' --date '%s' --fixedPrevious" %end )
     
-    filePattern = PXPaths.GRAPHS + "webGraphics/weekly/*/*/%s.png" %( thisWeeksNumber )    
+    status, output = commands.getstatusoutput( "/apps/px/lib/stats/generateRRDGraphics.py -w --copy -f rx --machines 'pds5,pds6' --date '%s' --fixedPrevious" %end )
     
-    weeklyGraphs = glob.glob( filePattern )
-       
+    status, output = commands.getstatusoutput( "/apps/px/lib/stats/generateRRDGraphics.py -w --copy -f tx --machines 'pxatx' --date '%s' --fixedPrevious" %end )
     
-    for graph in weeklyGraphs:
-        clientName = os.path.basename( os.path.dirname( graph ) )
-        graphType  = os.path.basename(os.path.dirname( os.path.dirname( graph ) ) )        
-        
-        dest = PXPaths.GRAPHS + "webGraphics/weekly/%s/%s/%s.png" %( graphType, clientName, lastWeeksNumber )
-        if not os.path.isdir( os.path.dirname( dest ) ):
-            os.makedirs( os.path.dirname( dest ) )
-        
-        shutil.copyfile( graph, dest  )    
-        #print "copy %s   to   %s " %( graph, dest )
+    status, output = commands.getstatusoutput( "/apps/px/lib/stats/generateRRDGraphics.py -w --copy -f rx --machines 'pxatx' --date '%s' --fixedPrevious" %end )
     
     
         
@@ -171,33 +133,27 @@ def updateThisWeeksGraphs( currentTime ):
     
         This method generates new monthly graphs
         for all the rx and tx names.
-        
-        It then set a symbolic link to that file 
-        in the appropriate folder as to be accessible
-        via the web pages.    
             
     """
 
     end = MyDateLib.getIsoFromEpoch(currentTime)
 
-    status, output = commands.getstatusoutput( "/apps/px/lib/stats/generateRRDGraphics.py -w --copy -f tx --machines 'pds5,pds6' --date '%s'" %end )
+    status, output = commands.getstatusoutput( "/apps/px/lib/stats/generateRRDGraphics.py -w --copy -f tx --machines 'pds5,pds6' --date '%s' --fixedCurrent " %end )
     
-    status, output = commands.getstatusoutput( "/apps/px/lib/stats/generateRRDGraphics.py -w --copy -f rx --machines 'pds5,pds6' --date '%s'" %end )
+    status, output = commands.getstatusoutput( "/apps/px/lib/stats/generateRRDGraphics.py -w --copy -f rx --machines 'pds5,pds6' --date '%s' --fixedCurrent " %end )
     
-    status, output = commands.getstatusoutput( "/apps/px/lib/stats/generateRRDGraphics.py -w --copy -f tx --machines 'pxatx' --date '%s'" %end )
+    status, output = commands.getstatusoutput( "/apps/px/lib/stats/generateRRDGraphics.py -w --copy -f tx --machines 'pxatx' --date '%s' --fixedCurrent " %end )
     
-    status, output = commands.getstatusoutput( "/apps/px/lib/stats/generateRRDGraphics.py -w --copy -f rx --machines 'pxatx' --date '%s'" %end )
+    status, output = commands.getstatusoutput( "/apps/px/lib/stats/generateRRDGraphics.py -w --copy -f rx --machines 'pxatx' --date '%s' --fixedCurrent " %end )
+    
     
     
 def setYesterdaysGraphs( currentTime ):
     """
-        This method generates new daily graphs 
-        (if required)
-        for all the rx and tx names.
-        
-        It then set a symbolic link with yesterdays 
-        name in the appropriate folder and should
-        never have to be modified again.    
+        Takes all of the ucrrent graphs and set them as yesterdays graph. 
+        To be used only at midnight where the current columbo graphics 
+        are yesterdays graphics.
+
     """
     
     filePattern = PXPaths.GRAPHS + "webGraphics/columbo/*.png"
@@ -219,12 +175,12 @@ def setYesterdaysGraphs( currentTime ):
 def setCurrentGraphsAsDailyGraphs( currentTime )  :
     """
         This method takes the latest dailygraphics 
-        and then sets a symbolic link to that file 
-        in the appropriate folder as to be accessible
-        via the web pages.  
+        and then copies that file in the appropriate
+        folder as to make it accessible via the web
+        pages.  
         
         Precondition : Current graphs must have 
-        been generated properly prior to caling this 
+        been generated properly prior to calling this 
         method.
           
     """
@@ -247,9 +203,13 @@ def setCurrentGraphsAsDailyGraphs( currentTime )  :
     
 def main():
     """
-    
+        Set up all the graphics required by the web pages.
+        
+        Since web pages are hard coded the name of the machines
+        from wich the graphics are gathered are also hardcoded.   
+                
     """
-    currentTime = time.time()
+    currentTime = 1167609600.0#time.time()
     
     setCurrentGraphsAsDailyGraphs( currentTime )
     
@@ -277,6 +237,7 @@ def main():
             updateThisYearsGraphs( currentTime )     
     
     else:
+        
         updateThisWeeksGraphs( currentTime )
             
     
