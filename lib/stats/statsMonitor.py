@@ -1132,7 +1132,7 @@ def verifyGraphs( parameters, report ):
     
     newReportLines = ""
     outdatedGraphsFound = False 
-    folder = ( "/apps/px/stats/graphs/symlinks/daily/" )  
+    folder = ( "/apps/px/stats/graphs/webGraphics/columbo/" )  
     currentTime = MyDateLib.getSecondsSinceEpoch( parameters.endTime )
     
     allNames = []
@@ -1143,23 +1143,19 @@ def verifyGraphs( parameters, report ):
     allNames.extend( rxNames )
     allNames.extend( txNames )
     
-    for name in allNames :
-        completeFolder = folder + name 
+    for name in allNames :         
         
-        if os.path.isdir( completeFolder ):
-            images = glob.glob( completeFolder + "/*" )
-            newestImage = images[0]
+        image = folder + name + ".png"
+        
+        if os.path.isfile( image ):          
             
-            for image in images:
-                if os.path.getmtime( image ) > os.path.getmtime( newestImage ):
-                    newestImage = image    
-            
-            if ( currentTime - os.path.getmtime( newestImage ) ) / ( 60*60 ) >1 :
+            if ( currentTime - os.path.getmtime( image ) ) / ( 60*60 ) >1 :
                 outdatedGraphsFound = True 
-                newReportLines = newReportLines + "%s's daily image was not updated since %s\n" %( name, MyDateLib.getIsoFromEpoch(os.path.getmtime( newestImage ) ) )
+                newReportLines = newReportLines + "%s's daily image was not updated since %s\n" %( name, MyDateLib.getIsoFromEpoch(os.path.getmtime( image ) ) )
+        
         else:
             outdatedGraphsFound = True 
-            newReportLines = newReportLines + "%s was not found." %( file )   
+            newReportLines = newReportLines + "%s was not found." %( image )   
         
     if outdatedGraphsFound :
         header = "\n\nThe following daily graphics warnings were found :\n"

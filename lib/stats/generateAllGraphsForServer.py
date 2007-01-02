@@ -184,7 +184,7 @@ def getOptionsFromParser( parser ):
                   
         
     if len( logins ) != len( machines ) :
-        print "Error. Number of logins doesn't not match number of machines." 
+        print "Error. Number of logins does not match number of machines." 
         print "Use -l 'login1,login2,loginX' for multiple machines."
         print "Program terminated."         
         sys.exit()
@@ -223,7 +223,8 @@ def generateGraphsForIndividualMachines( infos ) :
             pid = os.fork()#create child process
             
             if pid == 0: #child process
-                status, output = commands.getstatusoutput( "python /apps/px/lib/stats/generateGraphics.py -m '%s' -f tx -c '%s' -d '%s' -s %s -l" %( infos.machines[i], txName, infos.date, infos.timespan) )                
+                status, output = commands.getstatusoutput( "python /apps/px/lib/stats/generateGraphics.py -m '%s' -f tx -c '%s' -d '%s' -s %s --copy" %( infos.machines[i], txName, infos.date, infos.timespan) )               
+                print output 
                 sys.exit()
         
             else:
@@ -248,7 +249,8 @@ def generateGraphsForIndividualMachines( infos ) :
             pid = os.fork()#create child process
             
             if pid == 0 :#child process
-                status, output = commands.getstatusoutput( "python /apps/px/lib/stats/generateGraphics.py -m '%s' -f rx -c '%s' -d '%s' -s %s -l" %( infos.machines[i] , rxName, infos.date,infos.timespan ) )     
+                status, output = commands.getstatusoutput( "python /apps/px/lib/stats/generateGraphics.py -m '%s' -f rx -c '%s' -d '%s' -s %s --copy" %( infos.machines[i] , rxName, infos.date,infos.timespan ) )     
+                print output
                 sys.exit()
         
             else:
@@ -286,8 +288,8 @@ def generateGraphsForPairedMachines( infos ) :
         
         if pid == 0 :#child process
             
-            status, output = commands.getstatusoutput( "python /apps/px/lib/stats/generateGraphics.py -m %s -f tx -c %s -d '%s' -s %s  -l" %( infos.combinedName, txName, infos.date, infos.timespan ) )
-            #print output
+            status, output = commands.getstatusoutput( "python /apps/px/lib/stats/generateGraphics.py -m %s -f tx -c %s -d '%s' -s %s  --copy" %( infos.combinedName, txName, infos.date, infos.timespan ) )
+            print output
             sys.exit()    #terminate child process
     
         else:
@@ -312,8 +314,8 @@ def generateGraphsForPairedMachines( infos ) :
         pid = os.fork()#create child process
         
         if pid == 0:#child process            
-            status, output = commands.getstatusoutput( "python /apps/px/lib/stats/generateGraphics.py -m %s -f rx -c %s -d '%s' -s %s  -l" %( infos.combinedName, rxName, infos.date, infos.timespan ) )     
-            #print output 
+            status, output = commands.getstatusoutput( "python /apps/px/lib/stats/generateGraphics.py -m %s -f rx -c %s -d '%s' -s %s  --copy" %( infos.combinedName, rxName, infos.date, infos.timespan ) )     
+            print output 
             sys.exit()
         else:
             j = j + 1

@@ -21,7 +21,7 @@ named COPYING in the root of the source directory tree.
 #######################################################################################
 
 
-import os, time, getopt, rrdtool  
+import os, time, getopt, rrdtool, shutil  
 import ClientStatsPickler, MyDateLib, pickleMerging, PXManager, PXPaths, transferPickleToRRD
 
 from   ClientStatsPickler import *
@@ -40,7 +40,7 @@ LOCAL_MACHINE = os.uname()[1]
     
 class _GraphicsInfos:
 
-    def __init__( self, fileType, types, totals, clientNames = None ,  timespan = 12, startTime = None, endTime = None, machines = ["pdsGG"], link = False  ):            
+    def __init__( self, fileType, types, totals, clientNames = None ,  timespan = 12, startTime = None, endTime = None, machines = ["pdsGG"], copy = False  ):            
         
         self.fileType     = fileType          # Type of log files to be used.    
         self.types        = types             # Type of graphics to produce. 
@@ -50,7 +50,7 @@ class _GraphicsInfos:
         self.endTime      = endTime           # Time where graphic(s) ends.
         self.machines     = machines          # Machine from wich we want the data to be calculated.
         self.totals       = totals            # Make totals of all the specified clients 
-        self.link         = link              # Whether or not to create symlinks for images. 
+        self.copy         = copy              # Whether or not to create copies of the images. 
         
         
         
@@ -281,7 +281,7 @@ def getOptionsFromParser( parser ):
     yearly           = options.yearly    
     fixedCurrent     = options.fixedCurrent
     fixedPrevious    = options.fixedPrevious
-    link             = options.link
+    copy             = options.copy
     
     counter = 0  
     specialParameters = [daily, monthly, weekly, yearly]
@@ -308,9 +308,9 @@ def getOptionsFromParser( parser ):
             print "Program terminated."
             sys.exit()
         
-        if link :
+        if copy :
             if daily or not( weekly or monthly or yearly ):
-                print "Error. Symbolic linking can only be used with the -m -w or -y options. " 
+                print "Error. Copying can only be used with the -m -w or -y options. " 
                 print "Use -h for help."
                 print "Program terminated."        
             
@@ -446,7 +446,7 @@ def getOptionsFromParser( parser ):
     
     end = MyDateLib.getIsoWithRoundedHours( end )
     
-    infos = _GraphicsInfos( startTime = start, endTime = end, clientNames = clientNames, types = types, timespan = timespan, machines = machines, fileType = fileType, totals = totals, link = link  )   
+    infos = _GraphicsInfos( startTime = start, endTime = end, clientNames = clientNames, types = types, timespan = timespan, machines = machines, fileType = fileType, totals = totals, copy = copy  )   
             
     return infos                       
 
@@ -532,7 +532,7 @@ def addOptions( parser ):
     
     parser.add_option("-i", "--individual", action="store_true", dest = "individual", default=False, help="Dont combine data from specified machines. Create graphs for every machine independently")
     
-    parser.add_option("-l", "--link", action="store_true", dest = "link", default=False, help="Create a link file for the generated image.")
+    parser.add_option( "--copy", action="store_true", dest = "copy", default=False, help="Create a copy file for the generated image.")
         
     parser.add_option("-m", "--monthly", action="store_true", dest = "monthly", default=False, help="Create monthly graph(s).")
      
@@ -872,10 +872,10 @@ def getInterval( startTime, timeOfLastUpdate, dataType  ):
 
 
     
-def getLinkDestination( type, client, infos ):
+def getCopyDestination( type, client, infos ):
     """
-       This method returns the absolute path to the symbolic 
-       link to create based on the time of creation of the 
+       This method returns the absolute path to the copy 
+       to create based on the time of creation of the 
        graphic and the span of the graphic.
     
     """
@@ -903,25 +903,24 @@ def getLinkDestination( type, client, infos ):
     
          
     
-def createLink( client, type, imageName, infos ):
+def createCopy( client, type, imageName, infos ):
     """
-        Create a symbolic link in the appropriate 
+        Create a copy in the appropriate 
         folder to the file named imageName.
         
     """ 
    
     src         = imageName
-    destination = getLinkDestination( type, client, infos )
+    destination = getCopyDestination( type, client, infos )
 
     if not os.path.isdir( os.path.dirname( destination ) ):
         os.makedirs( os.path.dirname( destination ), mode=0777 )                                                      
     
     if os.path.isfile( destination ):
-        os.remove( destination )
-    
-    print "src : %s dest : %s" %(src,destination)    
-    os.symlink( src, destination )    
-    
+        os.remove( destination )  
+          
+    shutil.copy( src, destination ) 
+     
     
     
 def plotRRDGraph( databaseName, type, fileType, client, machine, infos, lastUpdate = None, logger = None ):
@@ -960,8 +959,8 @@ def plotRRDGraph( databaseName, type, fileType, client, machine, infos, lastUpda
 #     try:
     rrdtool.graph( imageName,'--imgformat', 'PNG','--width', '800','--height', '200','--start', "%i" %(start) ,'--end', "%s" %(end), '--vertical-label', '%s' %type,'--title', '%s'%title,'COMMENT: Minimum: %s     Maximum: %s     Mean: %s\c' %( minimum, maximum, mean), '--lower-limit','0','DEF:%s=%s:%s:AVERAGE'%( type, databaseName, type), 'CDEF:realValue=%s,%i,*' %( type, interval), 'AREA:realValue#%s:%s' %( innerColor, type ),'LINE1:realValue#%s:%s'%( outerColor, type ) )
 
-    if infos.link == True:
-        createLink( client, type, imageName, infos )
+    if infos.copy == True:
+        createCopy( client, type, imageName, infos )
     
     print "Plotted : %s" %imageName
     if logger != None:

@@ -84,7 +84,7 @@ class ClientGraphicProducer:
             self.logger = self.logger.getLogger()
                 
 
-    def produceGraphicWithHourlyPickles( self, types , now = False, createLink = False ):
+    def produceGraphicWithHourlyPickles( self, types , now = False, createCopy = False ):
         """
             This higher-level method is used to produce a graphic based on the data found in log files
             concerning a certain client. Data will be searched according to the clientName and timespan
@@ -147,7 +147,7 @@ class ClientGraphicProducer:
         
         plotter = StatsPlotter( stats = collectorsList, clientNames = self.clientNames, timespan = self.timespan, currentTime = endTime, now = False, statsTypes = types, productType = self.productType, logger = self.logger, machines = self.machines, fileType = self.fileType  )
         
-        plotter.plot( createLink )
+        plotter.plot( createCopy )
                                   
         #print "Plotted graph."
         
