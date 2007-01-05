@@ -299,18 +299,20 @@ class Ingestor(object):
 
         self.logger.info("Queued for: %s" % string.join(clientNames) + ' ' + string.join(feedNames) )
         return 1
-    
+
     def run(self):
-        if self.source.type == 'single-file':
+        if self.source.type == 'single-file' or self.source.type == 'pull-file':
             self.ingestSingleFile()
-        elif self.source.type == 'bulletin-file':
+        elif self.source.type == 'bulletin-file' or self.source.type == 'pull-bulletin':
             self.ingestBulletinFile()
         elif self.source.type == 'collector':
             self.ingestCollection()
 
+
     def ingestSingleFile(self, igniter):
         from DiskReader import DiskReader
         from DirectRoutingParser import DirectRoutingParser
+        from PullFTP import PullFTP
 
         if self.source.routemask :
            self.drp = DirectRoutingParser(self.source.routingTable, self.allNames, self.logger, self.source.routing_version)
@@ -318,6 +320,9 @@ class Ingestor(object):
 
         reader = DiskReader(self.ingestDir, self.source.batch, self.source.validation, self.source.patternMatching,
                             self.source.mtime, False, self.source.logger, self.source.sorter, self.source)
+
+        sleep_sec = 1
+        if self.source.type == 'pull-file' : sleep_sec = self.source.pull_sleep
 
         while True:
             if igniter.reloadMode == True:
@@ -333,66 +338,87 @@ class Ingestor(object):
                                     self.source.mtime, False, self.source.logger, self.source.sorter, self.source)
                 self.logger.info("Receiver has been reloaded")
                 igniter.reloadMode = False
+
+            # pull files in rxq directory if in pull mode
+            if self.source.type == 'pull-file' :
+               puller = PullFTP(self.source,self.logger)
+               files  = puller.get()
+               puller.close()
+               self.logger.debug("Number of files pulled = %s" % len(files) )
+
             reader.read()
             if len(reader.sortedFiles) <= 0:
-               time.sleep(1)
+               time.sleep(sleep_sec)
                continue
 
             sortedFiles = reader.sortedFiles[:self.source.batch]
+
             self.logger.info("%d files will be ingested" % len(sortedFiles))
 
-            for filex in sortedFiles:
-                file = filex
+            for file in sortedFiles:
+                self.ingestFile(file)
+    
+    def ingestFile(self, file ):
 
-                # converting the file if necessary
-                if self.source.execfile != None :
+        # converting the file if necessary
+        if self.source.execfile != None :
 
-                   fxfile = self.source.run_fx_script(file,self.source.logger)
+           fxfile = self.source.run_fx_script(file,self.source.logger)
 
-                   # convertion did not work
-                   if fxfile == None :
-                          self.logger.warning("FX script ignored the file : %s"    % os.path.basename(file) )
-                          os.unlink(file)
-                          continue
+           # if fxfile == file than the fx_script accept the file as is...a
+           # if we are a filter than that file was already routed to clients
+           # so don't consider it...
 
-                   # file already in proper format
-                   elif fxfile == file :
-                          self.logger.warning("FX script kept the file as is : %s" % os.path.basename(file) )
+           if self.source.type == 'filter' and fxfile == file : fxfile = None
 
-                   # file converted...
-                   else :
-                          self.logger.info("FX script modified %s to %s " % (os.path.basename(file),fxfile) )
-                          os.unlink(file)
-                          file = fxfile
+           # convertion did not work
+           if fxfile == None :
+                  self.logger.warning("FX script ignored the file : %s"    % os.path.basename(file) )
+                  os.unlink(file)
+                  return
 
-                # filename to ingest
+           # file already in proper format
+           elif fxfile == file :
+                  self.logger.warning("FX script kept the file as is : %s" % os.path.basename(file) )
 
-                ingestName = self.getIngestName(os.path.basename(file))
+           # file converted...
+           else :
+                  self.logger.info("FX script modified %s to %s " % (os.path.basename(file),fxfile) )
+                  os.unlink(file)
+                  file = fxfile
 
-                # usual clients
+        # filename to ingest
 
-                potentials = self.clientNames + self.filterNames
+        ingestName = self.getIngestName(os.path.basename(file))
 
-                # routing clients and priority (accept mask + routing info)
+        # usual clients
 
-                priority = None
-                if self.source.routemask :
-                   potentials = []
-                   key = self.getRouteKey(ingestName)
-                   if key != None :
-                      lst = self.drp.getClients(key)
-                      if lst != None : potentials = lst
-                      priority = self.drp.getHeaderPriority(key)
+        potentials = self.clientNames + self.filterNames
 
-                # ingesting the file
-                matchingClients  = self.getMatchingClientNamesFromMasks(ingestName, potentials )
-                self.logger.debug("Matching (from patterns) client names: %s" % matchingClients)
-                self.ingest(file, ingestName, matchingClients, priority )
-                os.unlink(file)
+        # routing clients and priority (accept mask + routing info)
+
+        priority = None
+        if self.source.routemask :
+           potentials = []
+           key = self.getRouteKey(ingestName)
+           if key != None :
+              lst = self.drp.getClients(key)
+              if lst != None : potentials = lst
+              priority = self.drp.getHeaderPriority(key)
+
+        # ingesting the file
+        matchingClients  = self.getMatchingClientNamesFromMasks(ingestName, potentials )
+        self.logger.debug("Matching (from patterns) client names: %s" % matchingClients)
+        self.ingest(file, ingestName, matchingClients, priority )
+        os.unlink(file)
 
     def ingestBulletinFile(self, igniter):
         from DiskReader import DiskReader
         import bulletinManager
+        from PullFTP import PullFTP
+
+        sleep_sec = 1
+        if self.source.type == 'pull-bulletin' : sleep_sec = self.source.pull_sleep
 
         bullManager = bulletinManager.bulletinManager(
                     PXPaths.RXQ + self.source.name,
@@ -429,11 +455,18 @@ class Ingestor(object):
                 self.logger.info("Receiver has been reloaded")
                 igniter.reloadMode = False
 
+            # pull files in rxq directory if in pull mode
+            if self.source.type == 'pull-bulletin' :
+               puller = PullFTP(self.source,self.logger)
+               files  = puller.get()
+               puller.close()
+               self.logger.debug("Number of files pulled = %s" % len(files) )
+
             reader.read()
             data = reader.getFilesContent(reader.batch)
 
             if len(data) == 0:
-                time.sleep(1)
+                time.sleep(sleep_sec)
                 continue
             else:
                 self.logger.info("%d bulletins will be ingested", len(data))

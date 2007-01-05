@@ -47,7 +47,7 @@ def normalPaths():
 
     global ROOT, BIN, LIB, LOG, ETC, FXQ, RXQ, TXQ, DB, FX_CONF, RX_CONF, TX_CONF, TRX_CONF, LAT, LAT_RESULTS, LAT_TMP, \
            COLLECTION_DB, COLLECTION_CONTROL, ROUTING_TABLE, STATION_TABLE, STATS, PICKLES, GRAPHS, SEARCH, \
-           REQUEST_REPLY
+           REQUEST_REPLY, SCRIPTS
 
     try:
         envVar = os.path.normpath(os.environ['PXROOT']) + '/'
@@ -71,6 +71,7 @@ def normalPaths():
     COLLECTION_CONTROL = COLLECTION_DB + 'control/'
     ROUTING_TABLE = ETC + 'pxRouting.conf'
     STATION_TABLE = ETC + 'stations.conf'
+    SCRIPTS = ETC + 'scripts/'
 
     # Paths for Request-Reply
     REQUEST_REPLY = ROOT + 'rr/'

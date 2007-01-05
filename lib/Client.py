@@ -90,10 +90,10 @@ class Client(object):
         self.readConfig()
 
         if self.execfile != None :
-           execfile(PXPaths.ETC + self.execfile )
+           execfile(PXPaths.SCRIPTS + self.execfile )
 
         if self.execfile2 != None :
-           execfile(PXPaths.ETC + self.execfile2 )
+           execfile(PXPaths.SCRIPTS + self.execfile2 )
 
         #self.printInfos(self)
 
@@ -242,6 +242,14 @@ class Client(object):
                     if destFileName[-1] == ':' : destFileName = destFileName[:-1]
                 elif re.compile('DESTFN=.*').match(spec):
                     destFileName = spec[7:]
+                elif re.compile('DESTFNSCRIPT=.*').match(spec):
+                     old_destfn_script = self.destfn_script
+                     old_destFileName  = destFileName
+                     script = PXPaths.SCRIPTS + spec[14:]
+                     execfile(script)
+                     destFileName = self.destfn_script(filename)
+                     self.destfn_script = old_destfn_script
+                     if destFileName == None : destFileName = old_destFileName
                 elif spec == 'TIME':
                     timeSuffix = ':' + time.strftime("%Y%m%d%H%M%S", time.gmtime())
                     if parts[-1][0] == '2' : timeSuffix = ':' + parts[-1]

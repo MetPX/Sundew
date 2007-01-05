@@ -32,6 +32,7 @@ from Logger import Logger
 from Ingestor import Ingestor
 from URLParser import URLParser
 
+
 PXPaths.normalPaths()              # Access to PX paths
 
 class Source(object):
@@ -81,6 +82,25 @@ class Source(object):
         self.keepAlive = True                                  # TCP SO_KEEPALIVE on (True) or off(False)
         self.mtime = 0                                         # Integer indicating the number of seconds a file must not have 
                                                                # been touched before being picked
+
+        #-----------------------------------------------------------------------------------------
+        # Setting up pulls configuration values
+        #-----------------------------------------------------------------------------------------
+
+        self.pulls = []                           # All the directories and file patterns to pull
+        self.host = 'localhost'                   # Remote host address (or ip) where to send files
+        self.protocol = None                      # First thing in the url: ftp, file, am, wmo, amis
+        self.url = None
+        self.user = None                    # User name used to connect
+        self.passwd = None                  # Password 
+        self.ftp_mode = 'passive'           # Default is 'passive', can be set to 'active'
+
+        self.timeout_get = 0                # Timeout in sec. to consider a get to hang ( 0 means inactive )
+        self.pull_sleep  = 600              # Time in sec. to retry the pull
+        self.pull_wait   = 10               # Time in sec. to wait after ls before pulling (make sure files are arrived)
+        self.delete = False                 # file is deleted after pull  if it is false, the file's ls is kept
+                                            # to check if it changed...
+
         #-----------------------------------------------------------------------------------------
         # Setting up default collection configuration values
         #-----------------------------------------------------------------------------------------
@@ -109,8 +129,7 @@ class Source(object):
         #-----------------------------------------------------------------------------------------
 
         if self.execfile != None :
-           execfile(PXPaths.ETC + self.execfile )
-           #execfile(PXPaths.FX_LIB + self.execfile )
+           execfile(PXPaths.SCRIPTS + self.execfile )
 
         #-----------------------------------------------------------------------------------------
         # Make sure the collection params are valid
@@ -164,6 +183,7 @@ class Source(object):
         currentDir = '.'                # just to preserve consistency with client : unused in source for now
         currentFileOption = 'WHATFN'    # just to preserve consistency with client : unused in source for now
         currentTransformation = 'GIFFY' # Default transformation for tmasks
+        currentLST = None               # a list consisting of one directory followed one or more file patterns
 
         for line in config.readlines():
             words = line.split()
@@ -203,6 +223,32 @@ class Source(object):
                     elif words[0] == 'routingTable': self.routingTable = words[1]
                     elif words[0] == 'fx_script': self.execfile = words[1]
 
+                    # options for pull
+                    elif words[0] == 'directory': 
+                         currentDir = words[1]
+                         currentLST = []
+                         currentLST.append( currentDir )
+                         self.pulls.append( currentLST )
+                    elif words[0] == 'get':
+                         currentFilePattern = words[1]
+                         currentLST.append(currentFilePattern)
+                    elif words[0] == 'destination':
+                        self.url = words[1]
+                        urlParser = URLParser(words[1])
+                        (self.protocol, currentDir, self.user, self.passwd, self.host, self.port) =  urlParser.parse()
+                        if len(words) > 2:
+                            currentFileOption = words[2]
+                    elif words[0] == 'protocol': self.protocol = words[1]
+                    elif words[0] == 'host': self.host = words[1]
+                    elif words[0] == 'user': self.user = words[1]
+                    elif words[0] == 'password': self.passwd = words[1]
+                    elif words[0] == 'timeout_get': self.timeout_get = int(words[1])
+                    elif words[0] == 'ftp_mode': self.ftp_mode = words[1]
+                    elif words[0] == 'pull_sleep': self.pull_sleep = int(words[1])
+                    elif words[0] == 'pull_wait': self.pull_wait = int(words[1])
+                    elif words[0] == 'delete': self.delete = isTrue(words[1])
+
+                    # options for collector
                     if   self.type == 'collector' :
                          if   words[0] == 'history': self.history = int(words[1])
                          elif words[0] == 'future' : self.future = int(words[1])
@@ -312,6 +358,30 @@ class Source(object):
 
         for feed in self.feeds:
             print feed
+
+        print("==========================================================================")
+
+        if self.type == 'pull-file' :
+           print("******************************************")
+           print("*       Pull Params                      *")
+           print("******************************************")
+
+           print "protocol          %s" % self.protocol
+           print "host              %s" % self.host
+           print "user              %s" % self.user
+           print "passwd            %s" % self.passwd
+           print "ftp_mode          %s" % self.ftp_mode
+           print ""
+           print "delete            %s" % self.delete
+           print "pull_sleep        %s" % self.pull_sleep
+           print "pull_wait         %s" % self.pull_wait
+           print "timeout_get       %s" % self.timeout_get
+
+           print ""
+           for lst in self.pulls :
+               for pos, elem in enumerate(lst):
+                   if pos == 0 : print "directory         %s" % elem
+                   else        : print "get               %s" % elem
 
         print("==========================================================================")
 
