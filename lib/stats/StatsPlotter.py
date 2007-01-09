@@ -532,7 +532,7 @@ class StatsPlotter:
         
         self.graph( 'set label "Machines : %s" at screen .545, screen %3.2f' % ( self.machines,(.24+(nbGraphs) *.40)  ) )
         
-        self.graph( 'set label "Product Type : %s" at screen .545, screen %3.2f' % ( self.productType,(.22+(nbGraphs) *.40)  ) )
+        self.graph( 'set label "Product type : %s" at screen .545, screen %3.2f' % ( self.productType,(.22+(nbGraphs) *.40)  ) )
         
         self.graph( 'set label "Absolute max. lat. : %s seconds" at screen .545, screen %3.2f' % ( maximum, (.20+(nbGraphs) *.40) ) )
         
@@ -577,15 +577,15 @@ class StatsPlotter:
             maximum = ""
        
         if self.totalNumberOfBytes[i] < 1000:#less than a k
-            totalNumberOfBytes = "%s Bytes" %int( self.totalNumberOfBytes[i] )
+            totalNumberOfBytes = "%s bytes" %int( self.totalNumberOfBytes[i] )
             
         elif self.totalNumberOfBytes[i] < 1000000:#less than a meg 
-            totalNumberOfBytes = "%.2f KiloBytes"  %( self.totalNumberOfBytes[i]/1000.0 )
+            totalNumberOfBytes = "%.2f kiloBytes"  %( self.totalNumberOfBytes[i]/1000.0 )
         
         elif self.totalNumberOfBytes[i] < 1000000000:#less than a gig      
-            totalNumberOfBytes = "%.2f MegaBytes"  %( self.totalNumberOfBytes[i]/1000000.0 )
+            totalNumberOfBytes = "%.2f megaBytes"  %( self.totalNumberOfBytes[i]/1000000.0 )
         else:#larger than a gig
-            totalNumberOfBytes = "%.2f GigaBytes"  %( self.totalNumberOfBytes[i]/1000000000.0 )
+            totalNumberOfBytes = "%.2f gigaBytes"  %( self.totalNumberOfBytes[i]/1000000000.0 )
             
         self.graph( 'set size .545, .37' )
         
@@ -597,7 +597,7 @@ class StatsPlotter:
         
         self.graph( 'set label "Machines : %s" at screen .545, screen %3.2f' % ( self.machines,(.24+(nbGraphs) *.40)  ) )
         
-        self.graph( 'set label "Product Type : %s" at screen .545, screen %3.2f' % ( self.productType,(.22+(nbGraphs) *.40)  ) )
+        self.graph( 'set label "Product type : %s" at screen .545, screen %3.2f' % ( self.productType,(.22+(nbGraphs) *.40)  ) )
         
         
         if len ( self.filesWhereMaxOccured[i][j] ) <= 65 :            
@@ -609,7 +609,7 @@ class StatsPlotter:
             self.graph( 'set label "%s" at screen .545, screen %3.2f' % ( self.filesWhereMaxOccured[i][j], (.18+(nbGraphs) *.40) ))
             x = .18
                     
-        self.graph( 'set label "Size of largest file : %s (Bytes)" at screen .545, screen %3.2f' % ( maximum, (x -.02+(nbGraphs) *.40) ) )       
+        self.graph( 'set label "Size of largest file : %s bytes" at screen .545, screen %3.2f' % ( maximum, (x -.02+(nbGraphs) *.40) ) )       
                 
         self.graph( 'set label "Time of largest file : %s" at screen .545, screen %3.2f' % ( ( timeOfMax, (x -.04+(nbGraphs) *.40)  )))     
         
@@ -654,7 +654,7 @@ class StatsPlotter:
         
         self.graph( 'set label "Machines : %s" at screen .545, screen %3.2f' % ( self.machines,(.24+(nbGraphs) *.40)  ) )
         
-        self.graph( 'set label "Product Type : %s" at screen .545, screen %3.2f' % ( self.productType,(.22+(nbGraphs) *.40)  ) )
+        self.graph( 'set label "Product type : %s" at screen .545, screen %3.2f' % ( self.productType,(.22+(nbGraphs) *.40)  ) )
         
         self.graph( 'set label "Max error/%s : %s" at screen .545, screen %3.2f' % ( self.entryType, maximum, (.20+(nbGraphs) *.40) ))
         
