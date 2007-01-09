@@ -534,7 +534,7 @@ class StatsPlotter:
         
         self.graph( 'set label "Product Type : %s" at screen .545, screen %3.2f' % ( self.productType,(.22+(nbGraphs) *.40)  ) )
         
-        self.graph( 'set label "Absolute Max. lat. : %s (Seconds)" at screen .545, screen %3.2f' % ( maximum, (.20+(nbGraphs) *.40) ) )
+        self.graph( 'set label "Absolute max. lat. : %s seconds" at screen .545, screen %3.2f' % ( maximum, (.20+(nbGraphs) *.40) ) )
         
         self.graph( 'set label "Time of max. lat. : %s" at screen .545, screen %3.2f' % ( ( timeOfMax, (.18+(nbGraphs) *.40)  )))
         
@@ -615,7 +615,7 @@ class StatsPlotter:
         
         self.graph( 'set label "# of files : %s " at screen .545, screen %3.2f' % ( self.nbFiles[i] , ( x-.06+(nbGraphs) *.40) ) )
     
-        self.graph( 'set label "Total # of bytes: %s " at screen .545, screen %s' % (  totalNumberOfBytes,( x -.08 +(nbGraphs) *.40 ) ) )
+        self.graph( 'set label "# of bytes: %s " at screen .545, screen %s' % (  totalNumberOfBytes,( x -.08 +(nbGraphs) *.40 ) ) )
                 
 
     
