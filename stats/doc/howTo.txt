@@ -498,7 +498,7 @@ How to use the stats library, step by step :
         8 * * * * /apps/px/lib/stats/launchGraphCreation.py > /dev/null 2>&1
     
         Note : PYTHONPATH environment wich is needed by python should be declared
-               incrontab file or else programs will not work.       
+               in crontab file or else programs will not work.       
   
         
  -------------------

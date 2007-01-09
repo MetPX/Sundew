@@ -3,13 +3,13 @@ MetPX Copyright (C) 2004-2006  Environment Canada
 MetPX comes with ABSOLUTELY NO WARRANTY; For details type see the file 
 named COPYING in the root of the source directory tree.
 """
-##################################################################################################
+################################################################################
 # Name          : Stats monitoring documentation.                                                      
 #                                                       
 # Author        : Nicholas Lemay
 # Last Update   : November 3rd 2006
 #
-###################################################################################################
+################################################################################
 
 
 About
@@ -28,31 +28,39 @@ Disk usage : Disk usage is monitored for each of the folders
              in wich the library writes data. A warning will be raised 
              if disk usage % goes over the amount specified in the config file.  
 
-	     
-Missing pickle files : Machines are supposed to keep the pickle files for at least 
-                       x number of days. The stats monitor thus checks if the pickles for the 
-		               clients/sources of all the specified machines  are all present for the
-		               past x days. If fiels are absent a warning will be written in the report.
-		       
-Data gap             : Verifies all the pickle files to see if any data gaps deemed too wide are found. 
-                       If the gap between two transmissions has been logged in the Columbo interface it will 
-		               be considered normal and will be discarted. Otherwise a warning in the report
-		               will be added describing the anomaly found.
-		       
-Stats log files      : Log files produced during the hourly activities of the stats library are monitored to see if 
-                       activity has occured every hour. If more than an hour has gone by without any activity occuring, 
-		               it will be reported.		        
-		   
-Library files        : Checksums will be run at every monitoring job and the current checksum will be compared to the 
-                       previous checksum. If the checksum for a file within the library has been modified it will be reported. 
-                       This is done in case a newer or older version of a file is being installed and that it is not compatible 
-                       with the current version of the library.
-		                    
-Crontab entries      : This saves the current crontab listing every time a monitoring job is made. If current crontab 
-                        listing is different than the previous crontab a warning will be added to the report.
+     
+Missing pickle files : Machines are supposed to keep the pickle files for at 
+                       least x number of days. The stats monitor thus checks 
+                       if the pickles for the clients/sources of all the specified
+                       machines  are all present for the past x days. If files are 
+                       absent a warning will be written in the report.
+       
+Data gap             : Verifies all the pickle files to see if any data gaps deemed 
+                       too wide are found. If the gap between two transmissions has
+                       been logged in the Columbo interface it will be considered
+                       normal and will be discarted. Otherwise a warning in the
+                       report will be added describing the anomaly found.
+                        
+Stats log files      : Log files produced during the hourly activities of the stats
+                       library are monitored to see if activity has occured every
+                       hour. If more than an hour has gone by without any activity
+                       occuring, it will be reported.        
+   
+Library files        : Checksums will be run at every monitoring job and the 
+                       current checksum will be compared to the previous checksum.
+                       If the checksum for a file within the library has been 
+                       modified it will be reported. This is done in case a newer
+                       or older version of a file is being installed and that it
+                       is not compatible with the current version of the library.
+                                           
+Crontab entries      : This saves the current crontab listing every time a 
+                       monitoring job is made. If current crontab listing is 
+                       different than the previous crontab a warning will be added
+                       to the report.
 
-WebPages             : Checks if the web pages have been updated at the right interval. Adds a warning to the report if 
-                       webpages seem outdated.
+WebPages             : Checks if the web pages have been updated at the right
+                       interval. Adds a warning to the report if webpages seem
+                       outdated.
    
 
 Configuring the stats library monitor
@@ -89,9 +97,9 @@ Here is an example of a config file currently being used on a machine named loga
 ##                       will be forwarded          
 ##
 ##             machines : Specifies the machines for wich this machine is currently 
-##                        producing graphics for. If paired data is used (ex machine1,machine2)
-##                        machines must be seperated with the , character 
-##                        Ex pds5,pds6;pxatx
+##                        producing graphics for. If paired data is used 
+##                        (ex machine1,machine2) machines must be seperated with the
+##                        ',' character Ex: pds5,pds6;pxatx
 ##
 ##             files    : List of files used by the stats library. statsMonitoring
 ##                        monitors the version fo these files and warns user if they 

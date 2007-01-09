@@ -4,7 +4,7 @@ MetPX comes with ABSOLUTELY NO WARRANTY; For details type see the file
 named COPYING in the root of the source directory tree.
 """
 ##################################################################################################
-# Name          : ifSomethingGoesWrong.                                                      
+# Name          : ifSomethingGoesWrong.txt                                                      
 #                                                       
 # Author        : Nicholas Lemay
 # Last Update   : November 3rd 2006
@@ -16,7 +16,7 @@ named COPYING in the root of the source directory tree.
 About
 ---------------------
 This section was created to help the administrator of the stats library.
-The stats library was designed as to requrie as little human intervention as 
+The stats library was designed as to require as little human intervention as 
 possible. Nonetheless it is likely that errors will occur through time. 
 A few utilities have been developped as to help the user get things back on track. 
 
@@ -40,13 +40,14 @@ Verifying symptoms:
 2- Verify if symptoms are really present in pickle file 
    associated with client/source using python pickleUpdater.py /apps/px/stats/pickles/...
 
-3- Verify log files to see if data present in log file is different
-   to the one present in the pickle. If it is go to solution.         
+3- Verify log files used in the pickle fileto see if data present
+   in log file is different to the one present in the pickle.
+   If it is go to solution.         
 
 
 Solution:
 -------------------------------------------------------
-Step 1 - Strop crontab entries that relates to the stats library. 
+Step 1 - Stop crontab entries that relates to the stats library. 
 
 Step 2 - Correct the cause of the error. First check if it comes from a missing
          or corrupted log file.
@@ -71,7 +72,7 @@ Symptoms
 -------------------------------------------------------
 1- Same as case 1. 
 2- If error has slipped into pickle files and that the 
-   database has been updated then databse is wihtout a 
+   database has been updated then database is without a 
    doubt corrupted. 
    
 
@@ -86,4 +87,4 @@ Solutions:
 2- Run the restoreRoundRobinDatabases.py program. This program can be used 
    to set back a dabatase that was updated prior to the time of the error.
 3- Resume database updates either manually, or by letting the 
-         crontab run the program at the next interval.
+   crontab run the program at the next interval.

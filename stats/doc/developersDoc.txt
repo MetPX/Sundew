@@ -4,14 +4,14 @@ MetPX comes with ABSOLUTELY NO WARRANTY; For details type see the file
 named COPYING in the root of the source directory tree.
 """
 ################################################################################
-#  _____ _        _         _     _ _                          
-# /  ___| |      | |       | |   (_) |                         
-# \ `--.| |_ __ _| |_ ___  | |    _| |__  _ __ __ _ _ __ _   _ 
-#  `--. \ __/ _` | __/ __| | |   | | '_ \| '__/ _` | '__| | | |
-# /\__/ / || (_| | |_\__ \ | |___| | |_) | | | (_| | |  | |_| |
-# \____/ \__\__,_|\__|___/ \_____/_|_.__/|_|  \__,_|_|   \__, |
-#                                                         __/ |
-#                                                        |___/ 
+#      _                _                          ______           
+#     | |              | |                         |  _  \          
+#   __| | _____   _____| | ___  _ __   ___ _ __ ___| | | |___   ___ 
+#  / _` |/ _ \ \ / / _ \ |/ _ \| '_ \ / _ \ '__/ __| | | / _ \ / __|
+# | (_| |  __/\ V /  __/ | (_) | |_) |  __/ |  \__ \ |/ / (_) | (__ 
+#  \__,_|\___| \_/ \___|_|\___/| .__/ \___|_|  |___/___/ \___/ \___|
+#                              | |                                  
+#                              |_| 
 #                             
 #
 # Author        : Nicholas Lemay
@@ -54,8 +54,8 @@ Library has to be able to gather log files from remote locations( machines ).
 
 - Library must allow user to collect data of log files wich are constantly growing. 
 
-- Library must permit data collection of log files that contain information about 
-  the same source/client but that comes numerous source machines. Each are 
+- Library must permit data collection of log files that contains information about 
+  the same source/client but that comes from numerous machine sources. Each are 
   remotely located. 
     
 - Library must have a way to save data collected. Data needs to be stored in an
@@ -109,8 +109,14 @@ GUIDING PRINCIPLES
   usefull info.   
 
 - Having every machine perform the collection of the data found in the files
-  that are present in it's own space makes the application must more scalable
+  that are present in it's own space makes the application more scalable
   in the event that more machines and or sources/clients are to be added. 
+  It also speeds up the collection since log filesdo not require to be 
+  transferred. 
+  
+- On the other hand, collecting the data on the machines producing the log files 
+  instead of downloading the log files into another machine can impact the machine
+  to a much greater degree.  
   
 - Collecting a whole days worth of data and producing stats according to data
   collected is very long therefore more frequent data collection should be made.
@@ -197,14 +203,14 @@ between machines also use rsync connections.
 Data collection :
 ---------------------  
 
-- To speed up data collection and stats production, past data collected is saved 
+- To speed up data collection and stats production, data collected is saved 
   in a pickle file. This way data for a specific timeframe only has to be
   collected and calculated once. This can save enormous amounts of time on 
   graphic production if the timespan of the graphic asked by the user is of any
   importance. 
   
   FilesStatsCollector.py, DirecToryStatsCollector.py, pickleUpdater.py and 
-  gzipickle.py all contain methods to deal with data pickling and pickled data.
+  cpickleWrapper.py all contain methods to deal with data pickling and pickled data.
      
 - Because of disk access times, data pickling can be rather slow. To speed it up
   cpickle has been added to the library. cpickle is a c based implementation of 
@@ -219,8 +225,7 @@ Data collection :
   will be corrupted and reading the file will probably produce errors.  
 
 - File positioning of the last read file is saved for every sources/clients in 
-  the /apps/px/stats/PICKLED_FILE_POSITIONS pickle file.
-  
+  the /apps/px/stats/PICKLED_FILE_POSITIONS pickle file.  
   
 - By default all data types are collected. This is done so that there will be no 
   problem if a user wants to produce any kind of graphic for a certain 
@@ -795,11 +800,11 @@ lvs1-dev_17                   lvs1-dev_17
 
 
 
-Graphics :
+Gnuplot Graphics :
 --------------------------------------------------------------------------------
 
-/apps/px/stats/graphs/clientName/
-fileType_clientName_YYYYMMDD_HH:MM:SS_dataTypes_XXhours_on_server.png
+/apps/px/stats/graphs/others/gnuplot/clientName/
+fileType_clientName_YYYYMMDD_HH:MM:SS_dataTypes_XXhours_on_server_products.png
 --------------------------------------------------------------------------------
 
 The files are created everytime a graphic is asked for by a user. This will be 
@@ -826,7 +831,7 @@ Example :     |stats|
        ------          
        /                    
       /                      
-tx_amis_20060801_05:00:00_'latency','errors','bytecount'_12hours_on_lvs1-dev.png
+tx_amis_20060801_05:00:00_'latency','errors','bytecount'_12hours_on_lvs1-dev_forAllProducts.png
    
 
    
@@ -840,7 +845,7 @@ means that at any time user can request data for any date in the past 10 years.
 See RRD section for more details.
 
 RRD graphics are stored in this fashion : 
-/apps/px/stats/graphs/clientName/rrdgraphs/
+/apps/px/stats/graphs/others/rrd/clientName/rrdgraphs/
 fileType_clientName_YYYYMMDD_HH:MM:SS_dataTypes_XXhours_on_server.png
 
 
@@ -848,15 +853,18 @@ fileType_clientName_YYYYMMDD_HH:MM:SS_dataTypes_XXhours_on_server.png
 Graphics for the different web pages.
 --------------------------------------------------------------------------------
 
-In order to have a simple way of creating differently named copies of allready 
-generated graphics files,the use of symbolic links as been implemented within 
-the different graphic plotting programs. 
+Currently, web pages are created as to display the daily, weekly, monthly and 
+yearly graphics of the different client/sources.
 
-Symbolic links or symlinks will be found in the /apps/px/stats/graphs/symlinks 
-folder. Current graphics are in the .../symlinks/currentGraphs folder. 
+Graphics used by theses web pages are stored in this fashion :
+/apps/px/stats/graphs/webGraphics/timeSpan/type/clientName/fileName 
 
-Daily, weekly, monthly and yearly graphs are in the 
-.../weekly|daily|yearly|monthly/folder.
+Where timeSpan is either daily, weekly, monthly or yearly and where type is either bytecount, errors, filecount, filesOverMaxLatency or latency.
+
+File name style will be Mon.png, Tue.png, Wed.png etc for daily graphs.   
+File name style will be 01.png, 02.png, 03.png etc for weekly graphs.
+File name style will be Jan.png, Feb.png, Mar.png etc for monthly graphs.
+File name style will be 2005.png, 2006.png, 2007.png etc for monthly graphs.
 
 
 Databases
