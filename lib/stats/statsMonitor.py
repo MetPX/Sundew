@@ -222,7 +222,7 @@ def saveTimeOfLastFilledEntry( name, timeOfLastFilledEntry ):
         times= {}
 
     times[ name ]  =  timeOfLastFilledEntry           
-    #print "time to be saved for %s : %s" %( name, timeOfLastFilledEntry)
+    
     fileHandle = open( file, "w" )
     pickle.dump( times, fileHandle )
     fileHandle.close()
@@ -380,13 +380,13 @@ def findFirstInterestingLinesPosition( file, startTime, endtime, lastReadPositio
         
         
     """       
-
+    
     lineFound = False
     line      = None
     fileHandle = open( file, 'r') 
     fileHandle.seek( lastReadPosition )
-    foundValidLine = False 
-    
+    foundValidLine = False     
+   
     while lineFound == False and line != "":
         
         lastReadPosition = fileHandle.tell()
@@ -458,6 +458,7 @@ def findHoursWithNoEntries( logs, startTime, endTime ):
     j = 0
     hoursWithNoEntries = [] 
     lastReadPosition =0 
+    
     logs = getSortedLogs( logs )     
     hoursBetweenStartAndEnd = findHoursBetween( startTime, endTime )     
     
@@ -468,11 +469,13 @@ def findHoursWithNoEntries( logs, startTime, endTime ):
         
         lastReadPosition, lineFound, line = findFirstInterestingLinesPosition( logs[j], startTime, endTime, lastReadPosition )        
         
+        
         if lineFound == False and line != "": #not eof,line found > endtime
             hoursWithNoEntries.append( hoursBetweenStartAndEnd[i] )        
         
         if line == "": #file is over
             j = j + 1
+            lastReadPosition = 0
         else:
             i = i + 1
     
@@ -518,7 +521,7 @@ def verifyStatsLogs( parameters, report ,logger = None ):
         if logs == [] and verificationTimeSpan >= 1:#if at least an hour between start and end 
             
             warningsWereFound = True
-            newReportLines = newReportLines + "\nWarning : Not a single log entry within %s log files was found between %s and %s. Please investigate. \n "%( logFileType, parameters.startTime, parameters.endTime )
+            newReportLines = newReportLines + "\nWarning : Not a single log entry within %s log files was found between %s and %s. Please investigate.\n "%( logFileType, parameters.startTime, parameters.endTime )
          
         elif logs != []:   
             hoursWithNoEntries = findHoursWithNoEntries( logs, parameters.startTime, parameters.endTime )
@@ -526,7 +529,7 @@ def verifyStatsLogs( parameters, report ,logger = None ):
             if hoursWithNoEntries != []:
                warningsWereFound = True
                
-               newReportLines = newReportLines + "Warning : Not a single log entry within %s log files was found for these hours : %s. Please investigate. \n " %( logFileType, str(hoursWithNoEntries).replace( "[", "").replace( "]", "") )
+               newReportLines = newReportLines + "\nWarning : Not a single log entry within %s log files was found for these hours : %s. Please investigate.\n " %( logFileType, str(hoursWithNoEntries).replace( "[", "").replace( "]", "") )
                        
              
     if warningsWereFound :

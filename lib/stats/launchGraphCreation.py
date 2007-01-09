@@ -331,9 +331,9 @@ def main():
     generateGraphics( parameters )
     getGraphicsForWebPages()
     updateWebPages()
-    #uploadGraphicFiles( parameters )
+    uploadGraphicFiles( parameters )
     monitorActivities()        
-    print "Finished."
+    #print "Finished."
     
     
     

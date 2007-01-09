@@ -479,14 +479,26 @@ Defaults :
 
 Options:
  
-    - With -c|--clients you can specify the clients names on wich you want to collect data. 
+    - With -c|--clients you can specify the clients names on wich you want to collect data.
+    - With --copy you can specify that you want to create a copy of the image file that will 
+      be stored in the webGraphics folder in either the weekly, motnhly or yearly section.
     - With -d|--daily you can specify you want daily graphics.
     - With --date you can specify the time of the request.( Usefull for past days and testing. )
     - With -f|--fileType you can specify the file type of the log fiels that will be used.  
+    - With --fixedPrevious you can specify that you want a graphic based on the previous( week, month year)
+      based on the fixed dates of the calendar.
+    - With --fixedPrevious you can specify that you want a graphic based on the current( week, month year)
+      based on the fixed dates of the calendar.
+    - With --individual you can specify that you want to genrate graphics for each machine 
+      and not the combined data of two machines when numerous machiens are specified.
     - With -m|--monthly you can specify you want monthly graphics.
     - With   |--machines you can specify from wich machine the data is to be used.
     - With -s|--span you can specify the time span to be used to create the graphic 
     - With -t|--types you can specify what data types need to be collected
+    - With --totals you can specify that you want a single grpahics for every datatype that
+      uses the cmbined data of all the client or sources of a machien or collection of machines instead 
+      of creating a graphic per client/source. 
+    - With -w|--weekly you can specify you want monthly graphics. 
     - With -y|--yearly you can specify you want yearly graphics.
             
     

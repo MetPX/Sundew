@@ -186,9 +186,12 @@ Defaults :
 Options:
  
     - With -c|--clients you can specify the clients names on wich you want to collect data. 
+    - With -copy you can specify that you want a copy of the file to be move in the daily
+      section of the client's webGraphics.
     - With -d|--date you can specify the time of the request.( Usefull for past days and testing. )
     - With -f|--fileType you can specify the file type of the log fiels that will be used.  
     - With -n|--collectUpToNow you can specify that data must be collected right up to the minute of the call. 
+    - With -p|--product you can specify the product for wich the data is to come from.
     - With -s|--span you can specify the time span to be used to create the graphic 
     - With -t|--types you can specify what data types need to be collected
     

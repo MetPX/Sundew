@@ -91,18 +91,16 @@ Options:
     - With -i|--individual you can specify to generate graphics for numerous machines without merging their data.
     - With -l|--logins you can specify wich login must be used for each of the enumerated machines.
     - With -m|--machines you can specify the list of machines to be used.
-    - With -s|--span you can specify the time span to be used to create the graphic 
-    
+    - With -s|--span you can specify the time span to be used to create the graphic     
       
-WARNING: - Client name MUST be specified,no default client exists. 
-          
             
 Ex1: %prog                                   --> All default values will be used. Not recommended.
-Ex2: %prog -i -c -m "m1,m2" -l "l1,l2"       --> Generate graphs for all machiens found on m1 and m2.
+Ex2: %prog -i -c -m "m1,m2" -l "l1,l2" -s 24 --> Generate graphs for all clients found on m1 and m2.
                                                  login to m1 using l1 and to m2 using l2. 
-                                                 We will generate graphs for data comiing from m1 exclusively,
+                                                 We will generate graphs for data coming from m1 exclusively,
                                                  m2 exclusively, and from the resulting data of a combination 
-                                                 of m1's and m2's data.                                                 
+                                                 of m1's and m2's data. The timespan of the graphics will be 
+                                                 24 hours.                                                  
  
 ********************************************
 * See /doc.txt for more details.           *
