@@ -121,6 +121,7 @@ class PullFTP(object):
     def diff_ls(self, lastls, newls ):
 
         files  = []
+        descs  = {}
         status = 0
 
         try : 
@@ -138,13 +139,13 @@ class PullFTP(object):
                 # 0 ok and no differences  return empty file list
 
                 if status == 0 or len(o) == 0 :
-                   return files
+                   return files,descs
 
                 # not 1 than an error when executing the diff command
 
                 if status != 1 : 
                    self.logger.warning("diff resulted in an error")
-                   return files
+                   return files,descs
 
                 # getting the filename for the modified files
 
@@ -154,14 +155,16 @@ class PullFTP(object):
                    for line in lines :
                        parts = line.split()
                        if parts[0] == '>' : 
-                          files.append(parts[-1])
+                          filename = parts[-1]
+                          files.append(filename)
+                          descs[filename] = line
 
-                   return files
+                   return files,descs
 
         except:
                 self.logger.error("Unable to diff directory listings")
 
-        return files
+        return files,descs
 
     # do an ls in the current directory, write in file path
 
@@ -226,6 +229,7 @@ class PullFTP(object):
     def file_ls(self,path):
 
         files  = []
+        descs  = {}
 
         try : 
                 # open/read..
@@ -236,14 +240,52 @@ class PullFTP(object):
                 # get filenames
                 for line in lines :
                     parts = line.split()
-                    files.append(parts[-1])
+                    filename = parts[-1]
+                    files.append(filename)
+                    descs[filename] = line
 
-                return files
+                return files,descs
 
         except:
                 self.logger.error("Unable to parse files from %s" % path )
 
-        return files
+        return files,descs
+
+    # create local filename
+
+    def local_filename(self,filename,desc):
+
+        # create local filename with date/time on host... YYYYMMDDHHMM_filename
+
+        if self.source.pull_prefix == 'HDATETIME' :
+           line = desc[filename]
+           line  = line.strip()
+           parts = line.split()
+
+           datestr=' '.join(parts[-4:-1])
+           if len(parts[-2]) == 5 and parts[-2][2] == ':' :
+              Y = time.strftime("%Y",time.gmtime())
+              datestr = Y + ' ' + datestr
+              ftime = time.strptime(datestr,"%Y %b %d %H:%M")
+           else :
+              ftime = time.strptime(datestr,"%b %d %Y")
+
+           datetimestr = time.strftime("%Y%m%d%H%M",ftime)
+
+           local_file = PXPaths.RXQ + self.source.name + '/' + datetimestr + '_' + filename
+           return local_file
+
+        # create local filename with config defined prefix ... prefix_filename
+
+        if self.source.pull_prefix != '' :
+           local_file = PXPaths.RXQ + self.source.name + '/' + self.source.prefix + '_' + filename
+           return local_file
+
+        # create local filename with same name as remote file (default)
+
+        local_file = PXPaths.RXQ + self.source.name + '/' + filename
+
+        return local_file
 
     # pulling files and returning the list
 
@@ -284,12 +326,12 @@ class PullFTP(object):
             filelst = []
 
             if self.source.delete :
-                filelst = self.file_ls(self.newls)
+                filelst,desclst = self.file_ls(self.newls)
 
             # or from a diff between the old and new ls
 
             else :
-                filelst = self.diff_ls(self.lastls,self.newls)
+                filelst,desclst = self.diff_ls(self.lastls,self.newls)
 
             # keep for reference our last ls
 
@@ -305,25 +347,46 @@ class PullFTP(object):
                 for indx, f in enumerate(prim) :
                     if re.compile(lst[pos]).match(f):
                        flst[f] = 0
-                       sec.pop(indx)
+                       try    : 
+                                idx = sec.index(f)
+                                sec.pop(idx)
+                       except : pass
                 prim = sec
 
             files = flst.keys()
 
             if len(files) == 0 : return files_pulled
 
-            # wait before retrieving...
-            # this is just to make sure the file is completely arrived on remote server.
+            # before retrieving... 
+            # just to make sure the file is completely arrived on remote server
+            # make another diff... if one or more files modified are to be retrieved
+            # wait pull_wait (or min 3 sec) before getting the file
 
-            if self.source.pull_wait > 0 :
-               time.sleep(self.source.pull_wait)
+            ready = True
+            ok    = self.do_ls(self.newls)
+            if ok : 
+               filelst,desclst2 = self.diff_ls(self.lastls,self.newls)
+               for f in filelst :
+                   try    :
+                            indx  = files.index(f)
+                            ready = False
+                            self.logger.debug("file %s not ready .. caused pull waiting" % f )
+                   except : pass
+
+            try    : os.unlink(self.newls)
+            except : pass
+
+            if not ready :
+               sleep = self.source.pull_wait 
+               if sleep < 3 : sleep = 3
+               time.sleep(sleep)
 
             # retrieve the files
 
             for remote_file in files :
                 timex.alarm(self.source.timeout_get)
+                local_file = self.local_filename(remote_file,desclst)
                 try :
-                       local_file = PXPaths.RXQ + self.source.name + '/' + remote_file
                        ok = self.retrieve(remote_file, local_file)
                        if ok :
                                if self.source.delete : self.rm(remote_file)
@@ -338,7 +401,7 @@ class PullFTP(object):
                        timex.cancel()
                        (type, value, tb) = sys.exc_info()
                        self.logger.error("Unable write remote file %s in local file %s. Type: %s, Value: %s" % \
-                                        (remote_file,local_filet, self.source.user, type ,value))
+                                        (remote_file,local_file,type,value))
 
 
         return files_pulled
@@ -357,7 +420,7 @@ class PullFTP(object):
                  timex.cancel()
                  (type, value, tb) = sys.exc_info()
                  self.logger.error("Unable write remote file %s in local file %s. Type: %s, Value: %s" % \
-                                  (remote_file,local_filet, self.source.user, type ,value))
+                                  (remote_file,local_file,type,value))
 
         return False
 
