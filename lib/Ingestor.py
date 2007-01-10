@@ -328,7 +328,10 @@ class Ingestor(object):
             if igniter.reloadMode == True:
                 # We assign the defaults, reread configuration file for the source
                 # and reread all configuration file for the clients (all this in __init__)
-                self.source.__init__(self.source.name, self.source.logger)
+                if self.source.type == 'filter' : 
+                       self.source.__init__(self.source.name, self.source.logger, True, True)
+                else :
+                       self.source.__init__(self.source.name, self.source.logger)
 
                 if self.source.routemask :
                    self.drp = DirectRoutingParser(self.source.routingTable, self.allNames, self.logger)
