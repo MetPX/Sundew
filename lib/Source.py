@@ -100,6 +100,8 @@ class Source(object):
         self.pull_wait   = 10               # Time in sec. to wait after ls before pulling (make sure files are arrived)
         self.delete = False                 # file is deleted after pull  if it is false, the file's ls is kept
                                             # to check if it changed...
+        self.pull_prefix = ''               # file may be prefixed bu some string filename will than be prefix_filename
+                                            # or value 'HDATETIME' for the file data time on remote host
 
         #-----------------------------------------------------------------------------------------
         # Setting up default collection configuration values
@@ -129,7 +131,8 @@ class Source(object):
         #-----------------------------------------------------------------------------------------
 
         if self.execfile != None :
-           execfile(PXPaths.SCRIPTS + self.execfile )
+           try    : execfile(PXPaths.SCRIPTS + self.execfile )
+           except : self.logger.error("Problem with fx_script %s" % self.execfile)
 
         #-----------------------------------------------------------------------------------------
         # Make sure the collection params are valid
@@ -247,6 +250,7 @@ class Source(object):
                     elif words[0] == 'pull_sleep': self.pull_sleep = int(words[1])
                     elif words[0] == 'pull_wait': self.pull_wait = int(words[1])
                     elif words[0] == 'delete': self.delete = isTrue(words[1])
+                    elif words[0] == 'pull_prefix': self.pull_prefix = words[1]
 
                     # options for collector
                     if   self.type == 'collector' :
@@ -375,6 +379,7 @@ class Source(object):
            print "delete            %s" % self.delete
            print "pull_sleep        %s" % self.pull_sleep
            print "pull_wait         %s" % self.pull_wait
+           print "pull_prefix       %s" % self.pull_prefix
            print "timeout_get       %s" % self.timeout_get
 
            print ""
