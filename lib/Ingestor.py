@@ -386,7 +386,7 @@ class Ingestor(object):
 
            # file converted...
            else :
-                  self.logger.info("FX script modified %s to %s " % (os.path.basename(file),fxfile) )
+                  self.logger.info("FX script modified %s to %s " % (os.path.basename(file),os.path.basename(fxfile)) )
                   os.unlink(file)
                   file = fxfile
 

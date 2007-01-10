@@ -142,6 +142,7 @@ class SenderFTP(object):
                     except:
                             try   :
                                     self.ftp.mkd(d)
+                                    self.perm(d)
                                     self.ftp.cwd(d)
                             except:
                                     return False

@@ -20,6 +20,8 @@ named COPYING in the root of the source directory tree.
 #                               if retreived files are deleted 
 #                                  consider all files in ls
 #                               try matching files from ls and the regex defined in source with get option
+#                               try a diff with another ls see if some of the files are currently modifying
+#                                   if some are modified sleep for max(3,pull_wait) sec... before next step
 #                               retreive the resulting file matches if any
 #              3- close connection
 #
