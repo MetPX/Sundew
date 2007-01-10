@@ -90,10 +90,12 @@ class Client(object):
         self.readConfig()
 
         if self.execfile != None :
-           execfile(PXPaths.SCRIPTS + self.execfile )
+           try    : execfile(PXPaths.SCRIPTS + self.execfile )
+           except : self.logger.error("Problem with destfn_script %s" % self.execfile)
 
         if self.execfile2 != None :
-           execfile(PXPaths.SCRIPTS + self.execfile2 )
+           try    : execfile(PXPaths.SCRIPTS + self.execfile2 )
+           except : self.logger.error("Problem with fx_script %s" % self.execfile2)
 
         #self.printInfos(self)
 
@@ -246,8 +248,10 @@ class Client(object):
                      old_destfn_script = self.destfn_script
                      old_destFileName  = destFileName
                      script = PXPaths.SCRIPTS + spec[14:]
-                     execfile(script)
-                     destFileName = self.destfn_script(filename)
+                     try    :
+                              execfile(script)
+                              destFileName = self.destfn_script(filename)
+                     except : self.logger.error("Problem with filename DESTFNSCRIPT=%s" % script)
                      self.destfn_script = old_destfn_script
                      if destFileName == None : destFileName = old_destFileName
                 elif spec == 'TIME':
