@@ -122,6 +122,9 @@ class PXIgniter(Igniter):
          if self.direction == 'sender':
             self.reloadMode = True
 
+         elif self.direction == 'filter':
+            self.reloadMode = True
+
          elif self.direction == 'receiver':
             if self.type == 'am':
                # FIXME: Should be put in amReceiver code
@@ -154,6 +157,9 @@ class PXIgniter(Igniter):
                self.logger.info("%s has been reloaded" % self.direction.capitalize())
 
             if self.type == 'single-file' or self.type == 'bulletin-file':
+               self.reloadMode = True
+
+            if self.type == 'pull-bulletin' or self.type == 'pull-file':
                self.reloadMode = True
 
          elif self.direction == 'transceiver':
