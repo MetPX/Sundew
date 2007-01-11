@@ -1171,7 +1171,7 @@ def main():
     if not os.path.isdir( PXPaths.LOG  ):
         os.makedirs( PXPaths.LOG , mode=0777 )
     
-    logger = Logger( PXPaths.LOG  + 'stats_'+'rrd_graphs' + '.log.notb', 'INFO', 'TX' + 'rrd_transfer', bytes = True  ) 
+    logger = Logger( PXPaths.LOG  + 'stats_'+'rrd_graphs' + '.log.notb', 'INFO', 'TX' + 'rrd_graphs', bytes = True  ) 
     
     logger = logger.getLogger()
        

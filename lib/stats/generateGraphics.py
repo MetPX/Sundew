@@ -49,7 +49,7 @@ class _GraphicsInfos:
         self.currentTime  = currentTime       # Time when stats were queried.
         self.productType  = productType       # Specific data type on wich we'll collect the data.
         self.machines     = machines          # Machine from wich we want the data to be calculated.
-        self.copy         = copy              #Wheteher or not we create a copy file.
+        self.copy         = copy              # Whether or not we create a copy file.
         
 #################################################################
 #                                                               #
