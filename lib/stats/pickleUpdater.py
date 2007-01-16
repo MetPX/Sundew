@@ -411,12 +411,8 @@ def updateHourlyPickles( infos, logger = None ):
             for j in range( len(hours)-1 ): #Covers hours where no pickling was done.                               
                 
                 startOfTheHour = MyDateLib.getIsoWithRoundedHours( hours[j] )
-                if j == ( 0 ):#Hour where last pickle occured. No need to pickle all hour no rounding is made 
-                    startTime = infos.startTimes[j]  
-                else:
-                    startTime = startOfTheHour
-                
-                
+                startTime = startOfTheHour        
+                                                   
                 endTime = MyDateLib.getIsoFromEpoch( MyDateLib.getSecondsSinceEpoch( MyDateLib.getIsoWithRoundedHours(hours[j+1] ) ))
                 #print " client : %s startTime : %s endTime : %s" %(infos.clients[i], startTime, endTime )
                 
