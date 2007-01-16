@@ -239,9 +239,11 @@ class Client(object):
                     if sender[:6] == 'SENDER' : 
                        destFileName = sender.split('=')[1] 
                 elif spec == 'NONE':
-                    if len(parts[4]) == 1 : destFileName = ':'.join(parts[:6])
-                    else                  : destFileName = ':'.join(parts[:5])
-                    if destFileName[-1] == ':' : destFileName = destFileName[:-1]
+                    destFileName = filename
+                    # commented out PDS behavior no time extension when NONE
+                    #if len(parts[4]) == 1 : destFileName = ':'.join(parts[:6])
+                    #else                  : destFileName = ':'.join(parts[:5])
+                    #if destFileName[-1] == ':' : destFileName = destFileName[:-1]
                 elif re.compile('DESTFN=.*').match(spec):
                     destFileName = spec[7:]
                 elif re.compile('DESTFNSCRIPT=.*').match(spec):
@@ -256,7 +258,8 @@ class Client(object):
                      if destFileName == None : destFileName = old_destFileName
                 elif spec == 'TIME':
                     timeSuffix = ':' + time.strftime("%Y%m%d%H%M%S", time.gmtime())
-                    if parts[-1][0] == '2' : timeSuffix = ':' + parts[-1]
+                    # commented out PDS behavior ... file already had a time extension keep his...
+                    #if parts[-1][0] == '2' : timeSuffix = ':' + parts[-1]
                 else:
                     self.logger.error("Don't understand this DESTFN parameter: %s" % spec)
                     return (None, None) 
