@@ -823,7 +823,7 @@ def getOutdatedTransmissionsLog( file, startTime ):
     
     
     
-def getPickleAnalysis( files, name, startTime, maximumGap, errorLog ):
+def getPickleAnalysis( files, name, timeOfLastFilledEntry, maximumGap, errorLog ):
     """
         This function is used to browse all the pickle files
         in chronological order. 
@@ -837,8 +837,7 @@ def getPickleAnalysis( files, name, startTime, maximumGap, errorLog ):
     
     header = ""
     reportLines = ""    
-    gapTooWidePresent = False
-    timeOfLastFilledEntry =  getTimeOfLastFilledEntry( name, startTime )
+    gapTooWidePresent = False    
     files.sort()    
         
     for file in files:                 
@@ -903,15 +902,17 @@ def verifyPickleContent( parameters, report ):
         if "," in machine:   
             machine = getCombinedMachineName( machine )     
         
+        
         for txName in txNames:
-            files = []           
             
-            folders = getFoldersAndFilesAssociatedWith( txName,"tx", machine, parameters.startTime, parameters.endTime )
+            files = []           
+            timeOfLastFilledEntry = getTimeOfLastFilledEntry( txName, parameters.startTime )
+            folders = getFoldersAndFilesAssociatedWith(txName,"tx", machine, timeOfLastFilledEntry, parameters.endTime )
             
             for folder in folders.keys(): 
                 files.extend( folders[folder] )            
 
-            brandNewReportLines, timeOfLastFilledEntry =  getPickleAnalysis( files, txName, parameters.startTime, parameters.maximumGaps[txName], errorLog )  
+            brandNewReportLines, timeOfLastFilledEntry =  getPickleAnalysis( files, txName, timeOfLastFilledEntry, parameters.maximumGaps[txName], errorLog )  
                
             newReportLines = newReportLines + brandNewReportLines
             
