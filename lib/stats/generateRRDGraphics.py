@@ -41,7 +41,7 @@ LOCAL_MACHINE = os.uname()[1]
     
 class _GraphicsInfos:
 
-    def __init__( self, fileType, types, totals, clientNames = None ,  timespan = 12, startTime = None, endTime = None, machines = ["pdsGG"], copy = False  ):            
+    def __init__( self, fileType, types, totals, graphicType, clientNames = None ,  timespan = 12, startTime = None, endTime = None, machines = ["pdsGG"], copy = False  ):            
         
         self.fileType     = fileType          # Type of log files to be used.    
         self.types        = types             # Type of graphics to produce. 
@@ -52,7 +52,7 @@ class _GraphicsInfos:
         self.machines     = machines          # Machine from wich we want the data to be calculated.
         self.totals       = totals            # Make totals of all the specified clients 
         self.copy         = copy              # Whether or not to create copies of the images. 
-        
+        self.graphicType  = graphicType       # daily, weekly, monthly yearly or other  
         
         
 #################################################################
@@ -266,6 +266,7 @@ def getOptionsFromParser( parser ):
     """ 
     
     date   = []
+    graphicType = "other"
     
     ( options, args )= parser.parse_args()        
     timespan         = options.timespan
@@ -339,18 +340,22 @@ def getOptionsFromParser( parser ):
      
     #fix timeSpan method???   
     if daily :
-        timespan = 24
+        timespan = 24  
+        graphicType = "daily"      
     elif weekly:
-        timespan = 24 * 7
+        timespan = 24 * 7  
+        graphicType = "weekly"  
     elif monthly:
-        timespan = 24 * 30     
+        timespan = 24 * 30 
+        graphicType = "monthly"       
     elif yearly:
-        timespan = 24 * 365   
+        timespan = 24 * 365
+        graphicType = "yearly"   
     
     #fix start and end method???    
     if fixedPrevious :
         if daily :
-            start, end = getStartEndFromPreviousDay( date )  
+            start, end = getStartEndFromPreviousDay( date )             
         elif weekly:
             start, end = getStartEndFromPreviousWeek( date )
         elif monthly:
@@ -447,7 +452,7 @@ def getOptionsFromParser( parser ):
     
     end = MyDateLib.getIsoWithRoundedHours( end )
     
-    infos = _GraphicsInfos( startTime = start, endTime = end, clientNames = clientNames, types = types, timespan = timespan, machines = machines, fileType = fileType, totals = totals, copy = copy  )   
+    infos = _GraphicsInfos( startTime = start, endTime = end, graphicType = graphicType, clientNames = clientNames, types = types, timespan = timespan, machines = machines, fileType = fileType, totals = totals, copy = copy  )   
             
     return infos                       
 
@@ -896,24 +901,18 @@ def getCopyDestination( type, client, infos ):
     """
     
     oneDay = 24*60*60
-    graphicType = "weekly"
     endTimeInSeconds = MyDateLib.getSecondsSinceEpoch( infos.endTime )
-    
-    
-    if infos.timespan >= 365*24:
-        graphicType = "yearly"
-    elif infos.timespan >= 28*24:
-        graphicType = "monthly"    
 
-    if graphicType == "weekly":
+    if infos.graphicType == "weekly":
         fileName =  time.strftime( "%W", time.gmtime( endTimeInSeconds - oneDay ) )
-    elif graphicType == "monthly":
+    elif infos.graphicType == "monthly":
         fileName =  time.strftime( "%b", time.gmtime( endTimeInSeconds - oneDay ) )
-    elif graphicType == "yearly":
+    elif infos.graphicType == "yearly":
         fileName =  time.strftime( "%Y", time.gmtime( endTimeInSeconds - oneDay ) )
+    else:
+        fileName = client
     
-    
-    destination = PXPaths.GRAPHS + "webGraphics/%s/%s/%s/%.50s.png" %( graphicType, type , client, fileName )
+    destination = PXPaths.GRAPHS + "webGraphics/%s/%s/%s/%.50s.png" %( infos.graphicType, type , client, fileName )
     
     return destination    
     
@@ -972,22 +971,20 @@ def plotRRDGraph( databaseName, type, fileType, client, machine, infos, lastUpda
                    
     title = buildTitle( type, client, infos.endTime, infos.timespan, minimum, maximum, mean )
 
-#     try:
-    rrdtool.graph( imageName,'--imgformat', 'PNG','--width', '800','--height', '200','--start', "%i" %(start) ,'--end', "%s" %(end), '--vertical-label', '%s' %type,'--title', '%s'%title,'COMMENT: Minimum: %s     Maximum: %s     Mean: %s\c' %( minimum, maximum, mean), '--lower-limit','0','DEF:%s=%s:%s:AVERAGE'%( type, databaseName, type), 'CDEF:realValue=%s,%i,*' %( type, interval), 'AREA:realValue#%s:%s' %( innerColor, type ),'LINE1:realValue#%s:%s'%( outerColor, type ) )
+    if infos.graphicType != "monthly":
+        rrdtool.graph( imageName,'--imgformat', 'PNG','--width', '800','--height', '200','--start', "%i" %(start) ,'--end', "%s" %(end), '--vertical-label', '%s' %type,'--title', '%s'%title,'COMMENT: Minimum: %s     Maximum: %s     Mean: %s\c' %( minimum, maximum, mean), '--lower-limit','0','DEF:%s=%s:%s:AVERAGE'%( type, databaseName, type), 'CDEF:realValue=%s,%i,*' %( type, interval), 'AREA:realValue#%s:%s' %( innerColor, type ),'LINE1:realValue#%s:%s'%( outerColor, type ) )
 
+    else:#With monthly graphics, we force the use the day of month number as the x label.       
+        rrdtool.graph( imageName,'--imgformat', 'PNG','--width', '800','--height', '200','--start', "%i" %(start) ,'--end', "%s" %(end), '--vertical-label', '%s' %type,'--title', '%s'%title,'COMMENT: Minimum: %s     Maximum: %s     Mean: %s\c' %( minimum, maximum, mean), '--lower-limit','0','DEF:%s=%s:%s:AVERAGE'%( type, databaseName, type), 'CDEF:realValue=%s,%i,*' %( type, interval), 'AREA:realValue#%s:%s' %( innerColor, type ),'LINE1:realValue#%s:%s'%( outerColor, type ), '--x-grid', 'HOUR:24:DAY:1:DAY:1:0:%d' )       
+    
+    
     if infos.copy == True:
         createCopy( client, type, imageName, infos )
     
     print "Plotted : %s" %imageName
     if logger != None:
         logger.info(  "Plotted : %s" %imageName )
-       
-    
-#     except :
-#         if logger != None:
-#             logger.error( "Error in generateRRDGraphics.plotRRDGraph. Unable to generate %s" %imageName )
-#         pass     
-
+        
         
         
 def createNewDatabase( fileType, type, machine, start, infos, logger ):       
