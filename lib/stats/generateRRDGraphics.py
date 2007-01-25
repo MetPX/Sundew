@@ -568,13 +568,13 @@ def addOptions( parser ):
     
     
         
-def buildTitle( type, client, endTime, timespan, minimum, maximum, mean  ):
+def buildTitle( type, client, endTime, timespan, minimum, maximum, mean, graphicType = "daily"  ):
     """
         Returns the title of the graphic based on infos. 
     
-    """
+    """    
     
-    span = timespan
+    span        = timespan
     timeMeasure = "hours"
     
     if span%(365*24) == 0 :
@@ -589,12 +589,31 @@ def buildTitle( type, client, endTime, timespan, minimum, maximum, mean  ):
         span = span/24
         timeMeasure = "day(s)" 
     
-    type = type[0].upper() + type[1:] 
-       
+    type = type[0].upper() + type[1:]    
+
+    
     return  "%s for %s for a span of %s %s ending at %s." %( type, client, span, timeMeasure, endTime )    
 
     
- 
+def getGraphicsNote( graphicType ):
+    """
+        Returns the watermark to be displayed on the graphic.
+    """
+    
+    graphicsNote = ""
+    
+    if graphicType == "daily":
+        graphicsNote = "Graphics generated using 1 minute averages."
+    elif graphicType == "weekly":
+        graphicsNote = "Graphics generated using 1 hour averages."
+    elif graphicType == "monthly":
+        graphicsNote = "Graphics generated using 4 hours averages."
+    elif graphicType == "yearly":   
+        graphicsNote = "Graphics generated using 24 hours averages."
+    
+    return graphicsNote    
+        
+             
 def getAbsoluteMin( databaseName, startTime, endTime, logger = None ):
     """
         This methods returns the minimum of the entire set of data found between 
@@ -705,7 +724,7 @@ def getAbsoluteMean( databaseName, startTime, endTime, logger = None  ):
 
 
         
-def getGraphicsMinMaxMean( databaseName, startTime, endTime, interval, logger = None  ):
+def getGraphicsMinMaxMeanTotal( databaseName, startTime, endTime, interval, logger = None, type = "average"  ):
     """
         This methods returns the min max and mean of the entire set of data that is drawn 
         on the graphic.
@@ -716,30 +735,57 @@ def getGraphicsMinMaxMean( databaseName, startTime, endTime, interval, logger = 
     max = None
     sum = 0 
     avg = 0
+    total = 0
+    nbEntries = 0      
     
     try :
         
         output = rrdtool.fetch( databaseName, 'AVERAGE', '-s', "%s" %startTime, '-e', '%s' %endTime )
         meanTuples = output[2]
-
-        for meanTuple in meanTuples :            
-            if meanTuple[0] != 'None' and meanTuple[0] != None :
-                realValue = ( float(meanTuple[0]) * float(interval) ) 
-                if  realValue > max:
-                    max = realValue
-                if realValue < min or min == None :
-                    min = realValue 
-                sum = sum + realValue
+        nbEntries = len( meanTuples )
+        
+        if type == "totals":
             
-        avg = sum / len( meanTuples )  
-    
+            for meanTuple in meanTuples :            
+                if meanTuple[0] != 'None' and meanTuple[0] != None :
+                    realValue = ( float(meanTuple[0]) * float(interval) ) 
+                    if  realValue > max:
+                        max = realValue
+                    if realValue < min or min == None :
+                        min = realValue 
+                    sum = sum + realValue
+                else:# don't count non-filled entries in mean.
+                    nbEntries = nbEntries - 1
+                     
+            if nbEntries != 0:            
+                avg = sum / nbEntries 
+            
+            total = sum
+             
+        else:
+            
+            for meanTuple in meanTuples :            
+                if meanTuple[0] != 'None' and meanTuple[0] != None :
+                    value = float( meanTuple[0] ) 
+                    if  value > max:
+                        max = value
+                    if value < min or min == None :
+                        min = value 
+                    sum = sum + value
+                    total = total + ( value*interval )
+                else:# don't count non-filled entries in mean.
+                    nbEntries = nbEntries - 1    
+            
+            if nbEntries != 0:            
+                avg = sum / nbEntries  
+        
     except :
         if logger != None:
             logger.error( "Error in generateRRDGraphics.getOverallMin. Unable to read %s" %databaseName )
         pass    
             
     
-    return min, max, avg
+    return min, max, avg, total
     
     
     
@@ -814,54 +860,106 @@ def getDatabaseTimeOfUpdate( client, machine, fileType ):
 
 
         
-def formatMinMaxMean( minimum, maximum, mean, type ):
+def formatMinMaxMeanTotal( minimum, maximum, mean, total, type, averageOrTotal = "average" ):
     """
         Formats min, max and median so that it can be used 
         properly as a label on the produced graphic.
         
     """    
     
-    values = [ minimum, maximum, mean]
+    values = [ minimum, maximum, mean, total ]
+    nbEntries = len(values)
     
     if type == "bytecount" :
         
-        for i in range( len(values) ):
+        for i in range( nbEntries ):
             
             if values[i] != None :
                 
                 if values[i] < 1000:#less than a k
-                    values[i] = "%s Bytes" %int( values[i] )
-                    
+                    if i != nbEntries-1:
+                        values[i] = "%s B/min" %int( values[i] )
+                    else:
+                        values[i] = "%s bytes" %int( values[i] )
+                
                 elif values[i] < 1000000:#less than a meg 
-                    values[i] = "%.2f KiloBytes"  %( values[i]/1000.0 )
+                    if i != nbEntries-1:
+                        values[i] = "%.2f KB/min"  %( values[i]/1000.0 )
+                    else:
+                        values[i] = "%s kiloBytes" %int( values[i]/1000.0 )
                 
                 elif values[i] < 1000000000:#less than a gig      
-                    values[i] = "%.2f MegaBytes"  %( values[i]/1000000.0 )
+                    if i != nbEntries-1:
+                        values[i] = "%.2f MB/min"  %( values[i]/1000000.0 )
+                    else:
+                        values[i] = "%s megaBytes" %int( values[i]/1000000.0 )
                 
                 else:#larger than a gig
-                    values[i] = "%.2f GigaBytes"  %( values[i]/1000000000.0 )                 
-    
+                    if i != nbEntries-1:
+                        values[i] = "%.2f GB/min"  %( values[i]/1000000000.0 )                 
+                    else:
+                        values[i] = "%s gigaBytes" %int( values[i]/1000000000.0 )
+        
     else:
-    
+        if "file" in type:
+            tag = "files"
+        elif type == "errors":
+            tag = "errors"
+        elif type == "latency":
+            tag = "avg"
+            
         if minimum != None :
-            if type == "latency":
-                minimum = "%.2f" %minimum                
+            if type == "latency" or averageOrTotal == "average":
+                minimum = "%.4f %s/min" %( minimum, tag )                
             else:
-                minimum = "%s" %int(minimum)
+                minimum = "%s" %int( minimum )
                    
         if maximum != None :
-            if type == "latency":    
-                maximum = "%.2f" %maximum
+            if type == "latency" or averageOrTotal == "average":    
+                maximum = "%.4f %s/min" %( maximum, tag ) 
             else:
                 maximum = "%s" %int(maximum)
                 
         if mean != None :
-            mean = "%.2f" %mean 
-        values = [ minimum, maximum, mean]
+            mean = "%.4f %s/min" %( mean, tag ) 
+        
+        total = "%s %s" %( int(total), tag )     
+        
+        values = [ minimum, maximum, mean, total]
             
-    return values[0], values[1], values[2]            
+    return values[0], values[1], values[2], values[3]            
     
+
+
+def getGraphicsLegend( maximum ):
+    """
+        Returns the legend according to the 
+        unit that is anticipated to be displayed within the graphics.
+        Legend is based on the maximum observed.
+    """
     
+    legend = ""
+    
+    if "KB" in maximum:
+        legend = "k on the y axis stands for kilo, meaning x thousands."
+    elif "MB" in maximum:
+        legend = "M on the y axis stands for Mega, meaning x millions."
+    elif "GB" in maximum:
+        legend = "G on the y axis stats for giga, meaning x billions."
+    else:
+        try:
+            maximum = float( maximum)
+            if maximum > 1000000000:
+                legend = "G on the y axis stats for giga, meaning x billions."
+            elif maximum > 1000000:
+                legend = "M on the y axis stands for Mega, meaning x millions."
+            elif maximum > 1000:    
+                legend = "k on the y axis stands for kilo, meaning x thousands."
+        except:            
+            pass
+        
+    return legend
+            
             
 def getInterval( startTime, timeOfLastUpdate, dataType  ):    
     """
@@ -955,27 +1053,39 @@ def plotRRDGraph( databaseName, type, fileType, client, machine, infos, lastUpda
     
     
     interval = getInterval( start, lastUpdate, type  )
-        
-    minimum, maximum, mean = getGraphicsMinMaxMean( databaseName, start, end, interval )
-    minimum, maximum, mean = formatMinMaxMean( minimum, maximum, mean, type )            
-            
-    if type == "latency" or type == "filesOverMaxLatency":
+    
+       
+    minimum, maximum, mean, total = getGraphicsMinMaxMeanTotal( databaseName, start, end, interval )
+    minimum, maximum, mean, total = formatMinMaxMeanTotal( minimum, maximum, mean,total, type )            
+    graphicsLegeng         = getGraphicsLegend( maximum )      
+    graphicsNote           = getGraphicsNote( infos.graphicType )        
+    
+    if type == "latency" :
         innerColor = "cd5c5c"
         outerColor = "8b0000"
+        total = ""
+    elif type == "filesOverMaxLatency":
+        innerColor = "cd5c5c"
+        outerColor = "8b0000"
+        total = "Total: %s" %total                
     elif type == "bytecount" or type == "filecount" :
         innerColor = "019EFF"
         outerColor = "4D9AA9"  
+        total = "Total: %s" %total
     else:
         innerColor = "54DE4F"
         outerColor = "1C4A1A"     
-                   
-    title = buildTitle( type, client, infos.endTime, infos.timespan, minimum, maximum, mean )
-
+        total = "Total: %s" %total   
+        
+    title = buildTitle( type, client, infos.endTime, infos.timespan, minimum, maximum, mean )   
+                
+    #note : in CDEF:realValue the i value can be changed from 1 to value of the interval variable
+    #       in order to get the total displayed instead of the mean.
     if infos.graphicType != "monthly":
-        rrdtool.graph( imageName,'--imgformat', 'PNG','--width', '800','--height', '200','--start', "%i" %(start) ,'--end', "%s" %(end), '--vertical-label', '%s' %type,'--title', '%s'%title,'COMMENT: Minimum: %s     Maximum: %s     Mean: %s\c' %( minimum, maximum, mean), '--lower-limit','0','DEF:%s=%s:%s:AVERAGE'%( type, databaseName, type), 'CDEF:realValue=%s,%i,*' %( type, interval), 'AREA:realValue#%s:%s' %( innerColor, type ),'LINE1:realValue#%s:%s'%( outerColor, type ) )
+        rrdtool.graph( imageName,'--imgformat', 'PNG','--width', '800','--height', '200','--start', "%i" %(start) ,'--end', "%s" %(end), '--vertical-label', '%s' %type,'--title', '%s'%title, '--lower-limit','0','DEF:%s=%s:%s:AVERAGE'%( type, databaseName, type), 'CDEF:realValue=%s,%i,*' %( type, 1), 'AREA:realValue#%s:%s' %( innerColor, type ),'LINE1:realValue#%s:%s'%( outerColor, type ), 'COMMENT:          %s' %graphicsNote, 'COMMENT: Min: %s     Max: %s     Mean: %s     %s\c' %( minimum, maximum, mean,total ), 'COMMENT:Note(s): %s %s\c' %(graphicsNote, graphicsLegeng )  )
 
     else:#With monthly graphics, we force the use the day of month number as the x label.       
-        rrdtool.graph( imageName,'--imgformat', 'PNG','--width', '800','--height', '200','--start', "%i" %(start) ,'--end', "%s" %(end), '--vertical-label', '%s' %type,'--title', '%s'%title,'COMMENT: Minimum: %s     Maximum: %s     Mean: %s\c' %( minimum, maximum, mean), '--lower-limit','0','DEF:%s=%s:%s:AVERAGE'%( type, databaseName, type), 'CDEF:realValue=%s,%i,*' %( type, interval), 'AREA:realValue#%s:%s' %( innerColor, type ),'LINE1:realValue#%s:%s'%( outerColor, type ), '--x-grid', 'HOUR:24:DAY:1:DAY:1:0:%d' )       
+        rrdtool.graph( imageName,'--imgformat', 'PNG','--width', '800','--height', '200','--start', "%i" %(start) ,'--end', "%s" %(end), '--vertical-label', '%s' %type,'--title', '%s'%title, '--lower-limit','0','DEF:%s=%s:%s:AVERAGE'%( type, databaseName, type), 'CDEF:realValue=%s,%i,*' %( type, 1), 'AREA:realValue#%s:%s' %( innerColor, type ),'LINE1:realValue#%s:%s'%( outerColor, type ), '--x-grid', 'HOUR:24:DAY:1:DAY:1:0:%d','COMMENT: Min: %s     Max: %s     Mean: %s     %s\c' %( minimum, maximum, mean, total ), 'COMMENT:Note(s): %s %s\c' %(graphicsNote, graphicsLegeng)  )       
     
     
     if infos.copy == True:
