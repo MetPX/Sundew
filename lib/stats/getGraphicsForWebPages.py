@@ -150,10 +150,12 @@ def updateThisWeeksGraphs( currentTime ):
     
 def setYesterdaysGraphs( currentTime ):
     """
-        Takes all of the ucrrent graphs and set them as yesterdays graph. 
+        Takes all of the current graphs and set them as yesterdays graph. 
+        
         To be used only at midnight where the current columbo graphics 
         are yesterdays graphics.
 
+        Graphics MUST have been updated PRIOR to calling this method!
     """
     
     filePattern = PXPaths.GRAPHS + "webGraphics/columbo/*.png"
@@ -209,7 +211,7 @@ def main():
         from wich the graphics are gathered are also hardcoded.   
                 
     """
-    currentTime = 1167609600.0#time.time()
+    currentTime = time.time()
     
     setCurrentGraphsAsDailyGraphs( currentTime )
     
