@@ -8,7 +8,7 @@ named COPYING in the root of the source directory tree.
 ##############################################################################
 ##
 ##
-## Name   : generateGraphics.py 
+## Name   : dailyGraphicsWebPage.py 
 ##
 ##
 ## Author : Nicholas Lemay
@@ -73,15 +73,40 @@ def main():
     <html>
         <head>
             <title> PX Graphics </title>
-        </head>    
+        </head>
+        <script>             
+            function wopen(url, name, w, h){
+            // This function was taken on www.boutell.com
+                w += 32;
+                h += 96;
+                var win = window.open(url,
+                name,
+                'width=' + w + ', height=' + h + ', ' +
+                'location=no, menubar=no, ' +
+                'status=no, toolbar=no, scrollbars=no, resizable=no');
+                win.resizeTo(w, h);
+                win.focus();
+            }         
+        </script>    
+        <STYLE>
+            <!--
+            A{text-decoration:none}
+            -->
+        </STYLE>
+        <style type="text/css">
+            div.left { float: left; }
+            div.right {float: right; }
+        </style>    
+        
         <body text="#000000" link="#FFFFFF" vlink="000000" bgcolor="#CCCCCC" >
         
         <br>
         <h2>Daily graphics for RX sources from MetPx.</h2>
         <br>
-         <table width="100%" border="1" cellspacing="5" cellpadding="5" bgcolor="#cccccc" bordercolor="#CCCCCC" frame = void > 
+        <table width="100%" border="1" cellspacing="5" cellpadding="5" bgcolor="#cccccc" bordercolor="#CCCCCC" frame = void > 
         <tr>    
-            <td bgcolor="#006699" width = "25%"><font color = "white">Sources</font></td>
+            <td bgcolor="#006699" width = "25%%"><font color = "white"><div class="left">Sources</div><a target ="popup" href="%s" onClick="wopen('helpPages/source.html', 'popup', 875, 100); return false;"><div class="right">?</div></a></font></td>
+            
             <td bgcolor="#006699" width = "75%"><font color = "white">List of available daily graphics.</font></td>
         </tr>   
         
@@ -91,26 +116,27 @@ def main():
     
     
     for rxName in rxNames :
-        fileHandle.write( """<tr> <td bgcolor="#99FF99" width = "25%%" > %s </td>
-        """ %(rxName))
-    
-        fileHandle.write(  """    
-            <td bgcolor="#66CCFF" width = "25%%" >   Days :   <a target ="%s" href="%swebGraphics/daily/%s/%s.png">%s   </a><a target ="%s" href="%swebGraphics/daily/%s/%s.png">%s   </a><a target ="%s" href="%swebGraphics/daily/%s/%s.png">%s   </a><a target ="%s" href="%swebGraphics/daily/%s/%s.png">%s   </a><a target ="%s" href="%swebGraphics/daily/%s/%s.png">%s   </a><a target ="%s" href="%swebGraphics/daily/%s/%s.png">%s   </a><a target ="%s" href="%swebGraphics/daily/%s/%s.png">%s   </a></td>
-        """%( rxName,PXPaths.GRAPHS,rxName,days[0],days[0], rxName,PXPaths.GRAPHS,rxName,days[1],days[1], rxName,PXPaths.GRAPHS,rxName,days[2],days[2],rxName,PXPaths.GRAPHS,rxName,days[3],days[3], rxName,PXPaths.GRAPHS,rxName,days[4],days[4], rxName,PXPaths.GRAPHS,rxName,days[5],days[5], rxName,PXPaths.GRAPHS,rxName,days[6],days[6] )  ) 
+        fileHandle.write( """<tr> <td bgcolor="#99FF99" width = "25%%" > %s </td> """ %(rxName))
+        fileHandle.write( """<td bgcolor="#66CCFF" width = "25%%" >   Days :   """ )
+        
+        for day in days:
+            file = "%swebGraphics/daily/%s/%s.png" %( PXPaths.GRAPHS, rxName, day )
+            if os.path.isfile( file ):
+                fileHandle.write(  """<a target ="%s" href="%s">%s   </a>"""%( rxName, file, day ) )
                  
     
-    fileHandle.write(  """
+    fileHandle.write( """</td> 
 
     </table>  
        
     <br>
-    <h2>Daily graphics for TX Clients from MetPx.</h2>
+    <h2>Daily graphics for TX clients from MetPx.</h2>
     <br>
     <table width="100%%" border="1" cellspacing="5" cellpadding="5" bgcolor="#cccccc" bordercolor="#CCCCCC" frame = void >    
         <tr>
 
-            <td bgcolor="#006699" width = "25%%"><font color = "white">Clients</font></td>
-            <td bgcolor="#006699" width = "75%"><font color = "white">List of available daily graphics.</font></td>
+             <td bgcolor="#006699" width = "25%%"><font color = "white"><div class="left">Clients</div><a target ="popup" href="%s" onClick="wopen('helpPages/client.html', 'popup', 875, 100); return false;"><div class="right">?</div></a></font></td>
+            <td bgcolor="#006699" width = "75%%"><font color = "white">List of available daily graphics.</font></td>
             
         </tr>  
       
@@ -118,14 +144,14 @@ def main():
     """   )       
         
     for txName in txNames : 
-        fileHandle.write( """<tr> <td bgcolor="#99FF99" width = "16.66%%" > %s </td>
-        """ %(txName) )
-        
-        fileHandle.write(  """    
-            <td bgcolor="#66CCFF" width = "25%%" >   Days :   <a target ="%s" href="%swebGraphics/daily/%s/%s.png">%s   </a><a target ="%s" href="%swebGraphics/daily/%s/%s.png">%s   </a><a target ="%s" href="%swebGraphics/daily/%s/%s.png">%s   </a><a target ="%s" href="%swebGraphics/daily/%s/%s.png">%s   </a><a target ="%s" href="%swebGraphics/daily/%s/%s.png">%s   </a><a target ="%s" href="%swebGraphics/daily/%s/%s.png">%s   </a><a target ="%s" href="%swebGraphics/daily/%s/%s.png">%s   </a></td>
-        """%( txName,PXPaths.GRAPHS,txName,days[0],days[0], txName,PXPaths.GRAPHS,txName,days[1],days[1], txName,PXPaths.GRAPHS,txName,days[2],days[2],txName,PXPaths.GRAPHS,txName,days[3],days[3], txName,PXPaths.GRAPHS,txName,days[4],days[4], txName,PXPaths.GRAPHS,txName,days[5],days[5], txName,PXPaths.GRAPHS,txName,days[6],days[6] )  )       
+        fileHandle.write( """<tr> <td bgcolor="#99FF99" width = "16.66%%" > %s </td>""" %(txName) )
+        fileHandle.write( """<td bgcolor="#66CCFF" width = "25%%" >   Days :   """ )
+        for day in days:
+            file = "%swebGraphics/daily/%s/%s.png" %( PXPaths.GRAPHS, txName, day )
+            if os.path.isfile( file ):
+                fileHandle.write(  """ <a target ="%s" href="%s">%s   </a>""" %( txName, file, day ) )      
 
-        
+        fileHandle.write( "</td>" )
 
     fileHandle.write(  """
         </tr>

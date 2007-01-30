@@ -23,8 +23,9 @@ named COPYING in the root of the source directory tree.
 ##
 ##############################################################################
 
-import os, time,sys
+import os, time,sys, MyDateLib, datetime
 import generalStatsLibraryMethods
+from MyDateLib import *
 from generalStatsLibraryMethods import *
 from PXPaths   import * 
 from PXManager import *
@@ -36,14 +37,34 @@ def getMonths():
         Returns the 3 months including current month.
     
     """
-    
+    currentTime = time.time()
+    currentTime = MyDateLib.getIsoFromEpoch( currentTime )
+    currentDate = datetime.date( int(currentTime[0:4]), int(currentTime[5:7]), int(currentTime[8:10]) )     
+       
     months = []
     
     startTime = (time.time() - (30*3*24*60*60))
-    for i in range(1,4):
-        months.append( time.strftime("%b",time.gmtime(startTime + (i*30*24*60*60) )) )
-   
-       
+    
+    for i in range(0,3):
+        
+        if currentDate.month -i < 1 :
+            month = currentDate.month -i + 12
+            year  = currentDate.year -i 
+        else :     
+            month = currentDate.month -i 
+            year = currentDate.year
+            
+        if currentDate.day > 28:
+            day = currentDate.day -5
+        else: 
+            day = currentDate.day          
+        
+        newdate = datetime.date( year,month,day )
+        months.append( newdate.strftime("%b") )
+        print year,month,day
+    
+    months.reverse()
+        
     return months
     
     
@@ -99,40 +120,62 @@ def main():
                 A{text-decoration:none}
                 -->
             </STYLE>
+            <style type="text/css">
+                div.left { float: left; }
+                div.right {float: right; }
+            </style>
         <br>
         <h2>Monthly graphics for RX sources from MetPx.</h2>
         <br>
          <table width="100%" border="1" cellspacing="5" cellpadding="5" bgcolor="#cccccc" bordercolor="#CCCCCC" frame = void > 
+        
         <tr>    
-            <td bgcolor="#006699" width = "25%" ><font color = "white">Client</font></td>
-            <td bgcolor="#006699" width = "25%"><font color = "white">Bytecount</font></td>
-            <td bgcolor="#006699" width = "25%"><font color = "white">Filecount</font></td>
-            <td bgcolor="#006699" width = "25%"><font color = "white">Errors</font></td>
+            <td bgcolor="#006699" width = "16.66%%"><font color = "white"><div class="left">Sources</div><a target ="popup" href="%s" onClick="wopen('helpPages/source.html', 'popup', 875, 100); return false;"><div class="right">?</div></a></font></td>
+            
+            <td bgcolor="#006699" width = "25%" title = "Display the total of bytes received every day of the week for each sources."><font color = "white"><div class="left">Bytecount</div><a target ="popup" href="%s" onClick="wopen('helpPages/byteCount.html', 'popup', 875, 100); return false;"><div class="right">?</div></a> </font></td>
+            
+            <td bgcolor="#006699" width = "25%" title = "Display the total of files received every day of the week for each sources."><font color = "white"><div class="left">Filecount</div><a target ="popup" href="%s" onClick="wopen('helpPages/fileCount.html', 'popup', 875, 100); return false;"><div class="right">?</div></a></font></td>
+            
+            <td bgcolor="#006699" width = "25%" title = "Display the total of errors that occured during the receptions for every day of the week for each sources."><font color = "white"><div class="left">Errors</div><a target ="popup"  href="%s" onClick="wopen('helpPages/errors.html', 'popup', 875, 100); return false;"><div class="right">?</div></a></font></td>
         </tr>   
         
     
     """ )
     
     
-    
+    print months
     for rxName in rxNames :
-        fileHandle.write(  """<tr> <td bgcolor="#99FF99" width = "25%%" > %s </td>
-        """ %(rxName) )
-    
-        fileHandle.write(  """    
-            <td bgcolor="#66CCFF" width = "25%%" >Months&nbsp;:&nbsp;<a target ="popup" href="%s" onClick="wopen('%swebGraphics/monthly/bytecount/%s/%s.png', 'popup', 875, 240); return false;">%s&nbsp;</a><a target ="popup" href="%s" onClick="wopen('%swebGraphics/monthly/bytecount/%s/%s.png', 'popup', 875, 240); return false;">%s&nbsp;</a><a target ="popup" href="%s" onClick="wopen('%swebGraphics/monthly/bytecount/%s/%s.png', 'popup', 875, 240); return false;">%s&nbsp;</a></td>
-        """%( rxName,PXPaths.GRAPHS,rxName,months[0],months[0], rxName,PXPaths.GRAPHS,rxName,months[1],months[1], rxName,PXPaths.GRAPHS,rxName,months[2],months[2] )   )    
-    
-    
         
-        fileHandle.write(  """    
-            <td bgcolor="#66CCFF" width = "25%%" >Months&nbsp;:&nbsp;<a target ="popup" href="%s" onClick="wopen('%swebGraphics/monthly/filecount/%s/%s.png', 'popup', 875, 240); return false;">%s&nbsp;</a><a target ="popup" href="%s" onClick="wopen('%swebGraphics/monthly/filecount/%s/%s.png', 'popup', 875, 240); return false;">%s&nbsp;</a><a target ="popup" href="%s" onClick="wopen('%swebGraphics/monthly/filecount/%s/%s.png', 'popup', 875, 240); return false;">%s&nbsp;</a></td>
-        """%( rxName,PXPaths.GRAPHS,rxName,months[0],months[0], rxName,PXPaths.GRAPHS,rxName,months[1],months[1], rxName,PXPaths.GRAPHS,rxName,months[2],months[2] )  ) 
+        fileHandle.write(  """<tr> <td bgcolor="#99FF99" width = "25%%" > %s </td>""" %(rxName) )
+        
+        fileHandle.write(  """ <td bgcolor="#66CCFF" width = "25%%" >Months&nbsp;:&nbsp;""" )
+        
+        for month in months:
+            file = "%swebGraphics/monthly/bytecount/%s/%s.png" % (PXPaths.GRAPHS, rxName, month )
+            if os.path.isfile( file ):
+                fileHandle.write(  """<a target ="popup" href="%s" onClick="wopen('%s', 'popup', 875, 240); return false;">%s&nbsp;</a>"""%( rxName, file ,month ) ) 
+        
+        fileHandle.write( "</td>" )
+            
+        
+        fileHandle.write(  """ <td bgcolor="#66CCFF" width = "25%%" >Months&nbsp;:&nbsp;""" )        
+        
+        for month in months:
+            file = "%swebGraphics/monthly/filecount/%s/%s.png" % (PXPaths.GRAPHS, rxName, month )
+            if os.path.isfile(file):
+                fileHandle.write(  """<a target ="popup" href="%s" onClick="wopen('%s', 'popup', 875, 240); return false;">%s&nbsp;</a>"""%( rxName, file ,month ) )   
+                        
+        fileHandle.write( "</td>" )
         
         
-        fileHandle.write(  """    
-            <td bgcolor="#66CCFF" width = "25%%" >Months&nbsp;:&nbsp;<a target ="popup" href="%s" onClick="wopen('%swebGraphics/monthly/errors/%s/%s.png', 'popup', 875, 240); return false;">%s&nbsp;</a><a target ="popup" href="%s" onClick="wopen('%swebGraphics/monthly/errors/%s/%s.png', 'popup', 875, 240); return false;">%s&nbsp;</a><a target ="popup" href="%s" onClick="wopen('%swebGraphics/monthly/errors/%s/%s.png', 'popup', 875, 240); return false;">%s&nbsp;</a></td>
-        """%( rxName,PXPaths.GRAPHS,rxName,months[0],months[0], rxName,PXPaths.GRAPHS,rxName,months[1],months[1], rxName,PXPaths.GRAPHS,rxName,months[2],months[2] ) )   
+        fileHandle.write(  """ <td bgcolor="#66CCFF" width = "25%%" >Months&nbsp;:&nbsp;""" )
+        
+        for month in months:
+            file = "%swebGraphics/monthly/errors/%s/%s.png" % (PXPaths.GRAPHS, rxName, month )
+            if os.path.isfile( file ):
+                fileHandle.write(  """ <a target ="popup" href="%s" onClick="wopen('%s', 'popup', 875, 240); return false;">%s&nbsp;</a>"""%( rxName, file ,month ) )  
+        
+        fileHandle.write( "</td>" )  
               
     
     fileHandle.write(  """
@@ -142,46 +185,84 @@ def main():
     
     
     <br>
-    <h2>Monthly graphics for TX Clients from MetPx.</h2>
+    <h2>Monthly graphics for TX clients from MetPx.</h2>
     <br>
     <table width="100%%" border="1" cellspacing="5" cellpadding="5" bgcolor="#cccccc" bordercolor="#CCCCCC" frame = void >    
         <tr>
 
-            <td bgcolor="#006699" width = "16.66%%"><font color = "white">Client</font></td>
-            <td bgcolor="#006699" width = "16.66%%"><font color = "white">Latency</font></td>
-            <td bgcolor="#006699" width = "16.66%%"><font color = "white">Latencies over 15 secs.</font></td>
-            <td bgcolor="#006699" width = "16.66%%"><font color = "white">Bytecount</font></td>
-            <td bgcolor="#006699" width = "16.66%%"><font color = "white">Filecount</font></td>
-            <td bgcolor="#006699" width = "16.66%%"><font color = "white">Errors</font></td>
+            <td bgcolor="#006699" width = "16.66%%"><font color = "white"><div class="left">Clients</div><a target ="popup" href="%s" onClick="wopen('helpPages/client.html', 'popup', 875, 100); return false;"><div class="right">?</div></a></font></td>
+            
+            <td bgcolor="#006699" width = "16.66%%" title = "Display the taverage latency of file transfers for every day of the week for each clients."><font color = "white"><div class="left">Latency</div><a target ="popup" href="%s" onClick="wopen('helpPages/latency.html', 'popup', 875, 100); return false;"><div class="right">?</div></a></font></td>
+            
+            <td bgcolor="#006699" width = "16.66%%" title = "Display the total number of files for wich the latency was over 15 seconds for every day of the week for each clients."><font color = "white"><div class="left">Files Over Max. Lat.</div><a target ="popup" href="%s" onClick="wopen('helpPages/filesOverMaxLatency.html', 'popup', 875, 100); return false;"><div class="right">?</div></a></font></td>
+            
+            <td bgcolor="#006699" width = "16.66%%" title = "Display the total of bytes transfered every day of the week for each clients."><font color = "white"><div class="left">Bytecount</div><a target ="popup" href="%s" onClick="wopen('helpPages/byteCount.html', 'popup', 875, 100); return false;"><div class="right">?</div></a></font></td>
+            
+            <td bgcolor="#006699" width = "16.66%%" title = "Display the total of files transferred every day of the week for each clients."><font color = "white"><div class="left">Filecount</div><a target ="popup" href="%s" onClick="wopen('helpPages/fileCount.html', 'popup', 875, 100); return false;"><div class="right">?</div></a></font></td>
+            
+            <td bgcolor="#006699" width = "16.66%%" title = "Display the total of errors that occured during file transfers every day of the week for each clients."><font color = "white"><div class="left">Errors</div><a target ="popup" href="%s" onClick="wopen('helpPages/errors.html', 'popup', 875, 100); return false;"><div class="right">?</div></a></font></td>
             
         </tr>  
       
     
     """   )       
         
+    
+    
     for txName in txNames : 
+        
         fileHandle.write(  """<tr> <td bgcolor="#99FF99" width = "16.66%%" > %s </td>
         """ %(txName) )
         
-        fileHandle.write(  """    
-            <td bgcolor="#66CCFF" width = "16.66%%" >Months: <a target ="popup" href="%s" onClick="wopen('%swebGraphics/monthly/latency/%s/%s.png', 'popup', 875, 240); return false;">%s&nbsp;</a><a target ="popup" href="%s" onClick="wopen('%swebGraphics/monthly/latency/%s/%s.png', 'popup', 875, 240); return false;">%s&nbsp;</a><a target ="popup" href="%s" onClick="wopen('%swebGraphics/monthly/latency/%s/%s.png', 'popup', 875, 240); return false;">%s</a></td>
-        """%( txName,PXPaths.GRAPHS,txName,months[0],months[0], txName,PXPaths.GRAPHS,txName,months[1],months[1], txName,PXPaths.GRAPHS,txName,months[2],months[2] ) )   
+        fileHandle.write(  """ <td bgcolor="#66CCFF" width = "16.66%%%%" >Months&nbsp;:&nbsp;""" )
         
-        fileHandle.write(  """    
-            <td bgcolor="#66CCFF" width = "16.66%%" >Months: <a target ="popup" href="%s" onClick="wopen('%swebGraphics/monthly/filesOverMaxLatency/%s/%s.png', 'popup', 875, 240); return false;">%s&nbsp;</a><a target ="popup" href="%s" onClick="wopen('%swebGraphics/monthly/filesOverMaxLatency/%s/%s.png', 'popup', 875, 240); return false;">%s&nbsp;</a><a target ="popup" href="%s" onClick="wopen('%swebGraphics/monthly/filesOverMaxLatency/%s/%s.png', 'popup', 875, 240); return false;">%s</a></td>
-        """%( txName,PXPaths.GRAPHS,txName,months[0],months[0], txName,PXPaths.GRAPHS,txName,months[1],months[1], txName,PXPaths.GRAPHS,txName,months[2],months[2] )    )
+        for month in months:
+            file = "%swebGraphics/monthly/latency/%s/%s.png" % (PXPaths.GRAPHS, txName, month )
+            if os.path.isfile( file ):
+                fileHandle.write(  """<a target ="popup" href="%s" onClick="wopen('%s', 'popup', 875, 240); return false;">%s&nbsp;</a>"""%( txName, file ,month ) )
         
-        fileHandle.write(  """    
-            <td bgcolor="#66CCFF" width = "16.66%%" >Months: <a target ="popup" href="%s" onClick="wopen('%swebGraphics/monthly/bytecount/%s/%s.png', 'popup', 875, 240); return false;">%s&nbsp;</a><a target ="popup" href="%s" onClick="wopen('%swebGraphics/monthly/bytecount/%s/%s.png', 'popup', 875, 240); return false;">%s&nbsp;</a><a target ="popup" href="%s" onClick="wopen('%swebGraphics/monthly/bytecount/%s/%s.png', 'popup', 875, 240); return false;">%s</a></td>
-        """%( txName,PXPaths.GRAPHS,txName,months[0],months[0], txName,PXPaths.GRAPHS,txName,months[1],months[1], txName,PXPaths.GRAPHS,txName,months[2],months[2] ) )   
+        fileHandle.write( "</td>" )
         
-        fileHandle.write(  """    
-            <td bgcolor="#66CCFF" width = "16.66%%" >Months: <a target ="popup" href="%s" onClick="wopen('%swebGraphics/monthly/filecount/%s/%s.png', 'popup', 875, 240); return false;">%s&nbsp;</a><a target ="popup" href="%s" onClick="wopen('%swebGraphics/monthly/filecount/%s/%s.png', 'popup', 875, 240); return false;">%s&nbsp;</a><a target ="popup" href="%s" onClick="wopen('%swebGraphics/monthly/filecount/%s/%s.png', 'popup', 875, 240); return false;">%s</a></td>
-        """%( txName,PXPaths.GRAPHS,txName,months[0],months[0], txName,PXPaths.GRAPHS,txName,months[1],months[1], txName,PXPaths.GRAPHS,txName,months[2],months[2] )    )
         
-        fileHandle.write(  """    
-            <td bgcolor="#66CCFF" width = "16.66%%" >Months: <a target ="popup" href="%s" onClick="wopen('%swebGraphics/monthly/errors/%s/%s.png', 'popup', 875, 240); return false;">%s&nbsp;</a><a target ="popup" href="%s" onClick="wopen('%swebGraphics/monthly/errors/%s/%s.png', 'popup', 875, 240); return false;">%s&nbsp;</a><a target ="popup" href="%s" onClick="wopen('%swebGraphics/monthly/errors/%s/%s.png', 'popup', 875, 240); return false;">%s</a></td>
-        """%( txName,PXPaths.GRAPHS,txName,months[0],months[0], txName,PXPaths.GRAPHS,txName,months[1],months[1], txName,PXPaths.GRAPHS,txName,months[2],months[2] ) ) 
+        fileHandle.write(  """ <td bgcolor="#66CCFF" width = "16.66%%%%" >Months&nbsp;:&nbsp;""" )
+        
+        for month in months:
+            file = "%swebGraphics/monthly/filesOverMaxLatency/%s/%s.png" % (PXPaths.GRAPHS, txName, month )
+            if os.path.isfile( file ):
+                fileHandle.write(  """<a target ="popup" href="%s" onClick="wopen('%s', 'popup', 875, 240); return false;">%s&nbsp;</a>"""%( txName, file ,month ) )
+        
+        fileHandle.write( "</td>" )
+        
+        
+        
+        fileHandle.write(  """ <td bgcolor="#66CCFF" width = "16.66%%%%" >Months&nbsp;:&nbsp;""" )
+        
+        for month in months:
+            file = "%swebGraphics/monthly/bytecount/%s/%s.png" % (PXPaths.GRAPHS, txName, month )
+            if os.path.isfile( file ):
+                fileHandle.write(  """<a target ="popup" href="%s" onClick="wopen('%s', 'popup', 875, 240); return false;">%s&nbsp;</a>"""%( txName, file ,month ) )
+        
+        fileHandle.write( "</td>" )
+        
+        
+        fileHandle.write(  """ <td bgcolor="#66CCFF" width = "16.66%%%%" >Months&nbsp;:&nbsp;""" )
+        
+        for month in months:
+            file = "%swebGraphics/monthly/filecount/%s/%s.png" % (PXPaths.GRAPHS, txName, month )
+            if os.path.isfile( file ):
+                fileHandle.write(  """<a target ="popup" href="%s" onClick="wopen('%s', 'popup', 875, 240); return false;">%s&nbsp;</a>"""%( txName, file ,month ) )
+        
+        fileHandle.write( "</td>" )
+        
+        
+        fileHandle.write(  """ <td bgcolor="#66CCFF" width = "16.66%%%%" >Months&nbsp;:&nbsp;""" )
+        
+        for month in months:
+            file = "%swebGraphics/monthly/errors/%s/%s.png" % (PXPaths.GRAPHS, txName, month )
+            if os.path.isfile( file ):
+                fileHandle.write(  """<a target ="popup" href="%s" onClick="wopen('%s', 'popup', 875, 240); return false;">%s&nbsp;</a>"""%( txName, file ,month ) )
+        
+        fileHandle.write( "</td>" )
 
         
 

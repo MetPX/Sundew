@@ -36,8 +36,7 @@ LOCAL_MACHINE = os.uname()[1]
     
 def getYears():
     """
-        Returns the last 3 year numbers including the current year.
-    
+        Returns the last 3 year numbers including the current year.    
     """
     
     years = []
@@ -100,17 +99,24 @@ def main():
                 A{text-decoration:none}
                 -->
             </STYLE>
-            
+            <style type="text/css">
+                div.left { float: left; }
+                div.right {float: right; }
+            </style>
             <br>
             <h2>Yearly graphics for RX sources from MetPx.</h2>
             <br>
             
             <table width="100%" border="1" cellspacing="5" cellpadding="5" bgcolor="#cccccc" bordercolor="#CCCCCC" frame = void > 
-            <tr>    
-                <td bgcolor="#006699" width = "25%"><font color = "white">Client</font></td>
-                <td bgcolor="#006699" width = "25%"><font color = "white">Bytecount</font></td>
-                <td bgcolor="#006699" width = "25%"><font color = "white">Filecount</font></td>
-                <td bgcolor="#006699" width = "25%"><font color = "white">Errors</font></td>
+            <tr>   
+             
+                <td bgcolor="#006699" width = "16.66%%"><font color = "white"><div class="left">Sources</div><a target ="popup" href="%s" onClick="wopen('helpPages/source.html', 'popup', 875, 100); return false;"><div class="right">?</div></a></font></td>
+                
+                <td bgcolor="#006699" width = "25%" title = "Display the total of bytes received every day of the year for each sources."><font color = "white"><div class="left">Bytecount</div><a target ="popup" href="%s" onClick="wopen('helpPages/byteCount.html', 'popup', 875, 100); return false;"><div class="right">?</div></a> </font></td>
+                
+                <td bgcolor="#006699" width = "25%" title = "Display the total of files received every day of the year for each sources."><font color = "white"><div class="left">Filecount</div><a target ="popup" href="%s" onClick="wopen('helpPages/fileCount.html', 'popup', 875, 100); return false;"><div class="right">?</div></a></font></td>
+                
+                <td bgcolor="#006699" width = "25%" title = "Display the total of errors that occured during the receptions for every day of the year for each sources."><font color = "white"><div class="left">Errors</div><a target ="popup"  href="%s" onClick="wopen('helpPages/errors.html', 'popup', 875, 100); return false;"><div class="right">?</div></a></font></td>
             </tr>   
         
     
@@ -122,20 +128,33 @@ def main():
         fileHandle.write(  """<tr> <td bgcolor="#99FF99" width = "25%%" > %s </td>
         """ %(rxName) )
     
-        fileHandle.write(  """    
-            <td bgcolor="#66CCFF" width = "25%%" >Years&nbsp;:&nbsp;<a target ="popup" href="%s" onClick="wopen('%swebGraphics/yearly/bytecount/%s/%s.png', 'popup', 875, 240); return false;">%s&nbsp;</a><a target ="popup" href="%s" onClick="wopen('%swebGraphics/yearly/bytecount/%s/%s.png', 'popup', 875, 240); return false;">%s&nbsp;</a><a target ="popup" href="%s" onClick="wopen('%swebGraphics/yearly/bytecount/%s/%s.png', 'popup', 875, 240); return false;">%s&nbsp;</a></td>
-        """%( rxName,PXPaths.GRAPHS,rxName,years[0],years[0], rxName,PXPaths.GRAPHS,rxName,years[1],years[1], rxName,PXPaths.GRAPHS,rxName,years[2],years[2] )  )     
+        fileHandle.write(  """ <td bgcolor="#66CCFF" width = "25%%" >Years&nbsp;:&nbsp;""" )
+        
+        for year in years:
+            file = "%swebGraphics/yearly/bytecount/%s/%s.png" % (PXPaths.GRAPHS, rxName, year )
+            if os.path.isfile( file ):
+                fileHandle.write(  """<a target ="popup" href="%s" onClick="wopen('%s', 'popup', 875, 240); return false;">%s&nbsp;</a>"""%( rxName, file , year ) ) 
+        
+        fileHandle.write( "</td>" )      
     
-    
+        fileHandle.write(  """ <td bgcolor="#66CCFF" width = "25%%" >Years&nbsp;:&nbsp;""" )
         
-        fileHandle.write(  """    
-            <td bgcolor="#66CCFF" width = "25%%" >Years&nbsp;:&nbsp;<a target ="popup" href="%s" onClick="wopen('%swebGraphics/yearly/filecount/%s/%s.png', 'popup', 875, 240); return false;">%s&nbsp;</a><a target ="popup" href="%s" onClick="wopen('%swebGraphics/yearly/filecount/%s/%s.png', 'popup', 875, 240); return false;">%s&nbsp;</a><a target ="popup" href="%s" onClick="wopen('%swebGraphics/yearly/filecount/%s/%s.png', 'popup', 875, 240); return false;">%s&nbsp;</a></td>
-        """%( rxName,PXPaths.GRAPHS,rxName,years[0],years[0], rxName,PXPaths.GRAPHS,rxName,years[1],years[1], rxName,PXPaths.GRAPHS,rxName,years[2],years[2] )   )
+        for year in years:
+            file = "%swebGraphics/yearly/filecount/%s/%s.png" % (PXPaths.GRAPHS, rxName, year )
+            if os.path.isfile( file ):
+                fileHandle.write(  """<a target ="popup" href="%s" onClick="wopen('%s', 'popup', 875, 240); return false;">%s&nbsp;</a>"""%( rxName, file , year ) ) 
+        
+        fileHandle.write( "</td>" )    
         
         
-        fileHandle.write(  """    
-            <td bgcolor="#66CCFF" width = "25%%" >Years&nbsp;:&nbsp;<a target ="popup" href="%s" onClick="wopen('%swebGraphics/yearly/errors/%s/%s.png', 'popup', 875, 240); return false;">%s&nbsp;</a><a target ="popup" href="%s" onClick="wopen('%swebGraphics/yearly/errors/%s/%s.png', 'popup', 875, 240); return false;">%s&nbsp;</a><a target ="popup" href="%s" onClick="wopen('%swebGraphics/yearly/errors/%s/%s.png', 'popup', 875, 240); return false;">%s&nbsp;</a></td>
-        """%( rxName,PXPaths.GRAPHS,rxName,years[0],years[0], rxName,PXPaths.GRAPHS,rxName,years[1],years[1], rxName,PXPaths.GRAPHS,rxName,years[2],years[2] )    )
+        fileHandle.write(  """ <td bgcolor="#66CCFF" width = "25%%" >Years&nbsp;:&nbsp;""" )
+        
+        for year in years:
+            file = "%swebGraphics/yearly/errors/%s/%s.png" % (PXPaths.GRAPHS, rxName, year )
+            if os.path.isfile( file ):
+                fileHandle.write(  """<a target ="popup" href="%s" onClick="wopen('%s', 'popup', 875, 240); return false;">%s&nbsp;</a>"""%( rxName, file , year ) ) 
+        
+        fileHandle.write( "</td>" )    
               
     
     fileHandle.write(  """
@@ -145,17 +164,22 @@ def main():
     
     
     <br>
-    <h2>Yearly graphics for TX Clients from MetPx.</h2>
+    <h2>Yearly graphics for TX clients from MetPx.</h2>
     <br>
     <table width="100%%" border="1" cellspacing="5" cellpadding="5" bgcolor="#cccccc" bordercolor="#CCCCCC" frame = void >    
         <tr>
 
-            <td bgcolor="#006699" width = "16.66%%"><font color = "white">Client</font></td>
-            <td bgcolor="#006699" width = "16.66%%"><font color = "white">Latency</font></td>
-            <td bgcolor="#006699" width = "16.66%%"><font color = "white">Latencies over 15 secs.</font></td>
-            <td bgcolor="#006699" width = "16.66%%"><font color = "white">Bytecount</font></td>
-            <td bgcolor="#006699" width = "16.66%%"><font color = "white">Filecount</font></td>
-            <td bgcolor="#006699" width = "16.66%%"><font color = "white">Errors</font></td>
+            <td bgcolor="#006699" width = "16.66%%"><font color = "white"><div class="left">Clients</div><a target ="popup" href="%s" onClick="wopen('helpPages/client.html', 'popup', 875, 100); return false;"><div class="right">?</div></a></font></td>
+            
+            <td bgcolor="#006699" width = "16.66%%" title = "Display the average latency of file transfers for every day of the year for each clients."><font color = "white"><div class="left">Latency</div><a target ="popup" href="%s" onClick="wopen('helpPages/latency.html', 'popup', 875, 100); return false;"><div class="right">?</div></a></font></td>
+            
+            <td bgcolor="#006699" width = "16.66%%" title = "Display the total number of files for wich the latency was over 15 seconds for every day of the year for each clients."><font color = "white"><div class="left">Files Over Max. Lat.</div><a target ="popup" href="%s" onClick="wopen('helpPages/filesOverMaxLatency.html', 'popup', 875, 100); return false;"><div class="right">?</div></a></font></td>
+            
+            <td bgcolor="#006699" width = "16.66%%" title = "Display the total of bytes transfered every day of the year for each clients."><font color = "white"><div class="left">Bytecount</div><a target ="popup" href="%s" onClick="wopen('helpPages/byteCount.html', 'popup', 875, 100); return false;"><div class="right">?</div></a></font></td>
+            
+            <td bgcolor="#006699" width = "16.66%%" title = "Display the total of files transferred every day of the year for each clients."><font color = "white"><div class="left">Filecount</div><a target ="popup" href="%s" onClick="wopen('helpPages/fileCount.html', 'popup', 875, 100); return false;"><div class="right">?</div></a></font></td>
+            
+            <td bgcolor="#006699" width = "16.66%%" title = "Display the total of errors that occured during file transfers every day of the year for each clients."><font color = "white"><div class="left">Errors</div><a target ="popup" href="%s" onClick="wopen('helpPages/errors.html', 'popup', 875, 100); return false;"><div class="right">?</div></a></font></td>
             
         </tr>  
       
@@ -166,25 +190,50 @@ def main():
         fileHandle.write(  """<tr> <td bgcolor="#99FF99" width = "16.66%%" > %s </td>
         """ %(txName) )
         
-        fileHandle.write(  """    
-            <td bgcolor="#66CCFF" width = "16.66%%" >Years:<a target ="popup" href="%s" onClick="wopen('%swebGraphics/yearly/latency/%s/%s.png', 'popup', 875, 240); return false;">%s&nbsp;</a><a target ="popup" href="%s" onClick="wopen('%swebGraphics/yearly/latency/%s/%s.png', 'popup', 875, 240); return false;">%s&nbsp;</a><a target ="popup" href="%s" onClick="wopen('%swebGraphics/yearly/latency/%s/%s.png', 'popup', 875, 240); return false;">%s</a></td>
-        """%( txName,PXPaths.GRAPHS,txName,years[0],years[0], txName,PXPaths.GRAPHS,txName,years[1],years[1], txName,PXPaths.GRAPHS,txName,years[2],years[2] ) )   
+        fileHandle.write(  """ <td bgcolor="#66CCFF" width = "16.66%%%%" >Years&nbsp;:&nbsp;""" )
         
-        fileHandle.write(  """    
-            <td bgcolor="#66CCFF" width = "16.66%%" >Years:<a target ="popup" href="%s" onClick="wopen('%swebGraphics/yearly/filesOverMaxLatency/%s/%s.png', 'popup', 875, 240); return false;">%s&nbsp;</a><a target ="popup" href="%s" onClick="wopen('%swebGraphics/yearly/filesOverMaxLatency/%s/%s.png', 'popup', 875, 240); return false;">%s&nbsp;</a><a target ="popup" href="%s" onClick="wopen('%swebGraphics/yearly/filesOverMaxLatency/%s/%s.png', 'popup', 875, 240); return false;">%s</a></td>
-        """%( txName,PXPaths.GRAPHS,txName,years[0],years[0], txName,PXPaths.GRAPHS,txName,years[1],years[1], txName,PXPaths.GRAPHS,txName,years[2],years[2] ) )
+        for year in years:
+            file = "%swebGraphics/yearly/latency/%s/%s.png" % (PXPaths.GRAPHS, txName, year )
+            if os.path.isfile( file ):
+                fileHandle.write(  """<a target ="popup" href="%s" onClick="wopen('%s', 'popup', 875, 240); return false;">%s&nbsp;</a>"""%( txName, file , year ) )
         
-        fileHandle.write(  """    
-            <td bgcolor="#66CCFF" width = "16.66%%" >Years:<a target ="popup" href="%s" onClick="wopen('%swebGraphics/yearly/bytecount/%s/%s.png', 'popup', 875, 240); return false;">%s&nbsp;</a><a target ="popup" href="%s" onClick="wopen('%swebGraphics/yearly/bytecount/%s/%s.png', 'popup', 875, 240); return false;">%s&nbsp;</a><a target ="popup" href="%s" onClick="wopen('%swebGraphics/yearly/bytecount/%s/%s.png', 'popup', 875, 240); return false;">%s</a></td>
-        """%( txName,PXPaths.GRAPHS,txName,years[0],years[0], txName,PXPaths.GRAPHS,txName,years[1],years[1], txName,PXPaths.GRAPHS,txName,years[2],years[2] )    )
+        fileHandle.write( "</td>" )
         
-        fileHandle.write(  """    
-            <td bgcolor="#66CCFF" width = "16.66%%" >Years:<a target ="popup" href="%s" onClick="wopen('%swebGraphics/yearly/filecount/%s/%s.png', 'popup', 875, 240); return false;">%s&nbsp;</a><a target ="popup" href="%s" onClick="wopen('%swebGraphics/yearly/filecount/%s/%s.png', 'popup', 875, 240); return false;">%s&nbsp;</a><a target ="popup" href="%s" onClick="wopen('%swebGraphics/yearly/filecount/%s/%s.png', 'popup', 875, 240); return false;">%s</a></td>
-        """%( txName,PXPaths.GRAPHS,txName,years[0],years[0], txName,PXPaths.GRAPHS,txName,years[1],years[1], txName,PXPaths.GRAPHS,txName,years[2],years[2] )  )  
+        fileHandle.write(  """ <td bgcolor="#66CCFF" width = "16.66%%%%" >Years&nbsp;:&nbsp;""" )
         
-        fileHandle.write(  """    
-            <td bgcolor="#66CCFF" width = "16.66%%" >Years:<a target ="popup" href="%s" onClick="wopen('%swebGraphics/yearly/errors/%s/%s.png', 'popup', 875, 240); return false;">%s&nbsp;</a><a target ="popup" href="%s" onClick="wopen('%swebGraphics/yearly/errors/%s/%s.png', 'popup', 875, 240); return false;">%s&nbsp;</a><a target ="popup" href="%s" onClick="wopen('%swebGraphics/yearly/errors/%s/%s.png', 'popup', 875, 240); return false;">%s</a></td>
-        """%( txName,PXPaths.GRAPHS,txName,years[0],years[0], txName,PXPaths.GRAPHS,txName,years[1],years[1], txName,PXPaths.GRAPHS,txName,years[2],years[2] ) )       
+        for year in years:
+            file = "%swebGraphics/yearly/filesOverMaxLatency/%s/%s.png" % (PXPaths.GRAPHS, txName, year )
+            if os.path.isfile( file ):
+                fileHandle.write(  """<a target ="popup" href="%s" onClick="wopen('%s', 'popup', 875, 240); return false;">%s&nbsp;</a>"""%( txName, file , year ) )
+        
+        fileHandle.write( "</td>" )
+        
+        fileHandle.write(  """ <td bgcolor="#66CCFF" width = "16.66%%%%" >Years&nbsp;:&nbsp;""" )
+        
+        for year in years:
+            file = "%swebGraphics/yearly/bytecount/%s/%s.png" % (PXPaths.GRAPHS, txName, year )
+            if os.path.isfile( file ):
+                fileHandle.write(  """<a target ="popup" href="%s" onClick="wopen('%s', 'popup', 875, 240); return false;">%s&nbsp;</a>"""%( txName, file , year ) )
+        
+        fileHandle.write( "</td>" )
+        
+        fileHandle.write(  """ <td bgcolor="#66CCFF" width = "16.66%%%%" >Years&nbsp;:&nbsp;""" )
+        
+        for year in years:
+            file = "%swebGraphics/yearly/filecount/%s/%s.png" % (PXPaths.GRAPHS, txName, year )
+            if os.path.isfile( file ):
+                fileHandle.write(  """<a target ="popup" href="%s" onClick="wopen('%s', 'popup', 875, 240); return false;">%s&nbsp;</a>"""%( txName, file , year ) )
+        
+        fileHandle.write( "</td>" )
+        
+        fileHandle.write(  """ <td bgcolor="#66CCFF" width = "16.66%%%%" >Years&nbsp;:&nbsp;""" )
+        
+        for year in years:
+            file = "%swebGraphics/yearly/errors/%s/%s.png" % (PXPaths.GRAPHS, txName, year )
+            if os.path.isfile( file ):
+                fileHandle.write(  """<a target ="popup" href="%s" onClick="wopen('%s', 'popup', 875, 240); return false;">%s&nbsp;</a>"""%( txName, file , year ) )
+        
+        fileHandle.write( "</td>" )
 
         
 
