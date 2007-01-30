@@ -652,9 +652,10 @@ def verifyPicklePresence( parameters, report ):
         
         for txName in txNames:
             folders = getFoldersAndFilesAssociatedWith( txName, "tx", machine, startTime , parameters.endTime )
-
+            sortedFolders = folders.keys()
+            sortedFolders.sort()
             
-            for folder in folders.keys():
+            for folder in sortedFolders:
                 if os.path.isdir( folder ):
                     for file in folders[folder]:
                         if not os.path.isfile(file):
@@ -689,9 +690,12 @@ def verifyPicklePresence( parameters, report ):
         
         
         for rxName in rxNames:
-            folders = getFoldersAndFilesAssociatedWith( rxName, "rx", machine,parameters.startTime, parameters.endTime )
             
-            for folder in folders.keys():
+            folders = getFoldersAndFilesAssociatedWith( rxName, "rx", machine,parameters.startTime, parameters.endTime )
+            sortedFolders = folders.keys()
+            sortedFolders.sort()
+            
+            for folder in sortedFolders:
                 if os.path.isdir( folder ):
                     for file in folders[folder]:
                         if not os.path.isfile(file):
@@ -1103,7 +1107,7 @@ def verifyWebPages( parameters, report ):
     
     newReportLines = ""
     outdatedPageFound = False 
-    files = glob.glob( "/apps/px/stats/webPages/*.html" )  
+    files = glob.glob( "/apps/px/stats/webPages/*Graphs*.html" )  
     currentTime = MyDateLib.getSecondsSinceEpoch( parameters.endTime )
     
     
@@ -1112,7 +1116,7 @@ def verifyWebPages( parameters, report ):
         
         if ( currentTime - timeOfUpdate ) / ( 60*60 ) >1 :
             outdatedPageFound = True 
-            newReportLines = newReportLines + "%s was not updated since %s" %( file, timeOfUpdate ) 
+            newReportLines = newReportLines + "%s was not updated since %s.\n" %( file, MyDateLib.getIsoFromEpoch( timeOfUpdate )) 
     
     if outdatedPageFound :
         header = "\n\nThe following web page warning were found :\n"
