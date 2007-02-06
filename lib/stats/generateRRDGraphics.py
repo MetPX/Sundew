@@ -129,10 +129,8 @@ def getStartEndFromPreviousMonth( currentTime ):
         splitDate[1] = "01"
     
     firstDayOfPreviousMonth = str( splitDate[0] ) + "-" + str( splitDate[1] ) + "-01" 
-    start = firstDayOfPreviousMonth + " 00:00:00"   
-          
-   
-    
+    start = firstDayOfPreviousMonth + " 00:00:00"           
+       
     return start, end 
     
     
@@ -338,7 +336,7 @@ def getOptionsFromParser( parser ):
         sys.exit()    
         
      
-    #fix timeSpan method???   
+    #TODO fix timeSpan method???   
     if daily :
         timespan = 24  
         graphicType = "daily"      
@@ -352,7 +350,7 @@ def getOptionsFromParser( parser ):
         timespan = 24 * 365
         graphicType = "yearly"   
     
-    #fix start and end method???    
+    #TODO :fixStartEnd method???    
     if fixedPrevious :
         if daily :
             start, end = getStartEndFromPreviousDay( date )             
@@ -772,7 +770,7 @@ def getGraphicsMinMaxMeanTotal( databaseName, startTime, endTime, interval, logg
                     if value < min or min == None :
                         min = value 
                     sum = sum + value
-                    total = total + ( value*interval )
+                    total = total + value *interval
                 else:# don't count non-filled entries in mean.
                     nbEntries = nbEntries - 1    
             
@@ -880,7 +878,7 @@ def formatMinMaxMeanTotal( minimum, maximum, mean, total, type, averageOrTotal =
                     if i != nbEntries-1:
                         values[i] = "%s B/min" %int( values[i] )
                     else:
-                        values[i] = "%s bytes" %int( values[i] )
+                        values[i] = "%s Bytes" %int( values[i] )
                 
                 elif values[i] < 1000000:#less than a meg 
                     if i != nbEntries-1:
@@ -892,13 +890,13 @@ def formatMinMaxMeanTotal( minimum, maximum, mean, total, type, averageOrTotal =
                     if i != nbEntries-1:
                         values[i] = "%.2f MB/min"  %( values[i]/1000000.0 )
                     else:
-                        values[i] = "%s megaBytes" %int( values[i]/1000000.0 )
+                        values[i] = "%s MegaBytes" %int( values[i]/1000000.0 )
                 
                 else:#larger than a gig
                     if i != nbEntries-1:
                         values[i] = "%.2f GB/min"  %( values[i]/1000000000.0 )                 
                     else:
-                        values[i] = "%s gigaBytes" %int( values[i]/1000000000.0 )
+                        values[i] = "%s GigaBytes" %int( values[i]/1000000000.0 )
         
     else:
         if "file" in type:
@@ -939,12 +937,13 @@ def getGraphicsLegend( maximum ):
     """
     
     legend = ""
-    
-    if "KB" in maximum:
+   
+     
+    if "KB" in str(maximum):
         legend = "k on the y axis stands for kilo, meaning x thousands."
-    elif "MB" in maximum:
+    elif "MB" in str(maximum):
         legend = "M on the y axis stands for Mega, meaning x millions."
-    elif "GB" in maximum:
+    elif "GB" in str(maximum):
         legend = "G on the y axis stats for giga, meaning x billions."
     else:
         try:
@@ -988,7 +987,7 @@ def getInterval( startTime, timeOfLastUpdate, dataType  ):
 
 
     
-def getCopyDestination( type, client, infos ):
+def getCopyDestination( type, client, machine, infos ):
     """
        This method returns the absolute path to the copy 
        to create based on the time of creation of the 
@@ -1000,23 +999,40 @@ def getCopyDestination( type, client, infos ):
     
     oneDay = 24*60*60
     endTimeInSeconds = MyDateLib.getSecondsSinceEpoch( infos.endTime )
-
-    if infos.graphicType == "weekly":
-        fileName =  time.strftime( "%W", time.gmtime( endTimeInSeconds - oneDay ) )
-    elif infos.graphicType == "monthly":
-        fileName =  time.strftime( "%b", time.gmtime( endTimeInSeconds - oneDay ) )
-    elif infos.graphicType == "yearly":
-        fileName =  time.strftime( "%Y", time.gmtime( endTimeInSeconds - oneDay ) )
-    else:
-        fileName = client
     
-    destination = PXPaths.GRAPHS + "webGraphics/%s/%s/%s/%.50s.png" %( infos.graphicType, type , client, fileName )
+    if infos.totals != True:
+        
+        if infos.graphicType == "weekly":
+            fileName =  time.strftime( "%W", time.gmtime( endTimeInSeconds - oneDay ) )
+        elif infos.graphicType == "monthly":
+            fileName =  time.strftime( "%b", time.gmtime( endTimeInSeconds - oneDay ) )
+        elif infos.graphicType == "yearly":
+            fileName =  time.strftime( "%Y", time.gmtime( endTimeInSeconds - oneDay ) )
+        else:
+            fileName = client
+        
+        destination = PXPaths.GRAPHS + "webGraphics/%s/%s/%s/%.50s.png" %( infos.graphicType, type , client, fileName )
+    
+    else :
+        if infos.graphicType == "weekly":
+            fileName =  time.strftime( "%W", time.gmtime( endTimeInSeconds - oneDay ) )
+        elif infos.graphicType == "monthly":
+            fileName =  time.strftime( "%b", time.gmtime( endTimeInSeconds - oneDay ) )
+        elif infos.graphicType == "yearly":
+            fileName =  time.strftime( "%Y", time.gmtime( endTimeInSeconds - oneDay ) )
+        elif infos.graphicType == "daily":
+            fileName =  time.strftime( "%a", time.gmtime( endTimeInSeconds - oneDay ) )
+        else:
+            fileName = client
+        
+        destination = "%s/webGraphics/totals/%s/%s/%s/%s/%s.png" %( PXPaths.GRAPHS, machine,infos.fileType, type, infos.graphicType, fileName)
+    
     
     return destination    
     
          
     
-def createCopy( client, type, imageName, infos ):
+def createCopy( client, type, machine, imageName, infos ):
     """
         Create a copy in the appropriate 
         folder to the file named imageName.
@@ -1024,18 +1040,53 @@ def createCopy( client, type, imageName, infos ):
     """ 
    
     src         = imageName
-    destination = getCopyDestination( type, client, infos )
+    destination = getCopyDestination( type, client, machine, infos )
 
     if not os.path.isdir( os.path.dirname( destination ) ):
         os.makedirs( os.path.dirname( destination ), mode=0777 )                                                      
     
     if os.path.isfile( destination ):
         os.remove( destination )  
-          
+       
     shutil.copy( src, destination ) 
      
     
     
+def formatedTypesForLables( type ):
+    """
+        Takes the type of a graphic to be drawn
+        ( latency, filesOverMaxLatency...) and formats
+        it so that it can be used in the graphics labels.
+        ( y-axis label and title)       
+        
+        Will not format an unknown type.
+        
+    """
+    
+    formatedTitle  = type 
+    formatedYLabel = type
+    
+    if type == "latency":
+        formatedTitle = "Averaged latency per minute"   
+        formatedYLabel = "Latency(seconds)"    
+    elif type== "filesOverMaxLatency":
+        formatedTitle  = "Latencies over 15 seconds"   
+        formatedYLabel = "Files/Minute"
+    elif type== "bytecount":
+        formatedTitle = "Bytes/Minute"     
+        formatedYLabel = "Bytes/Minute"    
+    elif type== "filecount":
+        formatedTitle = "Files/Minute"     
+        formatedYLabel = "Files/Minute"   
+    elif type== "errors":
+        formatedTitle = "Errors/Minute" 
+        formatedYLabel = "Errors/Minute"        
+            
+    return formatedTitle, formatedYLabel
+    
+    
+    
+        
 def plotRRDGraph( databaseName, type, fileType, client, machine, infos, lastUpdate = None, logger = None ):
     """
         This method is used to produce a rrd graphic.
@@ -1043,10 +1094,10 @@ def plotRRDGraph( databaseName, type, fileType, client, machine, infos, lastUpda
     """
     
     
-    imageName  = buildImageName( type, client, machine, infos, logger )     
-    start      = int ( MyDateLib.getSecondsSinceEpoch ( infos.startTime ) ) 
-    end        = int ( MyDateLib.getSecondsSinceEpoch ( infos.endTime ) )  
-   
+    imageName    = buildImageName( type, client, machine, infos, logger )        
+    start        = int ( MyDateLib.getSecondsSinceEpoch ( infos.startTime ) ) 
+    end          = int ( MyDateLib.getSecondsSinceEpoch ( infos.endTime ) )  
+    formatedTitleType, formatedYLabelType = formatedTypesForLables( type )
     
     if lastUpdate == None :
         lastUpdate = getDatabaseTimeOfUpdate( client, machine, fileType )
@@ -1077,19 +1128,19 @@ def plotRRDGraph( databaseName, type, fileType, client, machine, infos, lastUpda
         outerColor = "1C4A1A"     
         total = "Total: %s" %total   
         
-    title = buildTitle( type, client, infos.endTime, infos.timespan, minimum, maximum, mean )   
+    title = buildTitle( formatedTitleType, client, infos.endTime, infos.timespan, minimum, maximum, mean )   
                 
     #note : in CDEF:realValue the i value can be changed from 1 to value of the interval variable
     #       in order to get the total displayed instead of the mean.
     if infos.graphicType != "monthly":
-        rrdtool.graph( imageName,'--imgformat', 'PNG','--width', '800','--height', '200','--start', "%i" %(start) ,'--end', "%s" %(end), '--vertical-label', '%s' %type,'--title', '%s'%title, '--lower-limit','0','DEF:%s=%s:%s:AVERAGE'%( type, databaseName, type), 'CDEF:realValue=%s,%i,*' %( type, 1), 'AREA:realValue#%s:%s' %( innerColor, type ),'LINE1:realValue#%s:%s'%( outerColor, type ), 'COMMENT:          %s' %graphicsNote, 'COMMENT: Min: %s     Max: %s     Mean: %s     %s\c' %( minimum, maximum, mean,total ), 'COMMENT:Note(s): %s %s\c' %(graphicsNote, graphicsLegeng )  )
+        rrdtool.graph( imageName,'--imgformat', 'PNG','--width', '800','--height', '200','--start', "%i" %(start) ,'--end', "%s" %(end), '--vertical-label', '%s' %formatedYLabelType,'--title', '%s'%title, '--lower-limit','0','DEF:%s=%s:%s:AVERAGE'%( type, databaseName, type), 'CDEF:realValue=%s,%i,*' %( type, 1), 'AREA:realValue#%s:%s' %( innerColor, type ),'LINE1:realValue#%s:%s'%( outerColor, type ), 'COMMENT: Min: %s     Max: %s     Mean: %s     %s\c' %( minimum, maximum, mean,total ), 'COMMENT:Note(s): %s %s\c' %(graphicsNote, graphicsLegeng )  )
 
     else:#With monthly graphics, we force the use the day of month number as the x label.       
         rrdtool.graph( imageName,'--imgformat', 'PNG','--width', '800','--height', '200','--start', "%i" %(start) ,'--end', "%s" %(end), '--vertical-label', '%s' %type,'--title', '%s'%title, '--lower-limit','0','DEF:%s=%s:%s:AVERAGE'%( type, databaseName, type), 'CDEF:realValue=%s,%i,*' %( type, 1), 'AREA:realValue#%s:%s' %( innerColor, type ),'LINE1:realValue#%s:%s'%( outerColor, type ), '--x-grid', 'HOUR:24:DAY:1:DAY:1:0:%d','COMMENT: Min: %s     Max: %s     Mean: %s     %s\c' %( minimum, maximum, mean, total ), 'COMMENT:Note(s): %s %s\c' %(graphicsNote, graphicsLegeng)  )       
     
     
     if infos.copy == True:
-        createCopy( client, type, imageName, infos )
+        createCopy( client, type, machine, imageName, infos )
     
     print "Plotted : %s" %imageName
     if logger != None:
@@ -1162,11 +1213,14 @@ def getPairsFromAllDatabases( type, machine, start, end, infos, logger=None ):
     for client in infos.clientNames:#Gather all pairs for that type
         
         databaseName = transferPickleToRRD.buildRRDFileName( type, client, machine )
+
         status, output = commands.getstatusoutput("rrdtool fetch %s  'AVERAGE' -s %s  -e %s" %( databaseName, start, end) )
+        #print "rrdtool fetch %s  'AVERAGE' -s %s  -e %s" %( databaseName, start, end)
+        #print output
         output = output.split( "\n" )[2:]
         typeData[client] = output
-    
- 
+        
+    #this finds nbEntries, make method out of this?
     while lastUpdate ==0 and i < len( infos.clientNames ) : # in case some databases dont exist
         lastUpdate = getDatabaseTimeOfUpdate( infos.clientNames[i], machine, infos.fileType )        
         interval  =  getInterval( start, lastUpdate, "other" )           
@@ -1179,7 +1233,7 @@ def getPairsFromAllDatabases( type, machine, start, end, infos, logger=None ):
         total = 0.0
         
         for client in infos.clientNames:
-            
+            #print client
             try : 
                 data = typeData[client][i].split( ":" )[1].replace(" ", "")
                 
@@ -1198,7 +1252,8 @@ def getPairsFromAllDatabases( type, machine, start, end, infos, logger=None ):
         if type == "latency":#latency is always an average
             total = total / ( len( output ) )
                      
-        
+        #print "type : %s" %type 
+        #print "typeData: %s" %typeData
         pairs.append( [typeData[client][i].split( " " )[0].replace( ":", "" ), total] )        
 
     
@@ -1220,8 +1275,8 @@ def createMergedDatabases( infos, logger = None ):
 
     dataPairs  = {}
     typeData   = {}
-    start      = MyDateLib.getSecondsSinceEpoch ( infos.starTime )  
-    end        = MyDateLib.getSecondsSinceEpoch ( infos.endTime )     
+    start      = int( MyDateLib.getSecondsSinceEpoch ( infos.startTime )  )
+    end        = int( MyDateLib.getSecondsSinceEpoch ( infos.endTime )    ) 
     databaseNames = {}
     
 
