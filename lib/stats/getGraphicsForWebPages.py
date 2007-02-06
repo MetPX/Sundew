@@ -48,14 +48,17 @@ def updateThisYearsGraphs( currentTime ):
     
     status, output = commands.getstatusoutput( "/apps/px/lib/stats/generateRRDGraphics.py -y --copy -f rx --machines 'pxatx' --date '%s' --fixedCurrent" %end )
     
-    
+    #total graphics 
+    status, output = commands.getstatusoutput( 'generateRRDGraphics.py --copy --totals -f "rx" --machines "pds5,pds6" -y --fixedCurrent' )
+    status, output = commands.getstatusoutput( 'generateRRDGraphics.py --copy --totals -f "tx" --machines "pds5,pds6" -y --fixedCurrent' )
+    status, output = commands.getstatusoutput( 'generateRRDGraphics.py --copy --totals -f "rx" --machines "pxatx" -y --fixedCurrent' )
+    status, output = commands.getstatusoutput( 'generateRRDGraphics.py --copy --totals -f "tx" --machines "pxatx" -y --fixedCurrent' )           
+        
     
 def setLastYearsGraphs( currentTime ):
     """
         This method generates all the yearly graphs
-        of the previous year.
-
-        
+        of the previous year.        
     """
     
     end = MyDateLib.getIsoFromEpoch(currentTime)
@@ -68,8 +71,14 @@ def setLastYearsGraphs( currentTime ):
     
     status, output = commands.getstatusoutput( "/apps/px/lib/stats/generateRRDGraphics.py -y --copy -f rx --machines 'pxatx' --date '%s' --fixedPrevious" %end )
         
-         
-        
+    #total graphics 
+    status, output = commands.getstatusoutput( 'generateRRDGraphics.py --copy --totals -f "rx" --machines "pds5,pds6" -y --fixedPrevious' )
+    status, output = commands.getstatusoutput( 'generateRRDGraphics.py --copy --totals -f "tx" --machines "pds5,pds6" -y --fixedPrevious' )
+    status, output = commands.getstatusoutput( 'generateRRDGraphics.py --copy --totals -f "rx" --machines "pxatx" -y --fixedPrevious' )
+    status, output = commands.getstatusoutput( 'generateRRDGraphics.py --copy --totals -f "tx" --machines "pxatx" -y --fixedPrevious' )            
+      
+    
+      
 def updateThisMonthsGraphs( currentTime ):
     """
     
@@ -88,7 +97,11 @@ def updateThisMonthsGraphs( currentTime ):
     
     status, output = commands.getstatusoutput( "/apps/px/lib/stats/generateRRDGraphics.py -m --copy -f rx --machines 'pxatx' --date '%s' --fixedCurrent" %end )
     
-     
+    #total graphics 
+    status, output = commands.getstatusoutput( 'generateRRDGraphics.py --copy --totals -f "rx" --machines "pds5,pds6" -m --fixedCurrent' )
+    status, output = commands.getstatusoutput( 'generateRRDGraphics.py --copy --totals -f "tx" --machines "pds5,pds6" -m --fixedCurrent' )
+    status, output = commands.getstatusoutput( 'generateRRDGraphics.py --copy --totals -f "rx" --machines "pxatx" -m --fixedCurrent' )
+    status, output = commands.getstatusoutput( 'generateRRDGraphics.py --copy --totals -f "tx" --machines "pxatx" -m --fixedCurrent' )           
     
     
 def setLastMonthsGraphs( currentTime ):
@@ -107,6 +120,12 @@ def setLastMonthsGraphs( currentTime ):
     status, output = commands.getstatusoutput( "/apps/px/lib/stats/generateRRDGraphics.py -m --copy -f tx --machines 'pxatx' --date'%s' --fixedPrevious" %end )
     
     status, output = commands.getstatusoutput( "/apps/px/lib/stats/generateRRDGraphics.py -m --copy -f rx --machines 'pxatx' --date '%s' --fixedPrevious" %end )
+
+    #total graphics 
+    status, output = commands.getstatusoutput( 'generateRRDGraphics.py --copy --totals -f "rx" --machines "pds5,pds6" -m --fixedPrevious' )
+    status, output = commands.getstatusoutput( 'generateRRDGraphics.py --copy --totals -f "tx" --machines "pds5,pds6" -m --fixedPrevious' )
+    status, output = commands.getstatusoutput( 'generateRRDGraphics.py --copy --totals -f "rx" --machines "pxatx" -m --fixedPrevious' )
+    status, output = commands.getstatusoutput( 'generateRRDGraphics.py --copy --totals -f "tx" --machines "pxatx" -m --fixedPrevious' )        
     
     
        
@@ -126,6 +145,11 @@ def setLastWeeksGraphs( currentTime ):
     
     status, output = commands.getstatusoutput( "/apps/px/lib/stats/generateRRDGraphics.py -w --copy -f rx --machines 'pxatx' --date '%s' --fixedPrevious" %end )
     
+    #total graphics 
+    status, output = commands.getstatusoutput( 'generateRRDGraphics.py --copy --totals -f "rx" --machines "pds5,pds6" -w --fixedPrevious' )
+    status, output = commands.getstatusoutput( 'generateRRDGraphics.py --copy --totals -f "tx" --machines "pds5,pds6" -w --fixedPrevious' )
+    status, output = commands.getstatusoutput( 'generateRRDGraphics.py --copy --totals -f "rx" --machines "pxatx" -w --fixedPrevious' )
+    status, output = commands.getstatusoutput( 'generateRRDGraphics.py --copy --totals -f "tx" --machines "pxatx" -w --fixedPrevious' )
     
         
 def updateThisWeeksGraphs( currentTime ):
@@ -137,7 +161,8 @@ def updateThisWeeksGraphs( currentTime ):
     """
 
     end = MyDateLib.getIsoFromEpoch(currentTime)
-
+    
+    #individual graphics 
     status, output = commands.getstatusoutput( "/apps/px/lib/stats/generateRRDGraphics.py -w --copy -f tx --machines 'pds5,pds6' --date '%s' --fixedCurrent " %end )
     
     status, output = commands.getstatusoutput( "/apps/px/lib/stats/generateRRDGraphics.py -w --copy -f rx --machines 'pds5,pds6' --date '%s' --fixedCurrent " %end )
@@ -146,16 +171,26 @@ def updateThisWeeksGraphs( currentTime ):
     
     status, output = commands.getstatusoutput( "/apps/px/lib/stats/generateRRDGraphics.py -w --copy -f rx --machines 'pxatx' --date '%s' --fixedCurrent " %end )
     
+    #total graphics 
+    status, output = commands.getstatusoutput( 'generateRRDGraphics.py --copy --totals -f "rx" --machines "pds5,pds6" -w --fixedCurrent' )
+    status, output = commands.getstatusoutput( 'generateRRDGraphics.py --copy --totals -f "tx" --machines "pds5,pds6" -w --fixedCurrent' )
+    status, output = commands.getstatusoutput( 'generateRRDGraphics.py --copy --totals -f "rx" --machines "pxatx" -w --fixedCurrent' )
+    status, output = commands.getstatusoutput( 'generateRRDGraphics.py --copy --totals -f "tx" --machines "pxatx" -w --fixedCurrent' )
+    
     
     
 def setYesterdaysGraphs( currentTime ):
     """
-        Takes all of the current graphs and set them as yesterdays graph. 
+        Takes all of the current individual daily graphs 
+        and sets them as yesterdays graph. 
         
         To be used only at midnight where the current columbo graphics 
         are yesterdays graphics.
 
         Graphics MUST have been updated PRIOR to calling this method!
+    
+        Combined graphics are generated here.
+        
     """
     
     filePattern = PXPaths.GRAPHS + "webGraphics/columbo/*.png"
@@ -172,6 +207,11 @@ def setYesterdaysGraphs( currentTime ):
         shutil.copyfile( graph, dest )    
         #print "copy %s to %s" %( graph, dest )
 
+    status, output = commands.getstatusoutput( 'generateRRDGraphics.py --copy --totals -f "rx" --machines "pds5,pds6" -d --fixedPrevious' )
+    status, output = commands.getstatusoutput( 'generateRRDGraphics.py --copy --totals -f "tx" --machines "pds5,pds6" -d --fixedPrevious' )
+    status, output = commands.getstatusoutput( 'generateRRDGraphics.py --copy --totals -f "rx" --machines "pxatx" -d --fixedPrevious' )
+    status, output = commands.getstatusoutput( 'generateRRDGraphics.py --copy --totals -f "tx" --machines "pxatx" -d --fixedPrevious' )     
+        
         
         
 def setCurrentGraphsAsDailyGraphs( currentTime )  :
@@ -211,35 +251,33 @@ def main():
         from wich the graphics are gathered are also hardcoded.   
                 
     """
+    
     currentTime = time.time()
     
-    setCurrentGraphsAsDailyGraphs( currentTime )
-    
-    #print time.strftime( "%H", time.gmtime( currentTime ) ) 
+    setCurrentGraphsAsDailyGraphs( currentTime )    
+
     if int(time.strftime( "%H", time.gmtime( currentTime ) ) ) == 0:#midnight
         
-        setYesterdaysGraphs( currentTime )
+        setYesterdaysGraphs( currentTime )#Day has changed,lets keep yesterday's graph.
         
         if  time.strftime( "%a", time.gmtime( currentTime ) ) == 'Mon':#first day of week
-            updateThisWeeksGraphs( currentTime )
             setLastWeeksGraphs( currentTime )
-        else:
+            updateThisMonthsGraphs( currentTime )
+            updateThisWeeksGraphs( currentTime )
+        else:#update daily.
             updateThisWeeksGraphs( currentTime )
             
         if int(time.strftime( "%d", time.gmtime( currentTime ) )) == 1:#first day of month
-            updateThisMonthsGraphs( currentTime)
-            setLastMonthsGraphs( currentTime )        
-        else:
-            updateThisMonthsGraphs( currentTime )            
+            setLastMonthsGraphs( currentTime )# month is over let's wrap it up.
+            updateThisYearsGraphs( currentTime )#add past month to years graph.
+            
+            if time.strftime( "%a", time.gmtime( currentTime ) ) != 'Mon':#first day of week
+                updateThisMonthsGraphs( currentTime )         
         
-        if int(time.strftime( "%j", time.gmtime( currentTime ) )) == 1:#first day of year
-            updateThisYearsGraphs( currentTime )
-            setLastYearsGraphs( currentTime )
-        else:
-            updateThisYearsGraphs( currentTime )     
+         if int(time.strftime( "%j", time.gmtime( currentTime ) )) == 1:#first day of year
+            setLastYearsGraphs( currentTime )        
     
-    else:
-        
+    else:        
         updateThisWeeksGraphs( currentTime )
             
     

@@ -24,11 +24,13 @@ named COPYING in the root of the source directory tree.
 ##############################################################################
 import os, time,sys
 import generalStatsLibraryMethods
+
 import string 
+
 from PXPaths   import * 
 from PXManager import *
 from generalStatsLibraryMethods import *
-
+   
 LOCAL_MACHINE = os.uname()[1]   
 
 
@@ -123,8 +125,8 @@ def main():
     """
     
     machineNames = [ "pds5,pds6", "pxatx"]
-    rxTypes      = [ "byteCount", "fileCount", "errors"]
-    txTypes      = [ "latency", "filesOverMaxLat", "byteCount", "fileCount", "errors"]
+    rxTypes      = [ "bytecount", "filecount", "errors"]
+    txTypes      = [ "latency", "filesOverMaxLatency", "bytecount", "filecount", "errors"]
     timeTypes    = [ "daily","weekly","monthly","yearly"]   
     days   = getDays() 
     weeks  = getWeekNumbers()
@@ -179,63 +181,17 @@ def main():
             <table width="100%%" border="1" cellspacing="5" cellpadding="5" bgcolor="#cccccc" bordercolor="#CCCCCC" frame = void > 
             
             <tr>    
-                <td bgcolor="#006699" width = "25%%"><font color = "white">Type</font></td>            
-                <td bgcolor="#006699" width = "25%%"><font color = "white">ByteCount</font></td>
-                <td bgcolor="#006699" width = "25%%"><font color = "white">FileCount</font></td>
-                <td bgcolor="#006699" width = "25%%"><font color = "white">Errors</font></td>
-            </tr>   
-            """ %( string.upper( machineName ) ) ) 
-        
-        
-        
-        for timeType in timeTypes:    
-            fileHandle.write( """ 
-            <tr> 
-                <td bgcolor="#99FF99" width = "25%%" > %s transmissions </td>                  
-        
-            """ %( timeType[0].upper() + timeType[1:] ) )
-            if timeType == "daily" :
-                timeContainer = days     
-            elif timeType == "weekly":
-                timeContainer = weeks
-            elif timeType == "monthly":
-                timeContainer = months
-            elif timeType == "yearly":
-                timeContainer = years
-                         
-            for type in rxTypes:
-                fileHandle.write( """<td bgcolor="#66CCFF" width = "25%%" > %s : """ %(timeType[0].upper() + timeType[1:]) )
+                <td bgcolor="#006699" width = "25%%"><font color = "white"><div class="left">Type</font></td>   
                 
-                for x in timeContainer:
-                    file = "%s/webGraphics/totals/%s/rx/%s/%s/%s.png" %( PXPaths.GRAPHS,machineName,type, timeType,x ) 
-                    if os.path.isfile(file):    
-                        fileHandle.write(  """<a target ="rx" href="%s">%s</a>""" %( file, day ) )
-                    
-                fileHandle.write( """</td>""" )
-            
-            fileHandle.write( """</tr>""" )       
+                <td bgcolor="#006699" width = "25%%" title = "Display the total of bytes received by all sources."><font color = "white"><div class="left">ByteCount</div><a target ="popup" href="help" onClick="wopen('helpPages/byteCount.html', 'popup', 875, 100); return false;"><div class="right">?</div></a></font></td>
                 
-        fileHandle.write( """</table>""" )      
-        
-        ####################################txPart
-        
-        fileHandle.write("""                
-            <br>
-                <h2>TX totals for %s.</h2>
-            <br>
-    
-            <table width="100%%" border="1" cellspacing="5" cellpadding="5" bgcolor="#cccccc" bordercolor="#CCCCCC" frame = void > 
-            
-                <tr>    
-                    <td bgcolor="#006699" width = "16.66%%"><font color = "white">Type</font></td> 
-                    <td bgcolor="#006699" width = "16.66%%"><font color = "white">Latency</font></td>
-                    <td bgcolor="#006699" width = "16.66%%"><font color = "white">Files Over Max. Lat.</font></td> 
-                    <td bgcolor="#006699" width = "16.66%%"><font color = "white">ByteCount</font></td>
-                    <td bgcolor="#006699" width = "16.66%%"><font color = "white">FileCount</font></td>
-                    <td bgcolor="#006699" width = "16.66%%"><font color = "white">Errors</font></td>
-                </tr>   
+                <td bgcolor="#006699" width = "25%%" title = "Display the total of files received by all sources."><font color = "white"><div class="left">FileCount</div><a target ="popup" href="help" onClick="wopen('helpPages/fileCount.html', 'popup', 875, 100); return false;"><div class="right">?</div></a></font></td>
+                
+                <td bgcolor="#006699" width = "25%%" title = "Display the total of errors that occured during all the receptions."><font color = "white"><div class="left">Errors</div><a target ="popup"  href="help" onClick="wopen('helpPages/errors.html', 'popup', 875, 100); return false;"><div class="right">?</div></a></font></td>
+                
+            </tr>
                
-            """ %( string.upper( machineName ) ) )
+            """ %( string.upper( machineName ) ) ) 
         
         
         
@@ -254,14 +210,74 @@ def main():
             elif timeType == "yearly":
                 timeContainer = years
                          
+            for type in rxTypes:
+                fileHandle.write( """<td bgcolor="#66CCFF" width = "25%%" > %s : """ %(timeType[0].upper() + timeType[1:]) )
+                
+                for x in timeContainer:
+                    file = "%s/webGraphics/totals/%s/rx/%s/%s/%s.png" %( PXPaths.GRAPHS, machineName, type, timeType, x ) 
+                    if os.path.isfile(file):    
+                        fileHandle.write(  """<a target ="popup" href="%s" onClick="wopen('%s', 'popup', 875, 240); return false;">%s&nbsp;</a>""" %( x, file, x ) )
+                    
+                fileHandle.write( """</td>""" )
+            
+            fileHandle.write( """</tr>""" )       
+                
+        fileHandle.write( """</table>""" )      
+        
+        ####################################txPart
+        
+        fileHandle.write("""                
+            <br>
+                <h2>TX totals for %s.</h2>
+            <br>
+    
+            <table width="100%%" border="1" cellspacing="5" cellpadding="5" bgcolor="#cccccc" bordercolor="#CCCCCC" frame = void > 
+            
+                <tr>
+                    
+                    <td bgcolor="#006699" width = "16.66%%" title = >Type</font></td> 
+                    
+                    <td bgcolor="#006699" width = "16.66%%" "Display the average latency of file transfers for all clients."><font color = "white"><font color = "white"><div class="left">Latency</div><a target ="popup" href="help" onClick="wopen('helpPages/latency.html', 'popup', 875, 100); return false;"><div class="right">?</div></a></font></td>
+                    
+                    <td bgcolor="#006699" width = "16.66%%" title = "Display the number of files for wich the latency was over 15 seconds for all clients."><font color = "white"><div class="left">Files Over Max. Lat.</div><a target ="popup" href="help" onClick="wopen('helpPages/filesOverMaxLatency.html', 'popup', 875, 100); return false;"><div class="right">?</div></a></font></td> 
+                    
+                    <td bgcolor="#006699" width = "16.66%%" title = "Display number of bytes transfered to all clients." ><font color = "white"><div class="left">ByteCount</div><a target ="popup" href="help" onClick="wopen('helpPages/byteCount.html', 'popup', 875, 100); return false;"><div class="right">?</div></a></font></td>
+                    
+                    <td bgcolor="#006699" width = "16.66%%" title = "Display the number of files transferred every day to all clients."><font color = "white"><div class="left">FileCount</div><a target ="popup" href="help" onClick="wopen('helpPages/fileCount.html', 'popup', 875, 100); return false;"><div class="right">?</div></a></font></td>
+                    
+                    <td bgcolor="#006699" width = "16.66%%" title = "Display the total of errors that occured during the file transfers to allclients."><font color = "white"><div class="left">Errors</div><a target ="popup" href="help" onClick="wopen('helpPages/errors.html', 'popup', 875, 100); return false;"><div class="right">?</div></a></font></td>
+                
+                </tr>   
+               
+            """ %( string.upper( machineName ) ) )
+        
+        
+        
+        for timeType in timeTypes:    
+            fileHandle.write( """ 
+            <tr> 
+                <td bgcolor="#99FF99" width = "16.66%%" > %s transmissions </td>                  
+        
+            """ %( timeType[0].upper() + timeType[1:] ) )
+            if timeType == "daily" :
+                timeContainer = days     
+            elif timeType == "weekly":
+                timeContainer = weeks
+            elif timeType == "monthly":
+                timeContainer = months
+            elif timeType == "yearly":
+                timeContainer = years
+                         
             for type in txTypes:
                 fileHandle.write( """<td bgcolor="#66CCFF" width = "16.66%%" > %s : """ %(timeType[0].upper() + timeType[1:]) )
                 
                 for x in timeContainer:
-                    file = "%s/webGraphics/totals/%s/tx/%s/%s/%s.png" %( PXPaths.GRAPHS,machineName,type, timeType,x ) 
+                    file = "%swebGraphics/totals/%s/tx/%s/%s/%s.png" %( PXPaths.GRAPHS, machineName, type, timeType,x ) 
                     if os.path.isfile(file):    
-                        fileHandle.write(  """<a target ="tx" href="%s">%s</a>""" %( file, day ) )
-                    
+                        fileHandle.write(  """<a target ="popup" href="%s" onClick="wopen('%s', 'popup', 875, 240); return false;">%s&nbsp;</a>""" %( x,file, x ) )
+                    else:
+                        print file
+                         
                 fileHandle.write( """</td>""" )
             
             fileHandle.write( """</tr>""" )       
@@ -270,14 +286,9 @@ def main():
         
         #End of tx part.             
         
-        fileHandle.close()
-               
-  
-            
-            
-            
-            
-            
+        fileHandle.close()         
+                                
+                        
 if __name__ == "__main__":
     main()            
             
