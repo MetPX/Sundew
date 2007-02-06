@@ -246,15 +246,52 @@ def buildReportHeader( parameters ):
     return reportHeader
 
     
+
+def getPresenceOfWarningsOrErrorsWithinReport( report ):
+    """
+        Returns whether or not important warnings or errors were found within
+        the specified report.
+    """     
     
-def getEmailSubject( currentTime):
+    results = ""
+    
+    if "The following disk usage warnings have been found" in report :
+        results = "disk usage errors"
+    
+    if "The following data gaps were not found in error log file" in report:
+        if results == "":
+            results = "data gaps errors"    
+        else:
+            results = results + ",data gaps errors"
+    
+    if results == "":
+        
+        if "Crontab entries were modified since" in report:
+            results = "warnings"
+
+        elif "Missing files were found" in report :
+            results = "warnings"
+        
+        elif "The following" in report:
+            results = "warnings"
+        
+        else:
+            results = "no warnings."
+    
+    return results
+    
+    
+    
+def getEmailSubject( currentTime, report ):
     """
         Returns the subject of the
         email to be sent.
     
     """       
     
-    subject = "[Stats Library Monitoring] %s %s" %( LOCAL_MACHINE, currentTime )
+    
+    warningsOrErrorsPresent = getPresenceOfWarningsOrErrorsWithinReport( report )
+    subject = "[Stats Library Monitoring] %s with %s." %( LOCAL_MACHINE, warningsOrErrorsPresent )
     
     return subject    
     
@@ -554,7 +591,7 @@ def sendReportByEmail( parameters, report  ) :
     html = " <html> %s </html>" %(report).replace( "\n", "<br>" )
     text = report
     
-    subject = getEmailSubject( parameters.endTime )
+    subject = getEmailSubject( parameters.endTime, report )
     message = mailLib.createhtmlmail(html, text, subject)
     server = smtplib.SMTP("smtp.cmc.ec.gc.ca")
     server.set_debuglevel(0)
