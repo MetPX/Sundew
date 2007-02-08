@@ -113,7 +113,7 @@ def main():
         </table>
         
         
-        <DIV STYLE="overflow: auto; width: 1235px; height: 220; 
+        <DIV STYLE="overflow: auto; width: 1235px; height: 180; 
                     border-left: 0px gray solid; border-bottom: 0px gray solid; 
                     padding:0px; margin: 0px">
         <TABLE cellspacing=10 cellpadding=8> 
@@ -148,7 +148,7 @@ def main():
             
         </tr>  
      </table>   
-    <DIV STYLE="overflow: auto; width: 1235px; height: 220; 
+    <DIV STYLE="overflow: auto; width: 1235px; height: 180; 
                 border-left: 0px gray solid; border-bottom: 0px gray solid; 
                 padding:0px; margin: 0px">
     <TABLE cellspacing=10 cellpadding=8>  

@@ -140,7 +140,7 @@ def main():
         </tr>   
         </TABLE>
         
-        <DIV STYLE="overflow: auto; width: 1255px; height: 220; 
+        <DIV STYLE="overflow: auto; width: 1255px; height: 180; 
                     border-left: 0px gray solid; border-bottom: 0px gray solid; 
                     padding:0px; margin: 0px">
         <TABLE cellspacing=10 cellpadding=8>   
@@ -200,7 +200,7 @@ def main():
             
             <td bgcolor="#006699" width = 190 title = "Display the taverage latency of file transfers for every day of the week for each clients."><font color = "white"><div class="left">Latency</div><a target ="popup" href="%s" onClick="wopen('helpPages/latency.html', 'popup', 875, 100); return false;"><div class="right">?</div></a></font></td>
             
-            <td bgcolor="#006699" width = 190 title = "Display the total number of files for wich the latency was over 15 seconds for every day of the week for each clients."><font color = "white"><div class="left">Files > Max. Lat.</div><a target ="popup" href="%s" onClick="wopen('helpPages/filesOverMaxLatency.html', 'popup', 875, 100); return false;"><div class="right">?</div></a></font></td>
+            <td bgcolor="#006699" width = 190 title = "Display the total number of files for wich the latency was over 15 seconds for every day of the week for each clients."><font color = "white"><div class="left">Files over Max. Lat.</div><a target ="popup" href="%s" onClick="wopen('helpPages/filesOverMaxLatency.html', 'popup', 875, 100); return false;"><div class="right">?</div></a></font></td>
             
             <td bgcolor="#006699" width = 190 title = "Display the total of bytes transfered every day of the week for each clients."><font color = "white"><div class="left">Bytecount</div><a target ="popup" href="%s" onClick="wopen('helpPages/byteCount.html', 'popup', 875, 100); return false;"><div class="right">?</div></a></font></td>
             
@@ -211,7 +211,7 @@ def main():
         </tr>  
         </table>
         
-        <DIV STYLE="overflow: auto; width: 1255px; height: 220; 
+        <DIV STYLE="overflow: auto; width: 1255px; height: 180; 
                     border-left: 0px gray solid; border-bottom: 0px gray solid; 
                     padding:0px; margin: 0px">
         <TABLE cellspacing=5 cellpadding=4>    
@@ -223,10 +223,10 @@ def main():
     
     for txName in txNames : 
         
-        fileHandle.write(  """<tr> <td bgcolor="#99FF99" width = 180 > %s </td>
+        fileHandle.write(  """<tr> <td bgcolor="#99FF99" width = 190 > %s </td>
         """ %(txName) )
         
-        fileHandle.write(  """ <td bgcolor="#66CCFF" width = 180 >Months:&nbsp;""" )
+        fileHandle.write(  """ <td bgcolor="#66CCFF" width = 190 >Months:&nbsp;""" )
         
         for month in months:
             file = "%swebGraphics/monthly/latency/%s/%s.png" % (PXPaths.GRAPHS, txName, month )
@@ -236,7 +236,7 @@ def main():
         fileHandle.write( "</td>" )
         
         
-        fileHandle.write(  """ <td bgcolor="#66CCFF" width = 180 >Months:&nbsp;""" )
+        fileHandle.write(  """ <td bgcolor="#66CCFF" width = 190 >Months:&nbsp;""" )
         
         for month in months:
             file = "%swebGraphics/monthly/filesOverMaxLatency/%s/%s.png" % (PXPaths.GRAPHS, txName, month )
@@ -247,7 +247,7 @@ def main():
         
         
         
-        fileHandle.write(  """ <td bgcolor="#66CCFF" width = 180>Months:&nbsp;""" )
+        fileHandle.write(  """ <td bgcolor="#66CCFF" width = 190>Months:&nbsp;""" )
         
         for month in months:
             file = "%swebGraphics/monthly/bytecount/%s/%s.png" % (PXPaths.GRAPHS, txName, month )
@@ -257,7 +257,7 @@ def main():
         fileHandle.write( "</td>" )
         
         
-        fileHandle.write(  """ <td bgcolor="#66CCFF" width = 180 >Months:&nbsp;""" )
+        fileHandle.write(  """ <td bgcolor="#66CCFF" width = 190 >Months:&nbsp;""" )
         
         for month in months:
             file = "%swebGraphics/monthly/filecount/%s/%s.png" % (PXPaths.GRAPHS, txName, month )
@@ -267,7 +267,7 @@ def main():
         fileHandle.write( "</td>" )
         
         
-        fileHandle.write(  """ <td bgcolor="#66CCFF" width = 180 >Months:&nbsp;""" )
+        fileHandle.write(  """ <td bgcolor="#66CCFF" width = 190 >Months:&nbsp;""" )
         
         for month in months:
             file = "%swebGraphics/monthly/errors/%s/%s.png" % (PXPaths.GRAPHS, txName, month )

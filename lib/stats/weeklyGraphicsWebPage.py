@@ -35,14 +35,14 @@ LOCAL_MACHINE = os.uname()[1]
     
 def getWeekNumbers():
     """
-        Returns the 5 week numbers including current week number.
+        Returns the 3 week numbers including current week number.
     
     """
     
     weekNumbers = []
     
-    startTime = (time.time() - (5*7*24*60*60))
-    for i in range(1,6):
+    startTime = (time.time() - (3*7*24*60*60))
+    for i in range(1,4):
         weekNumbers.append( time.strftime("%W",time.gmtime(startTime + (i*7*24*60*60))) )
    
     return weekNumbers
@@ -101,31 +101,36 @@ def main():
             div.left { float: left; }
             div.right {float: right; }
         </style>
-        
-        <br>
+        <BR>
         <h2>Weekly graphics for RX sources from MetPx.</h2>
-        <br>
-        <table width="100%%" border="1" cellspacing="5" cellpadding="5" bgcolor="#cccccc" bordercolor="#CCCCCC" frame = void > 
-        <tr>    
-            
-            <td bgcolor="#006699" width = "16.66%%"><font color = "white"><div class="left">Sources</div><a target ="popup" href="%s" onClick="wopen('helpPages/source.html', 'popup', 875, 100); return false;"><div class="right">?</div></a></font></td>
-            
-            <td bgcolor="#006699" width = "25%%" title = "Display the total of bytes received every day of the week for each sources."><font color = "white"><div class="left">Bytecount</div><a target ="popup" href="%s" onClick="wopen('helpPages/byteCount.html', 'popup', 875, 100); return false;"><div class="right">?</div></a> </font></td>
-            
-            <td bgcolor="#006699" width = "25%%" title = "Display the total of files received every day of the week for each sources."><font color = "white"><div class="left">Filecount</div><a target ="popup" href="%s" onClick="wopen('helpPages/fileCount.html', 'popup', 875, 100); return false;"><div class="right">?</div></a></font></td>
-            
-            <td bgcolor="#006699" width = "25%%" title = "Display the total of errors that occured during the receptions for every day of the week for each sources."><font color = "white"><div class="left">Errors</div><a target ="popup"  href="%s" onClick="wopen('helpPages/errors.html', 'popup', 875, 100); return false;"><div class="right">?</div></a></font></td>
-            
-        </tr>         
+                
+        <TABLE cellspacing=10 cellpadding=8 id=header bgcolor="#cccccc">
+        
+            <tr>
+                <td bgcolor="#006699" width = 280 ><font color = "white"><div class="left">Sources</div><a target ="popup" href="%s" onClick="wopen('helpPages/source.html', 'popup', 875, 100); return false;"><div class="right">?</div></a></font></td>
+                
+                <td bgcolor="#006699" width = 280 title = "Display the total of bytes received every day of the week for each sources."><font color = "white"><div class="left">Bytecount</div><a target ="popup" href="%s" onClick="wopen('helpPages/byteCount.html', 'popup', 875, 100); return false;"><div class="right">?</div></a> </font></td>
+                
+                <td bgcolor="#006699" width = 280 title = "Display the total of files received every day of the week for each sources."><font color = "white"><div class="left">Filecount</div><a target ="popup" href="%s" onClick="wopen('helpPages/fileCount.html', 'popup', 875, 100); return false;"><div class="right">?</div></a></font></td>
+                
+                <td bgcolor="#006699" width = 280 title = "Display the total of errors that occured during the receptions for every day of the week for each sources."><font color = "white"><div class="left">Errors</div><a target ="popup"  href="%s" onClick="wopen('helpPages/errors.html', 'popup', 875, 100); return false;"><div class="right">?</div></a></font></td>
+            </tr>
+        </TABLE>
+        
+        <DIV STYLE="overflow: auto; width: 1255px; height: 180; 
+                    border-left: 0px gray solid; border-bottom: 0px gray solid; 
+                    padding:0px; margin: 0px">
+        <TABLE cellspacing=10 cellpadding=8>   
+    
     
     """ )    
     
     
     for rxName in rxNames :
         
-        fileHandle.write(  """<tr> <td bgcolor="#99FF99" width = "25%%" > %s </td>""" %(rxName) )
+        fileHandle.write(  """<tr> <td bgcolor="#99FF99" width = 300 > %s </td>""" %(rxName) )
         
-        fileHandle.write(  """ <td bgcolor="#66CCFF" width = "25%%" >Weeks&nbsp;:&nbsp;""" )
+        fileHandle.write(  """ <td bgcolor="#66CCFF" width = 300>Weeks&nbsp;:&nbsp;""" )
         
         for week in weekNumbers:
             file = "%swebGraphics/weekly/bytecount/%s/%s.png" % (PXPaths.GRAPHS, rxName, week )
@@ -136,7 +141,7 @@ def main():
     
     
         
-        fileHandle.write(  """ <td bgcolor="#66CCFF" width = "25%%" >Weeks&nbsp;:&nbsp;""" )
+        fileHandle.write(  """ <td bgcolor="#66CCFF" width = 300 >Weeks&nbsp;:&nbsp;""" )
         
         for week in weekNumbers:
             file = "%swebGraphics/weekly/filecount/%s/%s.png" % (PXPaths.GRAPHS, rxName, week )
@@ -146,7 +151,7 @@ def main():
         fileHandle.write( "</td>" ) 
         
         
-        fileHandle.write(  """ <td bgcolor="#66CCFF" width = "25%%" >Weeks&nbsp;:&nbsp;""" )
+        fileHandle.write(  """ <td bgcolor="#66CCFF" width = 300 >Weeks&nbsp;:&nbsp;""" )
         
         for week in weekNumbers:
             file = "%swebGraphics/weekly/errors/%s/%s.png" % (PXPaths.GRAPHS, rxName, week )
@@ -159,76 +164,83 @@ def main():
         
     fileHandle.write(  """
 
-    </table>         
-    <br>
-    <h2>Weekly graphics for TX clients from MetPx.</h2>
-    <br>
-    <table width="100%%" border="1" cellspacing="5" cellpadding="5" bgcolor="#cccccc" bordercolor="#CCCCCC" frame = void >    
+    </table>
+    </div> 
+    <br>        
+    <h2>Weekly graphics for TX clients from MetPx.</h2>    
+    
+        <TABLE cellspacing=10 cellpadding=8 id=header bgcolor="#cccccc">        
         <tr>
 
-            <td bgcolor="#006699" width = "16.66%%"><font color = "white"><div class="left">Clients</div><a target ="popup" href="%s" onClick="wopen('helpPages/client.html', 'popup', 875, 100); return false;"><div class="right">?</div></a></font></td>
+            <td bgcolor="#006699" width = 180><font color = "white"><div class="left">Clients</div><a target ="popup" href="%s" onClick="wopen('helpPages/client.html', 'popup', 875, 100); return false;"><div class="right">?</div></a></font></td>
             
-            <td bgcolor="#006699" width = "16.66%%" title = "Display the taverage latency of file transfers for every day of the week for each clients."><font color = "white"><div class="left">Latency</div><a target ="popup" href="%s" onClick="wopen('helpPages/latency.html', 'popup', 875, 100); return false;"><div class="right">?</div></a></font></td>
+            <td bgcolor="#006699" width = 180 title = "Display the taverage latency of file transfers for every day of the week for each clients."><font color = "white"><div class="left">Latency</div><a target ="popup" href="%s" onClick="wopen('helpPages/latency.html', 'popup', 875, 100); return false;"><div class="right">?</div></a></font></td>
             
-            <td bgcolor="#006699" width = "16.66%%" title = "Display the total number of files for wich the latency was over 15 seconds for every day of the week for each clients."><font color = "white"><div class="left">Files Over Max. Lat.</div><a target ="popup" href="%s" onClick="wopen('helpPages/filesOverMaxLatency.html', 'popup', 875, 100); return false;"><div class="right">?</div></a></font></td>
+            <td bgcolor="#006699" width = 180 title = "Display the total number of files for wich the latency was over 15 seconds for every day of the week for each clients."><font color = "white"><div class="left">Files Over Max. Lat.</div><a target ="popup" href="%s" onClick="wopen('helpPages/filesOverMaxLatency.html', 'popup', 875, 100); return false;"><div class="right">?</div></a></font></td>
             
-            <td bgcolor="#006699" width = "16.66%%" title = "Display the total of bytes transfered every day of the week for each clients."><font color = "white"><div class="left">Bytecount</div><a target ="popup" href="%s" onClick="wopen('helpPages/byteCount.html', 'popup', 875, 100); return false;"><div class="right">?</div></a></font></td>
+            <td bgcolor="#006699" width = 180title = "Display the total of bytes transfered every day of the week for each clients."><font color = "white"><div class="left">Bytecount</div><a target ="popup" href="%s" onClick="wopen('helpPages/byteCount.html', 'popup', 875, 100); return false;"><div class="right">?</div></a></font></td>
             
-            <td bgcolor="#006699" width = "16.66%%" title = "Display the total of files transferred every day of the week for each clients."><font color = "white"><div class="left">Filecount</div><a target ="popup" href="%s" onClick="wopen('helpPages/fileCount.html', 'popup', 875, 100); return false;"><div class="right">?</div></a></font></td>
+            <td bgcolor="#006699" width = 180 title = "Display the total of files transferred every day of the week for each clients."><font color = "white"><div class="left">Filecount</div><a target ="popup" href="%s" onClick="wopen('helpPages/fileCount.html', 'popup', 875, 100); return false;"><div class="right">?</div></a></font></td>
             
-            <td bgcolor="#006699" width = "16.66%%" title = "Display the total of errors that occured during file transfers every day of the week for each clients."><font color = "white"><div class="left">Errors</div><a target ="popup" href="%s" onClick="wopen('helpPages/errors.html', 'popup', 875, 100); return false;"><div class="right">?</div></a></font></td>
+            <td bgcolor="#006699" width = 180 title = "Display the total of errors that occured during file transfers every day of the week for each clients."><font color = "white"><div class="left">Errors</div><a target ="popup" href="%s" onClick="wopen('helpPages/errors.html', 'popup', 875, 100); return false;"><div class="right">?</div></a></font></td>
             
         </tr>
-    
+        </table>
+        
+        <DIV STYLE="overflow: auto; width: 1255px; height: 180; 
+                    border-left: 0px gray solid; border-bottom: 0px gray solid; 
+                    padding:0px; margin: 0px">
+        <TABLE cellspacing=10 cellpadding=8> 
+        
     """ )
          
     for txName in txNames : 
-        fileHandle.write(  """<tr> <td bgcolor="#99FF99" width = "16.66%%" > %s </td>""" %(txName) )
+        fileHandle.write(  """<tr> <td bgcolor="#99FF99" width = 180> %s </td>""" %(txName) )
         
-        fileHandle.write(  """ <td bgcolor="#66CCFF" width = "16.66%%%%" >Weeks&nbsp;:&nbsp;""" )
+        fileHandle.write(  """ <td bgcolor="#66CCFF" width = 180>Weeks&nbsp;:&nbsp;""" )
         
         for week in weekNumbers:
             file = "%swebGraphics/weekly/latency/%s/%s.png" % (PXPaths.GRAPHS, txName, week )
             if os.path.isfile( file ):
-                fileHandle.write(  """<a target ="popup" href="%s" onClick="wopen('%s', 'popup', 875, 240); return false;">%s&nbsp;</a>"""%( txName, file , week ) )
+                fileHandle.write(  """<a target ="popup" href="%s" onClick="wopen('%s', 'popup', 875, 240); return false;">&nbsp;%s</a>"""%( txName, file , week ) )
         
         fileHandle.write( "</td>" )
         
 
-        fileHandle.write(  """ <td bgcolor="#66CCFF" width = "16.66%%%%" >Weeks&nbsp;:&nbsp;""" )
+        fileHandle.write(  """ <td bgcolor="#66CCFF" width = 180 >Weeks&nbsp;:&nbsp;""" )
         
         for week in weekNumbers:
             file = "%swebGraphics/weekly/filesOverMaxLatency/%s/%s.png" % (PXPaths.GRAPHS, txName, week )
             if os.path.isfile( file ):
-                fileHandle.write(  """<a target ="popup" href="%s" onClick="wopen('%s', 'popup', 875, 240); return false;">%s&nbsp;</a>"""%( txName, file, week ) )
+                fileHandle.write(  """<a target ="popup" href="%s" onClick="wopen('%s', 'popup', 875, 240); return false;">&nbsp;%s</a>"""%( txName, file, week ) )
         
         fileHandle.write( "</td>" )  
         
         
-        fileHandle.write(  """ <td bgcolor="#66CCFF" width = "16.66%%%%" >Weeks&nbsp;:&nbsp;""" )
+        fileHandle.write(  """ <td bgcolor="#66CCFF" width = 180>Weeks&nbsp;:&nbsp;""" )
         
         for week in weekNumbers:
             file = "%swebGraphics/weekly/bytecount/%s/%s.png" % (PXPaths.GRAPHS, txName, week )
             if os.path.isfile( file ):
-                fileHandle.write(  """<a target ="popup" href="%s" onClick="wopen('%s', 'popup', 875, 240); return false;">%s&nbsp;</a>"""%( txName, file, week ) )
+                fileHandle.write(  """<a target ="popup" href="%s" onClick="wopen('%s', 'popup', 875, 240); return false;">&nbsp;%s</a>"""%( txName, file, week ) )
         
         fileHandle.write( "</td>" )    
         
-        fileHandle.write(  """ <td bgcolor="#66CCFF" width = "16.66%%%%" >Weeks&nbsp;:&nbsp;""" )
+        fileHandle.write(  """ <td bgcolor="#66CCFF" width = 180 >Weeks&nbsp;:&nbsp;""" )
         
         for week in weekNumbers:
             file = "%swebGraphics/weekly/filecount/%s/%s.png" % (PXPaths.GRAPHS, txName, week )
             if os.path.isfile( file ):
-                fileHandle.write(  """<a target ="popup" href="%s" onClick="wopen('%s', 'popup', 875, 240); return false;">%s&nbsp;</a>"""%( txName, file, week ) )
+                fileHandle.write(  """<a target ="popup" href="%s" onClick="wopen('%s', 'popup', 875, 240); return false;">&nbsp;%s</a>"""%( txName, file, week ) )
         
         fileHandle.write( "</td>" )   
         
-        fileHandle.write(  """ <td bgcolor="#66CCFF" width = "16.66%%%%" >Weeks&nbsp;:&nbsp;""" )
+        fileHandle.write(  """ <td bgcolor="#66CCFF" width = 180" >Weeks&nbsp;:&nbsp;""" )
         
         for week in weekNumbers:
             file = "%swebGraphics/weekly/errors/%s/%s.png" % (PXPaths.GRAPHS, txName, week )
             if os.path.isfile( file ):
-                fileHandle.write(  """<a target ="popup" href="%s" onClick="wopen('%s', 'popup', 875, 240); return false;">%s&nbsp;</a>"""%( txName, file, week ) )
+                fileHandle.write(  """<a target ="popup" href="%s" onClick="wopen('%s', 'popup', 875, 240); return false;">&nbsp;%s</a>"""%( txName, file, week ) )
         
         fileHandle.write( "</td>" )    
  
@@ -238,7 +250,7 @@ def main():
         </tr>
 
     </table>
-
+    </div>
     </body>
     </html>
     
