@@ -884,19 +884,19 @@ def formatMinMaxMeanTotal( minimum, maximum, mean, total, type, averageOrTotal =
                     if i != nbEntries-1:
                         values[i] = "%.2f KB/min"  %( values[i]/1000.0 )
                     else:
-                        values[i] = "%s kiloBytes" %int( values[i]/1000.0 )
+                        values[i] = "%.2f kiloBytes" %( values[i]/1000.0 )
                 
                 elif values[i] < 1000000000:#less than a gig      
                     if i != nbEntries-1:
                         values[i] = "%.2f MB/min"  %( values[i]/1000000.0 )
                     else:
-                        values[i] = "%s MegaBytes" %int( values[i]/1000000.0 )
+                        values[i] = "%.2f MegaBytes" %( values[i]/1000000.0 )
                 
                 else:#larger than a gig
                     if i != nbEntries-1:
                         values[i] = "%.2f GB/min"  %( values[i]/1000000000.0 )                 
                     else:
-                        values[i] = "%s GigaBytes" %int( values[i]/1000000000.0 )
+                        values[i] = "%.2f GigaBytes" %( values[i]/1000000000.0 )
         
     else:
         if "file" in type:
@@ -983,6 +983,8 @@ def getInterval( startTime, timeOfLastUpdate, dataType  ):
     else:
         interval = 1440.0    
         
+    #print    "timeOfLastUpdate %s  startTime %s" %(timeOfLastUpdate,startTime)  
+    
     return interval
 
 
@@ -1093,19 +1095,18 @@ def plotRRDGraph( databaseName, type, fileType, client, machine, infos, lastUpda
         
     """
     
-    
     imageName    = buildImageName( type, client, machine, infos, logger )        
     start        = int ( MyDateLib.getSecondsSinceEpoch ( infos.startTime ) ) 
     end          = int ( MyDateLib.getSecondsSinceEpoch ( infos.endTime ) )  
     formatedTitleType, formatedYLabelType = formatedTypesForLables( type )
+    
     
     if lastUpdate == None :
         lastUpdate = getDatabaseTimeOfUpdate( client, machine, fileType )
     
     
     interval = getInterval( start, lastUpdate, type  )
-    
-       
+          
     minimum, maximum, mean, total = getGraphicsMinMaxMeanTotal( databaseName, start, end, interval )
     minimum, maximum, mean, total = formatMinMaxMeanTotal( minimum, maximum, mean,total, type )            
     graphicsLegeng         = getGraphicsLegend( maximum )      
@@ -1133,10 +1134,10 @@ def plotRRDGraph( databaseName, type, fileType, client, machine, infos, lastUpda
     #note : in CDEF:realValue the i value can be changed from 1 to value of the interval variable
     #       in order to get the total displayed instead of the mean.
     if infos.graphicType != "monthly":
-        rrdtool.graph( imageName,'--imgformat', 'PNG','--width', '800','--height', '200','--start', "%i" %(start) ,'--end', "%s" %(end), '--vertical-label', '%s' %formatedYLabelType,'--title', '%s'%title, '--lower-limit','0','DEF:%s=%s:%s:AVERAGE'%( type, databaseName, type), 'CDEF:realValue=%s,%i,*' %( type, 1), 'AREA:realValue#%s:%s' %( innerColor, type ),'LINE1:realValue#%s:%s'%( outerColor, type ), 'COMMENT: Min: %s     Max: %s     Mean: %s     %s\c' %( minimum, maximum, mean,total ), 'COMMENT:Note(s): %s %s\c' %(graphicsNote, graphicsLegeng )  )
+        rrdtool.graph( imageName,'--imgformat', 'PNG','--width', '800','--height', '200','--start', "%i" %(start) ,'--end', "%s" %(end),"--step","%s" %interval, '--vertical-label', '%s' %formatedYLabelType,'--title', '%s'%title, '--lower-limit','0','DEF:%s=%s:%s:AVERAGE'%( type, databaseName, type), 'CDEF:realValue=%s,%i,*' %( type, 1), 'AREA:realValue#%s:%s' %( innerColor, type ),'LINE1:realValue#%s:%s'%( outerColor, type ), 'COMMENT: Min: %s     Max: %s     Mean: %s     %s\c' %( minimum, maximum, mean,total ), 'COMMENT:Note(s): %s %s\c' %(graphicsNote, graphicsLegeng )  )
 
     else:#With monthly graphics, we force the use the day of month number as the x label.       
-        rrdtool.graph( imageName,'--imgformat', 'PNG','--width', '800','--height', '200','--start', "%i" %(start) ,'--end', "%s" %(end), '--vertical-label', '%s' %type,'--title', '%s'%title, '--lower-limit','0','DEF:%s=%s:%s:AVERAGE'%( type, databaseName, type), 'CDEF:realValue=%s,%i,*' %( type, 1), 'AREA:realValue#%s:%s' %( innerColor, type ),'LINE1:realValue#%s:%s'%( outerColor, type ), '--x-grid', 'HOUR:24:DAY:1:DAY:1:0:%d','COMMENT: Min: %s     Max: %s     Mean: %s     %s\c' %( minimum, maximum, mean, total ), 'COMMENT:Note(s): %s %s\c' %(graphicsNote, graphicsLegeng)  )       
+        rrdtool.graph( imageName,'--imgformat', 'PNG','--width', '800','--height', '200','--start', "%i" %(start) ,'--end', "%s" %(end), "--step","%s" %interval,'--vertical-label', '%s' %type,'--title', '%s'%title, '--lower-limit','0','DEF:%s=%s:%s:AVERAGE'%( type, databaseName, type), 'CDEF:realValue=%s,%i,*' %( type, 1), 'AREA:realValue#%s:%s' %( innerColor, type ),'LINE1:realValue#%s:%s'%( outerColor, type ), '--x-grid', 'HOUR:24:DAY:1:DAY:1:0:%d','COMMENT: Min: %s     Max: %s     Mean: %s     %s\c' %( minimum, maximum, mean, total ), 'COMMENT:Note(s): %s %s\c' %(graphicsNote, graphicsLegeng)  )       
     
     
     if infos.copy == True:
@@ -1311,7 +1312,7 @@ def generateRRDGraphics( infos, logger = None ):
                 
         for machine in infos.machines:
             for type in infos.types:
-                plotRRDGraph( databaseNames[type], type, infos.fileType, infos.fileType, machine, infos, lastUpdate =  MyDateLib.getSecondsSinceEpoch( infos.endTime ), logger =logger )
+                plotRRDGraph( databaseNames[type], type, infos.fileType,infos.fileType, machine, infos,logger =logger )
                 
     else:
         for machine in infos.machines:
@@ -1320,7 +1321,7 @@ def generateRRDGraphics( infos, logger = None ):
                 
                 for type in infos.types : 
                     databaseName = transferPickleToRRD.buildRRDFileName( type, client, machine ) 
-                    plotRRDGraph( databaseName, type, infos.fileType, client, machine, infos,lastUpdate =  MyDateLib.getSecondsSinceEpoch(infos.endTime), logger = logger )
+                    plotRRDGraph( databaseName, type, infos.fileType, client, machine, infos,logger = logger )
                 
 
 

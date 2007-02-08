@@ -417,7 +417,7 @@ class StatsPlotter:
         
         shutil.copy( src, destination ) 
         
-        print "cp %s %s  "  %( src, destination )
+        #print "cp %s %s  "  %( src, destination )
          
         
     def plot( self, createCopy = False  ):
@@ -579,15 +579,15 @@ class StatsPlotter:
             maximum = ""
        
         if self.totalNumberOfBytes[i] < 1000:#less than a k
-            totalNumberOfBytes = "%s bytes" %int( self.totalNumberOfBytes[i] )
+            totalNumberOfBytes = "%s Bytes" %int( self.totalNumberOfBytes[i] )
             
         elif self.totalNumberOfBytes[i] < 1000000:#less than a meg 
             totalNumberOfBytes = "%.2f kiloBytes"  %( self.totalNumberOfBytes[i]/1000.0 )
         
         elif self.totalNumberOfBytes[i] < 1000000000:#less than a gig      
-            totalNumberOfBytes = "%.2f megaBytes"  %( self.totalNumberOfBytes[i]/1000000.0 )
+            totalNumberOfBytes = "%.2f MegaBytes"  %( self.totalNumberOfBytes[i]/1000000.0 )
         else:#larger than a gig
-            totalNumberOfBytes = "%.2f gigaBytes"  %( self.totalNumberOfBytes[i]/1000000000.0 )
+            totalNumberOfBytes = "%.2f GigaBytes"  %( self.totalNumberOfBytes[i]/1000000000.0 )
             
         self.graph( 'set size .545, .37' )
         
@@ -611,13 +611,13 @@ class StatsPlotter:
             self.graph( 'set label "%s" at screen .545, screen %3.2f' % ( self.filesWhereMaxOccured[i][j], (.18+(nbGraphs) *.40) ))
             x = .18
                     
-        self.graph( 'set label "Size of largest file : %s bytes" at screen .545, screen %3.2f' % ( maximum, (x -.02+(nbGraphs) *.40) ) )       
+        self.graph( 'set label "Size of largest file : %s Bytes" at screen .545, screen %3.2f' % ( maximum, (x -.02+(nbGraphs) *.40) ) )       
                 
         self.graph( 'set label "Time of largest file : %s" at screen .545, screen %3.2f' % ( ( timeOfMax, (x -.04+(nbGraphs) *.40)  )))     
         
         self.graph( 'set label "# of files : %s " at screen .545, screen %3.2f' % ( self.nbFiles[i] , ( x-.06+(nbGraphs) *.40) ) )
     
-        self.graph( 'set label "# of bytes: %s " at screen .545, screen %s' % (  totalNumberOfBytes,( x -.08 +(nbGraphs) *.40 ) ) )
+        self.graph( 'set label "# of Bytes: %s " at screen .545, screen %s' % (  totalNumberOfBytes,( x -.08 +(nbGraphs) *.40 ) ) )
                 
 
     
