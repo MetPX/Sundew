@@ -16,7 +16,7 @@ named COPYING in the root of the source directory tree.
 ## Date   : 06-07-2006 
 ##
 ##
-## Description : Very small application usefull for testing graphic production.
+## Description : Small application usefull for generating specific graphics.
 ##
 ##
 ##############################################################################

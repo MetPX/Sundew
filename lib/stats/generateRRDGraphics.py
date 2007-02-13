@@ -593,24 +593,26 @@ def buildTitle( type, client, endTime, timespan, minimum, maximum, mean, graphic
     return  "%s for %s for a span of %s %s ending at %s." %( type, client, span, timeMeasure, endTime )    
 
     
-def getGraphicsNote( graphicType ):
+    
+def getGraphicsNote( interval, type ):
     """
-        Returns the watermark to be displayed on the graphic.
+        Returns the note to be displayed at the bottom of the graphic.
     """
     
     graphicsNote = ""
     
-    if graphicType == "daily":
-        graphicsNote = "Graphics generated using 1 minute averages."
-    elif graphicType == "weekly":
-        graphicsNote = "Graphics generated using 1 hour averages."
-    elif graphicType == "monthly":
-        graphicsNote = "Graphics generated using 4 hours averages."
-    elif graphicType == "yearly":   
-        graphicsNote = "Graphics generated using 24 hours averages."
+    if type != "latency":
+    
+        if interval < 60.0 :    
+            graphicsNote = "Graphics generated using %s minute(s) averages." %( int(interval) )
+        
+        else:    
+            graphicsNote = "Graphics generated using %s hour(s) averages." %( int(interval/60) )
+
     
     return graphicsNote    
         
+    
              
 def getAbsoluteMin( databaseName, startTime, endTime, logger = None ):
     """
@@ -947,7 +949,8 @@ def getGraphicsLegend( maximum ):
         legend = "G on the y axis stats for giga, meaning x billions."
     else:
         try:
-            maximum = float( maximum)
+            maximum = float( str(maximum).split(" ")[0] )          
+            
             if maximum > 1000000000:
                 legend = "G on the y axis stats for giga, meaning x billions."
             elif maximum > 1000000:
@@ -970,12 +973,12 @@ def getInterval( startTime, timeOfLastUpdate, dataType  ):
         Will always return 1 if dataType = "latency" because latencies
         cannot be used as totals, only as means.
         
-    """    
-
+    """ 
+        
     if dataType == "latency" :
         interval = 1.0 #No need to multiply average by interval. It's the mean we want in the case of latency.
-    elif ( timeOfLastUpdate - startTime ) < (7200 * 60):#less than a week 
-        interval = 1.0
+    elif ( timeOfLastUpdate - startTime ) < (7200 * 60):#less than 5 days
+        interval = 1.0         
     elif ( timeOfLastUpdate - startTime ) < (20160 * 60):#less than two week
         interval = 60.0
     elif (timeOfLastUpdate - startTime) < (1460*240*60):
@@ -1110,8 +1113,14 @@ def plotRRDGraph( databaseName, type, fileType, client, machine, infos, lastUpda
     minimum, maximum, mean, total = getGraphicsMinMaxMeanTotal( databaseName, start, end, interval )
     minimum, maximum, mean, total = formatMinMaxMeanTotal( minimum, maximum, mean,total, type )            
     graphicsLegeng         = getGraphicsLegend( maximum )      
-    graphicsNote           = getGraphicsNote( infos.graphicType )        
+    graphicsNote           = getGraphicsNote( interval, type  )        
     
+    if graphicsNote == "" and graphicsLegeng == "":
+        comment = ""
+    else:
+        comment = "Note(s):"
+        
+            
     if type == "latency" :
         innerColor = "cd5c5c"
         outerColor = "8b0000"
@@ -1134,10 +1143,10 @@ def plotRRDGraph( databaseName, type, fileType, client, machine, infos, lastUpda
     #note : in CDEF:realValue the i value can be changed from 1 to value of the interval variable
     #       in order to get the total displayed instead of the mean.
     if infos.graphicType != "monthly":
-        rrdtool.graph( imageName,'--imgformat', 'PNG','--width', '800','--height', '200','--start', "%i" %(start) ,'--end', "%s" %(end),"--step","%s" %interval, '--vertical-label', '%s' %formatedYLabelType,'--title', '%s'%title, '--lower-limit','0','DEF:%s=%s:%s:AVERAGE'%( type, databaseName, type), 'CDEF:realValue=%s,%i,*' %( type, 1), 'AREA:realValue#%s:%s' %( innerColor, type ),'LINE1:realValue#%s:%s'%( outerColor, type ), 'COMMENT: Min: %s     Max: %s     Mean: %s     %s\c' %( minimum, maximum, mean,total ), 'COMMENT:Note(s): %s %s\c' %(graphicsNote, graphicsLegeng )  )
+        rrdtool.graph( imageName,'--imgformat', 'PNG','--width', '800','--height', '200','--start', "%i" %(start) ,'--end', "%s" %(end),"--step","%s" %interval, '--vertical-label', '%s' %formatedYLabelType,'--title', '%s'%title, '--lower-limit','0','DEF:%s=%s:%s:AVERAGE'%( type, databaseName, type), 'CDEF:realValue=%s,%i,*' %( type, 1), 'AREA:realValue#%s:%s' %( innerColor, type ),'LINE1:realValue#%s:%s'%( outerColor, type ), 'COMMENT: Min: %s     Max: %s     Mean: %s     %s\c' %( minimum, maximum, mean,total ), 'COMMENT:%s %s %s\c' %( comment, graphicsNote, graphicsLegeng )  )
 
     else:#With monthly graphics, we force the use the day of month number as the x label.       
-        rrdtool.graph( imageName,'--imgformat', 'PNG','--width', '800','--height', '200','--start', "%i" %(start) ,'--end', "%s" %(end), "--step","%s" %interval,'--vertical-label', '%s' %type,'--title', '%s'%title, '--lower-limit','0','DEF:%s=%s:%s:AVERAGE'%( type, databaseName, type), 'CDEF:realValue=%s,%i,*' %( type, 1), 'AREA:realValue#%s:%s' %( innerColor, type ),'LINE1:realValue#%s:%s'%( outerColor, type ), '--x-grid', 'HOUR:24:DAY:1:DAY:1:0:%d','COMMENT: Min: %s     Max: %s     Mean: %s     %s\c' %( minimum, maximum, mean, total ), 'COMMENT:Note(s): %s %s\c' %(graphicsNote, graphicsLegeng)  )       
+        rrdtool.graph( imageName,'--imgformat', 'PNG','--width', '800','--height', '200','--start', "%i" %(start) ,'--end', "%s" %(end), "--step","%s" %interval,'--vertical-label', '%s' %type,'--title', '%s'%title, '--lower-limit','0','DEF:%s=%s:%s:AVERAGE'%( type, databaseName, type), 'CDEF:realValue=%s,%i,*' %( type, 1), 'AREA:realValue#%s:%s' %( innerColor, type ),'LINE1:realValue#%s:%s'%( outerColor, type ), '--x-grid', 'HOUR:24:DAY:1:DAY:1:0:%d','COMMENT: Min: %s     Max: %s     Mean: %s     %s\c' %( minimum, maximum, mean, total ), 'COMMENT:%s %s %s\c' %(comment,graphicsNote, graphicsLegeng)  )       
     
     
     if infos.copy == True:
