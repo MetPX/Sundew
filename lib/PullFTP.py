@@ -32,7 +32,7 @@ named COPYING in the root of the source directory tree.
 #############################################################################################
 
 """
-import commands, os, os.path, re, stat, sys, time
+import commands, os, os.path, re, stat, string, sys, time
 import PXPaths, signal, socket
 from AlarmFTP  import AlarmFTP
 from AlarmFTP  import FtpTimeoutException
@@ -235,7 +235,7 @@ class PullFTP(object):
 
         try : 
                 # open/read..
-                file=open(path,'wb')
+                file=open(path,'rb')
                 lines=file.readlines()
                 file.close()
 
@@ -360,8 +360,8 @@ class PullFTP(object):
             if len(files) == 0 : return files_pulled
 
             # before retrieving... 
-            # just to make sure the file is completely arrived on remote server
-            # make another diff... if one or more files modified are to be retrieved
+            # just to make sure the file is completely written on remote server
+            # make another diff... if one or more files to be retrieved are modified
             # wait pull_wait (or min 3 sec) before getting the file
 
             ready = True
@@ -385,6 +385,8 @@ class PullFTP(object):
 
             # retrieve the files
 
+            files_notretrieved = []
+
             for remote_file in files :
                 timex.alarm(self.source.timeout_get)
                 local_file = self.local_filename(remote_file,desclst)
@@ -393,18 +395,43 @@ class PullFTP(object):
                        if ok :
                                if self.source.delete : self.rm(remote_file)
                                files_pulled.append(local_file)
+                       else  :
+                               files_notretrieved.append(remote_file)
+                               self.logger.warning("problem when retrieving %s " % remote_file )
+                               
                        timex.cancel()
 
                 except FtpTimeoutException :
                        timex.cancel()
+                       files_notretrieved.append(remote_file)
                        self.logger.warning("FTP timed out retrieving %s " % remote_file )
 
                 except :
                        timex.cancel()
+                       files_notretrieved.append(remote_file)
                        (type, value, tb) = sys.exc_info()
                        self.logger.error("Unable write remote file %s in local file %s. Type: %s, Value: %s" % \
                                         (remote_file,local_file,type,value))
 
+            # files not retrieved are removed from lastls file
+            # this allow pull to recover from error on next pass
+
+            if len(files_notretrieved) > 0 :
+               filelst,desclst = self.file_ls(self.lastls)
+               try    :
+                         file=open(self.newls,'wb')
+                         for pos, f in enumerate(filelst):
+                             try    : 
+                                      idx = files_notretrieved.index(f)
+                                      continue
+                             except : pass
+                             file.write(desclst[f])
+                         file.close()
+                         os.rename(self.newls,self.lastls)
+               except :
+                         (type, value, tb) = sys.exc_info()
+                         self.logger.error("Unable to correct ls file %s Type: %s, Value: %s" % \
+                                          (self.lastls,type,value))
 
         return files_pulled
 
@@ -413,13 +440,13 @@ class PullFTP(object):
     def retrieve(self, remote_file, local_file):
 
         try    :
-                 file=open(local_file,'w')
+                 file=open(local_file,'wb')
                  self.ftp.retrbinary('RETR ' + remote_file, file.write )
                  file.close()
                  return True
 
         except :
-                 timex.cancel()
+                 os.unlink(local_file)
                  (type, value, tb) = sys.exc_info()
                  self.logger.error("Unable write remote file %s in local file %s. Type: %s, Value: %s" % \
                                   (remote_file,local_file,type,value))
