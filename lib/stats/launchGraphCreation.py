@@ -309,7 +309,7 @@ def monitorActivities():
     """    
     currentHour = int( MyDateLib.getIsoFromEpoch( time.time() ).split()[1].split(":")[0] )
     
-    if currentHour %4 == 0:
+    if currentHour %12 == 0:
         status, output = commands.getstatusoutput( "/apps/px/lib/stats/statsMonitor.py" )
         print output
         

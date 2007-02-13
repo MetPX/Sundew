@@ -27,12 +27,10 @@ named COPYING in the root of the source directory tree.
 
 
 import array,time,sys,os,pickle,datetime #important files 
-import copy
 from   array     import *
 import MyDateLib
 from   MyDateLib import *
 import commands
-import copy 
 import backwardReader
 import cpickleWrapper
 import logging 
@@ -125,7 +123,7 @@ class FileStatsCollector:
         self.files            = files or []               # Source files we will use. 
         self.fileType         = fileType                  # Type of files. tx or rx.  
         self.statsTypes       = statsTypes or []          # List of types we need to manage.
-        self.fileEntries      = copy.deepcopy(fileEntries)# list of all entries wich are parsed using time seperators.
+        self.fileEntries      = fileEntries               # list of all entries wich are parsed using time seperators.
         self.startTime        = startTime                 # Beginning of the timespan used to collect stats.
         self.endTime          = endTime                   # End of saidtimespan.
         self.interval         = interval                  # Interval at wich we separate stats entries .
@@ -430,21 +428,24 @@ class FileStatsCollector:
         
         if line != "" :
             
-            if "[INFO]" in line and "Bytes" in line and "/sec" not in line and " Segment " not in line and "SEND TIMEOUT" not in line : 
-                isInteresting = True             
-                lineType = "[INFO]"
-            
-            elif "errors" in types and "[ERROR]" in line:
+            if "errors" in types and line.find("[ERROR]") != -1:
                 isInteresting = True
-                lineType = "[ERROR]"               
+                lineType = "[ERROR]" 
+            
+            elif line.find("[INFO]") != -1 and line.find("Bytes") != -1 and line.find("/sec") == -1  and line.find(" Segment ") == -1 and line.find("SEND TIMEOUT") == -1 : 
+                isInteresting = True             
+                lineType = "[INFO]"          
+              
                           
-            elif usage != "stats" and ( "[WARNING]" in line or "[INFO]" in line or "[ERROR]" in line ) :
+            elif usage != "stats" and ( line.find("[WARNING]") != -1 or line.find("[INFO]") != -1 or line.find("[ERROR]") != -1 ) :
                 isInteresting = True 
                 lineType = "[OTHER]"
-            
-            elif usage != "stats" and ( "[INFO]" in line and "SEND TIMEOUT" in line ):
-                isInteresting = True 
-                lineType = "[OTHER]"  
+
+
+#this line is useless. Previous elif covers this case                         
+#             elif usage != "stats" and ( "[INFO]" in line and "SEND TIMEOUT" in line ):
+#                 isInteresting = True 
+#                 lineType = "[OTHER]"  
                     
                 
         return isInteresting,lineType

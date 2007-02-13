@@ -274,7 +274,7 @@ def main():
             if time.strftime( "%a", time.gmtime( currentTime ) ) != 'Mon':#first day of week
                 updateThisMonthsGraphs( currentTime )         
         
-         if int(time.strftime( "%j", time.gmtime( currentTime ) )) == 1:#first day of year
+        if int(time.strftime( "%j", time.gmtime( currentTime ) )) == 1:#first day of year
             setLastYearsGraphs( currentTime )        
     
     else:        
