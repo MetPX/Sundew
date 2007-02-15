@@ -230,7 +230,8 @@ def setDatabaseTimeOfUpdate(  client, machine, fileType, timeOfUpdate ):
      
     folder   = PXPaths.STATS + "DATABASE-UPDATES/%s/" %fileType
     fileName = folder + "%s_%s" %( client, machine )   
-    print "fileName to be saved : %s" %fileName
+    if not os.path.isdir( folder ):
+        os.makedirs( folder )
     fileHandle  = open( fileName, "w" )
     pickle.dump( timeOfUpdate, fileHandle )
     fileHandle.close()
