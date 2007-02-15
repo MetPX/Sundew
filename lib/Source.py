@@ -197,6 +197,7 @@ class Source(object):
                             self.logger.error("Extension (%s) for source %s has wrong number of fields" % (words[1], self.name)) 
                         else:
                             self.extension = ':' + words[1]
+                            self.extension = self.extension.replace('-NAME',self.name)
                     elif words[0] == 'accept': self.masks.append((words[1], currentDir, currentFileOption))
                     elif words[0] == 'reject': self.masks.append((words[1],))
                     elif words[0] == 'routemask': self.routemask = isTrue(words[1])
