@@ -156,6 +156,9 @@ class PXIgniter(Igniter):
                self.gateway.unBulletinManager.drp.reparse()
                self.logger.info("%s has been reloaded" % self.direction.capitalize())
 
+            if self.type == 'collector' :
+               self.reloadMode = True
+
             if self.type == 'single-file' or self.type == 'bulletin-file':
                self.reloadMode = True
 
