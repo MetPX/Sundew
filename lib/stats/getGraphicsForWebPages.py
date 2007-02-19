@@ -49,10 +49,10 @@ def updateThisYearsGraphs( currentTime ):
     status, output = commands.getstatusoutput( "/apps/px/lib/stats/generateRRDGraphics.py -y --copy -f rx --machines 'pxatx' --date '%s' --fixedCurrent" %end )
     
     #total graphics 
-    status, output = commands.getstatusoutput( 'generateRRDGraphics.py --copy --totals -f "rx" --machines "pds5,pds6" -y --fixedCurrent' )
-    status, output = commands.getstatusoutput( 'generateRRDGraphics.py --copy --totals -f "tx" --machines "pds5,pds6" -y --fixedCurrent' )
-    status, output = commands.getstatusoutput( 'generateRRDGraphics.py --copy --totals -f "rx" --machines "pxatx" -y --fixedCurrent' )
-    status, output = commands.getstatusoutput( 'generateRRDGraphics.py --copy --totals -f "tx" --machines "pxatx" -y --fixedCurrent' )           
+    status, output = commands.getstatusoutput( '/apps/px/lib/stats/generateRRDGraphics.py --copy --totals -f "rx" --machines "pds5,pds6" -y --fixedCurrent' )
+    status, output = commands.getstatusoutput( '/apps/px/lib/stats/generateRRDGraphics.py --copy --totals -f "tx" --machines "pds5,pds6" -y --fixedCurrent' )
+    status, output = commands.getstatusoutput( '/apps/px/lib/stats/generateRRDGraphics.py --copy --totals -f "rx" --machines "pxatx" -y --fixedCurrent' )
+    status, output = commands.getstatusoutput( '/apps/px/lib/stats/generateRRDGraphics.py --copy --totals -f "tx" --machines "pxatx" -y --fixedCurrent' )           
         
     
 def setLastYearsGraphs( currentTime ):
@@ -72,10 +72,10 @@ def setLastYearsGraphs( currentTime ):
     status, output = commands.getstatusoutput( "/apps/px/lib/stats/generateRRDGraphics.py -y --copy -f rx --machines 'pxatx' --date '%s' --fixedPrevious" %end )
         
     #total graphics 
-    status, output = commands.getstatusoutput( 'generateRRDGraphics.py --copy --totals -f "rx" --machines "pds5,pds6" -y --fixedPrevious' )
-    status, output = commands.getstatusoutput( 'generateRRDGraphics.py --copy --totals -f "tx" --machines "pds5,pds6" -y --fixedPrevious' )
-    status, output = commands.getstatusoutput( 'generateRRDGraphics.py --copy --totals -f "rx" --machines "pxatx" -y --fixedPrevious' )
-    status, output = commands.getstatusoutput( 'generateRRDGraphics.py --copy --totals -f "tx" --machines "pxatx" -y --fixedPrevious' )            
+    status, output = commands.getstatusoutput( '/apps/px/lib/stats/generateRRDGraphics.py --copy --totals -f "rx" --machines "pds5,pds6" -y --fixedPrevious' )
+    status, output = commands.getstatusoutput( '/apps/px/lib/stats/generateRRDGraphics.py --copy --totals -f "tx" --machines "pds5,pds6" -y --fixedPrevious' )
+    status, output = commands.getstatusoutput( '/apps/px/lib/stats/generateRRDGraphics.py --copy --totals -f "rx" --machines "pxatx" -y --fixedPrevious' )
+    status, output = commands.getstatusoutput( '/apps/px/lib/stats/generateRRDGraphics.py --copy --totals -f "tx" --machines "pxatx" -y --fixedPrevious' )            
       
     
       
@@ -98,10 +98,10 @@ def updateThisMonthsGraphs( currentTime ):
     status, output = commands.getstatusoutput( "/apps/px/lib/stats/generateRRDGraphics.py -m --copy -f rx --machines 'pxatx' --date '%s' --fixedCurrent" %end )
     
     #total graphics 
-    status, output = commands.getstatusoutput( 'generateRRDGraphics.py --copy --totals -f "rx" --machines "pds5,pds6" -m --fixedCurrent' )
-    status, output = commands.getstatusoutput( 'generateRRDGraphics.py --copy --totals -f "tx" --machines "pds5,pds6" -m --fixedCurrent' )
-    status, output = commands.getstatusoutput( 'generateRRDGraphics.py --copy --totals -f "rx" --machines "pxatx" -m --fixedCurrent' )
-    status, output = commands.getstatusoutput( 'generateRRDGraphics.py --copy --totals -f "tx" --machines "pxatx" -m --fixedCurrent' )           
+    status, output = commands.getstatusoutput( '/apps/px/lib/stats/generateRRDGraphics.py --copy --totals -f "rx" --machines "pds5,pds6" -m --fixedCurrent' )
+    status, output = commands.getstatusoutput( '/apps/px/lib/stats/generateRRDGraphics.py --copy --totals -f "tx" --machines "pds5,pds6" -m --fixedCurrent' )
+    status, output = commands.getstatusoutput( '/apps/px/lib/stats/generateRRDGraphics.py --copy --totals -f "rx" --machines "pxatx" -m --fixedCurrent' )
+    status, output = commands.getstatusoutput( '/apps/px/lib/stats/generateRRDGraphics.py --copy --totals -f "tx" --machines "pxatx" -m --fixedCurrent' )           
     
     
 def setLastMonthsGraphs( currentTime ):
@@ -122,10 +122,10 @@ def setLastMonthsGraphs( currentTime ):
     status, output = commands.getstatusoutput( "/apps/px/lib/stats/generateRRDGraphics.py -m --copy -f rx --machines 'pxatx' --date '%s' --fixedPrevious" %end )
 
     #total graphics 
-    status, output = commands.getstatusoutput( 'generateRRDGraphics.py --copy --totals -f "rx" --machines "pds5,pds6" -m --fixedPrevious' )
-    status, output = commands.getstatusoutput( 'generateRRDGraphics.py --copy --totals -f "tx" --machines "pds5,pds6" -m --fixedPrevious' )
-    status, output = commands.getstatusoutput( 'generateRRDGraphics.py --copy --totals -f "rx" --machines "pxatx" -m --fixedPrevious' )
-    status, output = commands.getstatusoutput( 'generateRRDGraphics.py --copy --totals -f "tx" --machines "pxatx" -m --fixedPrevious' )        
+    status, output = commands.getstatusoutput( '/apps/px/lib/stats/generateRRDGraphics.py --copy --totals -f "rx" --machines "pds5,pds6" -m --fixedPrevious' )
+    status, output = commands.getstatusoutput( '/apps/px/lib/stats/generateRRDGraphics.py --copy --totals -f "tx" --machines "pds5,pds6" -m --fixedPrevious' )
+    status, output = commands.getstatusoutput( '/apps/px/lib/stats/generateRRDGraphics.py --copy --totals -f "rx" --machines "pxatx" -m --fixedPrevious' )
+    status, output = commands.getstatusoutput( '/apps/px/lib/stats/generateRRDGraphics.py --copy --totals -f "tx" --machines "pxatx" -m --fixedPrevious' )        
     
     
        
@@ -146,10 +146,10 @@ def setLastWeeksGraphs( currentTime ):
     status, output = commands.getstatusoutput( "/apps/px/lib/stats/generateRRDGraphics.py -w --copy -f rx --machines 'pxatx' --date '%s' --fixedPrevious" %end )
     
     #total graphics 
-    status, output = commands.getstatusoutput( 'generateRRDGraphics.py --copy --totals -f "rx" --machines "pds5,pds6" -w --fixedPrevious' )
-    status, output = commands.getstatusoutput( 'generateRRDGraphics.py --copy --totals -f "tx" --machines "pds5,pds6" -w --fixedPrevious' )
-    status, output = commands.getstatusoutput( 'generateRRDGraphics.py --copy --totals -f "rx" --machines "pxatx" -w --fixedPrevious' )
-    status, output = commands.getstatusoutput( 'generateRRDGraphics.py --copy --totals -f "tx" --machines "pxatx" -w --fixedPrevious' )
+    status, output = commands.getstatusoutput( '/apps/px/lib/stats/generateRRDGraphics.py --copy --totals -f "rx" --machines "pds5,pds6" -w --fixedPrevious' )
+    status, output = commands.getstatusoutput( '/apps/px/lib/stats/generateRRDGraphics.py --copy --totals -f "tx" --machines "pds5,pds6" -w --fixedPrevious' )
+    status, output = commands.getstatusoutput( '/apps/px/lib/stats/generateRRDGraphics.py --copy --totals -f "rx" --machines "pxatx" -w --fixedPrevious' )
+    status, output = commands.getstatusoutput( '/apps/px/lib/stats/generateRRDGraphics.py --copy --totals -f "tx" --machines "pxatx" -w --fixedPrevious' )
     
         
 def updateThisWeeksGraphs( currentTime ):
@@ -172,10 +172,10 @@ def updateThisWeeksGraphs( currentTime ):
     status, output = commands.getstatusoutput( "/apps/px/lib/stats/generateRRDGraphics.py -w --copy -f rx --machines 'pxatx' --date '%s' --fixedCurrent " %end )
     
     #total graphics 
-    status, output = commands.getstatusoutput( 'generateRRDGraphics.py --copy --totals -f "rx" --machines "pds5,pds6" -w --fixedCurrent' )
-    status, output = commands.getstatusoutput( 'generateRRDGraphics.py --copy --totals -f "tx" --machines "pds5,pds6" -w --fixedCurrent' )
-    status, output = commands.getstatusoutput( 'generateRRDGraphics.py --copy --totals -f "rx" --machines "pxatx" -w --fixedCurrent' )
-    status, output = commands.getstatusoutput( 'generateRRDGraphics.py --copy --totals -f "tx" --machines "pxatx" -w --fixedCurrent' )
+    status, output = commands.getstatusoutput( '/apps/px/lib/stats/generateRRDGraphics.py --copy --totals -f "rx" --machines "pds5,pds6" -w --fixedCurrent' )
+    status, output = commands.getstatusoutput( '/apps/px/lib/stats/generateRRDGraphics.py --copy --totals -f "tx" --machines "pds5,pds6" -w --fixedCurrent' )
+    status, output = commands.getstatusoutput( '/apps/px/lib/stats/generateRRDGraphics.py --copy --totals -f "rx" --machines "pxatx" -w --fixedCurrent' )
+    status, output = commands.getstatusoutput( '/apps/px/lib/stats/generateRRDGraphics.py --copy --totals -f "tx" --machines "pxatx" -w --fixedCurrent' )
     
     
     
@@ -207,10 +207,10 @@ def setYesterdaysGraphs( currentTime ):
         shutil.copyfile( graph, dest )    
         #print "copy %s to %s" %( graph, dest )
 
-    status, output = commands.getstatusoutput( 'generateRRDGraphics.py --copy --totals -f "rx" --machines "pds5,pds6" -d --fixedPrevious' )
-    status, output = commands.getstatusoutput( 'generateRRDGraphics.py --copy --totals -f "tx" --machines "pds5,pds6" -d --fixedPrevious' )
-    status, output = commands.getstatusoutput( 'generateRRDGraphics.py --copy --totals -f "rx" --machines "pxatx" -d --fixedPrevious' )
-    status, output = commands.getstatusoutput( 'generateRRDGraphics.py --copy --totals -f "tx" --machines "pxatx" -d --fixedPrevious' )     
+    status, output = commands.getstatusoutput( '/apps/px/lib/stats/generateRRDGraphics.py --copy --totals -f "rx" --machines "pds5,pds6" -d --fixedPrevious' )
+    status, output = commands.getstatusoutput( '/apps/px/lib/stats/generateRRDGraphics.py --copy --totals -f "tx" --machines "pds5,pds6" -d --fixedPrevious' )
+    status, output = commands.getstatusoutput( '/apps/px/lib/stats/generateRRDGraphics.py --copy --totals -f "rx" --machines "pxatx" -d --fixedPrevious' )
+    status, output = commands.getstatusoutput( '/apps/px/lib/stats/generateRRDGraphics.py --copy --totals -f "tx" --machines "pxatx" -d --fixedPrevious' )     
         
         
         
