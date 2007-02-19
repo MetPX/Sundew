@@ -127,7 +127,7 @@ class bulletinManager:
 
         """
         
-        if self.compteur > self.maxCompteur:
+        if self.compteur >= self.maxCompteur:
             self.compteur = 0
 
         self.compteur += 1
@@ -194,7 +194,7 @@ class bulletinManager:
 
     def _writeBulletinToDisk(self,unRawBulletin,compteur=True,includeError=True):
         
-        if self.compteur > self.maxCompteur:
+        if self.compteur >= self.maxCompteur:
             self.compteur = 0
 
         self.compteur += 1
