@@ -97,7 +97,7 @@ class socketManagerWmo(socketManager.socketManager):
                 Generate ´counter´ (sequence number?) for a bulletinWmo. Must be certain that
                 bulletin is in send queue. 
         """
-        if self.compteur > self.maxCompteur:
+        if self.compteur >= self.maxCompteur:
             self.compteur = 0
 
         self.compteur = self.compteur + 1
