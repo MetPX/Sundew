@@ -21,6 +21,65 @@ possible. Nonetheless it is likely that errors will occur through time.
 A few utilities have been developped as to help the user get things back on track. 
 
 
+Section 1 - Data errors on only one machine.
+------------------------------------------------------
+
+Symptoms : (any of these)
+------------------------------------------------------
+1- Different graphics are produced by both machines. 
+2- Graphics are absent on one of the two machines.
+
+
+Possible causes :
+------------------------------------------------------
+1- The two(or more) machines have different versions of
+   the stats library installed on them or different 
+   versions of the crucial files.
+
+2- Graphic creation has been stopped on one of the two
+   machines.
+   
+
+   
+Recovery procedure:
+-----------------------------------------------------   
+1- Identify the source of the problem within the list 
+   of possible errors. 
+
+2- If a machine has the wrong version of the stats 
+   library files installed, install the same version
+   as the working machine on the non-working machine.    
+
+3- Stop all stats library related activities by killing
+   currently running process' and by turning off the
+   related crontab entries. To do so, run this commands : 
+   crontab -e  and write the # character in front of the 
+   entries you want to turn off. 
+
+4- Retrieve data from the working machine.               
+
+   To do so run this utility :
+   
+   /apps/px/lib/stats/retreiveDataFromMachine.py login machineName  
+
+   Warning : prior to running this script, make sure that the config file in the 
+   /apps/px/stats/ folder is properly filled !    
+
+5- relaunch graphic production
+   To do so remove the # character you have placed in the crontab entries you have modified. 
+    
+   Note: if crontab entry is set at the 15th minute of the hour, and it's hh:25:ss
+         you might want to run launchGraphicCreation manually to see if everything goes well
+         without having to wait untill the next hour.   
+
+Warnings : The preceding script is not bulletproof. If files were being updated throughout the entire 
+           time the transfer was being done, there is no way all the transferred files will be 
+           complete and accurate. You should thus make sure that the source machine 
+           is not doing any intensive work of it's own.         
+
+
+Section 2 - Data errors on all machines
+------------------------------------------------------
 
 Case 1 : data error has slipped into the pickle files:
 -------------------------------------------------------
