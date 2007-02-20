@@ -20,9 +20,11 @@ named COPYING in the root of the source directory tree.
 #                               if retreived files are deleted 
 #                                  consider all files in ls
 #                               try matching files from ls and the regex defined in source with get option
-#                               try a diff with another ls see if some of the files are currently modifying
-#                                   if some are modified sleep for max(3,pull_wait) sec... before next step
-#                               retreive the resulting file matches if any
+#                               try a diff with another ls see if some of the files are currently modified
+#                                   if some are modified put them in the "not retrieve list"
+#                               retrieve the resulting file matches if any... file with problems are put
+#                                   in the "not retrieve list"
+#                               files in the "not retrieve list" are removed from the kept ls...
 #              3- close connection
 #
 # Note: PullFTP is inserted in the Ingestor.py code as part of single-file and bulletin-file procession.
@@ -168,6 +170,35 @@ class PullFTP(object):
 
         return files,descs
 
+    def dirPattern(self,path) :
+        """
+        Replace pattern in directory... 
+        """
+
+        ndestDir = ''
+
+        DD = path.split("/")
+        for  ddword in DD :
+             if ddword == "" : continue
+
+             nddword = ""
+             DW = ddword.split("$")
+             for dwword in DW :
+                 nddword += self.matchPattern(dwword,dwword)
+
+             ndestDir += "/" + nddword 
+
+        return ndestDir
+
+    def matchPattern(self,keywd,defval) :
+        """
+        Matching keyword with different patterns
+        """
+
+        if keywd[:10] == "{YYYYMMDD}" : return time.strftime("%Y%m%d", time.gmtime())
+
+        return defval
+
     # do an ls in the current directory, write in file path
 
     def do_ls(self,path):
@@ -293,6 +324,8 @@ class PullFTP(object):
 
     def get(self):
 
+        self.logger.info("pull %s is waking up" % self.source.name )
+
         # getting our alarm ready
  
         timex = AlarmFTP('FTP timeout')
@@ -310,6 +343,9 @@ class PullFTP(object):
         for lst in self.source.pulls :
 
             self.destDir = lst[0]
+
+            pdir = self.dirPattern(self.destDir)
+            if pdir != '' : self.destDir = pdir
 
             # cd to that directory
 
@@ -362,32 +398,36 @@ class PullFTP(object):
             # before retrieving... 
             # just to make sure the file is completely written on remote server
             # make another diff... if one or more files to be retrieved are modified
-            # wait pull_wait (or min 3 sec) before getting the file
+            # wait next pass
 
-            ready = True
-            ok    = self.do_ls(self.newls)
+            files_notretrieved = []
+
+            ok = self.do_ls(self.newls)
             if ok : 
                filelst,desclst2 = self.diff_ls(self.lastls,self.newls)
                for f in filelst :
                    try    :
                             indx  = files.index(f)
-                            ready = False
+                            files_notretrieved.append(f)
+                            files.pop(indx)
                             self.logger.debug("file %s not ready .. caused pull waiting" % f )
                    except : pass
 
             try    : os.unlink(self.newls)
             except : pass
 
-            if not ready :
-               sleep = self.source.pull_wait 
-               if sleep < 3 : sleep = 3
-               time.sleep(sleep)
-
             # retrieve the files
 
-            files_notretrieved = []
-
             for remote_file in files :
+
+                # skip files that were being modified at the same time as pull
+
+                try    :
+                         indx  = files_notretrieved.index(remote_file)
+                         continue
+                except :
+                         pass
+
                 timex.alarm(self.source.timeout_get)
                 local_file = self.local_filename(remote_file,desclst)
                 try :
@@ -461,4 +501,4 @@ class PullFTP(object):
         except :
                  (type, value, tb) = sys.exc_info()
                  self.logger.warning("Could not delete %s" % path )
-                 self.logger.warning(" Type: %s, Value: %s" % (type ,value))
+                 self.logger.warning("Type: %s, Value: %s" % (type ,value))
