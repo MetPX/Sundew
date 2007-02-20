@@ -404,10 +404,16 @@ class Ingestor(object):
         if self.source.routemask :
            potentials = []
            key = self.getRouteKey(ingestName)
+           lst = None
            if key != None :
               lst = self.drp.getClients(key)
-              if lst != None : potentials = lst
-              priority = self.drp.getHeaderPriority(key)
+              if lst != None :
+                 potentials = lst
+                 priority = self.drp.getHeaderPriority(key)
+              else :
+                 self.logger.warning("Key not in routing table (%s from %s)" % (key,ingestName) )
+           else :
+              self.logger.warning("Key not generated (no accept match) with %s" % ingestName )
 
         # ingesting the file
         matchingClients  = self.getMatchingClientNamesFromMasks(ingestName, potentials )
