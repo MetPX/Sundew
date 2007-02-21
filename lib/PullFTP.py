@@ -393,7 +393,7 @@ class PullFTP(object):
 
             files = flst.keys()
 
-            if len(files) == 0 : return files_pulled
+            if len(files) == 0 : continue
 
             # before retrieving... 
             # just to make sure the file is completely written on remote server
