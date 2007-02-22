@@ -25,7 +25,217 @@ class MyDateLib:
         This section should be put in date library upon approval. 
     
     """
+       
+    def getStartEndFromPreviousDay( currentTime, nbDays = 1  ):
+        """
+            Returns the start and end time of
+            the day prior to the currentTime. 
+            
+            currentTime must be in iso format.       
+            start and end are returned in iso format. 
+            
+        """
+        
+        end       = MyDateLib.getIsoTodaysMidnight( currentTime )
+        yesterday = MyDateLib.getIsoFromEpoch( MyDateLib.getSecondsSinceEpoch( currentTime ) - (24*60*60)  ) 
+        start     = MyDateLib.getIsoTodaysMidnight( yesterday ) 
+        
+        return start, end 
     
+    getStartEndFromPreviousDay = staticmethod( getStartEndFromPreviousDay )    
+        
+    
+    
+    def getStartEndFromPreviousWeek( currentTime, nbWeeks = 1 ):
+        """
+            Returns the start and end time of
+            the week prior to the currentTime. 
+            
+            currentTime must be in iso format.       
+            start and end are returned in iso format. 
+            
+        """
+        
+        currentTimeInSecs = MyDateLib.getSecondsSinceEpoch( currentTime )
+        weekDay     = int(time.strftime( "%w", time.gmtime( currentTimeInSecs ) ))
+        endInSecs   = currentTimeInSecs - ( weekDay*24*60*60 )
+        startInSecs = endInSecs - ( 7*24*60*60 )
+        start       = MyDateLib.getIsoTodaysMidnight( MyDateLib.getIsoFromEpoch( startInSecs ) ) 
+        end         = MyDateLib.getIsoTodaysMidnight( MyDateLib.getIsoFromEpoch( endInSecs ) )   
+        
+        return start, end 
+    
+    getStartEndFromPreviousWeek = staticmethod( getStartEndFromPreviousWeek )      
+        
+    
+    
+    def getStartEndFromPreviousMonth( currentTime ):
+        """
+            Returns the start and end time of
+            the month prior to the currentTime. 
+            
+            currentTime must be in iso format.       
+            start and end are returned in iso format. 
+            
+        """
+        
+        
+        date    = currentTime.split()[0]
+        splitDate = date.split("-")
+        end   = splitDate[0] + "-" + splitDate[1] + "-" + "01 00:00:00"       
+        
+        splitTime   = currentTime.split()
+        date        = splitTime[0]
+        splitDate   = date.split("-")
+        
+        if int( splitDate[1] ) != 1 :
+            month = int( splitDate[1] ) - 1
+            if month < 10 :
+                month = "0" + str( month ) 
+            splitDate[1] = month
+        
+        else:
+            year = int( splitDate[0] ) - 1
+            splitDate[0] = str(year)      
+            splitDate[1] = "01"
+        
+        firstDayOfPreviousMonth = str( splitDate[0] ) + "-" + str( splitDate[1] ) + "-01" 
+        start = firstDayOfPreviousMonth + " 00:00:00"           
+        
+        return start, end 
+    
+    getStartEndFromPreviousMonth = staticmethod( getStartEndFromPreviousMonth )         
+        
+    
+    
+    def getStartEndFromPreviousYear( currentTime ):
+        """
+            Returns the start and end time of
+            the day prior to the currentTime. 
+            
+            currentTime must be in iso format.       
+            start and end are returned in iso format. 
+            
+        """      
+        
+        year = currentTime.split("-")[0]
+        year = str( int(year)-1 )
+        start = year + "-01-01 00:00:00"    
+        
+        year = currentTime.split("-")[0]
+        end  = year + "-01-01 00:00:00"    
+        
+        return start, end         
+        
+    getStartEndFromPreviousYear = staticmethod( getStartEndFromPreviousYear )        
+        
+    
+    
+    def getStartEndFromCurrentDay( currentTime ):
+        """
+            Returns the start and end time of
+            the current day. 
+            
+            currentTime must be in iso format.       
+            start and end are returned in iso format. 
+            
+        """       
+        
+        start    = MyDateLib.getIsoTodaysMidnight( currentTime )
+        tomorrow = MyDateLib.getIsoFromEpoch( MyDateLib.getSecondsSinceEpoch( currentTime ) + 24*60*60 )
+        end      = MyDateLib.getIsoTodaysMidnight( tomorrow )
+        
+        return start, end 
+            
+    getStartEndFromCurrentDay = staticmethod( getStartEndFromCurrentDay )            
+        
+    
+    
+    def getStartEndFromCurrentWeek( currentTime ):
+        """
+            Returns the start and end time of
+            the currentweek. 
+            
+            currentTime must be in iso format.       
+            start and end are returned in iso format. 
+            
+        """       
+        
+        currentTimeInSecs = MyDateLib.getSecondsSinceEpoch( currentTime )
+        weekDay     = int(time.strftime( "%w", time.gmtime( currentTimeInSecs ) ))
+        
+        endInSecs   = currentTimeInSecs + ( ( 7 - weekDay)*24*60*60 )
+        end         = MyDateLib.getIsoTodaysMidnight( MyDateLib.getIsoFromEpoch( endInSecs ) )   
+        
+        
+        startInSecs = currentTimeInSecs - ( weekDay*24*60*60 )
+        start       = MyDateLib.getIsoTodaysMidnight( MyDateLib.getIsoFromEpoch( startInSecs ) ) 
+        
+        
+        return start, end         
+            
+    getStartEndFromCurrentWeek = staticmethod( getStartEndFromCurrentWeek )        
+            
+    
+    
+    def getStartEndFromCurrentMonth( currentTime ):
+        """
+            Returns the start and end time of
+            the currentDay. 
+            
+            currentTime must be in iso format.       
+            start and end are returned in iso format. 
+            
+        """       
+        
+        splitTime   = currentTime.split()
+        date        = splitTime[0]
+        splitDate   = date.split( "-" )
+        start       = splitDate[0] + "-" + splitDate[1] + "-01 00:00:00"
+        
+        if int( splitDate[1] ) != 12 :
+            month = int( splitDate[1] ) + 1
+            if month < 10: 
+                month = "0" + str( month ) 
+            splitDate[1] = month
+        
+        else:
+            year = int( splitDate[0] ) + 1
+            splitDate[0] = str(year)      
+            splitDate[1] = "01"
+            
+            
+        firstDayOfMonth = str( splitDate[0] ) + "-" + str( splitDate[1] ) + "-01" 
+        end = firstDayOfMonth + " 00:00:00" 
+            
+        return start, end         
+            
+    getStartEndFromCurrentMonth = staticmethod( getStartEndFromCurrentMonth )            
+        
+    
+    
+    def getStartEndFromCurrentYear( currentTime ):
+        """
+            Returns the start and end time of
+            the currentDay. 
+            
+            currentTime must be in iso format.       
+            start and end are returned in iso format. 
+            
+        """       
+        
+        year = currentTime.split("-")[0]
+        start  = year + "-01-01 00:00:00" 
+        
+        year = currentTime.split("-")[0]
+        year = str( int(year)+1 )
+        end = year + "-01-01 00:00:00"    
+            
+        return start, end                              
+    
+    getStartEndFromCurrentYear = staticmethod( getStartEndFromCurrentYear )     
+
+        
     def getHoursFromIso( iso = '2005-08-30 20:06:59' ):
         """
             Returns the hours field from a iso format date. 

@@ -52,211 +52,9 @@ class _GraphicsInfos:
         self.machines     = machines          # Machine from wich we want the data to be calculated.
         self.totals       = totals            # Make totals of all the specified clients 
         self.copy         = copy              # Whether or not to create copies of the images. 
-        self.graphicType  = graphicType       # daily, weekly, monthly yearly or other          
+        self.graphicType  = graphicType       # daily, weekly, monthly yearly or other        
         
-
-######################################################################
-#
-#
-# Put this part in MyDateLib
-#
-#
-######################################################################         
-def getStartEndFromPreviousDay( currentTime, nbDays = 1  ):
-    """
-        Returns the start and end time of
-        the day prior to the currentTime. 
-        
-        currentTime must be in iso format.       
-        start and end are returned in iso format. 
-        
-    """
-    
-    end       = MyDateLib.getIsoTodaysMidnight( currentTime )
-    yesterday = MyDateLib.getIsoFromEpoch( MyDateLib.getSecondsSinceEpoch( currentTime ) - (24*60*60)  ) 
-    start     = MyDateLib.getIsoTodaysMidnight( yesterday ) 
-    
-    return start, end 
-
-    
-    
-def getStartEndFromPreviousWeek( currentTime, nbWeeks = 1 ):
-    """
-        Returns the start and end time of
-        the week prior to the currentTime. 
-        
-        currentTime must be in iso format.       
-        start and end are returned in iso format. 
-        
-    """
-    
-    currentTimeInSecs = MyDateLib.getSecondsSinceEpoch( currentTime )
-    weekDay     = int(time.strftime( "%w", time.gmtime( currentTimeInSecs ) ))
-    endInSecs   = currentTimeInSecs - ( weekDay*24*60*60 )
-    startInSecs = endInSecs - ( 7*24*60*60 )
-    start       = MyDateLib.getIsoTodaysMidnight( MyDateLib.getIsoFromEpoch( startInSecs ) ) 
-    end         = MyDateLib.getIsoTodaysMidnight( MyDateLib.getIsoFromEpoch( endInSecs ) )   
-    
-    return start, end 
-
-
-    
-def getStartEndFromPreviousMonth( currentTime ):
-    """
-        Returns the start and end time of
-        the month prior to the currentTime. 
-        
-        currentTime must be in iso format.       
-        start and end are returned in iso format. 
-        
-    """
-    
-    
-    date    = currentTime.split()[0]
-    splitDate = date.split("-")
-    end   = splitDate[0] + "-" + splitDate[1] + "-" + "01 00:00:00"       
-    
-    splitTime   = currentTime.split()
-    date        = splitTime[0]
-    splitDate   = date.split("-")
-    
-    if int( splitDate[1] ) != 1 :
-        month = int( splitDate[1] ) - 1
-        if month < 10 :
-            month = "0" + str( month ) 
-        splitDate[1] = month
-    
-    else:
-        year = int( splitDate[0] ) - 1
-        splitDate[0] = str(year)      
-        splitDate[1] = "01"
-    
-    firstDayOfPreviousMonth = str( splitDate[0] ) + "-" + str( splitDate[1] ) + "-01" 
-    start = firstDayOfPreviousMonth + " 00:00:00"           
        
-    return start, end 
-    
-    
-def getStartEndFromPreviousYear( currentTime ):
-    """
-        Returns the start and end time of
-        the day prior to the currentTime. 
-        
-        currentTime must be in iso format.       
-        start and end are returned in iso format. 
-        
-    """      
-    
-    year = currentTime.split("-")[0]
-    year = str( int(year)-1 )
-    start = year + "-01-01 00:00:00"    
-    
-    year = currentTime.split("-")[0]
-    end  = year + "-01-01 00:00:00"    
-    
-    return start, end         
-    
-    
-    
-def getStartEndFromCurrentDay( currentTime ):
-    """
-        Returns the start and end time of
-        the current day. 
-        
-        currentTime must be in iso format.       
-        start and end are returned in iso format. 
-        
-    """       
-    
-    start    = MyDateLib.getIsoTodaysMidnight( currentTime )
-    tomorrow = MyDateLib.getIsoFromEpoch( MyDateLib.getSecondsSinceEpoch( currentTime ) + 24*60*60 )
-    end      = MyDateLib.getIsoTodaysMidnight( tomorrow )
-    
-    return start, end 
-        
-        
-    
-def getStartEndFromCurrentWeek( currentTime ):
-    """
-        Returns the start and end time of
-        the currentweek. 
-        
-        currentTime must be in iso format.       
-        start and end are returned in iso format. 
-        
-    """       
-    
-    currentTimeInSecs = MyDateLib.getSecondsSinceEpoch( currentTime )
-    weekDay     = int(time.strftime( "%w", time.gmtime( currentTimeInSecs ) ))
-    
-    endInSecs   = currentTimeInSecs + ( ( 7 - weekDay)*24*60*60 )
-    end         = MyDateLib.getIsoTodaysMidnight( MyDateLib.getIsoFromEpoch( endInSecs ) )   
-    
-    
-    startInSecs = currentTimeInSecs - ( weekDay*24*60*60 )
-    start       = MyDateLib.getIsoTodaysMidnight( MyDateLib.getIsoFromEpoch( startInSecs ) ) 
-    
-    
-    return start, end         
-        
-    
-        
-def getStartEndFromCurrentMonth( currentTime ):
-    """
-        Returns the start and end time of
-        the currentDay. 
-        
-        currentTime must be in iso format.       
-        start and end are returned in iso format. 
-        
-    """       
-       
-    splitTime   = currentTime.split()
-    date        = splitTime[0]
-    splitDate   = date.split( "-" )
-    start       = splitDate[0] + "-" + splitDate[1] + "-01 00:00:00"
-    
-    if int( splitDate[1] ) != 12 :
-        month = int( splitDate[1] ) + 1
-        if month < 10: 
-            month = "0" + str( month ) 
-        splitDate[1] = month
-    
-    else:
-        year = int( splitDate[0] ) + 1
-        splitDate[0] = str(year)      
-        splitDate[1] = "01"
-        
-        
-    firstDayOfMonth = str( splitDate[0] ) + "-" + str( splitDate[1] ) + "-01" 
-    end = firstDayOfMonth + " 00:00:00" 
-        
-    return start, end         
-        
-        
-    
-def getStartEndFromCurrentYear( currentTime ):
-    """
-        Returns the start and end time of
-        the currentDay. 
-        
-        currentTime must be in iso format.       
-        start and end are returned in iso format. 
-        
-    """       
-    
-    year = currentTime.split("-")[0]
-    start  = year + "-01-01 00:00:00" 
-    
-    year = currentTime.split("-")[0]
-    year = str( int(year)+1 )
-    end = year + "-01-01 00:00:00"    
-        
-    return start, end                              
-#################################################################
-# End of part to transfer to MyDateLib
-#################################################################
-        
     
 #################################################################
 #                                                               #
@@ -365,23 +163,23 @@ def getOptionsFromParser( parser ):
     #TODO :fixStartEnd method???    
     if fixedPrevious :
         if daily :
-            start, end = getStartEndFromPreviousDay( date )             
+            start, end = MyDateLib.getStartEndFromPreviousDay( date )             
         elif weekly:
-            start, end = getStartEndFromPreviousWeek( date )
+            start, end = MyDateLib.getStartEndFromPreviousWeek( date )
         elif monthly:
-            start, end = getStartEndFromPreviousMonth( date )
+            start, end = MyDateLib.getStartEndFromPreviousMonth( date )
         elif yearly:
-            start, end = getStartEndFromPreviousYear( date )
+            start, end = MyDateLib.getStartEndFromPreviousYear( date )
             
     elif fixedCurrent:
         if daily :
-            start, end = getStartEndFromCurrentDay( date )   
+            start, end = MyDateLib.getStartEndFromCurrentDay( date )   
         elif weekly:
-            start, end = getStartEndFromCurrentWeek( date )
+            start, end = MyDateLib.getStartEndFromCurrentWeek( date )
         elif monthly:
-            start, end = getStartEndFromCurrentMonth( date )    
+            start, end = MyDateLib.getStartEndFromCurrentMonth( date )    
         elif yearly:
-            start, end = getStartEndFromCurrentYear( date ) 
+            start, end = MyDateLib.getStartEndFromCurrentYear( date ) 
     
     else:        
         start = MyDateLib.getIsoFromEpoch( MyDateLib.getSecondsSinceEpoch( date ) - timespan*60*60 ) 
@@ -799,7 +597,8 @@ def getGraphicsMinMaxMeanTotal( databaseName, startTime, endTime, interval, logg
                 avg = sum / nbEntries  
             
             total = float( sum ) * float( interval )
-                       
+            print "total %s interval %s nbentries %s" %(total,interval,nbEntries)           
+    
     except :
         if logger != None:
             logger.error( "Error in generateRRDGraphics.getOverallMin. Unable to read %s" %databaseName )
@@ -1025,9 +824,31 @@ def getInterval( startTime, timeOfLastUpdate, dataType  ):
     else:
         interval = 1440.0    
         
-   
+    print "startTime %s, timeOfLastUpdate %s, interval %s" %(startTime, timeOfLastUpdate, interval)
+    
     return interval
 
+
+        
+def getIntervalForTotalGraphics( graphicsType ):    
+    """
+        Returns the interval that was used for data consolidation. 
+        
+        When total graphics are used, a temporary db is used.        
+        wich makes the interval calculation different from other graphics.
+        
+    """ 
+    
+    if graphicsType == "daily"   :
+        interval = 1.0             
+    elif graphicsType == "weekly"  :
+        interval = 60.0     
+    elif graphicsType == "monthly":
+        interval = 240.0                
+    elif graphicsType == "yearly":
+        interval = 1440.0
+        
+    return interval    
 
     
 def getCopyDestination( type, client, machine, infos ):
@@ -1145,10 +966,11 @@ def plotRRDGraph( databaseName, type, fileType, client, machine, infos, lastUpda
     if lastUpdate == None :
         if infos.totals != True:
             lastUpdate = getDatabaseTimeOfUpdate( client, machine, fileType )
+            interval = getInterval( start, lastUpdate, type  )
         else:
             lastUpdate = getDatabaseTimeOfUpdate( client = fileType, machine = machine, fileType = "totals" )
+            interval   = getIntervalForTotalGraphics(infos.graphicType)
     
-    interval = getInterval( start, lastUpdate, type  )
           
     minimum, maximum, mean, total = getGraphicsMinMaxMeanTotal( databaseName, start, end, interval )
     minimum, maximum, mean, total = formatMinMaxMeanTotal( minimum, maximum, mean,total, type )            
