@@ -279,7 +279,9 @@ def main():
     
     else:        
         updateThisWeeksGraphs( currentTime )
-            
+
+   
+    
     
 if __name__ == "__main__" :
     main()

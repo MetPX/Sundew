@@ -27,6 +27,7 @@ import smtplib
 import LogFileCollector
 import mailLib
 import readMaxFile
+import configFileManager
 import generalStatsLibraryMethods
 from generalStatsLibraryMethods import *
 from ClientStatsPickler import ClientStatsPickler 
@@ -65,40 +66,9 @@ class _Parameters:
         self.endTime         = endTime 
         self.errorsLogFile   = errorsLogFile
         self.maxSettingsFile = maxSettingsFile 
-    
-        
-def getParametersFromConfigurationFile():
-    """
-        Gather all the parameters from the /apps/px/.../config file.
-        
-        Returns all collected values in a  _ConfigParameters instance.
-    
-    """   
-
-    CONFIG = PXPaths.STATS + "statsMonitoring/statsMonitoring.conf" 
-    config = ConfigParser()
-    
-    if os.path.isfile( CONFIG ):
-    
-        config.readfp( open( CONFIG ) ) 
-        
-        emails        = config.get( 'statsMonitoring', 'emails' ).split( ";" )
-        machines      = config.get( 'statsMonitoring', 'machines' ).split( ";" )
-        files         = config.get( 'statsMonitoring', 'files' ).split( ";" )
-        folders       = config.get( 'statsMonitoring', 'folders' ).split( ";" )
-        maxUsages     = config.get( 'statsMonitoring', 'maxUsages' ).split( ";" )
-        errorsLogFile = config.get( 'statsMonitoring', 'errorsLogFile' )
-        maxSettingsFile=config.get( 'statsMonitoring', 'maxSettingsFile' )
-    
-    else:
-        print "%s configuration file not present. Please restore file prior to running" %CONFIG
-        sys.exit()   
-        
-        
-    return emails, machines, files, folders, maxUsages, errorsLogFile, maxSettingsFile  
 
 
-        
+
 def getMaximumGaps( maxSettingsFile ):
     """
         lire /apps/pds/tools/Columbo/etc/maxSettings.conf
@@ -982,7 +952,7 @@ def getParameters():
     
     currentTime = MyDateLib.getIsoFromEpoch( time.time() )  #"2006-12-07 00:00:00" 
     timeOfLastUpdate = getPreviousMonitoringJob( currentTime )      
-    emails, machines, files, folders, maxUsages, errorsLogFile, maxSettingsFile = getParametersFromConfigurationFile()
+    emails, machines, files, folders, maxUsages, errorsLogFile, maxSettingsFile = configFileManager.getParametersFromConfigurationFile( fileType = "monitoringConfig" )
     maximumGaps = getMaximumGaps( maxSettingsFile )
     parameters = _Parameters( emails, machines, files, folders, maxUsages, maximumGaps,errorsLogFile, maxSettingsFile, timeOfLastUpdate, currentTime )
     

@@ -16,107 +16,13 @@ named COPYING in the root of the source directory tree.
 
 import os, sys, commands
 import PXPaths, MyDateLib
+import configFileManager
 from ConfigParser import ConfigParser
 from MyDateLib import *
 
 PXPaths.normalPaths()
 LOCAL_MACHINE = os.uname()[1]
-
-        
-class _ConfigParameters:
-    """
-        This class is usefull to store all the values
-        collected from the config file into a single 
-        object. 
-    
-    """
-    
-    def __init__( self, individualLogMachineNames, logMachinesLogins, coupledLogMachineNames, picklingMachines, picklingMachinesLogins, databaseMachines, uploadMachines, uploadMachinesLogins  ):
-        """
-            Constructor.        
-        """    
-        
-        self.individualLogMachineNames = individualLogMachineNames
-        self.logMachinesLogins         = logMachinesLogins
-        self.coupledLogMachineNames    = coupledLogMachineNames
-        
-        self.picklingMachines          = picklingMachines
-        self.picklingMachinesLogins    = picklingMachinesLogins
-        
-        self.databaseMachines          = databaseMachines
-        
-        self.uploadMachines            = uploadMachines
-        self.uploadMachinesLogins      = uploadMachinesLogins
-        
-        
-        
-def getIndividualValues( values ):
-    """
-        Returns all indvidual values from a line 
-        of the 1,2;3;4;5,6 style. 
-        
-        The above example would return an array 
-        containing the following : [1,2,3,4,5,6]
-        
-    """ 
-       
-    individualValues = [] 
-    values = values.split( ";" )
-    
-    for value in values :
-        individualValues.extend( value.split( "," ) )
-        
-    return individualValues
-    
-    
-        
-def getParametersFromConfigurationFile():
-    """
-        Gather all the parameters from the /apps/px/.../config file.
-        
-        Returns all collected values in a  _ConfigParameters instance.
-    
-    """   
-
-    CONFIG = PXPaths.STATS + "config" 
-    config = ConfigParser()
-    config.readfp( open( CONFIG ) ) 
-    
-    logFilesMachines          = config.get( 'graphics', 'logFilesMachines' )
-    individualLogMachineNames = getIndividualValues( logFilesMachines )
-    coupledLogMachineNames    = logFilesMachines.split( ";" )
-    
-    logMachinesLogins = config.get( 'graphics', 'logFilesMachinesLogins' )
-    logMachinesLogins = getIndividualValues( logMachinesLogins )
-        
-    picklingMachines = config.get( 'graphics', 'picklingMachines' )
-    picklingMachines = getIndividualValues( picklingMachines )
-    
-    picklingMachinesLogins = config.get( 'graphics', 'picklingMachineLogins' )
-    picklingMachinesLogins = getIndividualValues( picklingMachinesLogins )
-    
-   
-    databaseMachines = config.get( 'databases', 'machineNames' ).split( ";" )
-    
-    uploadMachines       = config.get( 'uploads', 'machineNames' ).split( ";" )
-    uploadMachinesLogins = config.get( 'uploads', 'logins' ).split( ";" )
-    
-    parameters = _ConfigParameters( individualLogMachineNames, logMachinesLogins, coupledLogMachineNames, picklingMachines, picklingMachinesLogins, databaseMachines, uploadMachines, uploadMachinesLogins )
-    
-    
-#     
-#     print "individualLogMachineNames : %s" %individualLogMachineNames
-#     print "logMachinesLogins : %s" %logMachinesLogins
-#     print "coupledLogMachineNames : %s" %coupledLogMachineNames
-#     print "picklingMachinesprint : %s"  %picklingMachines
-#     print "picklingMachinesLogins  %s" %picklingMachinesLogins
-#     print "databaseMachines : %s" % databaseMachines
-#     print "uploadMachines : %s"  %uploadMachines
-#     print "uploadMachinesLogins : %s" %uploadMachinesLogins
-    
-    return parameters    
-
-    
+            
 
 def validateParameters( parameters, logger = None  ):
     """
@@ -298,7 +204,7 @@ def updateWebPages():
     print output
     status, output = commands.getstatusoutput( "/apps/px/lib/stats/yearlyGraphicsWebPage.py" )
     print output
-    
+    status, output = commands.getstatusoutput( "/apps/px/lib/stats/totalGraphicsWebPages.py" )
     
     
 def monitorActivities():
@@ -324,7 +230,7 @@ def main():
     
     """
     
-    parameters = getParametersFromConfigurationFile()
+    parameters = configFileManager.getParametersFromConfigurationFile( fileType = "statsConfig" )
     validateParameters( parameters )
     updatePickles( parameters )
     updateDatabases( parameters )
