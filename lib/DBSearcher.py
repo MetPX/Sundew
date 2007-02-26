@@ -35,12 +35,6 @@ class DBSearcher:
     INTERNATIONAL_SOURCES = ['nws-alpha', 'ukmetin', 'ukmet-bkp']   # sundew international sources
     CANADIAN_SOURCES = ['cmcin', 'ncp1', 'ncp2']                    # sundew canadian sources 
 
-    TODAY = dateLib.getTodayFormatted()
-    YESTERDAY = dateLib.getYesterdayFormatted()
-
-    #TODAY = '20060523'
-    #YESTERDAY = '20060522'
-
     FD_COUNTRIES = ['can', 'usa', 'ala', 'bfr']
     FD_NUMBERS = [1, 2, 3]
 
@@ -111,6 +105,10 @@ class DBSearcher:
                     #eval(country + 'List').sort()
 
     def __init__(self, request, printout=True):
+        self.today = dateLib.getTodayFormatted()
+        self.yesterday = dateLib.getYesterdayFormatted()
+        #self.today = '20060523'
+        #self.yesterday = '20060522'
         
         self.printout = printout
         self.request = request    # Request before being parsed
@@ -174,8 +172,8 @@ class DBSearcher:
         if self.requestType == 1:
             # Fully qualified header request
             if self.debug: print self.ttaaii, self.center, self.country
-            for date in [DBSearcher.TODAY, DBSearcher.YESTERDAY]:
-                theFile = self._findFullHeader(True, self.ttaaii, self.center, self.country, date, DBSearcher.EXCLUDED_SOURCES)
+            for date in [self.today, self.yesterday]:
+                theFile = self._findFullHeader(date, True, self.ttaaii, self.center, self.country, DBSearcher.EXCLUDED_SOURCES)
                 if theFile:
                     #print theFile
                     return theFile
@@ -183,7 +181,7 @@ class DBSearcher:
         elif self.requestType == 2:
             allResults = []
             for station in self.stations:
-                for date in [DBSearcher.TODAY, DBSearcher.YESTERDAY]:
+                for date in [self.today, self.yesterday]:
                     #print 'DATE: %s' % date
                     if self.type == 'SA':
                         results = self._findSA([station], date)
@@ -282,7 +280,7 @@ class DBSearcher:
 
         return filesToParse
 
-    def _findFD(self, stations, fdtype, date=TODAY):
+    def _findFD(self, stations, fdtype, date):
         from StationParser import StationParser
         from FDParser import FDParser
 
@@ -327,7 +325,7 @@ class DBSearcher:
 
         return results
 
-    def _findTAF(self, stations, date=TODAY):
+    def _findTAF(self, stations, date):
         from StationParser import StationParser
         from TAFParser import TAFParser
 
@@ -350,7 +348,7 @@ class DBSearcher:
 
         return results
 
-    def _findSA(self, stations, date=TODAY):
+    def _findSA(self, stations, date):
         # Partial header request (Type + station(s))
         # ex: SA CYOW CYUL
         # Note: Once we find the better match, we take the header we found (ex: SACN31 CWAO) and we replace the 
@@ -465,7 +463,7 @@ class DBSearcher:
         ttaaii, center = header.split()
         ttaaii = ttaaii[0] + 'P' + ttaaii[2:]
 
-        filesToParse = self._findFullHeader(False, ttaaii, center, 'INT',  DBDate, DBSearcher.EXCLUDED_SOURCES)
+        filesToParse = self._findFullHeader(DBDate, False, ttaaii, center, 'INT', DBSearcher.EXCLUDED_SOURCES)
 
         theLine, bestHeaderTime, theFile, bestFileTime = self._findMoreRecentStation(SAParser(''), filesToParse, station)
 
@@ -513,7 +511,7 @@ class DBSearcher:
         return (theLine, bestHeaderTime, theFile, bestFileTime)
         
 
-    def _findFullHeader(self, unique=True, ttaaii='SACN31', center='CWAO', country='CA', date=TODAY, excludedSources=None):
+    def _findFullHeader(self, date, unique=True, ttaaii='SACN31', center='CWAO', country='CA', excludedSources=None):
         self.theFile = None           # The filename of the more recent header in a full qualified header search
         self.bestFileTime = 0         # More recent file
         self.bestHeaderTime = 0       # More recent header
