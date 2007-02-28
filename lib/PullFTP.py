@@ -354,7 +354,11 @@ class PullFTP(object):
 
             # ls that directory
 
-            self.lastls = PXPaths.RXQ + self.source.name + '/.ls' + self.destDir.replace('/','_')
+            pdir = lst[0]
+            pdir = pdir.replace('${','')
+            pdir = pdir.replace('}','')
+
+            self.lastls = PXPaths.RXQ + self.source.name + '/.ls' + pdir.replace('/','_')
             self.newls  = self.lastls + '.new'
             ok = self.do_ls(self.newls)
             if not ok : continue
