@@ -15,16 +15,21 @@ named COPYING in the root of the source directory tree.
 #
 # Description: Removes empty directories from pxSender queues
 #
+# 20070223 MG : bug fix for file treated as directory at any levels
+#
 ################################################################
 
 import os
 import time
 import commands
+import sys
 
 TXQ = '/apps/px/txq'
 # RXQ = '/apps/px/rxq' # Maybe eventually for FTP receivers
 
 currentTime = time.strftime('%Y%m%d%H')
+
+sys.stdout  = sys.stderr
 
 circuits = os.listdir(TXQ)
 for circuit in circuits:
@@ -32,12 +37,19 @@ for circuit in circuits:
     prioDirs = commands.getoutput('ls -1 --ignore=PROBLEM %s' % (minimalPath))
     prioDirs = prioDirs.splitlines() # Type changed
     for prio in prioDirs:
-        if len(prio) > 1:
-            continue
         partialPath = minimalPath + '/' + prio
+        if len(prio) > 1:
+            print(" error mr-clean : %s is incorrect, remove ?" % partialPath )
+            continue
+        if os.path.isfile(partialPath) :
+            print(" error mr-clean : file %s should be removed" % partialPath )
+            continue
         dateDirs = commands.getoutput('ls -1 --ignore=%s %s' % (currentTime, partialPath))
         dateDirs = dateDirs.splitlines() # Type changed
         for date in dateDirs:
             fullPath = partialPath + '/' + date
+            if os.path.isfile(fullPath) :
+               print(" error mr-clean : file %s should be removed" % fullPath)
+               continue
             if os.listdir(fullPath) == []:
-                result = commands.getoutput('rmdir %s' % (fullPath))
+               result = commands.getoutput('rmdir %s' % (fullPath))
