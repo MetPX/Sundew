@@ -1,0 +1,334 @@
+.TH PX "1" "Jan 2007" "px 1.0.0" "Metpx suite"
+.SH NAME
+pxReceiver \- Metpx program to manage receiver processes
+.SH SYNOPSIS
+.B pxReceiver
+\fIreceiver_name\fR [\fIstart|stop|restart|reload|status\fR]...
+.SH DESCRIPTION
+.Pp
+A receiver, in the METPX suite, is a program that waits (directory watching or socket reading)
+for the reception of products. Once a product is arrived, the receiver processes it according 
+to its configuration, puts the product into the product database (simple file/directory hiearchy)
+and distributes the product to any METPX filters,senders,tranceivers (if any) that are 
+configured to process it.
+
+The configuration of a receiver is a simple ascii file. It must be placed in 
+directory $PXROOT/etc/rx (PXROOT is usually /apps/px). The file's name must be
+the receiver_name with the suffix .conf. For example if file $PXROOT/etc/rx/wmo-bulletins.conf
+exists and is syntaxically correct than the following commands are valid :
+.Pp
+.nf
+
+.B pxReceiver wmo-bulletins start
+.B pxReceiver wmo-bulletins restart
+.B pxReceiver wmo-bulletins reload
+.B pxReceiver wmo-bulletins status
+.B pxReceiver wmo-bulletins stop
+
+.fi
+.Pp
+The action arguments do simply what they mean. 
+.TP
+\fBreload\fR
+reloads the receiver configuration. It includes the routing table, the station dictionnary, the config file, and the determination of potential clients. After reloading, the program resumes to its normal state.
+.TP
+\fBrestart\fR
+restarts the receiver. It is equivalent to a stop followed by a start.
+.TP
+\fBstart\fR
+starts the receiver program. It includes : saving the process id in the lock file $PXROOT/etc/rx/.lock,
+loading its configuration, getting informations about all possible clients (filters,senders,tranceivers), 
+loading the routing table, stations table, and starting the receiving process which depends of the receiver
+type in its config.
+.TP
+\fBstatus\fR
+returns the state of receiver (running, locked or stopped). It gets the process id in the lock file $PXROOT/etc/rx/.lock(if not found the receiver is assumed to be stopped), than check to see if the pid is a running process... If the pid is found but the process is not, the receiver is assumed to be locked
+.TP
+\fBstop\fR
+stops the receiver program. It includes a proper handlking of the socket reading buffer (if any), the termination of file processing (if any) and it removes the lock file in the $PXROOT/etc/rx/.lock.
+.SH RECEIVER TYPES
+The possible type are :
+.TP
+\fBam\fR
+open/read a socket using am protocol (Environment Canada specific). The incoming data are bulletins
+.TP
+\fBwmo\fR
+open/read a socket using WMO protocol. The incoming data are bulletins
+.TP
+\fBbulletin-file\fR
+the directory $PXROOT/rxq/"receiver_name" is scannned endlessly. Any files written in that directory is considered a new product to process. When a file is processed, there is an important consideration to its content; it must be a meteorological bulletin.
+.TP
+\fBcollector\fR
+the directory $PXROOT/rxq/"receiver_name" is scannned endlessly. Any files written in that directory must be a meteorological bulletin. Rules in the configuration defines how bulletins will be collected (per bulletin type). The receiver ingests (databasing and client distribution) only with the resulting "collected" bulletins. 
+.TP
+\fBsingle-file\fR
+the directory $PXROOT/rxq/"receiver_name" is scannned endlessly. Any files written in that directory is considered a new product to process. The file is processed without consideration to its content. The filename is used to route the file to the clients (see imask, emask, accept, reject directives).
+.TP
+\fBpull-bulletin\fR
+the configuration defines a remote host and an account to use. It also defines directories and files to retrieve from that site. New files are retreived and written into the receiver directory $PXROOT/rxq/"receiver_name". The rest of the process is identical to a receiver of type bulletin-file
+.TP
+\fBpull-file\fR
+the configuration defines a remote host and an account to use. It also defines directories and files to retrieve from that site. New files are retreived and written into the receiver directory $PXROOT/rxq/"receiver_name". The rest of the process is identical to a receiver of type single-file.
+.SH CONFIGURATION
+.Pp
+As said earlier, the configuration file for a receiver resides in $PXROOT/etc/rx/"\fBReceiverName\fR".conf
+The syntax of the file is simple. A comment is a line that begins with \fB#\fR. Empty lines are permitted.
+To declare or set an option you simply use one of these form (depending on the option) :
+.nf
+
+\fBoption value\fR
+\fBoption value1,value2,...\fR
+\fBoption value1 value2 ...\fR
+
+.fi
+.SH GENERAL CONFIGURATION OPTIONS
+.TP
+\fBtype keyword (default: none)\fR
+.nf
+This option defines the type of the receiver... keyword is one of
+    am              - AM protocol socket
+    wmo             - WMO protocol socket
+    bulletin-file   - receive bulletins in a file (ingested like from a socket)
+    collector       - receive bulletins in a file, create and ingest collections
+    single-file     - Receive plain files (like a PDS)
+    pull-bulletin   - Get bulletins from remote host then process as bulletin-file
+    pull-file       - Get products  from remote host then process as single-file
+.fi
+.TP
+\fBextension string (default:  MISSING:MISSING:MISSING:MISSING:)\fR
+.nf
+The extension is a text to be added to the end of a file name to make it suitable for ingest into metpx.
+Five fields separted by four colons.  Substitutions are done based on the incoming msg header: 
+.nf
+    -CCCC       => will be replaced by the origin site
+    -TT         => will be replaced by bulletin type (first 2 letters)
+    -PRIPRIOTY  => will be replaced by priority found in pxRouting.conf
+    -NAME       => will be replaced by the receiver's name
+
+For bulletin the convention is to use : extension -NAME:-CCCC:-TT:-CIRCUIT:Direct
+
+In general, we choose the extension's fields to be: originSystem:originSite:dataType:priority:dataFormat
+This extension + a timestamp (20051116212028) will be added to the ingested file or bulletin.
+.fi
+.TP
+\fBfx_script script (default:None)\fR
+For receiver that do not process bulletins, it is possible to define a script to modify the file's content.
+The script must be in python and reside in $PXROOT/etc/scripts.  The fx_script must end with the line :
+.nf
+
+         self.fx_script = module
+
+.fi
+where the module is a valid python module having 2 arguments : ipath, logger.
+path is the ipath of the incoming file to apply the fx on.  logger is an internal metpx class
+that can be used to log messages to the receiver's log file.  It supports 3 levels of messages :
+.nf
+
+        logger.debug  ("message1")
+        logger.warning("message2")
+        logger.error  ("message3")
+
+.fi
+The module must return one of the 3 following : 
+.nf
+
+        ipath         return the incoming filename path (input file already ok )
+        opath         return the modified filename path (newly created filepath)
+        None          return None means that nothing could be done with input file
+                      (in this cast the file is not ingested but removed)
+
+.fi
+.TP
+\fBvalidation boolean (default:True )\fR
+.nf
+Validate if the filename have the following form:
+SACN43_CWAO_012000_CYOJ_41613:ncp1:CWAO:SA:3.A.I.E::20050201200339
+The priority field and the timestamp field are checked for validity.
+In practice, never used for sources. But turned off if you want to
+behave like the PDS.
+.fi
+.SH PRODUCT ROUTING OPTIONS
+.nf
+\fBpatternMatching boolean  (Default: True)\fR
+\fBaccept <regexp pattern>\fR
+\fBreject <regexp pattern>\fR
+\fBemask <filepattern>\fR
+\fBimask <filepattern>\fR
+\fBroutemask boolean (default: False)\fR
+\fBroutingTable filename (default: pxRouting.conf)\fR
+\fBfeed receivername\fR
+\fBclientsPatternMatching boolean  (Default: True)\fR
+
+If the option patternMatching is set to True, after determining the ingest_name,
+it is matched against the accept and reject regexp patterns of the receiver's configuration file.
+The default is for the file to be accepted.  reject (exclusion) can be used to suppress 
+reception of files with a certain pattern. Files suppressed are not ingested into the DB.
+
+emask/imask are an older version of accept/reject and use filepattern instead of regexp pattern
+and will slowly become obsolete.
+
+If the receiver processes bulletins, the routing table is always used.  The key generated 
+from a bulletin is T1T2A1A1ii_CCCC (wmo bulletin definition). For example  SACN31_CWAO .
+
+When products are not bulletins and the receiver can still use a routing table ( more efficient).
+In that case you must do the following:
+1- the routemask option must be set to True
+2- accept directives must contains parenthesis. 
+   The enclosed filename parts are concatenated with "_" forming the key
+3- the resulting possible keys must be defined in the routing table file 
+   with their clients and priority. Ex.: key CHART_GIF client1,client2 3
+
+Some receiver may want to have another receiver as client. The option feed must than be used.
+
+If clientsPatternMatching is set to True, the receiver scans the options
+accept/reject/emask/imask presents in the clients configuration files 
+to determine if a file is acceptable to the clients.
+
+.fi
+.SH FILE RECEPTION OPTIONS
+These options applies for all receivers but AM and WMO which use sockets instead of files.
+
+.TP
+\fBbatch integer (default:100 )\fR
+The maximum number of files that will be read from disk in one cycle. 
+
+.TP
+\fBmtime integer (default:0 )\fR
+Number of seconds a file must not have been modified before we process it. 
+If set to 0, this is equivalent to not checking the modification time.
+This option is useful for files received by rcp, ftp, etc.
+
+.fi
+.SH TYPE AM SPECIFIC OPTIONS
+.TP
+\fBport integer (default:None)\fR
+Port to bind for the AM reception.
+.TP
+\fBarrival type min max\fR
+Mapping of what the valid times to receive a given type of bulletin are.
+In the following example for CA's, -5 or +20 minutes versus the issue time is 
+the valid interval. 
+.nf
+       arrival CA 5 20
+.fi
+.TP
+\fBAddSMHeader boolean (Default: False)\fR
+True if a header is to be inserted at the beginning of a SM or SI bulletins.
+The header is of the form: "AAXX jjhh4\\n". 
+
+.TP
+\fBkeepAlive boolean (Default:True)\fR
+This option set the unix socket option SO_KEEPALIVE to the value of that option
+
+.SH TYPE WMO SPECIFIC OPTIONS
+.TP
+\fBport integer (default:None)\fR
+Port to bind for the WMO reception.
+
+.TP
+\fBkeepAlive boolean (Default:True)\fR
+This option set the unix socket option SO_KEEPALIVE to the value of that option
+
+.fi
+.SH TYPE COLLECTION SPECIFIC OPTIONS
+.TP
+\fBheader type (Default: None)\fR
+Defines a bulletin header to collect. Ex.:  header SA
+
+.TP
+\fBissue hourlist primary secondaries (Default: None)\fR
+Defines how to collect the header. hourlist is a comma separated list of hours or the keywork 'all'
+primary is the minute after the collect hour to issue the primary collection.
+secondaries is the cycle in minutes to issue the other bulletins received after the primary collection
+.nf
+Ex.:
+    issue all 7 5
+                    collect all hours, 
+                    primary issue is 7 mins after the hour
+                    secondaries are issued in cycle of 5 mins after
+                                the primary so at the hour past 12,17...etc
+
+    issue 0,6,12,18 12 5
+                    collect data at 0,6,12,18
+                    primary issue is 12 mins after the collect hour
+                    secondaries are issued in cycle of 5 mins
+fi
+
+.TP
+\fBhistory hours (Default: 24 )\fR
+The amount of time in hours for which it is valid to collect a bulletin
+Ex.: history 24  means that a bulletin older than 24 hours is not collected.
+
+.TP
+\fBfuture minutes (Default: 40)\fR
+Specified in minutes.  Maximum limit to consider valid a report dated in the future
+
+.SH TYPE PULL SPECIFIC OPTIONS (pull-bulletin,pull-file)
+.TP
+
+\fBprotocol ftp (Default: ftp )\fR
+For the moment only protocol ftp is supported by the pulls
+
+.TP
+\fBhost remotehost (Default: None )\fR
+the host where we are going to pull the files
+
+.TP
+\fBuser username (Default: None )\fR
+the user on the remote host where we are going to use to pull the files
+
+.TP
+\fBpassword pw (Default: None )\fR
+the password for the user  on the remote host
+
+.TP
+\fBftp_mode mode (Default: passive )\fR
+the ftp mode is either active or passive.
+
+.TP
+\fBdirectory <dir>\fR
+directory //absolute/directory
+directory /relative/directory
+defines the directory where the files are going to be pulled
+
+.nf
+Some pattern placed anywhere in the directory name are going to
+be systematicaly replaced :
+${YYYYMMDD}     replace by today's date
+${YYYYMMDD-1D}  replace by yesterday's date
+${YYYYMMDD-2D}  replace by the date  2 days earlier than today
+${YYYYMMDD-3D}  replace by the date  3 days earlier than today
+${YYYYMMDD-4D}  replace by the date  4 days earlier than today
+${YYYYMMDD-5D}  replace by the date  5 days earlier than today
+.fi
+.TP
+\fBget <regexp>\fR
+.nf
+defines a regexp pattern for filename matching to get.
+Ex.:  get .*CHART    will get all files that ends with CHART
+
+.fi
+.TP
+\fBtimeout_get seconds (default:30)\fR
+set the elapse time after which a get will be considered timed out.
+
+.TP
+\fBpull_sleep seconds (default:300)\fR
+set the elapse time between each consecutive get attempts
+
+.TP
+\fBdelete boolean (default:False)\fR
+Once a file was pulled shall we delete it on the remote host
+
+.TP
+\fBpull_prefix string (default:'')\fR
+When a file is pulled modify it name be prefixing it with the string.
+Keyword  HDATETIME  can be used to prefix the filename with the remote host
+datetime for the pulled file... the prefix has a YYYYMMDDhhmm_  form.
+
+.SH DEVELOPPER SPECIFIC OPTIONS
+
+\fBsorter keyword (Default: MultiKeysStringSorter)\fI
+other keyword could be None, StandardSorter
+Determine which type of sorter will be used. Can be used only with type
+single-file and bulletin-file. In practice, never used for sources.
