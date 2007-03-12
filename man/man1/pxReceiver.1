@@ -37,7 +37,7 @@ restarts the receiver. It is equivalent to a stop followed by a start.
 .TP
 \fBstart\fR
 starts the receiver program. It includes : saving the process id in the lock file $PXROOT/etc/rx/.lock,
-loading its configuration, getting informations about all possible clients (filters,senders,tranceivers), 
+loading its configuration, getting informations about all possible clients (receivers,filters,senders,tranceivers), 
 loading the routing table, stations table, and starting the receiving process which depends of the receiver
 type in its config.
 .TP
@@ -86,13 +86,13 @@ To declare or set an option you simply use one of these form (depending on the o
 \fBtype keyword (default: none)\fR
 .nf
 This option defines the type of the receiver... keyword is one of
-    am              - AM protocol socket
-    wmo             - WMO protocol socket
-    bulletin-file   - receive bulletins in a file (ingested like from a socket)
-    collector       - receive bulletins in a file, create and ingest collections
-    single-file     - Receive plain files (like a PDS)
-    pull-bulletin   - Get bulletins from remote host then process as bulletin-file
-    pull-file       - Get products  from remote host then process as single-file
+    am              - receive and ingest bulletins using AM  protocol through a socket
+    wmo             - receive and ingest bulletins using WMO protocol through a socket
+    bulletin-file   - receive and ingest files that contain bulletin
+    collector       - receive files that contain bulletin, create and ingest collections
+    single-file     - receive and ingest plain files (like PDS)
+    pull-bulletin   - retrieve bulletins from remote host then ingest them as bulletin-file
+    pull-file       - retrieve products  from remote host then ingest them as single-file
 .fi
 .TP
 \fBextension string (default:  MISSING:MISSING:MISSING:MISSING:)\fR
@@ -100,10 +100,10 @@ This option defines the type of the receiver... keyword is one of
 The extension is a text to be added to the end of a file name to make it suitable for ingest into metpx.
 Five fields separted by four colons.  Substitutions are done based on the incoming msg header: 
 .nf
-    -CCCC       => will be replaced by the origin site
-    -TT         => will be replaced by bulletin type (first 2 letters)
-    -PRIPRIOTY  => will be replaced by priority found in pxRouting.conf
-    -NAME       => will be replaced by the receiver's name
+    -CCCC           - will be replaced by the origin site
+    -TT             - will be replaced by bulletin type (first 2 letters)
+    -PRIPRIOTY      - will be replaced by priority found in pxRouting.conf
+    -NAME           - will be replaced by the receiver's name
 
 For bulletin the convention is to use : extension -NAME:-CCCC:-TT:-CIRCUIT:Direct
 
@@ -120,7 +120,7 @@ The script must be in python and reside in $PXROOT/etc/scripts.  The fx_script m
 
 .fi
 where the module is a valid python module having 2 arguments : ipath, logger.
-path is the ipath of the incoming file to apply the fx on.  logger is an internal metpx class
+ipath is the path of the incoming file to apply the fx on.  logger is an internal metpx class
 that can be used to log messages to the receiver's log file.  It supports 3 levels of messages :
 .nf
 
@@ -132,10 +132,11 @@ that can be used to log messages to the receiver's log file.  It supports 3 leve
 The module must return one of the 3 following : 
 .nf
 
-        ipath         return the incoming filename path (input file already ok )
-        opath         return the modified filename path (newly created filepath)
-        None          return None means that nothing could be done with input file
-                      (in this cast the file is not ingested but removed)
+        return ipath  (means that the input file is accepted as is )
+        return opath  (means that the new file opath was created from the
+                       input file, opath is ingested and ipath discarted)
+        return None   (means that nothing could be done with input file
+                       no file will be ingested, ipath is discarted)
 
 .fi
 .TP
@@ -160,17 +161,18 @@ behave like the PDS.
 \fBclientsPatternMatching boolean  (Default: True)\fR
 
 If the option patternMatching is set to True, after determining the ingest_name,
-it is matched against the accept and reject regexp patterns of the receiver's configuration file.
-The default is for the file to be accepted.  reject (exclusion) can be used to suppress 
-reception of files with a certain pattern. Files suppressed are not ingested into the DB.
+the ingest_name is matched against the accept and reject regexp patterns of the receiver's
+configuration file.  The default is for the file to be accepted.  reject (exclusion) can be
+used to suppress reception of files with a certain pattern. Files suppressed are not
+ingested into the DB.
 
 emask/imask are an older version of accept/reject and use filepattern instead of regexp pattern
 and will slowly become obsolete.
 
 If the receiver processes bulletins, the routing table is always used.  The key generated 
-from a bulletin is T1T2A1A1ii_CCCC (wmo bulletin definition). For example  SACN31_CWAO .
+from a bulletin is T1T2A1A1ii_CCCC (see wmo bulletin definition). For example  SACN31_CWAO .
 
-When products are not bulletins and the receiver can still use a routing table ( more efficient).
+When products are not bulletins and the receiver can still use a routing table (more efficient).
 In that case you must do the following:
 1- the routemask option must be set to True
 2- accept directives must contains parenthesis. 
@@ -179,10 +181,11 @@ In that case you must do the following:
    with their clients and priority. Ex.: key CHART_GIF client1,client2 3
 
 Some receiver may want to have another receiver as client. The option feed must than be used.
+Ex.: feed receiver_name_2
 
 If clientsPatternMatching is set to True, the receiver scans the options
-accept/reject/emask/imask presents in the clients configuration files 
-to determine if a file is acceptable to the clients.
+accept/reject/emask/imask presents in all its client's configuration files 
+to determine if the product is acceptable to the client.
 
 .fi
 .SH FILE RECEPTION OPTIONS
@@ -322,7 +325,7 @@ Once a file was pulled shall we delete it on the remote host
 
 .TP
 \fBpull_prefix string (default:'')\fR
-When a file is pulled modify it name be prefixing it with the string.
+When a file is pulled, modify its name, by prefixing it with string.
 Keyword  HDATETIME  can be used to prefix the filename with the remote host
 datetime for the pulled file... the prefix has a YYYYMMDDhhmm_  form.
 
