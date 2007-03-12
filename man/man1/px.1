@@ -24,7 +24,7 @@ metpx processes by searching through :
       $PXROOT/etc/trx     for valid tranceiver  configuration files
 
 .fi
-Going to all this information the px program is able to determine on which processes it must
+Going through all this information the px program is able to determine on which processes it must
 perform its actions. The possible actions are :
 .Pp
 .nf
@@ -54,4 +54,4 @@ loading the routing table, stations table, and starting their individual product
 the state of all metpx processes is returned. The state is either running, locked or stopped. For each process, px gets the process id in its lock file (if not found the process is assumed to be stopped), than check to see if the pid is a running process... If the pid is found but the process is not, the process is assumed to be locked
 .TP
 \fBstop\fR
-all metpx processes are asked to stop. It includes a proper handlking of the socket buffer (if any), the termination of file processing (if any) and the removal of the lock files.
+all metpx processes are asked to stop. It includes a proper handling of the socket buffer (if any), the termination of file processing (if any) and the removal of the lock files.
