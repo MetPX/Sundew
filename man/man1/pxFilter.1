@@ -7,7 +7,7 @@ pxFilter \- Metpx program to manage filter processes
 .SH DESCRIPTION
 .Pp
 A filter, in the METPX suite, is a program that scans endlessly its queue directory namely
-$PXROOT/txq/"filter_name" for the reception of products. Once a product is arrived, the filter
+$PXROOT/fxq/"filter_name" for the reception of products. Once a product is arrived, the filter
 processes it according to its configuration, puts the derived product into the product database
 (simple file/directory hiearchy) and distributes the product to any METPX filters,senders,tranceivers
 (if any) that are configured to process it.
@@ -30,20 +30,20 @@ exists and is syntaxically correct than the following commands are valid :
 The action arguments do simply what they mean. 
 .TP
 \fBreload\fR
-reloads the filter configuration. After reloading, the program resumes to its normal state.
+reloads the filter configuration and possibly the routing table. After reloading, the program resumes to its normal state.
 .TP
 \fBrestart\fR
 restarts the filter. It is equivalent to a stop followed by a start.
 .TP
 \fBstart\fR
 starts the filter program. It includes : saving the process id in the lock file $PXROOT/fxq/"filter_name"/.lock,
-loading its configuration, and starting the sending process which depends of the filter type in its config.
+loading its configuration and possibly the routing table, and starting the sending process which depends of the filter type in its config.
 .TP
 \fBstatus\fR
 returns the state of filter (running, locked or stopped). It gets the process id in the lock file $PXROOT/fxq/"filter_name"/.lock (if not found the filter is assumed to be stopped), than check to see if the pid is a running process... If the pid is found but the process is not, the filter is assumed to be locked
 .TP
 \fBstop\fR
-stops the filter program. It includes a proper handling of the socket writing buffer (if any), the termination of file processing (if any) and it removes the lock file in the $PXROOT/fxq/"filter_name"/.lock.
+stops the filter program. It includes a proper handling of file processing (if any) and it removes the lock file in the $PXROOT/fxq/"filter_name"/.lock.
 .SH CONFIGURATION
 .Pp
 As said earlier, the configuration file for a filter resides in $PXROOT/etc/tx/"\fBFilterName\fR".conf
@@ -59,8 +59,8 @@ To declare or set an option you simply use one of these form (depending on the o
 .SH GENERAL CONFIGURATION OPTIONS
 .TP
 \fBfx_script script (default:None)\fR
-For filter that do not use sockets, it is possible to define a script to modify the file's content.
-The script must be in python and reside in $PXROOT/etc/scripts.  The fx_script must end with the line :
+For filter configuration must define a script.  The script must be in python and reside in $PXROOT/etc/scripts.
+The fx_script must end with the line :
 .nf
 
          self.fx_script = module
@@ -79,10 +79,13 @@ that can be used to log messages to the filter's log file.  It supports 3 levels
 The module must return one of the 3 following : 
 .nf
 
-        ipath         return the incoming filename path (input file already ok )
+        ipath         return the incoming filename path means that input file was already ok.
+                      (in this case the file is not sent but discarted)
+
         opath         return the modified filename path (newly created filepath)
+
         None          return None means that nothing could be done with input file
-                      (in this case the file is not sent but removed)
+                      (in this case the file is not sent but discarted)
 
 .fi
 .TP
@@ -148,7 +151,7 @@ This option is useful for files received by rcp, ftp, etc.
 .fi
 .SH DEVELOPPER SPECIFIC OPTIONS
 
-\fBsorter keyword (Default: MultiKeysStringSorter)\fI
+\fBsorter keyword (Default: MultiKeysStringSorter)\fR
 other keyword could be None, StandardSorter
 Determine which type of sorter will be used. Can be used only with type
 single-file and bulletin-file. In practice, never used.
