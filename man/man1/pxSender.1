@@ -40,14 +40,14 @@ reloads the sender configuration. After reloading, the program resumes to its no
 restarts the sender. It is equivalent to a stop followed by a start.
 .TP
 \fBstart\fR
-starts the sender program. It includes : saving the process id in the lock file $PXROOT/etc/tx/.lock,
+starts the sender program. It includes : saving the process id in the lock file $PXROOT/txq/"sender_name"/.lock,
 loading its configuration, and starting the sending process which depends of the sender type in its config.
 .TP
 \fBstatus\fR
-returns the state of sender (running, locked or stopped). It gets the process id in the lock file $PXROOT/etc/tx/.lock (if not found the sender is assumed to be stopped), than check to see if the pid is a running process... If the pid is found but the process is not, the sender is assumed to be locked
+returns the state of sender (running, locked or stopped). It gets the process id in the lock file $PXROOT/txq/"sender_name"/.lock (if not found the sender is assumed to be stopped), than check to see if the pid is a running process... If the pid is found but the process is not, the sender is assumed to be locked
 .TP
 \fBstop\fR
-stops the sender program. It includes a proper handling of the socket writing buffer (if any), the termination of file processing (if any) and it removes the lock file in the $PXROOT/etc/tx/.lock.
+stops the sender program. It includes a proper handling of the socket writing buffer (if any), the termination of file processing (if any) and it removes the lock file in the $PXROOT/txq/"sender_name"/.lock.
 .SH SENDER TYPES
 The possible type are :
 .TP
@@ -313,4 +313,4 @@ A value of 0 means do not check for timeout.
 \fBsorter keyword (Default: MultiKeysStringSorter)\fI
 other keyword could be None, StandardSorter
 Determine which type of sorter will be used. Can be used only with type
-single-file and bulletin-file. In practice, never used for sources.
+single-file and bulletin-file. In practice, never used.

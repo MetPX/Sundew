@@ -36,16 +36,16 @@ reloads the receiver configuration. It includes the routing table, the station d
 restarts the receiver. It is equivalent to a stop followed by a start.
 .TP
 \fBstart\fR
-starts the receiver program. It includes : saving the process id in the lock file $PXROOT/etc/rx/.lock,
+starts the receiver program. It includes : saving the process id in the lock file $PXROOT/rxq/"receiver_name"/.lock,
 loading its configuration, getting informations about all possible clients (receivers,filters,senders,tranceivers), 
 loading the routing table, stations table, and starting the receiving process which depends of the receiver
 type in its config.
 .TP
 \fBstatus\fR
-returns the state of receiver (running, locked or stopped). It gets the process id in the lock file $PXROOT/etc/rx/.lock(if not found the receiver is assumed to be stopped), than check to see if the pid is a running process... If the pid is found but the process is not, the receiver is assumed to be locked
+returns the state of receiver (running, locked or stopped). It gets the process id in the lock file $PXROOT/rxq/"receiver_name"/.lock (if not found the receiver is assumed to be stopped), than check to see if the pid is a running process... If the pid is found but the process is not, the receiver is assumed to be locked
 .TP
 \fBstop\fR
-stops the receiver program. It includes a proper handlking of the socket reading buffer (if any), the termination of file processing (if any) and it removes the lock file in the $PXROOT/etc/rx/.lock.
+stops the receiver program. It includes a proper handlking of the socket reading buffer (if any), the termination of file processing (if any) and it removes the lock file in the $PXROOT/rxq/"receiver_name"/.lock.
 .SH RECEIVER TYPES
 The possible type are :
 .TP
@@ -334,4 +334,4 @@ datetime for the pulled file... the prefix has a YYYYMMDDhhmm_  form.
 \fBsorter keyword (Default: MultiKeysStringSorter)\fI
 other keyword could be None, StandardSorter
 Determine which type of sorter will be used. Can be used only with type
-single-file and bulletin-file. In practice, never used for sources.
+single-file and bulletin-file. In practice, never used.
