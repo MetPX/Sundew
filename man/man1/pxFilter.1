@@ -1,0 +1,154 @@
+.TH PX "1" "Jan 2007" "px 1.0.0" "Metpx suite"
+.SH NAME
+pxFilter \- Metpx program to manage filter processes
+.SH SYNOPSIS
+.B pxFilter
+\fIfilter_name\fR [\fIstart|stop|restart|reload|status\fR]...
+.SH DESCRIPTION
+.Pp
+A filter, in the METPX suite, is a program that scans endlessly its queue directory namely
+$PXROOT/txq/"filter_name" for the reception of products. Once a product is arrived, the filter
+processes it according to its configuration, puts the derived product into the product database
+(simple file/directory hiearchy) and distributes the product to any METPX filters,senders,tranceivers
+(if any) that are configured to process it.
+
+The configuration of a filter is a simple ascii file. It must be placed in 
+directory $PXROOT/etc/fx (PXROOT is usually /apps/px). The file's name must be
+the filter_name with the suffix .conf. For example if file $PXROOT/etc/fx/from-gif-to-png.conf
+exists and is syntaxically correct than the following commands are valid :
+.Pp
+.nf
+
+.B pxReceiver from-gif-to-png start
+.B pxReceiver from-gif-to-png restart
+.B pxReceiver from-gif-to-png reload
+.B pxReceiver from-gif-to-png status
+.B pxReceiver from-gif-to-png stop
+
+.fi
+.Pp
+The action arguments do simply what they mean. 
+.TP
+\fBreload\fR
+reloads the filter configuration. After reloading, the program resumes to its normal state.
+.TP
+\fBrestart\fR
+restarts the filter. It is equivalent to a stop followed by a start.
+.TP
+\fBstart\fR
+starts the filter program. It includes : saving the process id in the lock file $PXROOT/fxq/"filter_name"/.lock,
+loading its configuration, and starting the sending process which depends of the filter type in its config.
+.TP
+\fBstatus\fR
+returns the state of filter (running, locked or stopped). It gets the process id in the lock file $PXROOT/fxq/"filter_name"/.lock (if not found the filter is assumed to be stopped), than check to see if the pid is a running process... If the pid is found but the process is not, the filter is assumed to be locked
+.TP
+\fBstop\fR
+stops the filter program. It includes a proper handling of the socket writing buffer (if any), the termination of file processing (if any) and it removes the lock file in the $PXROOT/fxq/"filter_name"/.lock.
+.SH CONFIGURATION
+.Pp
+As said earlier, the configuration file for a filter resides in $PXROOT/etc/tx/"\fBFilterName\fR".conf
+The syntax of the file is simple. A comment is a line that begins with \fB#\fR. Empty lines are permitted.
+To declare or set an option you simply use one of these form (depending on the option) :
+.nf
+
+\fBoption value\fR
+\fBoption value1,value2,...\fR
+\fBoption value1 value2 ...\fR
+
+.fi
+.SH GENERAL CONFIGURATION OPTIONS
+.TP
+\fBfx_script script (default:None)\fR
+For filter that do not use sockets, it is possible to define a script to modify the file's content.
+The script must be in python and reside in $PXROOT/etc/scripts.  The fx_script must end with the line :
+.nf
+
+         self.fx_script = module
+
+.fi
+where the module is a valid python module having 2 arguments : ipath, logger.
+ipath is the path of the incoming file to apply the fx on.  logger is an internal metpx class
+that can be used to log messages to the filter's log file.  It supports 3 levels of messages :
+.nf
+
+        logger.debug  ("message1")
+        logger.warning("message2")
+        logger.error  ("message3")
+
+.fi
+The module must return one of the 3 following : 
+.nf
+
+        ipath         return the incoming filename path (input file already ok )
+        opath         return the modified filename path (newly created filepath)
+        None          return None means that nothing could be done with input file
+                      (in this case the file is not sent but removed)
+
+.fi
+.TP
+\fBvalidation boolean (default:True )\fR
+.nf
+Validate if the filename have the following form:
+SACN43_CWAO_012000_CYOJ_41613:ncp1:CWAO:SA:3.A.I.E::20050201200339
+The priority field and the timestamp field are checked for validity.
+In practice, never used for sources. But turned off if you want to
+behave like the PDS.
+.fi
+.SH PRODUCT ROUTING OPTIONS
+.nf
+\fBpatternMatching boolean  (Default: True)\fR
+\fBaccept <regexp pattern>\fR
+\fBreject <regexp pattern>\fR
+\fBemask <filepattern>\fR
+\fBimask <filepattern>\fR
+\fBroutemask boolean (default: False)\fR
+\fBroutingTable filename (default: pxRouting.conf)\fR
+\fBfeed receivername\fR
+\fBclientsPatternMatching boolean  (Default: True)\fR
+
+If the option patternMatching is set to True, after determining the ingest_name,
+the ingest_name is matched against the accept and reject regexp patterns of the filter's
+configuration file.  The default is for the file to be accepted.  reject (exclusion) can be
+used to suppress reception of files with a certain pattern. Files suppressed are not
+ingested into the DB.
+
+emask/imask are an older version of accept/reject and use filepattern instead of regexp pattern
+and will slowly become obsolete.
+
+The filter can use a routing table (more efficient).
+In that case you must do the following:
+1- the routemask option must be set to True
+2- use accept directives to declare the products to be filtered
+3- derived products must match an accept directives in the configuration file
+   that contains parenthesis.  The enclosed derived filename parts are 
+   concatenated with "_" forming a routing key
+4- the resulting possible keys must be defined in the routing table file 
+   with the filters/clients/transceivers and priority. Ex.: key CHART_GIF client1,client2 3
+
+Some filters may want to feed a receiver. The option feed must than be used.
+Ex.: feed receiver_name_2
+
+If clientsPatternMatching is set to True, the filter scans the options
+accept/reject/emask/imask presents in all its client's configuration files 
+to determine if the product is acceptable to the client.
+
+.fi
+.SH FILE RECEPTION OPTIONS
+
+.TP
+\fBbatch integer (default:100 )\fR
+The maximum number of files that will be read from disk in one cycle. 
+
+.TP
+\fBmtime integer (default:0 )\fR
+Number of seconds a file must not have been modified before we process it. 
+If set to 0, this is equivalent to not checking the modification time.
+This option is useful for files received by rcp, ftp, etc.
+
+.fi
+.SH DEVELOPPER SPECIFIC OPTIONS
+
+\fBsorter keyword (Default: MultiKeysStringSorter)\fI
+other keyword could be None, StandardSorter
+Determine which type of sorter will be used. Can be used only with type
+single-file and bulletin-file. In practice, never used.
