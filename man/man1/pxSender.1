@@ -1,0 +1,316 @@
+.TH PX "1" "Jan 2007" "px 1.0.0" "Metpx suite"
+.SH NAME
+pxSender \- Metpx program to manage sender processes
+.SH SYNOPSIS
+.B pxSender
+\fIsender_name\fR [\fIstart|stop|restart|reload|status\fR]...
+.SH DESCRIPTION
+.Pp
+A sender, in the METPX suite, is a program that deliver products to a client. The products it
+processes comes from a METPX receiver. Once a receiver has determined that a sender should
+transmit a product, it writes the products in its transmission directory tree...
+namely under $PXROOT/txq/"sender_name"/priority/YYYYMMDDHH where YYYYMMDDHH is the current
+date time. The receiver will create the directory if it does not exist.
+
+The sender scans endlessly all directories under $PXROOT/txq/"sender_name" in search of products.
+When products are present, the sender processes them according to its configuration, 
+and delivers them to the client defined in its configuration file.
+
+The configuration of a sender is a simple ascii file. It must be placed in 
+directory $PXROOT/etc/tx (PXROOT is usually /apps/px). The file's name must be
+the sender_name with the suffix .conf. For example if file $PXROOT/etc/tx/am-bulletins.conf
+exists and is syntaxically correct than the following commands are valid :
+.Pp
+.nf
+
+.B pxSender am-bulletins start
+.B pxSender am-bulletins restart
+.B pxSender am-bulletins reload
+.B pxSender am-bulletins status
+.B pxSender am-bulletins stop
+
+.fi
+.Pp
+The action arguments do simply what they mean. 
+.TP
+\fBreload\fR
+reloads the sender configuration. After reloading, the program resumes to its normal state.
+.TP
+\fBrestart\fR
+restarts the sender. It is equivalent to a stop followed by a start.
+.TP
+\fBstart\fR
+starts the sender program. It includes : saving the process id in the lock file $PXROOT/etc/tx/.lock,
+loading its configuration, and starting the sending process which depends of the sender type in its config.
+.TP
+\fBstatus\fR
+returns the state of sender (running, locked or stopped). It gets the process id in the lock file $PXROOT/etc/tx/.lock (if not found the sender is assumed to be stopped), than check to see if the pid is a running process... If the pid is found but the process is not, the sender is assumed to be locked
+.TP
+\fBstop\fR
+stops the sender program. It includes a proper handling of the socket writing buffer (if any), the termination of file processing (if any) and it removes the lock file in the $PXROOT/etc/tx/.lock.
+.SH SENDER TYPES
+The possible type are :
+.TP
+\fBam\fR
+open/write a socket using am protocol (Environment Canada specific). The output data are bulletins
+.TP
+\fBamis\fR
+open/write a socket using amis protocol. The output data are bulletins
+.TP
+\fBwmo\fR
+open/write a socket using WMO protocol. The output data are bulletins
+.TP
+\fBsingle-file\fR
+When products are available, a single-file sender opens a connection to a remote host using the information in its configuration file (protocol, host, user,password, mode... etc ). It sends the files to their proper remote destination, and closes the connection.
+.SH CONFIGURATION
+.Pp
+As said earlier, the configuration file for a sender resides in $PXROOT/etc/tx/"\fBSenderName\fR".conf
+The syntax of the file is simple. A comment is a line that begins with \fB#\fR. Empty lines are permitted.
+To declare or set an option you simply use one of these form (depending on the option) :
+.nf
+
+\fBoption value\fR
+\fBoption value1,value2,...\fR
+\fBoption value1 value2 ...\fR
+
+.fi
+.SH GENERAL CONFIGURATION OPTIONS
+.TP
+\fBtype keyword (default: none)\fR
+.nf
+This option defines the type of the sender... keyword is one of
+    am              - AM   protocol socket
+    amis            - AMIS protocol socket
+    wmo             - WMO  protocol socket
+    single-file     - user defined the protocol to use for delevery (Ex.FTP)
+.fi
+.TP
+\fBdestfn_script script (default:None)\fR
+For sender that do not use sockets, it is possible to define a script to modify the file delivery name.
+The script must be in python and reside in $PXROOT/etc/scripts.  The destfn_script must end with the line :
+.nf
+
+         self.destfn_script = module
+
+.fi
+where the module is a valid python module having 1 argument : ipath.
+ipath is the path of the incoming file to rename at destination.
+The module must return one of the 2 following : 
+.nf
+
+        opath         return the destination filename
+        None          keep the filename as is
+
+.fi
+.TP
+\fBfx_script script (default:None)\fR
+For sender that do not use sockets, it is possible to define a script to modify the file's content.
+The script must be in python and reside in $PXROOT/etc/scripts.  The fx_script must end with the line :
+.nf
+
+         self.fx_script = module
+
+.fi
+where the module is a valid python module having 2 arguments : ipath, logger.
+ipath is the path of the incoming file to apply the fx on.  logger is an internal metpx class
+that can be used to log messages to the sender's log file.  It supports 3 levels of messages :
+.nf
+
+        logger.debug  ("message1")
+        logger.warning("message2")
+        logger.error  ("message3")
+
+.fi
+The module must return one of the 3 following : 
+.nf
+
+        ipath         return the incoming filename path (input file already ok )
+        opath         return the modified filename path (newly created filepath)
+        None          return None means that nothing could be done with input file
+                      (in this case the file is not sent but removed)
+
+.fi
+.TP
+\fBnoduplicates boolean (default:True )\fR
+.nf
+if set to true, the sender computes the md5checksum of the product to send. 
+It compares this md5checksum with the cached one of delivered products. If a match is found,
+the product is not sent. When a client asks for a product to be retransmited, 
+if this option is enabled, the sender must be stopped and started to clean its cache.
+The product can than be retransmited by placing it in the transmission queue.
+.fi
+.TP
+\fBvalidation boolean (default:True )\fR
+.nf
+Validate if the filename have the following form:
+SACN43_CWAO_012000_CYOJ_41613:ncp1:CWAO:SA:3.A.I.E::20050201200339
+The priority field and the timestamp field are checked for validity.
+In practice, never used for sources. But turned off if you want to
+behave like the PDS.
+.fi
+.SH PRODUCT SELECTION OPTIONS
+.nf
+\fBpatternMatching boolean  (Default: True)\fR
+\fBaccept <regexp pattern>\fR
+\fBreject <regexp pattern>\fR
+\fBemask <filepattern>\fR
+\fBimask <filepattern>\fR
+
+If the option patternMatching is set to True, the products' file name is matched against the accept
+and reject regexp patterns of the sender's configuration file.  reject (exclusion) can be used to
+suppress the delivery of files with a certain pattern. accept options validate filenames that are
+sent to the client. If the sender is 'single-file' than a product accepted will be placed in the
+nearest directory declared before the matching accept decleration.
+
+emask/imask are an older version of accept/reject and use filepattern instead of regexp pattern
+and will slowly become obsolete.
+
+.fi
+.SH FILE TRANSMISSION OPTIONS
+These options applies for all senders but AM, AMIS and WMO which use sockets instead of files.
+
+.TP
+\fBbatch integer (default:100 )\fR
+The maximum number of files that will be sent/written from disk in one cycle. 
+
+.TP
+\fBmtime integer (default:0 )\fR
+Number of seconds a file must not have been modified before we process it. 
+If set to 0, this is equivalent to not checking the modification time.
+
+.fi
+.SH TYPE AM/AMIS/WMO SPECIFIC OPTIONS
+.TP
+\fBmaxLength integer\fR
+maximum length in bytes of a bulletin to be sent. If the bulletin's length is greater
+than the limit, it is splitted in valid length parts before being sent to
+the client.
+.nf
+
+         AM's   maxLength default is 32768
+         AMIS's maxLength default is 14000
+         WMO's  maxLength default is 500000
+
+.fi
+.TP
+\fBport integer (default:None)\fR
+Port to bind for the transmission.
+.TP
+\fBkeepAlive boolean (Default:True)\fR
+This option set the unix socket option SO_KEEPALIVE to the value of that option
+
+.SH TYPE SINGLE-FILE SPECIFIC OPTIONS
+.TP
+\fBprotocol name (Default: ftp )\fR
+For the moment only protocol ftp is supported
+
+.TP
+\fBhost remotehost (Default: None )\fR
+the host where we are going to put the files
+
+.TP
+\fBuser username (Default: None )\fR
+the user on the remote host where we are going to use to put the files
+
+.TP
+\fBpassword pw (Default: None )\fR
+the password for the user  on the remote host
+
+.TP
+\fBdirectory dir (Default:'.')\fR
+defines the directory where the files are going to be sent
+.nf
+      directory //absolute/directory
+      directory /relative/directory
+.fi
+
+.TP
+\fBfilename keyword (default: WHATFN)\fR
+A filename in Metpx is a five fields strings separted by four colons.
+The option filename defines the remote host's filename.
+The following keywords are valid
+.nf
+      WHATFN      the first part of the metpx filename (string before first :)
+      HEADFN      HEADER part of the metpx filename
+      SENDER      the metpx filename may end with a string SENDER=<string>
+                  in this case the <string> will be the remote filename
+      NONE        deliver with the complete metpx filename
+      TIME        time stamp appended to filename ex.: WHATFN:TIME
+      DESTFN=str  direct filename declaration str
+
+      DESTFNSCRIPT=script.py  invoke a script (same as destfn_script) to generate the
+                              remote filename.
+.fi
+.TP
+\fBdestination url [filename-keyword] (Default: None )\fR
+Uniform Resource Locator to designate where a sender should connect to.
+All the previous single-file options, if used only once, can be set in one
+destination declaration.  Here filename-keyword refer to the keywords of the filename option defined above.
+.nf
+The url syntax is   protocol://user:password@remotehost//absolute_path
+               or   protocol://user:password@remotehost/relative_path
+Ex. :
+
+       destination ftp://toto:totospw@totosmachine//data/for/toto WHATFN
+
+       is equivalent to
+
+       filename WHATFN
+       destination ftp://toto:totospw@totosmachine//data/for/toto
+
+.fi
+.TP
+\fBftp_mode mode (Default: passive )\fR
+the ftp mode is either active or passive.
+
+.TP
+\fBchmod integer (default: 666)\fR
+This option defines the permission given to the file when completely delivered.
+
+.TP
+\fBlock string (default: .tmp)\fR
+.fi
+This option defines an extension given to the file when it is delivered.
+This method coordonated with the client, prevents him to use the file before
+we are done with the sending. The keyword \fBumask\fR can also be used.
+In this case the file is delivered with permission 000 and when ready the
+permission given by option chmod is applied to the remote file.
+.TP
+\fBdir_mkdir boolean (default: False)\fR
+When this option is enable, the directories where the products are delivered
+are created if they do not exist. 
+
+.TP
+\fBdir_pattern boolean (default:False)\fR
+If this option is enabled, the following patterns placed anywhere in the directory name
+are going to be systematicaly replaced :
+.nf
+
+${T1}    replace by bulletin's T1
+${T2}    replace by bulletin's T2
+${A1}    replace by bulletin's A1
+${A2}    replace by bulletin's A2
+${ii}    replace by bulletin's ii
+${CCCC}  replace by bulletin's CCCC
+${YY}    replace by bulletin's YY   (obs. day)
+${GG}    replace by bulletin's GG   (obs. hour)
+${Gg}    replace by bulletin's Gg   (obs. minute)
+${BBB}   replace by bulletin's bbb
+${RYYYY} replace by reception year
+${RMM}   replace by reception month
+${RDD}   replace by reception day
+${RHH}   replace by reception hour
+${RMN}   replace by reception minutes
+${RSS}   replace by reception second
+.fi
+.TP
+\fBtimeout_send seconds (default:0)\fR
+set the elapse time after which a product sending will be considered timed out.
+A value of 0 means do not check for timeout.
+
+.SH DEVELOPPER SPECIFIC OPTIONS
+
+\fBsorter keyword (Default: MultiKeysStringSorter)\fI
+other keyword could be None, StandardSorter
+Determine which type of sorter will be used. Can be used only with type
+single-file and bulletin-file. In practice, never used for sources.
