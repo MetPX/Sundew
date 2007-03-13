@@ -330,7 +330,7 @@ class bulletinManager:
            if station == None       : station = ''
            if not station.isalnum() : station = ''
            if not isinstance(bulletin, bulletinAm.bulletinAm) :
-              if not (bulletin.getHeader())[:6] in ["SRCN40","SXCN40","SRMT60"] : station = ''
+              if not (bulletin.getHeader())[:6] in ["SRCN40","SXCN40","SRMT60","SXAK50"] : station = ''
            
         # adding a counter to the file name insure its uniqueness
 

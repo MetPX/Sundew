@@ -336,7 +336,7 @@ class bulletin:
                    else :
                       station = None
 
-            elif bulletin[0][0:6] in ["SRCN40","SXCN40","SRMT60"]:
+            elif bulletin[0][0:6] in ["SRCN40","SXCN40","SRMT60","SXAK50"]:
                 station = premiereLignePleine.split()[0]
 
             elif bulletin[0][0:2] in ["FC","FT"]:
