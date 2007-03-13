@@ -31,6 +31,9 @@ named COPYING in the root of the source directory tree.
 #       The only difference is that the source type is checked for pull-file or pull-bulletin to activate
 #       the pull facility See Ingestor.py
 #
+# Note: self.source.pull contains a list : the DIRECTORY, followed by the get patterns...
+#       ex.:   self.source.pull = [ '/data/dir1/toto', 'titi*.gif', 'toto*.jpg' ] 
+#
 #############################################################################################
 
 """
@@ -53,11 +56,12 @@ class PullFTP(object):
         self.source      = source 
 
         self.connected   = False 
-        self.diff        = '/usr/bin/diff'
         self.ftp         = None
         self.file        = None
-        self.lastls      = ''
-        self.newls       = ''
+        self.ls          = {}
+        self.lsold       = {}
+        self.lspath      = ''
+        self.pulllst     = []
         self.originalDir = ''
         self.destDir     = ''
 
@@ -70,10 +74,20 @@ class PullFTP(object):
         if self.source.protocol == 'ftp':
             self.ftp = self.ftpConnect()
 
-    # callback to save the output from ls of directory
+
+    # callback to strip and save the output from ls of directory
 
     def callback_line(self,block):
-        self.file.write(block+'\n')
+
+        # strip ls line to its most important info
+        fil,desc = self.ls_line_stripper(block)
+
+        # keep only if we are interested in that file
+
+        for filepattern in self.pulllst :
+            if re.compile(filepattern).match(fil):
+               self.ls[fil] = desc
+
 
     # going to a certain directory
 
@@ -95,6 +109,7 @@ class PullFTP(object):
                   self.logger.warning(" Type: %s, Value: %s" % (type ,value))
 
         return False
+
 
     # close connection... 
 
@@ -119,56 +134,47 @@ class PullFTP(object):
                   self.logger.warning("Could not close connection")
                   self.logger.warning(" Type: %s, Value: %s" % (type ,value))
 
-    # diff of 2 files containing "ls" response on a directory
-    # return the newer or modified files only...
 
-    def diff_ls(self, lastls, newls ):
+    # find differences between current ls and last ls
+    # only the newer or modified files will be kept...
 
-        files  = []
-        descs  = {}
-        status = 0
+    def differ(self):
 
-        try : 
-                # if lastls file does not exist... create an empty one
-                if not os.path.isfile(lastls) :
-                   file=open(lastls,'wb')
-                   file.close()
+        # get new list and description
+        new_lst  = self.ls.keys()
+        new_desc = self.ls
+        new_lst.sort()
 
-                # proceed with the diff command
+        # get old list and description
+        self.load_ls_file(self.lspath)
 
-                s,o = commands.getstatusoutput( self.diff + ' ' + lastls + ' ' + newls )
-                if os.WIFEXITED(s) :
-                   status = (os.WEXITSTATUS(s) <= 1 )
+        old_lst  = self.lsold.keys()
+        old_desc = self.lsold
+        old_lst.sort()
 
-                # 0 ok and no differences  return empty file list
+        # compare
 
-                if status == 0 or len(o) == 0 :
-                   return files,descs
+        filelst  = []
+        desclst  = {}
 
-                # not 1 than an error when executing the diff command
+        for f in new_lst :
 
-                if status != 1 : 
-                   self.logger.warning("diff resulted in an error")
-                   return files,descs
+            # keep a newer entry
+            if not f in old_lst :
+               filelst.append(f)
+               desclst[f] = new_desc[f]
+               continue
 
-                # getting the filename for the modified files
+            # keep a modified entry
+            if new_desc[f] != old_desc[f] :
+               filelst.append(f)
+               desclst[f] = new_desc[f]
+               continue
 
-                if status == 1 : 
-                   lines=o.split('\n')
+        return filelst,desclst
 
-                   for line in lines :
-                       parts = line.split()
-                       if parts[0] == '>' : 
-                          filename = parts[-1]
-                          files.append(filename)
-                          descs[filename] = line
 
-                   return files,descs
-
-        except:
-                self.logger.error("Unable to diff directory listings")
-
-        return files,descs
+    # check for pattern matching in directory name
 
     def dirPattern(self,path) :
         """
@@ -190,26 +196,18 @@ class PullFTP(object):
 
         return ndestDir
 
-    def matchPattern(self,keywd,defval) :
-        """
-        Matching keyword with different patterns
-        """
-
-        if keywd[:10] == "{YYYYMMDD}" : return time.strftime("%Y%m%d", time.gmtime())
-
-        return defval
 
     # do an ls in the current directory, write in file path
 
-    def do_ls(self,path):
+    def do_ls(self):
+
+        self.ls = {}
 
         timex = AlarmFTP('FTP retrieving list')
         timex.alarm(self.source.timeout_get)
 
         try : 
-                 self.file=open(path,'wb')
                  ls=self.ftp.retrlines('LIST',self.callback_line )
-                 self.file.close()
                  timex.cancel()
                  return True
 
@@ -224,6 +222,7 @@ class PullFTP(object):
                                   (self.destDir,self.source.host, self.source.user, type ,value))
 
         return False
+
 
     # open connection... 
 
@@ -257,12 +256,117 @@ class PullFTP(object):
             (type, value, tb) = sys.exc_info()
             self.logger.error("Unable to connect to %s (user:%s). Type: %s, Value: %s" % (self.source.host, self.source.user, type ,value))
 
+
+    # pulling files and returning the list
+
+    def get(self):
+
+        self.logger.info("pull %s is waking up" % self.source.name )
+
+        # getting our alarm ready
+ 
+        timex = AlarmFTP('FTP timeout')
+
+        # files list to return
+
+        files_pulled = []
+
+        # connection did not work
+
+        if self.ftp == None : return files_pulled
+
+        # loop on all directories where there are pulls to do
+
+        for lst in self.source.pulls :
+
+            self.destDir = lst[0]
+            self.pulllst = lst[1:]
+
+            pdir = self.dirPattern(self.destDir)
+            if pdir != '' : self.destDir = pdir
+
+            # cd to that directory
+
+            ok = self.cd(self.destDir)
+            if not ok : continue
+
+            # create ls filename for that directory
+
+            pdir = lst[0]
+            pdir = pdir.replace('${','')
+            pdir = pdir.replace('}','')
+
+            self.lspath = PXPaths.RXQ + self.source.name + '/.ls' + pdir.replace('/','_')
+
+            # ls that directory
+
+            ok = self.do_ls()
+            if not ok : continue
+
+            # get the file list from the ls
+            
+            filelst = self.ls.keys()
+            desclst = self.ls
+            filelst.sort()
+
+            # if we dont delete, get file list from difference in ls
+
+            if not self.source.delete :
+               filelst,desclst = self.differ()
+
+            if len(filelst) == 0 :
+               ok = self.write_ls_file(self.lspath)
+               continue
+
+            # retrieve the files
+
+            files_notretrieved = []
+
+            for remote_file in filelst :
+
+                timex.alarm(self.source.timeout_get)
+                local_file = self.local_filename(remote_file,desclst)
+                try :
+                       ok = self.retrieve(remote_file, local_file)
+                       if ok :
+                               if self.source.delete : self.rm(remote_file)
+                               files_pulled.append(local_file)
+                       else  :
+                               files_notretrieved.append(remote_file)
+                               self.logger.warning("problem when retrieving %s " % remote_file )
+                               
+                       timex.cancel()
+
+                except FtpTimeoutException :
+                       timex.cancel()
+                       files_notretrieved.append(remote_file)
+                       self.logger.warning("FTP timed out retrieving %s " % remote_file )
+
+                except :
+                       timex.cancel()
+                       files_notretrieved.append(remote_file)
+                       (type, value, tb) = sys.exc_info()
+                       self.logger.error("Unable write remote file %s in local file %s. Type: %s, Value: %s" % \
+                                        (remote_file,local_file,type,value))
+
+            # files not retrieved are removed from the file list
+            # this allow pull to recover from error on next pass
+
+            for f in files_notretrieved :
+                del self.ls[f]
+
+            # save ls file
+            ok = self.write_ls_file(self.lspath)
+
+        return files_pulled
+
     # parse a file containing an ls and return the file entries
 
-    def file_ls(self,path):
+    def load_ls_file(self,path):
 
-        files  = []
-        descs  = {}
+        self.lsold = {}
+
+        if not os.path.isfile(path) : return True
 
         try : 
                 # open/read..
@@ -273,16 +377,16 @@ class PullFTP(object):
                 # get filenames
                 for line in lines :
                     parts = line.split()
-                    filename = parts[-1]
-                    files.append(filename)
-                    descs[filename] = line
+                    fil   = parts[-1]
+                    self.lsold[fil] = line
 
-                return files,descs
+                return True
 
         except:
                 self.logger.error("Unable to parse files from %s" % path )
 
-        return files,descs
+        return False
+
 
     # create local filename
 
@@ -320,164 +424,57 @@ class PullFTP(object):
 
         return local_file
 
-    # pulling files and returning the list
 
-    def get(self):
+    # ls line stripper
 
-        self.logger.info("pull %s is waking up" % self.source.name )
+    def ls_line_stripper(self,iline):
+        oline  = iline
+        oline  = oline.strip()
+        oline  = oline.replace('\t',' ')
+        opart1 = oline.split(' ')
+        opart2 = []
 
-        # getting our alarm ready
- 
-        timex = AlarmFTP('FTP timeout')
+        for p in opart1 :
+            if p == ''  : continue
+            opart2.append(p)
 
-        # files list to return
+        fil  = opart2[-1]
+        desc = opart2[0] + ' ' + ' '.join(opart2[-5:]) + '\n'
 
-        files_pulled = []
+        return fil,desc
 
-        # connection did not work
 
-        if self.ftp == None : return files_pulled
+    # replace a matching pattern by its value in the directory name
 
-        # loop on all directories where there are pulls to do
+    def matchPattern(self,keywd,defval) :
+        """
+        Matching keyword with different patterns
+        """
 
-        for lst in self.source.pulls :
+        if keywd[:10] == "{YYYYMMDD}"    : 
+                                           return   time.strftime("%Y%m%d", time.gmtime())
 
-            self.destDir = lst[0]
+        if keywd[:13] == "{YYYYMMDD-1D}" :
+                                           epoch  = time.mktime(time.gmtime()) - 24*60*60
+                                           return   time.strftime("%Y%m%d", time.localtime(epoch)  )
 
-            pdir = self.dirPattern(self.destDir)
-            if pdir != '' : self.destDir = pdir
+        if keywd[:13] == "{YYYYMMDD-2D}" :
+                                           epoch  = time.mktime(time.gmtime()) - 48*60*60
+                                           return   time.strftime("%Y%m%d", time.localtime(epoch)  )
 
-            # cd to that directory
+        if keywd[:13] == "{YYYYMMDD-3D}" :
+                                           epoch  = time.mktime(time.gmtime()) - 72*60*60
+                                           return   time.strftime("%Y%m%d", time.localtime(epoch)  )
 
-            ok = self.cd(self.destDir)
-            if not ok : continue
+        if keywd[:13] == "{YYYYMMDD-4D}" :
+                                           epoch  = time.mktime(time.gmtime()) - 96*60*60
+                                           return   time.strftime("%Y%m%d", time.localtime(epoch)  )
 
-            # ls that directory
+        if keywd[:13] == "{YYYYMMDD-5D}" : 
+                                           epoch  = time.mktime(time.gmtime()) - 120*60*60
+                                           return   time.strftime("%Y%m%d", time.localtime(epoch)  )
 
-            pdir = lst[0]
-            pdir = pdir.replace('${','')
-            pdir = pdir.replace('}','')
-
-            self.lastls = PXPaths.RXQ + self.source.name + '/.ls' + pdir.replace('/','_')
-            self.newls  = self.lastls + '.new'
-            ok = self.do_ls(self.newls)
-            if not ok : continue
-
-            # get the file list from the ls
-            
-            filelst = []
-
-            if self.source.delete :
-                filelst,desclst = self.file_ls(self.newls)
-
-            # or from a diff between the old and new ls
-
-            else :
-                filelst,desclst = self.diff_ls(self.lastls,self.newls)
-
-            # keep for reference our last ls
-
-            os.rename(self.newls,self.lastls)
-
-            # check if files match file pattern defined in source
-
-            flst = {}
-            prim = filelst[0:]
-            for pos, elem in enumerate(lst):
-                if pos == 0 : continue
-                sec = prim[0:]
-                for indx, f in enumerate(prim) :
-                    if re.compile(lst[pos]).match(f):
-                       flst[f] = 0
-                       try    : 
-                                idx = sec.index(f)
-                                sec.pop(idx)
-                       except : pass
-                prim = sec
-
-            files = flst.keys()
-
-            if len(files) == 0 : continue
-
-            # before retrieving... 
-            # just to make sure the file is completely written on remote server
-            # make another diff... if one or more files to be retrieved are modified
-            # wait next pass
-
-            files_notretrieved = []
-
-            ok = self.do_ls(self.newls)
-            if ok : 
-               filelst,desclst2 = self.diff_ls(self.lastls,self.newls)
-               for f in filelst :
-                   try    :
-                            indx  = files.index(f)
-                            files_notretrieved.append(f)
-                            files.pop(indx)
-                            self.logger.debug("file %s not ready .. caused pull waiting" % f )
-                   except : pass
-
-            try    : os.unlink(self.newls)
-            except : pass
-
-            # retrieve the files
-
-            for remote_file in files :
-
-                # skip files that were being modified at the same time as pull
-
-                try    :
-                         indx  = files_notretrieved.index(remote_file)
-                         continue
-                except :
-                         pass
-
-                timex.alarm(self.source.timeout_get)
-                local_file = self.local_filename(remote_file,desclst)
-                try :
-                       ok = self.retrieve(remote_file, local_file)
-                       if ok :
-                               if self.source.delete : self.rm(remote_file)
-                               files_pulled.append(local_file)
-                       else  :
-                               files_notretrieved.append(remote_file)
-                               self.logger.warning("problem when retrieving %s " % remote_file )
-                               
-                       timex.cancel()
-
-                except FtpTimeoutException :
-                       timex.cancel()
-                       files_notretrieved.append(remote_file)
-                       self.logger.warning("FTP timed out retrieving %s " % remote_file )
-
-                except :
-                       timex.cancel()
-                       files_notretrieved.append(remote_file)
-                       (type, value, tb) = sys.exc_info()
-                       self.logger.error("Unable write remote file %s in local file %s. Type: %s, Value: %s" % \
-                                        (remote_file,local_file,type,value))
-
-            # files not retrieved are removed from lastls file
-            # this allow pull to recover from error on next pass
-
-            if len(files_notretrieved) > 0 :
-               filelst,desclst = self.file_ls(self.lastls)
-               try    :
-                         file=open(self.newls,'wb')
-                         for pos, f in enumerate(filelst):
-                             try    : 
-                                      idx = files_notretrieved.index(f)
-                                      continue
-                             except : pass
-                             file.write(desclst[f])
-                         file.close()
-                         os.rename(self.newls,self.lastls)
-               except :
-                         (type, value, tb) = sys.exc_info()
-                         self.logger.error("Unable to correct ls file %s Type: %s, Value: %s" % \
-                                          (self.lastls,type,value))
-
-        return files_pulled
+        return defval
 
     # retrieve a file
 
@@ -506,3 +503,28 @@ class PullFTP(object):
                  (type, value, tb) = sys.exc_info()
                  self.logger.warning("Could not delete %s" % path )
                  self.logger.warning("Type: %s, Value: %s" % (type ,value))
+
+
+    # write ls file
+
+    def write_ls_file(self,path):
+
+        filelst = self.ls.keys()
+        desclst = self.ls
+        filelst.sort()
+
+        try : 
+                # open/write..
+                file=open(path,'wb')
+
+                for f in filelst :
+                    file.write(desclst[f])
+
+                file.close()
+
+                return True
+
+        except:
+                self.logger.error("Unable to write ls to file %s" % path )
+
+        return False
