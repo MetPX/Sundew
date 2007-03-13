@@ -868,7 +868,7 @@ def getPickleAnalysis( files, name, timeOfLastFilledEntry, maximumGap, errorLog 
                     lastUpdateInSeconds = MyDateLib.getSecondsSinceEpoch( timeOfLastFilledEntry )  
                     differenceInMinutes = ( entryTime - lastUpdateInSeconds ) / 60                   
                                             
-                    if  int(differenceInMinutes) > int(maximumGap) :
+                    if  int(differenceInMinutes) > ( int(maximumGap) + 1 ) :
                                                 
                         if gapInErrorLog( name, timeOfLastFilledEntry, entry.startTime, errorLog ) == False:
                             gapTooWidePresent = True  
