@@ -37,7 +37,7 @@ restarts the filter. It is equivalent to a stop followed by a start.
 .TP
 \fBstart\fR
 starts the filter program. It includes : saving the process id in the lock file $PXROOT/fxq/"filter_name"/.lock,
-loading its configuration and possibly the routing table, and starting the sending process which depends of the filter type in its config.
+loading its configuration and possibly the routing table, and starting the filtering process which depends of the filter's configuration.
 .TP
 \fBstatus\fR
 returns the state of filter (running, locked or stopped). It gets the process id in the lock file $PXROOT/fxq/"filter_name"/.lock (if not found the filter is assumed to be stopped), than check to see if the pid is a running process... If the pid is found but the process is not, the filter is assumed to be locked
@@ -46,7 +46,7 @@ returns the state of filter (running, locked or stopped). It gets the process id
 stops the filter program. It includes a proper handling of file processing (if any) and it removes the lock file in the $PXROOT/fxq/"filter_name"/.lock.
 .SH CONFIGURATION
 .Pp
-As said earlier, the configuration file for a filter resides in $PXROOT/etc/tx/"\fBFilterName\fR".conf
+As said earlier, the configuration file for a filter resides in $PXROOT/etc/fx/"\fBFilterName\fR".conf
 The syntax of the file is simple. A comment is a line that begins with \fB#\fR. Empty lines are permitted.
 To declare or set an option you simply use one of these form (depending on the option) :
 .nf
@@ -59,7 +59,7 @@ To declare or set an option you simply use one of these form (depending on the o
 .SH GENERAL CONFIGURATION OPTIONS
 .TP
 \fBfx_script script (default:None)\fR
-For filter configuration must define a script.  The script must be in python and reside in $PXROOT/etc/scripts.
+Filter configuration must define a script.  The script must be in python and reside in $PXROOT/etc/scripts.
 The fx_script must end with the line :
 .nf
 
@@ -79,13 +79,13 @@ that can be used to log messages to the filter's log file.  It supports 3 levels
 The module must return one of the 3 following : 
 .nf
 
-        ipath         return the incoming filename path means that input file was already ok.
-                      (in this case the file is not sent but discarted)
+        ipath         return the incoming filename path means that the filter did not apply
+                      to that file (in this case the incoming file is discarted)
 
         opath         return the modified filename path (newly created filepath)
 
         None          return None means that nothing could be done with input file
-                      (in this case the file is not sent but discarted)
+                      (in this case the incoming file is discarted)
 
 .fi
 .TP
@@ -109,30 +109,31 @@ behave like the PDS.
 \fBfeed receivername\fR
 \fBclientsPatternMatching boolean  (Default: True)\fR
 
-If the option patternMatching is set to True, after determining the ingest_name,
-the ingest_name is matched against the accept and reject regexp patterns of the filter's
-configuration file.  The default is for the file to be accepted.  reject (exclusion) can be
+If the option \fBpatternMatching\fR is set to True, after determining the ingest_name,
+the ingest_name is matched against the \fBaccept\fR and \fBreject\fR regexp patterns of the filter's
+configuration file.  The default is for the file to be accepted.  \fBreject\fR (exclusion) can be
 used to suppress reception of files with a certain pattern. Files suppressed are not
 ingested into the DB.
 
-emask/imask are an older version of accept/reject and use filepattern instead of regexp pattern
+\fBemask/imask\fR are an older version of \fBaccept/reject\fR and use filepattern instead of regexp pattern
 and will slowly become obsolete.
 
 The filter can use a routing table (more efficient).
 In that case you must do the following:
-1- the routemask option must be set to True
-2- use accept directives to declare the products to be filtered
-3- derived products must match an accept directives in the configuration file
+1- the \fBroutemask\fR option must be set to True
+2- use \fBaccept\fR directives to declare the products to be filtered
+3- derived products must match an \fBaccept\fR directives in the configuration file
    that contains parenthesis.  The enclosed derived filename parts are 
    concatenated with "_" forming a routing key
-4- the resulting possible keys must be defined in the routing table file 
+4- use \fBroutingTable\fR to set the routing table file. The default is pxRouting.conf and it must be
+   located in $PXROOT/etc. The resulting possible keys from (3) must be defined in the routing table file 
    with the filters/clients/transceivers and priority. Ex.: key CHART_GIF client1,client2 3
 
-Some filters may want to feed a receiver. The option feed must than be used.
+Some filters may want to feed a receiver. The option \fBfeed\fR must than be used.
 Ex.: feed receiver_name_2
 
-If clientsPatternMatching is set to True, the filter scans the options
-accept/reject/emask/imask presents in all its client's configuration files 
+If \fBclientsPatternMatching\fR is set to True, the filter scans the options
+\fBaccept/reject/emask/imask\fR presents in all its client's configuration files 
 to determine if the product is acceptable to the client.
 
 .fi
@@ -150,8 +151,6 @@ This option is useful for files received by rcp, ftp, etc.
 
 .fi
 .SH DEVELOPPER SPECIFIC OPTIONS
-
+.TP
 \fBsorter keyword (Default: MultiKeysStringSorter)\fR
-other keyword could be None, StandardSorter
-Determine which type of sorter will be used. Can be used only with type
-single-file and bulletin-file. In practice, never used.
+other keyword could be None, StandardSorter.  Determine which type of sorter will be used. In practice, never used.

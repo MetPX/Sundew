@@ -7,7 +7,7 @@ pxSender \- Metpx program to manage sender processes
 .SH DESCRIPTION
 .Pp
 A sender, in the METPX suite, is a program that deliver products to a client. The products it
-processes comes from a METPX receiver. Once a receiver has determined that a sender should
+processes usually comes from a METPX receiver (or a filter). Once a receiver has determined that a sender should
 transmit a product, it writes the products in its transmission directory tree...
 namely under $PXROOT/txq/"sender_name"/priority/YYYYMMDDHH where YYYYMMDDHH is the current
 date time. The receiver will create the directory if it does not exist.
@@ -47,9 +47,9 @@ loading its configuration, and starting the sending process which depends of the
 returns the state of sender (running, locked or stopped). It gets the process id in the lock file $PXROOT/txq/"sender_name"/.lock (if not found the sender is assumed to be stopped), than check to see if the pid is a running process... If the pid is found but the process is not, the sender is assumed to be locked
 .TP
 \fBstop\fR
-stops the sender program. It includes a proper handling of the socket writing buffer (if any), the termination of file processing (if any) and it removes the lock file in the $PXROOT/txq/"sender_name"/.lock.
+stops the sender program. It includes a proper handling of the socket writing buffer (if any), the termination of file processing (if any) and it removes the lock file $PXROOT/txq/"sender_name"/.lock.
 .SH SENDER TYPES
-The possible type are :
+The possible types are :
 .TP
 \fBam\fR
 open/write a socket using am protocol (Environment Canada specific). The output data are bulletins
@@ -86,7 +86,7 @@ This option defines the type of the sender... keyword is one of
 .fi
 .TP
 \fBdestfn_script script (default:None)\fR
-For sender that do not use sockets, it is possible to define a script to modify the file delivery name.
+For sender that do not use sockets, it is possible to define a script to modify the remote filename.
 The script must be in python and reside in $PXROOT/etc/scripts.  The destfn_script must end with the line :
 .nf
 
@@ -127,17 +127,19 @@ The module must return one of the 3 following :
         ipath         return the incoming filename path (input file already ok )
         opath         return the modified filename path (newly created filepath)
         None          return None means that nothing could be done with input file
-                      (in this case the file is not sent but removed)
+                      (in this case the file is discarted)
 
 .fi
 .TP
 \fBnoduplicates boolean (default:True )\fR
 .nf
 if set to true, the sender computes the md5checksum of the product to send. 
-It compares this md5checksum with the cached one of delivered products. If a match is found,
-the product is not sent. When a client asks for a product to be retransmited, 
-if this option is enabled, the sender must be stopped and started to clean its cache.
-The product can than be retransmited by placing it in the transmission queue.
+It compares this number with its cached md5checksum numbers of delivered products. 
+If a match is found, the product is not sent.
+
+When a client asks for a product to be retransmited, if this option is enabled,
+the sender must be stopped and restarted to clean its cache.  The product can than
+be retransmited by placing it in the transmission queue.
 .fi
 .TP
 \fBvalidation boolean (default:True )\fR
@@ -156,19 +158,17 @@ behave like the PDS.
 \fBemask <filepattern>\fR
 \fBimask <filepattern>\fR
 
-If the option patternMatching is set to True, the products' file name is matched against the accept
-and reject regexp patterns of the sender's configuration file.  reject (exclusion) can be used to
-suppress the delivery of files with a certain pattern. accept options validate filenames that are
+If the option \fBpatternMatching\fR is set to True, the products' file name is matched against the \fBaccept\fR
+and \fBreject\fR regexp patterns of the sender's configuration file.  \fBreject\fR (exclusion) can be used to
+suppress the delivery of files with a certain pattern. \fBaccept\fR options validate filenames that are
 sent to the client. If the sender is 'single-file' than a product accepted will be placed in the
-nearest directory declared before the matching accept decleration.
+nearest directory declared before the matching \fBaccept\fR declaration.
 
-emask/imask are an older version of accept/reject and use filepattern instead of regexp pattern
+\fBemask/imask\fR are an older version of \fBaccept/reject\fR and use filepattern instead of regexp pattern
 and will slowly become obsolete.
 
 .fi
 .SH FILE TRANSMISSION OPTIONS
-These options applies for all senders but AM, AMIS and WMO which use sockets instead of files.
-
 .TP
 \fBbatch integer (default:100 )\fR
 The maximum number of files that will be sent/written from disk in one cycle. 
@@ -235,7 +235,7 @@ The following keywords are valid
       SENDER      the metpx filename may end with a string SENDER=<string>
                   in this case the <string> will be the remote filename
       NONE        deliver with the complete metpx filename
-      TIME        time stamp appended to filename ex.: WHATFN:TIME
+      TIME        time stamp appended to filename. Example of use: WHATFN:TIME
       DESTFN=str  direct filename declaration str
 
       DESTFNSCRIPT=script.py  invoke a script (same as destfn_script) to generate the
@@ -243,9 +243,10 @@ The following keywords are valid
 .fi
 .TP
 \fBdestination url [filename-keyword] (Default: None )\fR
-Uniform Resource Locator to designate where a sender should connect to.
-All the previous single-file options, if used only once, can be set in one
-destination declaration.  Here filename-keyword refer to the keywords of the filename option defined above.
+\fBurl\fR stands for Uniform Resource Locator and can be used to designate where
+a sender should connect to.  All the previous single-file options, if used only once,
+can be set in one \fBdestination\fR declaration.  Here \fBfilename-keyword\fR refer to
+the keywords of the \fBfilename\fR option defined above.
 .nf
 The url syntax is   protocol://user:password@remotehost//absolute_path
                or   protocol://user:password@remotehost/relative_path
@@ -261,7 +262,7 @@ Ex. :
 .fi
 .TP
 \fBftp_mode mode (Default: passive )\fR
-the ftp mode is either active or passive.
+the ftp mode is either \fBactive\fR or \fBpassive\fR.
 
 .TP
 \fBchmod integer (default: 666)\fR
@@ -274,7 +275,7 @@ This option defines an extension given to the file when it is delivered.
 This method coordonated with the client, prevents him to use the file before
 we are done with the sending. The keyword \fBumask\fR can also be used.
 In this case the file is delivered with permission 000 and when ready the
-permission given by option chmod is applied to the remote file.
+permission given by option \fBchmod\fR is applied to the remote file.
 .TP
 \fBdir_mkdir boolean (default: False)\fR
 When this option is enable, the directories where the products are delivered
@@ -309,8 +310,6 @@ set the elapse time after which a product sending will be considered timed out.
 A value of 0 means do not check for timeout.
 
 .SH DEVELOPPER SPECIFIC OPTIONS
-
-\fBsorter keyword (Default: MultiKeysStringSorter)\fI
-other keyword could be None, StandardSorter
-Determine which type of sorter will be used. Can be used only with type
-single-file and bulletin-file. In practice, never used.
+.TP
+\fBsorter keyword (Default: MultiKeysStringSorter)\fR
+other keyword could be None, StandardSorter.  Determine which type of sorter will be used. In practice, never used.
