@@ -153,11 +153,11 @@ class SystemManager:
     def getFxNames(self):
         return self.fxNames
 
-    def getRxNames(self):
-        return self.rxNames
-
     def setFxNames(self):
         raise SystemManagerException('Abstract method: not implemented in SystemManager Class')
+
+    def getRxNames(self):
+        return self.rxNames
 
     def setRxNames(self):
         raise SystemManagerException('Abstract method: not implemented in SystemManager Class')
