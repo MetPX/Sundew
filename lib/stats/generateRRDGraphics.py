@@ -1075,8 +1075,8 @@ def plotRRDGraph( databaseName, type, fileType, client, machine, infos, logger =
     graphicsLegeng         = getGraphicsLegend( maximum )      
     graphicsNote           = getGraphicsNote( interval, type  )        
     
-    if infos.totals != True:
-        interval = getInterval( start, lastUpdate, infos.graphicType, goal = "plotGraphic"  )
+    
+    interval = getInterval( start, lastUpdate, infos.graphicType, goal = "plotGraphic"  )
     
     if graphicsNote == "" and graphicsLegeng == "":
         comment = ""
