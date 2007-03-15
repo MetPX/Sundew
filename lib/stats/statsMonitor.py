@@ -211,7 +211,10 @@ def buildReportHeader( parameters ):
     reportHeader = reportHeader + "Stats monitor results\n----------------------------------------------------------------------------------------------------------------------------------\n"
     reportHeader = reportHeader + "Time of test : %s\n" %parameters.endTime
     reportHeader = reportHeader + "Time of previous test : %s\n" %parameters.startTime
-    reportHeader = reportHeader + "Machine name      : %s\nConfig file  used : %s\n" %( LOCAL_MACHINE, PXPaths.STATS + "statsMonitoring/statsMonitoring.conf" )
+    reportHeader = reportHeader + "Machine name      : %s\n" %(LOCAL_MACHINE)
+    reportHeader = reportHeader + "Config file  used : %s\n" %( PXPaths.STATS + "statsMonitoring/statsMonitoring.conf" )
+    reportHeader = reportHeader + "Stats monitor help file can be found here : %s" %( PXPaths.STATS + "doc/monitoring.txt")
+    
     
     return reportHeader
 
@@ -283,6 +286,7 @@ def verifyFreeDiskSpace( parameters, report ):
     reportLines = ""
     onediskUsageIsAboveMax = False    
     foldersToVerify = parameters.folders
+   
     
     for i in range( len( foldersToVerify ) ):
         
@@ -293,20 +297,23 @@ def verifyFreeDiskSpace( parameters, report ):
             
             if int(diskUsage) > parameters.maxUsages[i]:    
                 onediskUsageIsAboveMax = True
-                reportLines = reportLines +  "Warning : Disk usage for %s is %s %%.Please investigate cause.\n" %(foldersToVerify[i],diskUsage)   
+                reportLines = reportLines +  "Error : Disk usage for %s is %s %%.Please investigate cause.\n" %(foldersToVerify[i],diskUsage)   
         else:
             onediskUsageIsAboveMax = True
-            reportLines = reportLines +  "Warning : Disk usage for %s was unavailable.Please investigate cause.\n"       %(foldersToVerify[i])
+            reportLines = reportLines +  "Error : Disk usage for %s was unavailable.Please investigate cause.\n"       %(foldersToVerify[i])
     
     
     if onediskUsageIsAboveMax == True:
         header = "\n\nThe following disk usage warnings have been found : \n"         
+        helpLines = "\nDisk usage errors can either be cause by missing folders or disk usage percentage \nabove allowed percentage.\n If folder is missing verify if it is requiered.\n If it is not remove it from the folders section of the config file.\n If disk usage is too high verify if %s is configured properly.\n" %(PXPaths.ETC + "clean.conf")  
+        
     else:
         header = "\n\nNo disk usage warning has been found.\n"
-    
+        helpLines = ""
+         
     header = header + "----------------------------------------------------------------------------------------------------------------------------------\n"    
                         
-    report = report + header + reportLines 
+    report = report + header + reportLines + helpLines
         
     return report    
 
@@ -361,6 +368,7 @@ def verifyCrontab( report ):
     
     if currentCrontab != previousCrontab :
         report = report + "\nCrontab entries were modified since last monitoring job.\n"
+        report = report + "\nModified crontab entries should not be viewed as a problem per se.\nIt can be usefull to spot problems wich could stem from someone modifying the crontab.\nSee help file for details\n"
     else:
         report = report + "\nCrontab entries were not modified since last monitoring job.\n"
     report = report + "----------------------------------------------------------------------------------------------------------------------------------"    
@@ -543,6 +551,7 @@ def verifyStatsLogs( parameters, report ,logger = None ):
         report = report + "\n\nThe following stats log files warnings were found : \n"
         report = report + "----------------------------------------------------------------------------------------------------------------------------------\n"            
         report = report + newReportLines 
+        report = report + "\nMissing log files can be attributed to the following causes : log files too small, stopped cron or program errors.\nInvestigate cause. See help files for details."
     else:
         report = report + "\n\nNo stats log files warnings were found.\n"
         report = report + "----------------------------------------------------------------------------------------------------------------------------------\n"          
@@ -738,6 +747,10 @@ def verifyPicklePresence( parameters, report ):
         report = report + "\n\nMissing files were found on this machine.\n"
         report = report + "----------------------------------------------------------------------------------------------------------------------------------\n"
         report = report + newReportLines
+        report = report + "\n\nIf pickle files are missing verify if source/client is new.\n If it's new, some missing files are to be expected.\nIf source/client is not new, verify if %s is configured properly.\nOtherwise investigate cause.( Examples : stopped cron, deleted by user, program bug, etc...)\nSee help file for details.\n" %(PXPaths.ETC + "clean.conf")
+        
+        
+        
     else:
         report = report + "\n\nThere were no missing pickle files found on this machine.\n"  
         report = report + "----------------------------------------------------------------------------------------------------------------------------------\n"          
@@ -868,7 +881,7 @@ def getPickleAnalysis( files, name, timeOfLastFilledEntry, maximumGap, errorLog 
                     lastUpdateInSeconds = MyDateLib.getSecondsSinceEpoch( timeOfLastFilledEntry )  
                     differenceInMinutes = ( entryTime - lastUpdateInSeconds ) / 60                   
                                             
-                    if  int(differenceInMinutes) > ( int(maximumGap) + 1 ) :
+                    if  int(differenceInMinutes) > ( int(maximumGap) + 3 ) :#give a 3 minute margin
                                                 
                         if gapInErrorLog( name, timeOfLastFilledEntry, entry.startTime, errorLog ) == False:
                             gapTooWidePresent = True  
@@ -931,12 +944,14 @@ def verifyPickleContent( parameters, report ):
     
     if newReportLines != "":
         header = "\n\nThe following data gaps were not found in error log file :\n" 
+        helpLines = "\nErrors found here are probably caused by the program.\n Check out the help file for the detailed procedure on how to fix this error.\n"
     else:
         header = "\n\nAll the data gaps were found within the error log file.\n" 
-    
+        helpLines = ""
+        
     header = header + "----------------------------------------------------------------------------------------------------------------------------------\n"       
     
-    report = report + header + newReportLines        
+    report = report + header + newReportLines + helpLines        
 
     return report               
 
@@ -1090,13 +1105,14 @@ def verifyFileVersions( parameters, report  ):
      
     if unequalChecksumsFound :        
         header = "\n\n\nThe following warning(s) were found while monitoring file cheksums : \n"   
-               
+        helpLines = "\nModified checksums should not be viewed as a problem per se.\nIt can be usefull to spot problems wich could stem from someone modifying a file used by the program.\n"       
     else:        
         header = "\n\n\nNo warnings were found while monitoring file checksums.\n"        
-    
+        helpLines = ""
+        
     header = header + "----------------------------------------------------------------------------------------------------------------------------------\n"           
     
-    report = report + header + newReportLines
+    report = report + header + newReportLines + helpLines
     
     saveCurrentChecksums( currentChecksums )
     
@@ -1127,12 +1143,13 @@ def verifyWebPages( parameters, report ):
     
     if outdatedPageFound :
         header = "\n\nThe following web page warning were found :\n"
+        helpLines = "\nWeb pages should be updated every hour.\nInvestigate why they are outdated.(Ex:stopped cron)\nSee help file for detail.\n"
     else:        
         header = "\n\nAll web pages were found to be up to date.\n"    
-    
+        helpLines = ""
     header = header + "----------------------------------------------------------------------------------------------------------------------------------\n"
     
-    report = report + header + newReportLines
+    report = report + header + newReportLines + helpLines
                 
     return report 
         
@@ -1174,12 +1191,13 @@ def verifyGraphs( parameters, report ):
         
     if outdatedGraphsFound :
         header = "\n\nThe following daily graphics warnings were found :\n"
+        helpLines = "\nDaily graphics should be updated every hour.\nInvestigate why they are outdated.(Ex:stopped cron)\nSee help file for detail.\n"
     else:        
         header = "\n\nAll daily graphics were found to be up to date.\n"    
-    
+        helpLines = ""
     header = header + "----------------------------------------------------------------------------------------------------------------------------------\n"
     
-    report = report + header + newReportLines
+    report = report + header + newReportLines + helpLines
                 
     return report
     
