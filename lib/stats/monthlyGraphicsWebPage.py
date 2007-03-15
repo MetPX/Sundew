@@ -121,13 +121,38 @@ def main():
                 -->
             </STYLE>
             <style type="text/css">
-                div.left { float: left; }
-                div.right {float: right; }
+                div.left { float: left;word-wrap:break-word; }
+                div.right {float: right;word-wrap:break-word; }
+                
+                div.scroll {
+                    height: 200px;
+                    width: 1255px;
+                    overflow: auto;
+                    word-wrap:break-word;
+                    border: 0px ;                    
+                    padding: 0px;
+                }
+                
+                div.tableEntry{
+                    width:177px;
+                    word-wrap:break-word;
+                    height: auto;
+                }
+                
+                
+                <!--
+                A{text-decoration:none}
+                -->
+                <!--
+                td {
+                    word-wrap:break-word
+                }
+                // -->
             </style>
         <br>
-        <h2>Monthly graphics for RX sources from MetPx.</h2>
+        <h2>Monthly graphics for RX sources from MetPx. <font size = "2">*updated weekly</font></h2>
         
-        <TABLE cellspacing=10 cellpadding=8 id=header bgcolor="#cccccc">    
+        <table cellspacing=10 cellpadding=8 id=header bgcolor="#cccccc">    
         
         <tr>    
             <td bgcolor="#006699" width = 280><font color = "white"><div class="left">Sources</div><a target ="popup" href="%s" onClick="wopen('helpPages/source.html', 'popup', 875, 100); return false;"><div class="right">?</div></a></font></td>
@@ -138,12 +163,13 @@ def main():
             
             <td bgcolor="#006699" width = 280 title = "Display the total of errors that occured during the receptions for every day of the week for each sources."><font color = "white"><div class="left">Errors</div><a target ="popup"  href="%s" onClick="wopen('helpPages/errors.html', 'popup', 875, 100); return false;"><div class="right">?</div></a></font></td>
         </tr>   
-        </TABLE>
         
-        <DIV STYLE="overflow: auto; width: 1255px; height: 180; 
+        </table>
+        
+        <DIV STYLE="overflow: auto; width: 1255px; height: 200px; 
                     border-left: 0px gray solid; border-bottom: 0px gray solid; 
                     padding:0px; margin: 0px">
-        <TABLE cellspacing=10 cellpadding=8>   
+        <table cellspacing=10 cellpadding=8>   
         
     """ )
     
@@ -180,107 +206,101 @@ def main():
             if os.path.isfile( file ):
                 fileHandle.write(  """ <a target ="popup" href="%s" onClick="wopen('%s', 'popup', 875, 240); return false;">%s&nbsp;</a>"""%( rxName, file ,month ) )  
         
-        fileHandle.write( "</td>" )  
+        fileHandle.write( "</td></tr>" )  
               
     
     fileHandle.write(  """
 
-    </table>
+        </table>
     </div>
     
     
     <br>
-    <h2>Monthly graphics for TX clients from MetPx.</h2>
+    <h2>Monthly graphics for TX clients from MetPx. <font size = "2">*updated weekly</font></h2>
     
-    <TABLE cellspacing=5 cellpadding=4 id=header bgcolor="#cccccc"> 
+    
+        <table  cellspacing=10 cellpadding=8 id=header bgcolor="#cccccc">
     
         <tr>
 
-            <td bgcolor="#006699" width = 190><font color = "white"><div class="left">Clients</div><a target ="popup" href="%s" onClick="wopen('helpPages/client.html', 'popup', 875, 100); return false;"><div class="right">?</div></a></font></td>
+            <td bgcolor="#006699"  ><div class = "tableEntry"><font color = "white"><div class="left">Clients</div><a target ="popup" href="%s" onClick="wopen('helpPages/client.html', 'popup', 875, 100); return false;"><div class="right">?</div></a></font></div></td>
             
-            <td bgcolor="#006699" width = 190 title = "Display the taverage latency of file transfers for every day of the week for each clients."><font color = "white"><div class="left">Latency</div><a target ="popup" href="%s" onClick="wopen('helpPages/latency.html', 'popup', 875, 100); return false;"><div class="right">?</div></a></font></td>
+            <td bgcolor="#006699"  title = "Display the taverage latency of file transfers for every day of the week for each clients."><font color = "white"><div class = "tableEntry"><div class="left">Latency</div><a target ="popup" href="%s" onClick="wopen('helpPages/latency.html', 'popup', 875, 100); return false;"><div class="right">?</div></a></font></div></td>
             
-            <td bgcolor="#006699" width = 190 title = "Display the total number of files for wich the latency was over 15 seconds for every day of the week for each clients."><font color = "white"><div class="left">Files over Max. Lat.</div><a target ="popup" href="%s" onClick="wopen('helpPages/filesOverMaxLatency.html', 'popup', 875, 100); return false;"><div class="right">?</div></a></font></td>
+            <td bgcolor="#006699"  title = "Display the total number of files for wich the latency was over 15 seconds for every day of the week for each clients."><div class = "tableEntry"><font color = "white"><div class="left">Files over Max. Lat.</div><a target ="popup" href="%s" onClick="wopen('helpPages/filesOverMaxLatency.html', 'popup', 875, 100); return false;"><div class="right">?</div></a></font></div></td>
             
-            <td bgcolor="#006699" width = 190 title = "Display the total of bytes transfered every day of the week for each clients."><font color = "white"><div class="left">Bytecount</div><a target ="popup" href="%s" onClick="wopen('helpPages/byteCount.html', 'popup', 875, 100); return false;"><div class="right">?</div></a></font></td>
+            <td bgcolor="#006699" title = "Display the total of bytes transfered every day of the week for each clients."><div class = "tableEntry"><font color = "white"><div class="left">Bytecount</div><a target ="popup" href="%s" onClick="wopen('helpPages/byteCount.html', 'popup', 875, 100); return false;"><div class="right">?</div></a></font></div></td>
             
-            <td bgcolor="#006699" width = 190 title = "Display the total of files transferred every day of the week for each clients."><font color = "white"><div class="left">Filecount</div><a target ="popup" href="%s" onClick="wopen('helpPages/fileCount.html', 'popup', 875, 100); return false;"><div class="right">?</div></a></font></td>
+            <td bgcolor="#006699"  title = "Display the total of files transferred every day of the week for each clients."><div class = "tableEntry"><font color = "white"><div class="left">Filecount</div><a target ="popup" href="%s" onClick="wopen('helpPages/fileCount.html', 'popup', 875, 100); return false;"><div class="right">?</div></a></font></div></td>
             
-            <td bgcolor="#006699" width = 190 title = "Display the total of errors that occured during file transfers every day of the week for each clients."><font color = "white"><div class="left">Errors</div><a target ="popup" href="%s" onClick="wopen('helpPages/errors.html', 'popup', 875, 100); return false;"><div class="right">?</div></a></font></td>
+            <td bgcolor="#006699" title = "Display the total of errors that occured during file transfers every day of the week for each clients."><div class = "tableEntry"><font color = "white"><div class="left">Errors</div><a target ="popup" href="%s" onClick="wopen('helpPages/errors.html', 'popup', 875, 100); return false;"><div class="right">?</div></a></font></div></td>
             
-        </tr>  
-        </table>
+        </tr>              
+        </table>       
+        <div class="scroll">
+        <table cellspacing=10 cellpadding=8>  
         
-        <DIV STYLE="overflow: auto; width: 1255px; height: 180; 
-                    border-left: 0px gray solid; border-bottom: 0px gray solid; 
-                    padding:0px; margin: 0px">
-        <TABLE cellspacing=5 cellpadding=4>    
-        
-        
-    """   )       
-        
-    
+    """   )      
+           
     
     for txName in txNames : 
         
-        fileHandle.write(  """<tr> <td bgcolor="#99FF99" width = 190 > %s </td>
+        fileHandle.write(  """<tr> <td bgcolor="#99FF99" ><div class = "tableEntry"> %s </div></td>
         """ %(txName) )
         
-        fileHandle.write(  """ <td bgcolor="#66CCFF" width = 190 >Months:&nbsp;""" )
+        fileHandle.write(  """ <td bgcolor="#66CCFF" ><div class = "tableEntry">Months:&nbsp;""" )
         
         for month in months:
             file = "%swebGraphics/monthly/latency/%s/%s.png" % (PXPaths.GRAPHS, txName, month )
             if os.path.isfile( file ):
                 fileHandle.write(  """<a target ="popup" href="%s" onClick="wopen('%s', 'popup', 875, 240); return false;">&nbsp;%s</a>"""%( txName, file ,month ) )
         
-        fileHandle.write( "</td>" )
+        fileHandle.write( "</div></td>" )
         
         
-        fileHandle.write(  """ <td bgcolor="#66CCFF" width = 190 >Months:&nbsp;""" )
+        fileHandle.write(  """ <td bgcolor="#66CCFF"  ><div class = "tableEntry">Months:&nbsp;""" )
         
         for month in months:
             file = "%swebGraphics/monthly/filesOverMaxLatency/%s/%s.png" % (PXPaths.GRAPHS, txName, month )
             if os.path.isfile( file ):
                 fileHandle.write(  """<a target ="popup" href="%s" onClick="wopen('%s', 'popup', 875, 240); return false;">&nbsp;%s</a>"""%( txName, file ,month ) )
         
-        fileHandle.write( "</td>" )
+        fileHandle.write( "</div></td>" )
         
         
         
-        fileHandle.write(  """ <td bgcolor="#66CCFF" width = 190>Months:&nbsp;""" )
+        fileHandle.write(  """ <td bgcolor="#66CCFF"  ><div class = "tableEntry">Months:&nbsp;""" )
         
         for month in months:
             file = "%swebGraphics/monthly/bytecount/%s/%s.png" % (PXPaths.GRAPHS, txName, month )
             if os.path.isfile( file ):
                 fileHandle.write(  """<a target ="popup" href="%s" onClick="wopen('%s', 'popup', 875, 240); return false;">&nbsp;%s</a>"""%( txName, file ,month ) )
         
-        fileHandle.write( "</td>" )
+        fileHandle.write( "</div></td>" )
         
         
-        fileHandle.write(  """ <td bgcolor="#66CCFF" width = 190 >Months:&nbsp;""" )
+        fileHandle.write(  """ <td bgcolor="#66CCFF"  ><div class = "tableEntry">Months:&nbsp;""" )
         
         for month in months:
             file = "%swebGraphics/monthly/filecount/%s/%s.png" % (PXPaths.GRAPHS, txName, month )
             if os.path.isfile( file ):
                 fileHandle.write(  """<a target ="popup" href="%s" onClick="wopen('%s', 'popup', 875, 240); return false;">&nbsp;%s</a>"""%( txName, file ,month ) )
         
-        fileHandle.write( "</td>" )
+        fileHandle.write( "</div></td>" )
         
         
-        fileHandle.write(  """ <td bgcolor="#66CCFF" width = 190 >Months:&nbsp;""" )
+        fileHandle.write(  """ <td bgcolor="#66CCFF"><div class = "tableEntry">Months:&nbsp;""" )
         
         for month in months:
             file = "%swebGraphics/monthly/errors/%s/%s.png" % (PXPaths.GRAPHS, txName, month )
             if os.path.isfile( file ):
                 fileHandle.write(  """<a target ="popup" href="%s" onClick="wopen('%s', 'popup', 875, 240); return false;">&nbsp;%s</a>"""%( txName, file ,month ) )
         
-        fileHandle.write( "</td>" )
+        fileHandle.write( "</div></td></tr>" )
 
         
 
     fileHandle.write(  """
-        </tr>
-
     </table>
     </div>
     </body>

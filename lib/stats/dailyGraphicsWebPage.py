@@ -101,7 +101,7 @@ def main():
         <body text="#000000" link="#FFFFFF" vlink="000000" bgcolor="#CCCCCC" >
         
         <br>
-        <h2>Daily graphics for RX sources from MetPx.</h2>
+        <h2>Daily graphics for RX sources from MetPx. <font size = "2">*updated hourly</font></h2>
         
         
         <TABLE cellspacing=10 cellpadding=8 id=header bgcolor="#cccccc"> 
@@ -138,7 +138,7 @@ def main():
     </div>
        
     <br>
-    <h2>Daily graphics for TX clients from MetPx.</h2>
+    <h2>Daily graphics for TX clients from MetPx. <font size = "2">*updated hourly</font></h2>
     
     <TABLE cellspacing=10 cellpadding=8 id=header bgcolor="#cccccc">   
         <tr>

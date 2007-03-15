@@ -22,13 +22,15 @@ named COPYING in the root of the source directory tree.
 ##               pages.
 ##
 ##############################################################################
-import os, time,sys
-import generalStatsLibraryMethods
+import os, time, sys, datetime
+import generalStatsLibraryMethods,MyDateLib
+
 
 import string 
 
 from PXPaths   import * 
 from PXManager import *
+from MyDateLib import *
 from generalStatsLibraryMethods import *
    
 LOCAL_MACHINE = os.uname()[1]   
@@ -36,15 +38,15 @@ LOCAL_MACHINE = os.uname()[1]
 
 def getDays():
     """
-        Returns the last 3 year numbers including the current year.
+        Returns the last 5 days numbers including the current year.
     
     """
     
     days = []
     
-    startTime = (time.time() - (7*24*60*60))
-    for i in range(1,8):
-        days.append( time.strftime("%a",time.gmtime(startTime + ( i*365*24*60*60 ) )) )
+    startTime = (time.time() - (5*24*60*60))
+    for i in range(1,6):
+        days.append( time.strftime("%a",time.gmtime(startTime + ( i*24*60*60 ) )) )
    
        
     return days
@@ -72,14 +74,33 @@ def getMonths():
         Returns the 3 months including current month.
     
     """
-    
+    currentTime = time.time()
+    currentTime = MyDateLib.getIsoFromEpoch( currentTime )
+    currentDate = datetime.date( int(currentTime[0:4]), int(currentTime[5:7]), int(currentTime[8:10]) )     
+       
     months = []
     
-    startTime = (time.time() - (30*3*24*60*60))
-    for i in range(1,4):
-        months.append( time.strftime("%b",time.gmtime(startTime + (i*30*24*60*60) )) )
-   
        
+    for i in range(0,5):
+        
+        if currentDate.month -i < 1 :
+            month = currentDate.month -i + 12
+            year  = currentDate.year -i 
+        else :     
+            month = currentDate.month -i 
+            year = currentDate.year
+            
+        if currentDate.day > 28:
+            day = currentDate.day -5
+        else: 
+            day = currentDate.day          
+        
+        newdate = datetime.date( year,month,day )
+        months.append( newdate.strftime("%b") )
+        #print year,month,day
+    
+    months.reverse()
+        
     return months
   
     
@@ -90,12 +111,21 @@ def getYears():
     
     """
     
-    years = []
+    currentTime = time.time()
+    currentTime = MyDateLib.getIsoFromEpoch( currentTime )
+    currentDate = datetime.date( int(currentTime[0:4]), int(currentTime[5:7]), int(currentTime[8:10]) )     
     
-    startTime = (time.time() - (3*365*24*60*60))
-    for i in range(1,4):
-        years.append( time.strftime("%Y",time.gmtime(startTime + (i*365*24*60*60) )) )
-   
+    years = []    
+    
+    #prevent errors from bisextile years
+    if currentDate.month == 2 and currentDate.day == 29:
+        currentDate.day = 28
+    for i in range(0,3):
+        year = currentDate.year - i
+        newDate = datetime.date( year, currentDate.month, currentDate.day )
+        years.append( newDate.strftime("%Y") )
+        
+    years.reverse()
        
     return years   
 
@@ -127,7 +157,8 @@ def main():
     machineNames = [ "pds5,pds6", "pxatx"]
     rxTypes      = [ "bytecount", "filecount", "errors"]
     txTypes      = [ "latency", "filesOverMaxLatency", "bytecount", "filecount", "errors"]
-    timeTypes    = [ "daily","weekly","monthly","yearly"]   
+    timeTypes    = [ "daily","weekly","monthly","yearly"]
+    updateFrequency= {"daily":"(upd. hourly)","weekly":"(upd. hourly)","monthly":"(upd. weekly)","yearly":"(upd. monthly)"}   
     days   = getDays() 
     weeks  = getWeekNumbers()
     months = getMonths()
@@ -162,32 +193,37 @@ def main():
             </script>    
             
             <STYLE>
-                <!--
-                A{text-decoration:none}
-                -->
+
             </STYLE>
             
             <style type="text/css">
-                div.left { float: left; }
-                div.right {float: right; }
+                div.left { float: left;word-wrap:break-word; }
+                div.right {float: right;word-wrap:break-word; }
+                <!--
+                A{text-decoration:none}
+                -->
+                <!--
+                td {
+                    word-wrap:break-word
+                }
+                // -->
             </style>    
             
             <body text="#000000" link="#FFFFFF" vlink="000000" bgcolor="#CCCCCC" >
-            
-            <br>
+                        
                 <h2>RX totals for %s.</h2>
-            <br>
+            
     
-            <table width="100%%" border="1" cellspacing="5" cellpadding="5" bgcolor="#cccccc" bordercolor="#CCCCCC" frame = void > 
+            <table style="table-layout: fixed; width: 1250px; border-left: 0px gray solid; border-bottom: 0px gray solid; padding:0px; margin: 0px" cellspacing=10 cellpadding=8 >
             
             <tr>    
-                <td bgcolor="#006699" width = "25%%"><font color = "white"><div class="left">Type</font></td>   
+                <td bgcolor="#006699" ><font color = "white"><div class="left">Type</font></td>   
                 
-                <td bgcolor="#006699" width = "25%%" title = "Display the total of bytes received by all sources."><font color = "white"><div class="left">ByteCount</div><a target ="popup" href="help" onClick="wopen('helpPages/byteCount.html', 'popup', 875, 100); return false;"><div class="right">?</div></a></font></td>
+                <td bgcolor="#006699"  title = "Display the total of bytes received by all sources."><font color = "white"><div class="left">ByteCount</div><a target ="popup" href="help" onClick="wopen('helpPages/byteCount.html', 'popup', 875, 100); return false;"><div class="right">?</div></a></font></td>
                 
-                <td bgcolor="#006699" width = "25%%" title = "Display the total of files received by all sources."><font color = "white"><div class="left">FileCount</div><a target ="popup" href="help" onClick="wopen('helpPages/fileCount.html', 'popup', 875, 100); return false;"><div class="right">?</div></a></font></td>
+                <td bgcolor="#006699"  title = "Display the total of files received by all sources."><font color = "white"><div class="left">FileCount</div><a target ="popup" href="help" onClick="wopen('helpPages/fileCount.html', 'popup', 875, 100); return false;"><div class="right">?</div></a></font></td>
                 
-                <td bgcolor="#006699" width = "25%%" title = "Display the total of errors that occured during all the receptions."><font color = "white"><div class="left">Errors</div><a target ="popup"  href="help" onClick="wopen('helpPages/errors.html', 'popup', 875, 100); return false;"><div class="right">?</div></a></font></td>
+                <td bgcolor="#006699"  title = "Display the total of errors that occured during all the receptions."><font color = "white"><div class="left">Errors</div><a target ="popup"  href="help" onClick="wopen('helpPages/errors.html', 'popup', 875, 100); return false;"><div class="right">?</div></a></font></td>
                 
             </tr>
                
@@ -198,9 +234,9 @@ def main():
         for timeType in timeTypes:    
             fileHandle.write( """ 
             <tr> 
-                <td bgcolor="#99FF99" width = "25%%" > %s receptions </td>                  
+                <td bgcolor="#99FF99" > %s %s</td>                  
         
-            """ %( timeType[0].upper() + timeType[1:] ) )
+            """ %(( timeType[0].upper() + timeType[1:] ), updateFrequency[timeType] ) )
             if timeType == "daily" :
                 timeContainer = days     
             elif timeType == "weekly":
@@ -211,14 +247,14 @@ def main():
                 timeContainer = years
                          
             for type in rxTypes:
-                fileHandle.write( """<td bgcolor="#66CCFF" width = "25%%" > %s : """ %(timeType[0].upper() + timeType[1:]) )
+                fileHandle.write( """<td bgcolor="#66CCFF"  > <div style= wordwrap: break-word;"> """ )
                 
                 for x in timeContainer:
                     file = "%s/webGraphics/totals/%s/rx/%s/%s/%s.png" %( PXPaths.GRAPHS, machineName, type, timeType, x ) 
                     if os.path.isfile(file):    
                         fileHandle.write(  """<a target ="popup" href="%s" onClick="wopen('%s', 'popup', 875, 240); return false;">%s&nbsp;</a>""" %( x, file, x ) )
                     
-                fileHandle.write( """</td>""" )
+                fileHandle.write( """</div></td>""" )
             
             fileHandle.write( """</tr>""" )       
                 
@@ -229,23 +265,21 @@ def main():
         fileHandle.write("""                
             <br>
                 <h2>TX totals for %s.</h2>
-            <br>
-    
-            <table width="100%%" border="1" cellspacing="5" cellpadding="5" bgcolor="#cccccc" bordercolor="#CCCCCC" frame = void > 
             
+            <table style="table-layout: fixed; width: 1250px; border-left: 0px gray solid; border-bottom: 0px gray solid; padding:0px; margin: 0px" cellspacing=10 cellpadding=8 >
                 <tr>
                     
-                    <td bgcolor="#006699" width = "16.66%%" title = >Type</font></td> 
+                    <td bgcolor="#006699"   title = >Type</font></td> 
                     
-                    <td bgcolor="#006699" width = "16.66%%" "Display the average latency of file transfers for all clients."><font color = "white"><font color = "white"><div class="left">Latency</div><a target ="popup" href="help" onClick="wopen('helpPages/latency.html', 'popup', 875, 100); return false;"><div class="right">?</div></a></font></td>
+                    <td bgcolor="#006699"  "Display the average latency of file transfers for all clients."><font color = "white"><font color = "white"><div class="left">Latency</div><a target ="popup" href="help" onClick="wopen('helpPages/latency.html', 'popup', 875, 100); return false;"><div class="right">?</div></a></font></td>
                     
-                    <td bgcolor="#006699" width = "16.66%%" title = "Display the number of files for wich the latency was over 15 seconds for all clients."><font color = "white"><div class="left">Files Over Max. Lat.</div><a target ="popup" href="help" onClick="wopen('helpPages/filesOverMaxLatency.html', 'popup', 875, 100); return false;"><div class="right">?</div></a></font></td> 
+                    <td bgcolor="#006699"  title = "Display the number of files for wich the latency was over 15 seconds for all clients."><font color = "white"><div class="left">Files Over Max. Lat.</div><a target ="popup" href="help" onClick="wopen('helpPages/filesOverMaxLatency.html', 'popup', 875, 100); return false;"><div class="right">?</div></a></font></td> 
                     
-                    <td bgcolor="#006699" width = "16.66%%" title = "Display number of bytes transfered to all clients." ><font color = "white"><div class="left">ByteCount</div><a target ="popup" href="help" onClick="wopen('helpPages/byteCount.html', 'popup', 875, 100); return false;"><div class="right">?</div></a></font></td>
+                    <td bgcolor="#006699"  title = "Display number of bytes transfered to all clients." ><font color = "white"><div class="left">ByteCount</div><a target ="popup" href="help" onClick="wopen('helpPages/byteCount.html', 'popup', 875, 100); return false;"><div class="right">?</div></a></font></td>
                     
-                    <td bgcolor="#006699" width = "16.66%%" title = "Display the number of files transferred every day to all clients."><font color = "white"><div class="left">FileCount</div><a target ="popup" href="help" onClick="wopen('helpPages/fileCount.html', 'popup', 875, 100); return false;"><div class="right">?</div></a></font></td>
+                    <td bgcolor="#006699" title = "Display the number of files transferred every day to all clients."><font color = "white"><div class="left">FileCount</div><a target ="popup" href="help" onClick="wopen('helpPages/fileCount.html', 'popup', 875, 100); return false;"><div class="right">?</div></a></font></td>
                     
-                    <td bgcolor="#006699" width = "16.66%%" title = "Display the total of errors that occured during the file transfers to allclients."><font color = "white"><div class="left">Errors</div><a target ="popup" href="help" onClick="wopen('helpPages/errors.html', 'popup', 875, 100); return false;"><div class="right">?</div></a></font></td>
+                    <td bgcolor="#006699"  title = "Display the total of errors that occured during the file transfers to allclients."><font color = "white"><div class="left">Errors</div><a target ="popup" href="help" onClick="wopen('helpPages/errors.html', 'popup', 875, 100); return false;"><div class="right">?</div></a></font></td>
                 
                 </tr>   
                
@@ -256,9 +290,9 @@ def main():
         for timeType in timeTypes:    
             fileHandle.write( """ 
             <tr> 
-                <td bgcolor="#99FF99" width = "16.66%%" > %s transmissions </td>                  
+                <td bgcolor="#99FF99" ><div style="width:10pt; word-wrap: break-word;">%s%s</div> </td>                  
         
-            """ %( timeType[0].upper() + timeType[1:] ) )
+            """ %(( timeType[0].upper() + timeType[1:] ), updateFrequency[timeType] ) ) 
             if timeType == "daily" :
                 timeContainer = days     
             elif timeType == "weekly":
@@ -269,16 +303,16 @@ def main():
                 timeContainer = years
                          
             for type in txTypes:
-                fileHandle.write( """<td bgcolor="#66CCFF" width = "16.66%%" > %s : """ %(timeType[0].upper() + timeType[1:]) )
+                fileHandle.write( """<td bgcolor="#66CCFF"><div style= wordwrap: break-word;"> """) 
                 
                 for x in timeContainer:
                     file = "%swebGraphics/totals/%s/tx/%s/%s/%s.png" %( PXPaths.GRAPHS, machineName, type, timeType,x ) 
                     if os.path.isfile(file):    
-                        fileHandle.write(  """<a target ="popup" href="%s" onClick="wopen('%s', 'popup', 875, 240); return false;">%s&nbsp;</a>""" %( x,file, x ) )
+                        fileHandle.write(  """<a target ="popup" href="%s" onClick="wopen('%s', 'popup', 875, 240); return false;">%s </a>""" %( x,file, x ) )
                     else:
-                        print file
-                         
-                fileHandle.write( """</td>""" )
+                        #print file
+                        allo =2  
+                fileHandle.write( """</div></td>""" )
             
             fileHandle.write( """</tr>""" )       
                 

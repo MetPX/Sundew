@@ -104,7 +104,7 @@ def main():
                 div.right {float: right; }
             </style>
             <br>
-            <h2>Yearly graphics for RX sources from MetPx.</h2>
+            <h2>Yearly graphics for RX sources from MetPx. <font size = "2">*updated monthly</font></h2>
                         
             <TABLE cellspacing=10 cellpadding=8 id=header bgcolor="#cccccc">
                 <tr>   
@@ -168,7 +168,7 @@ def main():
     </div>    
     
     <br>
-    <h2>Yearly graphics for TX clients from MetPx.</h2>
+    <h2>Yearly graphics for TX clients from MetPx. <font size = "2">*updated monthly</h2>
     
         <TABLE cellspacing=10 cellpadding=8 id=header bgcolor="#cccccc"> 
         <tr>
