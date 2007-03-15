@@ -8,7 +8,7 @@ named COPYING in the root of the source directory tree.
 #######################################################################################
 ##
 ## Name   : generateRRDGraphics.py 
-##  
+# ##  
 ## Author : Nicholas Lemay  
 ##
 ## Date   : October 2nd 2006
@@ -143,48 +143,59 @@ def getOptionsFromParser( parser ):
         print "Error. The date format must be YYYY-MM-DD HH:MM:SS" 
         print "Use -h for help."
         print "Program terminated."
-        sys.exit()    
+        sys.exit()         
         
-     
-    #TODO fix timeSpan method???   
-    if daily :
-        timespan = 24  
-        graphicType = "daily"      
-    elif weekly:
-        timespan = 24 * 7  
-        graphicType = "weekly"  
-    elif monthly:
-        timespan = 24 * 30 
-        graphicType = "monthly"       
-    elif yearly:
-        timespan = 24 * 365
-        graphicType = "yearly"   
-    
+         
     #TODO :fixStartEnd method???    
     if fixedPrevious :
         if daily :
+            graphicType = "daily"
             start, end = MyDateLib.getStartEndFromPreviousDay( date )             
         elif weekly:
+            graphicType = "weekly"
             start, end = MyDateLib.getStartEndFromPreviousWeek( date )
         elif monthly:
+            graphicType = "monthly"
             start, end = MyDateLib.getStartEndFromPreviousMonth( date )
         elif yearly:
+            graphicType = "yearly" 
             start, end = MyDateLib.getStartEndFromPreviousYear( date )
-            
+        timespan = int( MyDateLib.getSecondsSinceEpoch( end ) - MyDateLib.getSecondsSinceEpoch( start ) ) / 3600
+             
     elif fixedCurrent:
         if daily :
+            graphicType = "daily"
             start, end = MyDateLib.getStartEndFromCurrentDay( date )   
         elif weekly:
+            graphicType = "weekly"
             start, end = MyDateLib.getStartEndFromCurrentWeek( date )
         elif monthly:
+            graphicType = "monthly"
             start, end = MyDateLib.getStartEndFromCurrentMonth( date )    
         elif yearly:
+            graphicType = "yearly" 
             start, end = MyDateLib.getStartEndFromCurrentYear( date ) 
-    
-    else:        
+        timespan = int( MyDateLib.getSecondsSinceEpoch( end ) - MyDateLib.getSecondsSinceEpoch( start ) ) / 3600
+        
+    else:       
+        #TODO fix timeSpan method???   
+        if daily :
+            timespan = 24  
+            graphicType = "daily"      
+        elif weekly:
+            timespan = 24 * 7  
+            graphicType = "weekly"  
+        elif monthly:
+            timespan = 24 * 30 
+            graphicType = "monthly"       
+        elif yearly:            
+            timespan = 24 * 365
+            graphicType = "yearly"  
+            
         start = MyDateLib.getIsoFromEpoch( MyDateLib.getSecondsSinceEpoch( date ) - timespan*60*60 ) 
-        end   = date                        
-                               
+        end   = date                       
+            
+    #print "timespan %s" %timespan                           
     try:    
         if int( timespan ) < 1 :
             raise 
@@ -374,7 +385,7 @@ def addOptions( parser ):
     
     
         
-def buildTitle( type, client, endTime, timespan, minimum, maximum, mean, graphicType = "daily"  ):
+def buildTitle( type, client, endTime, timespan, minimum, maximum, mean):
     """
         Returns the title of the graphic based on infos. 
     
@@ -411,7 +422,7 @@ def getGraphicsNote( interval, type ):
     
     if type != "latency":
     
-        if interval < 60.0 :    
+        if interval < 60 :    
             graphicsNote = "Graphics generated using %s minute(s) averages." %( int(interval) )
         
         else:    
@@ -438,7 +449,7 @@ def getAbsoluteMin( databaseName, startTime, endTime, logger = None ):
     
     try :  
     
-        output = rrdtool.fetch( databaseName, 'MIN', '-s', "%s" %startTime, '-e', '%s' %endTime )
+        output = rrdtool.fetch( databaseName, 'MIN', '-s', "%s" %(startTime + 60 ), '-e', '%s' %endTime )
         minTuples = output[2]
         
         i = 0 
@@ -447,7 +458,7 @@ def getAbsoluteMin( databaseName, startTime, endTime, logger = None ):
                                 
                 if minTuples[i][0] < minimum or minimum == None : 
                     minimum = minTuples[i][0]
-                    #print minimum
+                    
             i = i + 1 
        
          
@@ -476,7 +487,7 @@ def getAbsoluteMax( databaseName, startTime, endTime, logger = None ):
     
     try:
     
-        output = rrdtool.fetch( databaseName, 'MAX', '-s', "%s" %startTime, '-e', '%s' %endTime )      
+        output = rrdtool.fetch( databaseName, 'MAX', '-s', "%s" %(startTime) , '-e', '%s' %endTime )      
         
         maxTuples = output[2]
         
@@ -512,7 +523,7 @@ def getAbsoluteMean( databaseName, startTime, endTime, logger = None  ):
     
     try :
         
-        output = rrdtool.fetch( databaseName, 'AVERAGE', '-s', "%s" %startTime, '-e', '%s' %endTime )
+        output = rrdtool.fetch( databaseName, 'AVERAGE', '-s', "%s" %(startTime + 60 ), '-e', '%s' %endTime )
 
         meanTuples = output[2]
         i = 0
@@ -532,8 +543,36 @@ def getAbsoluteMean( databaseName, startTime, endTime, logger = None  ):
     return avg 
 
 
+    
+def fetchDataFromRRDDatabase( databaseName, startTime, endTime, interval, graphicType):
+    """
+        Returns the stored data from a database based on the desiered interval.
+    """
+    
+    resolution = int(interval*60)
+    
+    if endTime > ( time.time() ):
+        endTime = int(time.time())
         
-def getGraphicsMinMaxMeanTotal( databaseName, startTime, endTime, interval, logger = None, type = "average"  ):
+    # round end time to time closest to desired resolution EX : closest 10 minutes,hour,day,etc... 
+    endTime = int(endTime)/resolution*resolution              
+          
+    
+    try:
+        output = rrdtool.fetch( databaseName, 'AVERAGE', '-r', str(resolution), '-s', "%s" %(startTime), '-e', '%s' %(endTime) )
+        #print databaseName, 'AVERAGE', '-r', str(resolution), '-s', "%s" %(startTime), '-e', '%s' %(endTime)
+    
+    except:
+        print "Error.Could not fetch data from %s." %databaseName
+        print "Program terminated."
+        sys.exit()
+        
+    
+    return output 
+    
+    
+    
+def getGraphicsMinMaxMeanTotal( databaseName, startTime, endTime, interval, graphicType, type="average", logger=None ):
     """
         This methods returns the min max and mean of the entire set of data that is drawn 
         on the graphic.
@@ -542,68 +581,105 @@ def getGraphicsMinMaxMeanTotal( databaseName, startTime, endTime, interval, logg
     
     min = None
     max = None
-    sum = 0 
+    sum = 0.0
     avg = 0
     total = 0.0
-    nbEntries = 0      
+    nbEntries = 0    
+    nbEntriesPerPoint =1    
+        
+    output = fetchDataFromRRDDatabase( databaseName, startTime, endTime, interval, graphicType )  
+    meanTuples = output[2]
+    nbEntries = len( meanTuples )-1 #we dont use the first entry
     
-    try :
+    if endTime > ( time.time() ):
+        realEndTime = int(time.time())/3600 * 3600 # round to start of hour, wich should be last update... 
+    else :
+        realEndTime = endTime
         
-        output = rrdtool.fetch( databaseName, 'AVERAGE', '-s', "%s" %startTime, '-e', '%s' %endTime )
-        meanTuples = output[2]
-        nbEntries = len( meanTuples )
-        
-        if type == "totals":
-            
-            for meanTuple in meanTuples :            
-                
-                if meanTuple[0] != 'None' and meanTuple[0] != None :
-                    
-                    realValue = ( float(meanTuple[0]) * float(interval) ) 
-                    
-                    if  realValue > max:
-                        max = realValue
-                    if realValue < min or min == None :
-                        min = realValue 
-                    
-                    sum = sum + realValue 
-                    
-                else:# don't count non-filled entries in mean.
-                    nbEntries = nbEntries - 1
-                     
-            if nbEntries != 0:            
-                avg = sum / nbEntries 
-            
-            
-            total = sum
              
-        else:
+    desiredNumberOfEntries = float( (realEndTime - startTime)/(interval*60) )  
+    
+    if nbEntries > desiredNumberOfEntries:
+        nbEntriesPerPoint = int( nbEntries/desiredNumberOfEntries )
+        nbEntries = desiredNumberOfEntries
+                
+        
+    if type == "totals":
+        
+        for i in range( 1,len(meanTuples),1 ) :            
             
-            for meanTuple in meanTuples :            
-                if meanTuple[0] != 'None' and meanTuple[0] != None :
-                    value = float( meanTuple[0] ) 
+            if meanTuples[i][0] != 'None' and meanTuples[i][0] != None :
+                
+                realValue = ( float(meanTuples[i][0]) * float(interval)/ nbEntriesPerPoint ) 
+                
+                if  realValue > max:
+                    max = realValue
+                if realValue < min or min == None :
+                    min = realValue 
+                
+                sum = sum + realValue 
+                
+            else:# don't count non-filled entries in mean.
+                nbEntries = nbEntries - 1
+                    
+        if nbEntries != 0:            
+            avg = sum / nbEntries 
+        
+        
+        total = sum
+            
+    else:
+        
+        
+        for i in range( int(nbEntriesPerPoint)+1 ,( len(meanTuples) ), int(nbEntriesPerPoint) ) : 
+            
+            if nbEntriesPerPoint != 1:           
+                value = None
+                nbInvalidEntries = 0 
+                               
+                for j in range( i-int(nbEntriesPerPoint), i, 1):                    
+                    if meanTuples[j][0] != 'None' and meanTuples[j][0] != None :
+                        if value == None :
+                            value = 0.0
+                        value = value + float( meanTuples[j][0] )
+                                                     
+                    else:# don't count non-filled entries in mean.
+                        nbInvalidEntries = nbInvalidEntries + 1
+                                        
+                if nbInvalidEntries == nbEntriesPerPoint:
+                    nbEntries = nbEntries - 1 
+                
+                if value != None :                    
+                    value = float( float(value)/ float(nbEntriesPerPoint) )
+                    
                     if  value > max:
                         max = value
                     if value < min or min == None :
                         min = value 
                     
-                    sum = sum + value               
-                                                        
+                    sum = sum + value 
+        
+            else:         
+                if meanTuples[i][0] != 'None' and meanTuples[i][0] != None :
+                
+                    value = ( float(meanTuples[i][0]) ) 
+                    
+                    if  value > max:
+                        max = value
+                    if  value < min or min == None :
+                        min = value 
+                    
+                    sum = sum + value 
                     
                 else:# don't count non-filled entries in mean.
-                    nbEntries = nbEntries - 1    
+                    nbEntries = nbEntries - 1
+                    
             
-            if nbEntries != 0:            
-                avg = sum / nbEntries  
-            
-            total = float( sum ) * float( interval )
-            print "total %s interval %s nbentries %s" %(total,interval,nbEntries)           
-    
-    except :
-        if logger != None:
-            logger.error( "Error in generateRRDGraphics.getOverallMin. Unable to read %s" %databaseName )
-        pass    
-            
+        if nbEntries != 0:            
+            avg = float(sum) / float(nbEntries)
+        
+        total = float( sum ) * float( interval )
+                  
     
     return min, max, avg, total
     
@@ -619,15 +695,15 @@ def buildImageName(  type, client, machine, infos, logger = None ):
     timeMeasure = "hours"
     
     if infos.timespan%(365*24) == 0 :
-        span = infos.timespan/(365*24)
+        span = int(infos.timespan/(365*24))
         timeMeasure = "years" 
     
     elif infos.timespan%(30*24) == 0 :
-        span = infos.timespan/(30*24)
+        span = int(infos.timespan/(30*24))
         timeMeasure = "months" 
     
     elif infos.timespan%24 == 0 :
-        span = infos.timespan/24
+        span = int(infos.timespan/24)
         timeMeasure = "days" 
        
                     
@@ -795,42 +871,67 @@ def getGraphicsLegend( maximum ):
                 legend = "M on the y axis stands for Mega, meaning x millions."
             elif maximum > 1000:    
                 legend = "k on the y axis stands for kilo, meaning x thousands."
+            elif maximum < .1000:
+                legend = "m on the y axis stans for milli, meaning x thousandths."
+               
         except:            
             pass
         
     return legend
             
             
-def getInterval( startTime, timeOfLastUpdate, dataType  ):    
-    """
-        Returns the interval that was used for data consolidation 
-        distance between starTTime being used and the time of the 
-        last update of the database. Usefull when using totals
-        and and not means.
-    
-        Will always return 1 if dataType = "latency" because latencies
-        cannot be used as totals, only as means.
+def getInterval( startTime, timeOfLastUpdate, graphicType = "daily", goal = "fetchData"  ):    
+    """         
+        Returns the interval that was used for data consolidation. 
         
+        If graphicsType is weekly, monthly or yearly interval returned
+        will always be the same as long timeOfLastUpdate- startTime is 
+        within it's the maximum lenggth of it's associated RRA. 
+        
+        Otherwise it is based on the distance between
+        starTTime being used and the time of the 
+        last update of the database.
+        
+        Method is very usefull when handling totals.    
+       
     """ 
+    #432000 is 5 days in seconds
+    #1209600 is 14 days in seconds
+    #21024000 is 243 days in seconds    
         
-    if dataType == "latency" :
-        interval = 1.0 #No need to multiply average by interval. It's the mean we want in the case of latency.
-    elif ( timeOfLastUpdate - startTime ) < (7200 * 60):#less than 5 days
-        interval = 1.0         
-    elif ( timeOfLastUpdate - startTime ) < (20160 * 60):#less than two week
-        interval = 60.0
-    elif (timeOfLastUpdate - startTime) < (1460*240*60):
-        interval = 240.0 
-    else:
-        interval = 1440.0    
-        
-    print "startTime %s, timeOfLastUpdate %s, interval %s" %(startTime, timeOfLastUpdate, interval)
+    if graphicType == "yearly" and  (timeOfLastUpdate - startTime ):
+        interval = 1440
+    elif graphicType == "monthly" and (timeOfLastUpdate - startTime ) < (21024000):
+        interval = 240
+    elif graphicType == "weekly"  and (timeOfLastUpdate - startTime ) < (1209600):
+        interval = 60  
+    elif graphicType == "daily"  and (timeOfLastUpdate - startTime ) < (432000):
+        if goal == "fetchData":
+            interval = 1                     
+        else :
+            interval = 10           
     
+    elif ( timeOfLastUpdate - startTime ) < (432000):#less than 5 days
+        if goal == "fetchData":
+            interval = 1                    
+        else :
+            interval = 10
+                         
+    elif ( timeOfLastUpdate - startTime ) < (1209600):#less than two week
+        interval = 60
+        
+    elif (timeOfLastUpdate - startTime) < (21024000):
+        interval = 240
+         
+    else:
+        interval = 1440    
+        
+       
     return interval
 
 
         
-def getIntervalForTotalGraphics( graphicsType ):    
+def getIntervalForTotalGraphics( graphicType ):    
     """
         Returns the interval that was used for data consolidation. 
         
@@ -839,14 +940,14 @@ def getIntervalForTotalGraphics( graphicsType ):
         
     """ 
     
-    if graphicsType == "daily"   :
-        interval = 1.0             
-    elif graphicsType == "weekly"  :
-        interval = 60.0     
-    elif graphicsType == "monthly":
-        interval = 240.0                
-    elif graphicsType == "yearly":
-        interval = 1440.0
+    if graphicType == "daily"   :
+        interval = 10             
+    elif graphicType == "weekly"  :
+        interval = 60     
+    elif graphicType == "monthly":
+        interval = 240                
+    elif graphicType == "yearly":
+        interval = 1440
         
     return interval    
 
@@ -951,7 +1052,7 @@ def formatedTypesForLables( type ):
     
     
         
-def plotRRDGraph( databaseName, type, fileType, client, machine, infos, lastUpdate = None, logger = None ):
+def plotRRDGraph( databaseName, type, fileType, client, machine, infos, logger = None ):
     """
         This method is used to produce a rrd graphic.
         
@@ -961,21 +1062,21 @@ def plotRRDGraph( databaseName, type, fileType, client, machine, infos, lastUpda
     start        = int ( MyDateLib.getSecondsSinceEpoch ( infos.startTime ) ) 
     end          = int ( MyDateLib.getSecondsSinceEpoch ( infos.endTime ) )  
     formatedTitleType, formatedYLabelType = formatedTypesForLables( type )
-    
-    
-    if lastUpdate == None :
-        if infos.totals != True:
-            lastUpdate = getDatabaseTimeOfUpdate( client, machine, fileType )
-            interval = getInterval( start, lastUpdate, type  )
-        else:
-            lastUpdate = getDatabaseTimeOfUpdate( client = fileType, machine = machine, fileType = "totals" )
-            interval   = getIntervalForTotalGraphics(infos.graphicType)
-    
-          
-    minimum, maximum, mean, total = getGraphicsMinMaxMeanTotal( databaseName, start, end, interval )
+            
+    if infos.totals != True:
+        lastUpdate = getDatabaseTimeOfUpdate( client, machine, fileType )        
+    else:
+        lastUpdate = getDatabaseTimeOfUpdate( client = fileType, machine = machine, fileType = "totals" )
+         
+         
+    interval = getInterval( start, lastUpdate, infos.graphicType, goal = "fetchData"  )       
+    minimum, maximum, mean, total = getGraphicsMinMaxMeanTotal( databaseName, start, end, interval, infos.graphicType, type = "average" )
     minimum, maximum, mean, total = formatMinMaxMeanTotal( minimum, maximum, mean,total, type )            
     graphicsLegeng         = getGraphicsLegend( maximum )      
     graphicsNote           = getGraphicsNote( interval, type  )        
+    
+    if infos.totals != True:
+        interval = getInterval( start, lastUpdate, infos.graphicType, goal = "plotGraphic"  )
     
     if graphicsNote == "" and graphicsLegeng == "":
         comment = ""
@@ -987,28 +1088,31 @@ def plotRRDGraph( databaseName, type, fileType, client, machine, infos, lastUpda
         innerColor = "cd5c5c"
         outerColor = "8b0000"
         total = ""
+        
     elif type == "filesOverMaxLatency":
         innerColor = "cd5c5c"
         outerColor = "8b0000"
         total = "Total: %s" %total                
+        
     elif type == "bytecount" or type == "filecount" :
         innerColor = "019EFF"
-        outerColor = "4D9AA9"  
+        outerColor = "080166"#"4D9AA9"  
         total = "Total: %s" %total
+        
     else:
         innerColor = "54DE4F"
         outerColor = "1C4A1A"     
         total = "Total: %s" %total   
         
     title = buildTitle( formatedTitleType, client, infos.endTime, infos.timespan, minimum, maximum, mean )   
-                
+                   
     #note : in CDEF:realValue the i value can be changed from 1 to value of the interval variable
     #       in order to get the total displayed instead of the mean.
     if infos.graphicType != "monthly":
-        rrdtool.graph( imageName,'--imgformat', 'PNG','--width', '800','--height', '200','--start', "%i" %(start) ,'--end', "%s" %(end), '--vertical-label', '%s' %formatedYLabelType,'--title', '%s'%title, '--lower-limit','0','DEF:%s=%s:%s:AVERAGE'%( type, databaseName, type), 'CDEF:realValue=%s,%i,*' %( type, 1), 'AREA:realValue#%s:%s' %( innerColor, type ),'LINE1:realValue#%s:%s'%( outerColor, type ), 'COMMENT: Min: %s   Max: %s   Mean: %s   %s\c' %( minimum, maximum, mean,total ), 'COMMENT:%s %s %s\c' %( comment, graphicsNote, graphicsLegeng )  )
+        rrdtool.graph( imageName,'--imgformat', 'PNG','--width', '800','--height', '200','--start', "%i" %(start) ,'--end', "%s" %(end),'--step','%s' %(interval*60), '--vertical-label', '%s' %formatedYLabelType,'--title', '%s'%title, '--lower-limit','0','DEF:%s=%s:%s:AVERAGE'%( type, databaseName, type), 'CDEF:realValue=%s,%i,*' %( type, 1), 'AREA:realValue#%s:%s' %( innerColor, type ),'LINE1:realValue#%s:%s'%( outerColor, type ), 'COMMENT: Min: %s   Max: %s   Mean: %s   %s\c' %( minimum, maximum, mean,total ), 'COMMENT:%s %s %s\c' %( comment, graphicsNote, graphicsLegeng )  )
 
     else:#With monthly graphics, we force the use the day of month number as the x label.       
-        rrdtool.graph( imageName,'--imgformat', 'PNG','--width', '800','--height', '200','--start', "%i" %(start) ,'--end', "%s" %(end), '--vertical-label', '%s' %formatedYLabelType,'--title', '%s'%title, '--lower-limit','0','DEF:%s=%s:%s:AVERAGE'%( type, databaseName, type), 'CDEF:realValue=%s,%i,*' %( type, 1), 'AREA:realValue#%s:%s' %( innerColor, type ),'LINE1:realValue#%s:%s'%( outerColor, type ), '--x-grid', 'HOUR:24:DAY:1:DAY:1:0:%d','COMMENT: Min: %s   Max: %s   Mean: %s   %s\c' %( minimum, maximum, mean, total ), 'COMMENT:%s %s %s\c' %(comment,graphicsNote, graphicsLegeng)  )       
+        rrdtool.graph( imageName,'--imgformat', 'PNG','--width', '800','--height', '200','--start', "%i" %(start) ,'--end', "%s" %(end),'--step','%s' %(interval*60), '--vertical-label', '%s' %formatedYLabelType,'--title', '%s'%title, '--lower-limit','0','DEF:%s=%s:%s:AVERAGE'%( type, databaseName, type), 'CDEF:realValue=%s,%i,*' %( type, 1), 'AREA:realValue#%s:%s' %( innerColor, type ),'LINE1:realValue#%s:%s'%( outerColor, type ), '--x-grid', 'HOUR:24:DAY:1:DAY:1:0:%d','COMMENT: Min: %s   Max: %s   Mean: %s   %s\c' %( minimum, maximum, mean, total ), 'COMMENT:%s %s %s\c' %(comment,graphicsNote, graphicsLegeng)  )       
     
     
     if infos.copy == True:
@@ -1020,7 +1124,7 @@ def plotRRDGraph( databaseName, type, fileType, client, machine, infos, lastUpda
         
         
         
-def createNewDatabase( fileType, type, machine, start, infos, logger ):       
+def createNewDatabase( fileType, type, machine, start, interval, logger ):       
     """
         Creates a brand new database bases on fileType,type and machine.
         
@@ -1041,17 +1145,17 @@ def createNewDatabase( fileType, type, machine, start, infos, logger ):
     elif not os.path.isdir( PXPaths.STATS + "databases/combined/" ):
         os.makedirs( PXPaths.STATS + "databases/combined/" )       
     
-    if infos.timespan <(5*24):#daily :
+    if interval == 1:#daily :
         start = start - 60
         rrdtool.create( combinedDatabaseName, '--start','%s' %( start ), '--step', '60', 'DS:%s:GAUGE:60:U:U' %type,'RRA:AVERAGE:0:1:7200','RRA:MIN:0:1:7200', 'RRA:MAX:0:1:7200' )
              
     
-    elif infos.timespan >(5*24) and infos.timespan <(14*24):# weekly :  
+    elif interval == 60:# weekly :  
         start = start - (60*60)
         rrdtool.create( combinedDatabaseName, '--start','%s' %( start ), '--step', '3600', 'DS:%s:GAUGE:3600:U:U' %type,'RRA:AVERAGE:0:1:336','RRA:MIN:0:1:336', 'RRA:MAX:0:1:336' )               
                    
     
-    elif infos.timespan <(365*24):#monthly
+    elif interval == 240:#monthly
         start = start - (240*60)
         rrdtool.create( combinedDatabaseName, '--start','%s' %( start ), '--step', '14400', 'DS:%s:GAUGE:14400:U:U' %type, 'RRA:AVERAGE:0:1:1460','RRA:MIN:0:1:1460','RRA:MAX:0:1:1460' )  
         
@@ -1064,7 +1168,7 @@ def createNewDatabase( fileType, type, machine, start, infos, logger ):
     return combinedDatabaseName
     
     
-def getInfosFromDatabases( names, machine, fileType, startTime, endTime ):
+def getInfosFromDatabases( dataOutputs, names, machine, fileType, startTime, endTime ):
     """
         This method browsess a list of database names and returns
         the infos of the first valid databases found.
@@ -1084,12 +1188,13 @@ def getInfosFromDatabases( names, machine, fileType, startTime, endTime ):
     nbEntries = 0    
         
     while lastUpdate == 0 and i < len( names) : # in case some databases dont exist
-        lastUpdate = getDatabaseTimeOfUpdate( names[i], machine, fileType )        
-        interval  =  getInterval( startTime, lastUpdate, "other" )           
-        nbEntries = int(( endTime-startTime ) / (interval * 60)) + 1 
-        i = i + 1
-
-    return nbEntries, lastUpdate, interval
+        lastUpdate = getDatabaseTimeOfUpdate( names[i], machine, fileType )      
+        interval   = getInterval( startTime, lastUpdate, "other" )        
+        nbEntries  = len( dataOutputs[ names[i] ] )
+        i = i + 1        
+         
+   
+    return  nbEntries, lastUpdate, interval
 
     
     
@@ -1112,21 +1217,21 @@ def getPairsFromAllDatabases( type, machine, start, end, infos, logger=None ):
         
         databaseName = transferPickleToRRD.buildRRDFileName( type, client, machine )
 
-        status, output = commands.getstatusoutput("rrdtool fetch %s  'AVERAGE' -s %s  -e %s" %( databaseName, start, end) )
-        #print "rrdtool fetch %s  'AVERAGE' -s %s  -e %s" %( databaseName, start, end)
-        #print output
+        status, output = commands.getstatusoutput("rrdtool fetch %s  'AVERAGE' -s %s  -e %s" %( databaseName, (start), end) )
+
         output = output.split( "\n" )[2:]
         typeData[client] = output
     
+
+    nbEntries, lastUpdate, interval = getInfosFromDatabases(typeData, infos.clientNames, machine, infos.fileType, start, end)   
     
-    nbEntries, lastUpdate, interval = getInfosFromDatabases(infos.clientNames, machine, infos.fileType, start, end)   
-        
+    
     for i in range( nbEntries ) :#make total of all clients for every timestamp
         
         total = None
         
         for client in infos.clientNames:
-            #print client
+            
             try : 
                 data = typeData[client][i].split( ":" )[1].replace(" ", "")
                 
@@ -1136,23 +1241,16 @@ def getPairsFromAllDatabases( type, machine, start, end, infos, logger=None ):
                         total = total + ( float( data ) )                                       
                     except:#total == None :
                         total = 0.0
-                        total = total + ( float( data ) )                       
-                        
-                        
-                elif logger != None: 
-                    logger.warning( "Could not find data for %s for present timestamp." %(client) )
-                         
+                        total = total + ( float( data ) )                     
+                                                                        
             except:
-                
-                if logger != None :                    
-                    logger.warning( "Could not find data for %s for present timestamp." %(client) )
+                pass
                              
         
         if type == "latency" and total != None:#latency is always an average
             total = total / ( len( output ) )
                      
-        #print "type : %s" %type 
-        #print "typeData: %s" %typeData
+        
         pairs.append( [typeData[client][i].split( " " )[0].replace( ":", "" ), total] )        
 
     
@@ -1171,7 +1269,8 @@ def createMergedDatabases( infos, logger = None ):
         Returns the list of created databases names.
          
     """            
-
+    i = 0
+    lastUpdate = 0
     dataPairs  = {}
     typeData   = {}
     start      = int( MyDateLib.getSecondsSinceEpoch ( infos.startTime )  )
@@ -1183,18 +1282,22 @@ def createMergedDatabases( infos, logger = None ):
         
         for type in infos.types :         
             typeData[type] = {}
-            pairs = getPairsFromAllDatabases( type, machine, start, end, infos, logger )                        
+            i = 0 
+            while i < len(infos.clientNames) and lastUpdate == 0 :
+                lastUpdate = getDatabaseTimeOfUpdate(infos.clientNames[i], machine, infos.fileType)
             
-            combinedDatabaseName = createNewDatabase( infos.fileType, type, machine, start, infos, logger )
+            interval = getInterval( start, lastUpdate, infos.graphicType, goal = "fetchData"  )    
+            
+            pairs = getPairsFromAllDatabases( type, machine, start, end, infos, logger )                        
+               
+            combinedDatabaseName = createNewDatabase( infos.fileType, type, machine, start, interval, logger )
                                                      
             databaseNames[type] = combinedDatabaseName                            
                 
             for pair in pairs:
                 if pair[1] != None :
                     rrdtool.update( combinedDatabaseName, '%s:%s' %( int(pair[0]), pair[1] ) )
-            
-            nbEntries, lastUpdate, interval = getInfosFromDatabases(infos.clientNames, machine, infos.fileType, start, end)
-            
+                        
             transferPickleToRRD.setDatabaseTimeOfUpdate( client = infos.fileType, machine = machine, fileType = "totals", timeOfUpdate = lastUpdate)                       
                 
     return databaseNames
