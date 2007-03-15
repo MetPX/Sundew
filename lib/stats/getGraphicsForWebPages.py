@@ -237,7 +237,7 @@ def setYesterdaysGraphs( currentTime ):
         
         
         
-def setCurrentGraphsAsDailyGraphs( currentTime )  :
+def setCurrentColumboGraphsAsDailyGraphs( currentTime )  :
     """
         This method takes the latest dailygraphics 
         and then copies that file in the appropriate
@@ -264,7 +264,37 @@ def setCurrentGraphsAsDailyGraphs( currentTime )  :
             os.makedirs( os.path.dirname( dest ) )
         shutil.copyfile( graph, dest )
         #print "copy %s to %s" %( graph, dest)
+
         
+def setDailyGraphs( currentTime ):
+    """
+        Sets all the required daily graphs.
+    """          
+    
+    
+    setCurrentColumboGraphsAsDailyGraphs( currentTime )
+    
+    currentTime = MyDateLib.getIsoFromEpoch(currentTime)     
+              
+    #Generate all the daily total graphs. 
+    status, output = commands.getstatusoutput( '/apps/px/lib/stats/generateRRDGraphics.py --copy --totals -f "rx" --machines "pds5,pds6" -d --fixedCurrent --date "%s"' %currentTime )
+    print output
+    status, output = commands.getstatusoutput( '/apps/px/lib/stats/generateRRDGraphics.py --copy --totals -f "tx" --machines "pds5,pds6" -d --fixedCurrent --date "%s"' %currentTime )
+    print output
+    status, output = commands.getstatusoutput( '/apps/px/lib/stats/generateRRDGraphics.py --copy --totals -f "rx" --machines "pxatx" -d --fixedCurrent --date "%s"' %currentTime )
+    print output
+    status, output = commands.getstatusoutput( '/apps/px/lib/stats/generateRRDGraphics.py --copy --totals -f "tx" --machines "pxatx" -d --fixedCurrent --date "%s"' %currentTime )  
+    print output
+    
+    status, output = commands.getstatusoutput( '/apps/px/lib/stats/generateRRDGraphics.py --copy --totals -f "rx" --machines "pds5,pds6" -d --fixedPrevious --date "%s"' %currentTime )
+    print output
+    status, output = commands.getstatusoutput( '/apps/px/lib/stats/generateRRDGraphics.py --copy --totals -f "tx" --machines "pds5,pds6" -d --fixedPrevious --date "%s"' %currentTime )
+    print output
+    status, output = commands.getstatusoutput( '/apps/px/lib/stats/generateRRDGraphics.py --copy --totals -f "rx" --machines "pxatx" -d --fixedPrevious --date "%s"' %currentTime )
+    print output
+    status, output = commands.getstatusoutput( '/apps/px/lib/stats/generateRRDGraphics.py --copy --totals -f "tx" --machines "pxatx" -d --fixedPrevious --date "%s"' %currentTime )  
+    print output
+    
     
 def main():
     """
@@ -276,8 +306,8 @@ def main():
     """
     
     currentTime = time.time()
-    
-    setCurrentGraphsAsDailyGraphs( currentTime )    
+     
+    setDailyGraphs( currentTime )    
 
     if int(time.strftime( "%H", time.gmtime( currentTime ) ) ) == 0:#midnight
         
@@ -303,8 +333,7 @@ def main():
     else:        
         updateThisWeeksGraphs( currentTime )
 
-   
-    
+
     
 if __name__ == "__main__" :
     main()
