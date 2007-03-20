@@ -22,6 +22,9 @@ class DirectRoutingParser(FileParser):
         FileParser.__init__(self, filename) # Routing filename ("/apps/px/etc/pxroute.conf")
         self.logger = logger            # Logger object
         self.version = version          # Routing file version  (0 or 1)
+
+        self.version = 1                # FORCING VERSION 1
+
         self.routingInfos = {}          # Addressed by header name: self.routingInfos[header]['clients']
                                         #                           self.routingInfos[header]['subclients']
                                         #                           self.routingInfos[header]['priority']
