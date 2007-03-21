@@ -47,7 +47,7 @@ class RoutingFileCreator(FileCreator):
             if self.drp.version == 0 :
                    self.file.write("aftnMap %s %s\n" % (mapping, ' '.join(self.drp.aftnMap[mapping]) ))
             else :
-                   self.file.write("aftnMap %s %s\n" % (mapping, ','.join(self.drp.aftnMap[mapping]) ))
+                   self.file.write("aftnMap %s %s\n" % (mapping,self.drp.aftnMap[mapping] ))
 
     def createClientAliasesSection(self):
         keys = self.drp.aliasedClients.keys()
