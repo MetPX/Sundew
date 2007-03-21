@@ -7,14 +7,15 @@ pxSender \- Metpx program to manage sender processes
 .SH DESCRIPTION
 .Pp
 A sender, in the METPX suite, is a program that deliver products to a client. The products it
-processes usually comes from a METPX receiver (or a filter). Once a receiver has determined that a sender should
-transmit a product, it writes the products in its transmission directory tree...
-namely under $PXROOT/txq/"sender_name"/priority/YYYYMMDDHH where YYYYMMDDHH is the current
-date time. The receiver will create the directory if it does not exist.
+processes usually comes from a METPX receiver (or a filter). Once a receiver databased a product and
+determined that a sender should transmit that product, it links the database file in the sender's
+transmission directory tree...  namely under $PXROOT/txq/"sender_name"/priority/YYYYMMDDHH where 
+YYYYMMDDHH is the current date time. The receiver will create the directory if it does not exist.
 
 The sender scans endlessly all directories under $PXROOT/txq/"sender_name" in search of products.
 When products are present, the sender processes them according to its configuration, 
-and delivers them to the client defined in its configuration file.
+and delivers them to the client defined in its configuration file. The products file are
+finally unlinked from its transmission directory tree.
 
 The configuration of a sender is a simple ascii file. It must be placed in 
 directory $PXROOT/etc/tx (PXROOT is usually /apps/px). The file's name must be
@@ -69,9 +70,9 @@ The syntax of the file is simple. A comment is a line that begins with \fB#\fR. 
 To declare or set an option you simply use one of these form (depending on the option) :
 .nf
 
-\fBoption value\fR
-\fBoption value1,value2,...\fR
-\fBoption value1 value2 ...\fR
+\fBoption <value>\fR
+\fBoption <value1,value2,...>\fR
+\fBoption <value1 value2 ...>\fR
 
 .fi
 .SH GENERAL CONFIGURATION OPTIONS
@@ -104,8 +105,8 @@ The module must return one of the 2 following :
 .fi
 .TP
 \fBfx_script script (default:None)\fR
-For sender that do not use sockets, it is possible to define a script to modify the file's content.
-The script must be in python and reside in $PXROOT/etc/scripts.  The fx_script must end with the line :
+For sender that do not use sockets, it is possible to define a script to create derived products.
+The script must be in python and reside in $PXROOT/etc/scripts. The fx_script must end with the line :
 .nf
 
          self.fx_script = module
@@ -121,25 +122,17 @@ that can be used to log messages to the sender's log file.  It supports 3 levels
         logger.error  ("message3")
 
 .fi
-The module must return one of the 3 following : 
+The module must return one of the following : 
 .nf
 
-        ipath         return the incoming filename path (input file already ok )
-        opath         return the modified filename path (newly created filepath)
-        None          return None means that nothing could be done with input file
-                      (in this case the file is discarted)
+        ipath         return the incoming filename path
+        opath         return the derived  filename path
+        None          return the python   None  keyword
 
-.fi
-.TP
-\fBnoduplicates boolean (default:True )\fR
-.nf
-if set to true, the sender computes the md5checksum of the product to send. 
-It compares this number with its cached md5checksum numbers of delivered products. 
-If a match is found, the product is not sent.
+If \fBNone\fR is returned, nothing is sent to the client. If a filename path is returned (ipath or 
+opath), that file only is sent to the client. The incoming file and the derived file (if created)
+are unlinked.
 
-When a client asks for a product to be retransmited, if this option is enabled,
-the sender must be stopped and restarted to clean its cache.  The product can than
-be retransmited by placing it in the transmission queue.
 .fi
 .TP
 \fBvalidation boolean (default:True )\fR
@@ -173,11 +166,6 @@ and will slowly become obsolete.
 \fBbatch integer (default:100 )\fR
 The maximum number of files that will be sent/written from disk in one cycle. 
 
-.TP
-\fBmtime integer (default:0 )\fR
-Number of seconds a file must not have been modified before we process it. 
-If set to 0, this is equivalent to not checking the modification time.
-
 .fi
 .SH TYPE AM/AMIS/WMO SPECIFIC OPTIONS
 .TP
@@ -196,8 +184,16 @@ the client.
 \fBport integer (default:None)\fR
 Port to bind for the transmission.
 .TP
-\fBkeepAlive boolean (Default:True)\fR
-This option set the unix socket option SO_KEEPALIVE to the value of that option
+\fBnoduplicates boolean (default:True )\fR
+.nf
+if set to true, the sender computes the md5checksum of the product to send. 
+It compares this number with its cached md5checksum numbers of delivered products. 
+If a match is found, the product is not sent.
+
+When a client asks for a product to be retransmited, if this option is enabled,
+the sender must be stopped and restarted to clean its cache.  The product can than
+be retransmited by placing it in the transmission queue.
+.fi
 
 .SH TYPE SINGLE-FILE SPECIFIC OPTIONS
 .TP
@@ -270,12 +266,18 @@ This option defines the permission given to the file when completely delivered.
 
 .TP
 \fBlock string (default: .tmp)\fR
+.nf
+This option should be set in agreement with the client. It is used to prevent
+the client to act on the product before we are done with its transfer.
+There is two possible usage to this option.
+
+Usualy the \fBlock\fR option defines a suffix given to the file during transfer.
+When the file is completely transfered, the suffix is removed by renaming the file.
+
+The second usage is to use the string \fBumask\fR to set it. Ex.: \fBlock umask\fR
+In this case the file has permission 000 during transfer. When the transfer is done,
+the permission changes to the value given to the option \fBchmod\fR.
 .fi
-This option defines an extension given to the file when it is delivered.
-This method coordonated with the client, prevents him to use the file before
-we are done with the sending. The keyword \fBumask\fR can also be used.
-In this case the file is delivered with permission 000 and when ready the
-permission given by option \fBchmod\fR is applied to the remote file.
 .TP
 \fBdir_mkdir boolean (default: False)\fR
 When this option is enable, the directories where the products are delivered
@@ -313,3 +315,12 @@ A value of 0 means do not check for timeout.
 .TP
 \fBsorter keyword (Default: MultiKeysStringSorter)\fR
 other keyword could be None, StandardSorter.  Determine which type of sorter will be used. In practice, never used.
+
+.TP
+\fBkeepAlive boolean (Default:True)\fR
+This option set the unix socket option SO_KEEPALIVE to the value of that option
+
+.TP
+\fBmtime integer (default:0 )\fR
+Number of seconds a file must not have been modified before we process it. 
+If set to 0, this is equivalent to not checking the modification time.
