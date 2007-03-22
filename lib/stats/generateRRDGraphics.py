@@ -551,11 +551,11 @@ def fetchDataFromRRDDatabase( databaseName, startTime, endTime, interval, graphi
     
     resolution = int(interval*60)
     
-    if endTime > ( time.time() ):
-        endTime = int(time.time())
+    if endTime > ( time.time() )/3600*3600:
+        endTime = int(time.time())/3600*3600 #top of the hour...databases are never any newer
         
     # round end time to time closest to desired resolution EX : closest 10 minutes,hour,day,etc... 
-    endTime = int(endTime)/resolution*resolution              
+    endTime = int(endTime)/int(resolution)*int(resolution)
           
     
     try:
@@ -572,7 +572,7 @@ def fetchDataFromRRDDatabase( databaseName, startTime, endTime, interval, graphi
     
     
     
-def getGraphicsMinMaxMeanTotal( databaseName, startTime, endTime, interval, graphicType, type="average", logger=None ):
+def getGraphicsMinMaxMeanTotal( databaseName, startTime, endTime,graphicType, dataInterval, desiredInterval = None,  type="average", logger=None ):
     """
         This methods returns the min max and mean of the entire set of data that is drawn 
         on the graphic.
@@ -586,19 +586,25 @@ def getGraphicsMinMaxMeanTotal( databaseName, startTime, endTime, interval, grap
     total = 0.0
     nbEntries = 0    
     nbEntriesPerPoint =1    
+    
+    if desiredInterval == None :
+        desiredInterval = dataInterval
         
-    output = fetchDataFromRRDDatabase( databaseName, startTime, endTime, interval, graphicType )  
+    if endTime > ( time.time()/3600 * 3600 ):
+        realEndTime = int(time.time())/3600 * 3600 # round to start of hour, wich should be last update... 
+    else :
+        realEndTime = endTime    
+        
+    output = fetchDataFromRRDDatabase( databaseName, startTime, endTime, dataInterval, graphicType )  
     meanTuples = output[2]
     nbEntries = len( meanTuples )-1 #we dont use the first entry
     
-    if endTime > ( time.time() ):
-        realEndTime = int(time.time())/3600 * 3600 # round to start of hour, wich should be last update... 
-    else :
-        realEndTime = endTime
+
         
              
-    desiredNumberOfEntries = float( (realEndTime - startTime)/(interval*60) )  
-    
+    desiredNumberOfEntries = float( (realEndTime - startTime)/(desiredInterval*60) )
+      
+    #print "nbEntries %s desiredNumberOfEntries %s" %( nbEntries, desiredNumberOfEntries )
     if nbEntries > desiredNumberOfEntries:
         nbEntriesPerPoint = int( nbEntries/desiredNumberOfEntries )
         nbEntries = desiredNumberOfEntries
@@ -644,9 +650,11 @@ def getGraphicsMinMaxMeanTotal( databaseName, startTime, endTime, interval, grap
                         value = value + float( meanTuples[j][0] )
                                                      
                     else:# don't count non-filled entries in mean.
+                         
                         nbInvalidEntries = nbInvalidEntries + 1
                                         
                 if nbInvalidEntries == nbEntriesPerPoint:
+                    
                     nbEntries = nbEntries - 1 
                 
                 if value != None :                    
@@ -660,6 +668,7 @@ def getGraphicsMinMaxMeanTotal( databaseName, startTime, endTime, interval, grap
                     sum = sum + value 
         
             else:         
+                
                 if meanTuples[i][0] != 'None' and meanTuples[i][0] != None :
                 
                     value = ( float(meanTuples[i][0]) ) 
@@ -677,9 +686,9 @@ def getGraphicsMinMaxMeanTotal( databaseName, startTime, endTime, interval, grap
             
         if nbEntries != 0:            
             avg = float(sum) / float(nbEntries)
-        
-        total = float( sum ) * float( interval )
-                  
+            
+        total = float( sum ) * float( desiredInterval )
+              
     
     return min, max, avg, total
     
@@ -929,28 +938,6 @@ def getInterval( startTime, timeOfLastUpdate, graphicType = "daily", goal = "fet
        
     return interval
 
-
-        
-def getIntervalForTotalGraphics( graphicType ):    
-    """
-        Returns the interval that was used for data consolidation. 
-        
-        When total graphics are used, a temporary db is used.        
-        wich makes the interval calculation different from other graphics.
-        
-    """ 
-    
-    if graphicType == "daily"   :
-        interval = 10             
-    elif graphicType == "weekly"  :
-        interval = 60     
-    elif graphicType == "monthly":
-        interval = 240                
-    elif graphicType == "yearly":
-        interval = 1440
-        
-    return interval    
-
     
 def getCopyDestination( type, client, machine, infos ):
     """
@@ -1069,14 +1056,16 @@ def plotRRDGraph( databaseName, type, fileType, client, machine, infos, logger =
         lastUpdate = getDatabaseTimeOfUpdate( client = fileType, machine = machine, fileType = "totals" )
          
          
-    interval = getInterval( start, lastUpdate, infos.graphicType, goal = "fetchData"  )       
-    minimum, maximum, mean, total = getGraphicsMinMaxMeanTotal( databaseName, start, end, interval, infos.graphicType, type = "average" )
-    minimum, maximum, mean, total = formatMinMaxMeanTotal( minimum, maximum, mean,total, type )            
+    fetchedInterval = getInterval( start, lastUpdate, infos.graphicType, goal = "fetchData"  )  
+    desiredInterval = getInterval( start, lastUpdate, infos.graphicType, goal = "plotGraphic"  )
+    interval        = desiredInterval     
+    minimum, maximum, mean, total = getGraphicsMinMaxMeanTotal( databaseName, start, end, infos.graphicType, fetchedInterval,desiredInterval, type = "average" )
+    
+    
+    minimum, maximum, mean, total = formatMinMaxMeanTotal( minimum, maximum, mean, total, type )            
     graphicsLegeng         = getGraphicsLegend( maximum )      
     graphicsNote           = getGraphicsNote( interval, type  )        
-    
-    
-    interval = getInterval( start, lastUpdate, infos.graphicType, goal = "plotGraphic"  )
+        
     
     if graphicsNote == "" and graphicsLegeng == "":
         comment = ""
@@ -1188,13 +1177,12 @@ def getInfosFromDatabases( dataOutputs, names, machine, fileType, startTime, end
     nbEntries = 0    
         
     while lastUpdate == 0 and i < len( names) : # in case some databases dont exist
-        lastUpdate = getDatabaseTimeOfUpdate( names[i], machine, fileType )      
-        interval   = getInterval( startTime, lastUpdate, "other" )        
+        lastUpdate = getDatabaseTimeOfUpdate( names[i], machine, fileType )    
         nbEntries  = len( dataOutputs[ names[i] ] )
         i = i + 1        
          
    
-    return  nbEntries, lastUpdate, interval
+    return  nbEntries, lastUpdate
 
     
     
@@ -1223,7 +1211,7 @@ def getPairsFromAllDatabases( type, machine, start, end, infos, logger=None ):
         typeData[client] = output
     
 
-    nbEntries, lastUpdate, interval = getInfosFromDatabases(typeData, infos.clientNames, machine, infos.fileType, start, end)   
+    nbEntries, lastUpdate = getInfosFromDatabases(typeData, infos.clientNames, machine, infos.fileType, start, end)   
     
     
     for i in range( nbEntries ) :#make total of all clients for every timestamp

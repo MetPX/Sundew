@@ -74,19 +74,22 @@ def main():
         <head>
             <title> PX Graphics </title>
             
-            <script>             
+            <script>
+                counter =0;             
                 function wopen(url, name, w, h){
                 // This function was taken on www.boutell.com
+                    
                     w += 32;
                     h += 96;
+                    counter +=1; 
                     var win = window.open(url,
-                    name,
+                    counter,
                     'width=' + w + ', height=' + h + ', ' +
                     'location=no, menubar=no, ' +
                     'status=no, toolbar=no, scrollbars=no, resizable=no');
                     win.resizeTo(w, h);
                     win.focus();
-                }         
+                }   
             </script>              
             
             
