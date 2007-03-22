@@ -53,7 +53,7 @@ class Logger:
         #fmt = logging.Formatter("%(asctime)s [%(levelname)s] %(message)s","%x %X")
         fmt = logging.Formatter("%(asctime)s [%(levelname)s] %(message)s")
         if bytes:
-            hdlr = logging.handlers.RotatingFileHandler(logname, "a", 1000000, 3)  # Max 100000 bytes, 3 rotations
+            hdlr = logging.handlers.RotatingFileHandler(logname, "a", bytes, 3)  # Max bytes, 3 rotations
         else:
             hdlr = logging.handlers.TimedRotatingFileHandler(logname, when='midnight', interval=1, backupCount=5) 
         hdlr.setFormatter(fmt)
