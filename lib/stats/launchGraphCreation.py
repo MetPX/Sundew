@@ -68,11 +68,12 @@ def updatePickles( parameters ):
         if parameters.individualLogMachineNames[i] != parameters.picklingMachines[i]: 
             
             if parameters.picklingMachines[i] != LOCAL_MACHINE :#pickling to be done elsewhere
-    
-                status, output = commands.getstatusoutput( "ssh %s@%s 'rsync -avzr --delete-before -e ssh %s@%s:/apps/px/log/ /apps/px/log/%s/' " %( parameters.picklingMachinesLogins[i], parameters.picklingMachines[i], parameters.logMachinesLogins[i] ,parameters.individualLogMachineNames[i] , parameters.individualLogMachineNames[i] ) )
+                for i in range(3):#do 3 times in case of currently turning log files.
+                    status, output = commands.getstatusoutput( "ssh %s@%s 'rsync -avzr --delete-before -e ssh %s@%s:/apps/px/log/ /apps/px/log/%s/' " %( parameters.picklingMachinesLogins[i], parameters.picklingMachines[i], parameters.logMachinesLogins[i] ,parameters.individualLogMachineNames[i] , parameters.individualLogMachineNames[i] ) )
                        
             else:
-                status, output = commands.getstatusoutput( "rsync -avzr --delete-before -e ssh %s@%s:/apps/px/log/ /apps/px/log/%s/ " %( parameters.logMachinesLogins[i] ,parameters.individualLogMachineNames[i] , parameters.individualLogMachineNames[i] ) )
+                for i in range(3):#do 3 times in case of currently turning log files.
+                    status, output = commands.getstatusoutput( "rsync -avzr --delete-before -e ssh %s@%s:/apps/px/log/ /apps/px/log/%s/ " %( parameters.logMachinesLogins[i] ,parameters.individualLogMachineNames[i] , parameters.individualLogMachineNames[i] ) )
 
             print output   
             
@@ -217,7 +218,7 @@ def monitorActivities():
     
     if currentHour %12 == 0:
         status, output = commands.getstatusoutput( "/apps/px/lib/stats/statsMonitor.py" )
-        print output
+        
         
         
 def main():

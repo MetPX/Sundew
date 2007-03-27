@@ -131,14 +131,16 @@ def buildCommands( machines, clients ):
 
     if clients[0] == "All" :
         for machine in machines :
-            commands.append( "rsync -avzr  -e ssh pds@%s:%s %s"  %( machine, PXPaths.PICKLES, PXPaths.PICKLES )  )
+            for i in range(3):#do 3 times in case of currently turning log files. 
+                commands.append( "rsync -avzr  -e ssh pds@%s:%s %s"  %( machine, PXPaths.PICKLES, PXPaths.PICKLES )  )
           
     else:
         
         for client in clients :
             path = PXPaths.PICKLES + client + "/"
             for machine in machines :
-                commands.append( "rsync  -avzr -e ssh pds@%s:%s %s"  %( machine, path, path )  )
+                for i in range(3):#do 3 times in case of currently turning log files.
+                    commands.append( "rsync  -avzr -e ssh pds@%s:%s %s"  %( machine, path, path )  )
 
     
     return commands 
@@ -195,15 +197,12 @@ def main():
         Gathers options, then makes call to synchronise to synchronise the pickle files from the
         different clients and machines received in parameter.  
     
-    """
-    print "made it up to pickle synching"
-    
+    """       
     parser   = createParser( )  #will be used to parse options 
     machines, clients, login, verbose, output = getOptionsFromParser( parser )
     logger   = buildLogger( output )    
-    commands = buildCommands( machines, clients )
+    commands = buildCommands( machines, clients )    
     
-    print "Commands that will be executed : %s " %commands 
     synchronise( commands, verbose, logger )
     
     if logger != None :
