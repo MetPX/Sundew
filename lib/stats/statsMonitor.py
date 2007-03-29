@@ -21,7 +21,7 @@ named COPYING in the root of the source directory tree.
 ##
 #############################################################################
 
-import os, sys, commands, pickle
+import os, sys, commands, pickle, fnmatch
 import PXPaths, cpickleWrapper
 import smtplib
 import LogFileCollector
@@ -87,15 +87,27 @@ def getMaximumGaps( maxSettingsFile ):
     
     circuitsRegex, default_circuit, timersRegex, default_timer, pxGraphsRegex, default_pxGraph =    readMaxFile.readQueueMax( maxSettingsFile, "PX" )
      
-    for key in timersRegex.keys(): 
+    for key in timersRegex.keys(): #fill all explicitly set maximum gaps.
         values = timersRegex[key]
-        newKey = key.replace( "^", "" ).replace( "$","")
+        newKey = key.replace( "^", "" ).replace( "$","").replace(".","")
         maximumGaps[newKey] = values
     
+    
     for name in allNames:#add all clients/sources for wich no value was set
-        if name not in maximumGaps.keys():
-            maximumGaps[name] = default_timer    
         
+        if name not in maximumGaps.keys(): #no value was set                    
+            nameFoundWithWildcard = False     
+            for key in timersRegex.keys(): # in case a wildcard character was used
+                
+                cleanKey = key.replace( "^", "" ).replace( "$","").replace(".","")
+                
+                if fnmatch.fnmatch( name, cleanKey ):                    
+                    maximumGaps[name] = timersRegex[key]
+                    nameFoundWithWildcard = True 
+            if nameFoundWithWildcard == False :            
+                maximumGaps[name] = default_timer    
+    
+               
     return maximumGaps 
     
             
@@ -766,42 +778,42 @@ def gapInErrorLog( name, start, end, errorLog )  :
         
     """
     
-    gapFound = False 
-    difference = None 
+    startFound = False 
+    endFound = None 
     gapInErrorLog = False 
     lastTimeThisGapWasfound = ""
     
     for line in errorLog:
-        try:
+#         try:
         
-            splitLine = line.split()
-            logEntryTime = MyDateLib.getIsoWithRoundedSeconds( splitLine[1] + " " + splitLine[2][:-4] )
-            lastEntryTime = MyDateLib.getIsoWithRoundedSeconds( splitLine[9] + " " + splitLine[10] )
+        splitLine = line.split()
+        logEntryTime = MyDateLib.getIsoWithRoundedSeconds( splitLine[1] + " " + splitLine[2][:-4] )                                  
+        #if entry is for the client we're interested in ...
+        if splitLine[3].replace( ":", "" ) == name :
             
-            
-            if splitLine[3].replace( ":", "" ) == name and lastEntryTime == start :            
+            #allows 5 minutes range prior of after start of problem for an entry to appear.
+            if abs(MyDateLib.getSecondsSinceEpoch( logEntryTime ) - MyDateLib.getSecondsSinceEpoch(start)) <= 300: 
+                startFound = True
                 
-                if logEntryTime > start:
-                    gapFound = True 
-                lastTimeThisGapWasfound =  logEntryTime 
+            #allow 5 minutes range prior or after the end of the problem forthe last entry to appear. 
+            if abs(MyDateLib.getSecondsSinceEpoch( logEntryTime ) - MyDateLib.getSecondsSinceEpoch(end)) <= 300:       
                 
-                if logEntryTime >= end:
-                    break
+                if "outdated" in splitLine:
+                    if abs(MyDateLib.getSecondsSinceEpoch(splitLine[9] + " " + splitLine[10])- MyDateLib.getSecondsSinceEpoch(start)) <= 300:
+                        startFound = True                         
+                endFound = True                     
             
-            elif splitLine[3].replace( ":", "" ) == name and lastEntryTime > start :#newer entry was found for same name 
-                break
-            
-            elif logEntryTime >= end :#in case file is newer than time of end of verification
-                break
                 
-        except:#no date present for last transmission...
-            pass
+        #if we're 5 minutes past end of problem stop looking
+        if MyDateLib.getSecondsSinceEpoch( logEntryTime ) - MyDateLib.getSecondsSinceEpoch(end) > 300:
+            break  
+                
+#         except:#no date present for last transmission...
+#             pass
             
 
-    if gapFound == True and lastTimeThisGapWasfound <= end:
-
-        if abs( ( MyDateLib.getSecondsSinceEpoch(end) -  MyDateLib.getSecondsSinceEpoch(lastTimeThisGapWasfound) ) / 60 ) <= 1 :         
-            gapInErrorLog = True 
+    if startFound and endFound:   
+        gapInErrorLog = True 
                       
     return gapInErrorLog
 
@@ -820,11 +832,10 @@ def getSortedTextFiles( files ):
     return files
     
     
-def getOutdatedTransmissionsLog( file, startTime ):
+def getErrorLog( file, startTime ):
     """
         Takes a standard transmisson error log 
-        and retunrs only the lines containing 
-        infos about outdated transmissions. 
+        and returns only the lines after start time. 
     
     """  
           
@@ -833,15 +844,16 @@ def getOutdatedTransmissionsLog( file, startTime ):
     files = getSortedTextFiles( files )
     
     
-    for file in files :  
+    for file in files :          
         fileHandle = open( file, "r")
         lines = fileHandle.readlines()
     
         for line in lines :
             splitLine = line.split()
             entryTime = splitLine[1] + " " + splitLine[2][:-4]
-            if "outdated" in line and entryTime >= startTime :
+            if entryTime >= startTime :
                 errorLog.append( line )           
+    
     
     return errorLog
     
@@ -881,7 +893,7 @@ def getPickleAnalysis( files, name, timeOfLastFilledEntry, maximumGap, errorLog 
                     lastUpdateInSeconds = MyDateLib.getSecondsSinceEpoch( timeOfLastFilledEntry )  
                     differenceInMinutes = ( entryTime - lastUpdateInSeconds ) / 60                   
                                             
-                    if  int(differenceInMinutes) > ( int(maximumGap) + 3 ) :#give a 3 minute margin
+                    if  int(differenceInMinutes) > ( int(maximumGap) + 5 ) :#give a 5 minute margin
                                                 
                         if gapInErrorLog( name, timeOfLastFilledEntry, entry.startTime, errorLog ) == False:
                             gapTooWidePresent = True  
@@ -912,7 +924,7 @@ def verifyPickleContent( parameters, report ):
     """
     
     newReportLines = ""
-    errorLog = getOutdatedTransmissionsLog( parameters.errorsLogFile,parameters.startTime )          
+    errorLog = getErrorLog( parameters.errorsLogFile, parameters.startTime )          
     
     for machine in parameters.machines:
         
@@ -1214,8 +1226,22 @@ def updateRequiredfiles():
     
     status, output = commands.getstatusoutput( "scp pds@lvs1-op:/apps/pds/tools/Columbo/etc/maxSettings.conf /apps/px/stats/statsMonitoring/maxSettings.conf >>/dev/null 2>&1" ) 
     
-   
-          
+
+def validateParameters( parameters ):
+    """
+        Validates parameters. 
+        If critical errors are foudn program is temrinated.
+        
+    """       
+    
+    if len(parameters.folders) != len(parameters.maxUsages):
+        print "Critical error found."
+        print "The number of specified max usages must be equal to the number of folders to monitor."
+        print "Program terminated."
+        sys.exit()
+    
+        
+              
 def main():
     """
         Builds the entire report by 
@@ -1228,7 +1254,7 @@ def main():
     updateRequiredfiles()        
     report = ""       
     parameters = getParameters( )     
-    
+    validateParameters( parameters )
     report = buildReportHeader( parameters )
     report = verifyFreeDiskSpace( parameters, report )    
     report = verifyPicklePresence( parameters, report )    
