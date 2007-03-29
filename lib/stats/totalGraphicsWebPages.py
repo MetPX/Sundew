@@ -200,14 +200,15 @@ def main():
             </STYLE>
             
             <style type="text/css">
-                div.left { float: left;word-wrap:break-word; }
-                div.right {float: right;word-wrap:break-word; }
+                div.left { float: left; }
+                div.right {float: right; }
                 <!--
                 A{text-decoration:none}
                 -->
                 <!--
                 td {
-                    word-wrap:break-word
+                    white-space: pre-wrap; /* css-3 */
+
                 }
                 // -->
             </style>    
@@ -217,7 +218,7 @@ def main():
                 <h2>RX totals for %s.</h2>
             
     
-            <table style="table-layout: fixed; width: 1250px; border-left: 0px gray solid; border-bottom: 0px gray solid; padding:0px; margin: 0px" cellspacing=10 cellpadding=8 >
+            <table style="table-layout: fixed; width: 1250px; border-left: 0px gray solid; border-bottom: 0px gray solid; padding:0px; margin: 0px" cellspacing=10 cellpadding=6 >
             
             <tr>    
                 <td bgcolor="#006699" ><font color = "white"><div class="left">Type</font></td>   
@@ -250,14 +251,14 @@ def main():
                 timeContainer = years
                          
             for type in rxTypes:
-                fileHandle.write( """<td bgcolor="#66CCFF"  > <div style= wordwrap: break-word;"> """ )
+                fileHandle.write( """<td bgcolor="#66CCFF">  """ )
                 
                 for x in timeContainer:
                     file = "%s/webGraphics/totals/%s/rx/%s/%s/%s.png" %( PXPaths.GRAPHS, machineName, type, timeType, x ) 
                     if os.path.isfile(file):    
                         fileHandle.write(  """<a target ="popup" href="%s" onClick="wopen('%s', 'popup', 875, 240); return false;">%s&nbsp;</a>""" %( x, file, x ) )
                     
-                fileHandle.write( """</div></td>""" )
+                fileHandle.write( """</td>""" )
             
             fileHandle.write( """</tr>""" )       
                 
@@ -266,10 +267,10 @@ def main():
         ####################################txPart
         
         fileHandle.write("""                
-            <br>
+           
                 <h2>TX totals for %s.</h2>
             
-            <table style="table-layout: fixed; width: 1250px; border-left: 0px gray solid; border-bottom: 0px gray solid; padding:0px; margin: 0px" cellspacing=10 cellpadding=8 >
+            <table style="table-layout: fixed; width: 1250px; border-left: 0px gray solid; border-bottom: 0px gray solid; padding:0px; margin: 0px" cellspacing=10 cellpadding=6 >
                 <tr>
                     
                     <td bgcolor="#006699"   title = >Type</font></td> 
@@ -293,7 +294,7 @@ def main():
         for timeType in timeTypes:    
             fileHandle.write( """ 
             <tr> 
-                <td bgcolor="#99FF99" ><div style="width:10pt; word-wrap: break-word;">%s%s</div> </td>                  
+                <td bgcolor="#99FF99" ><div style="width:10pt";>%s%s</div> </td>                  
         
             """ %(( timeType[0].upper() + timeType[1:] ), updateFrequency[timeType] ) ) 
             if timeType == "daily" :
@@ -306,7 +307,7 @@ def main():
                 timeContainer = years
                          
             for type in txTypes:
-                fileHandle.write( """<td bgcolor="#66CCFF"><div style= wordwrap: break-word;"> """) 
+                fileHandle.write( """<td bgcolor="#66CCFF"> """) 
                 
                 for x in timeContainer:
                     file = "%swebGraphics/totals/%s/tx/%s/%s/%s.png" %( PXPaths.GRAPHS, machineName, type, timeType,x ) 
@@ -315,7 +316,7 @@ def main():
                     else:
                         #print file
                         allo =2  
-                fileHandle.write( """</div></td>""" )
+                fileHandle.write( """</td>""" )
             
             fileHandle.write( """</tr>""" )       
                 

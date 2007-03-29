@@ -99,6 +99,37 @@ def main():
         <style type="text/css">
             div.left { float: left; }
             div.right {float: right; }
+        
+            div.txScroll {
+                height: 200px;
+                width: 1255px;
+                overflow: auto;
+                word-wrap:break-word;
+                border: 0px ;                    
+                padding: 0px;
+            }
+                
+            div.txTableEntry{
+                width:580px;            
+                height: auto;
+            }
+            
+            div.rxScroll {
+                height: 200px;
+                width: 1255px;
+                overflow: auto;
+                word-wrap:break-word;
+                border: 0px ;                    
+                padding: 0px;
+            }
+                
+            div.rxTableEntry{
+                width:580px;            
+                height: auto;
+            }        
+        
+        
+        
         </style>    
         
         <body text="#000000" link="#FFFFFF" vlink="000000" bgcolor="#CCCCCC" >
@@ -109,35 +140,45 @@ def main():
         
         <TABLE cellspacing=10 cellpadding=8 id=header bgcolor="#cccccc"> 
             <tr>    
-                <td bgcolor="#006699" width = 580><font color = "white"><div class="left">Sources</div><a target ="popup" href="%s" onClick="wopen('helpPages/source.html', 'popup', 875, 100); return false;"><div class="right">?</div></a></font></td>
+                <td bgcolor="#006699">
+                    <div class = "rxTableEntry">
+                        <font color = "white">
+                            <div class="left">Sources</div>
+                            <a target ="popup" href="%s" onClick="wopen('helpPages/source.html', 'popup', 875, 100); return false;">
+                                <div class="right">?</div>
+                            </a>
+                        </font>
+                    </div>
+                </td>
                 
-                <td bgcolor="#006699" width = 580><font color = "white">List of available daily graphics.</font></td>
+                <td bgcolor="#006699">
+                    <div class = "rxTableEntry">
+                        <font color = "white">List of available daily graphics.</font>
+                    </div>
+                </td>
             </tr>   
         </table>
         
         
-        <DIV STYLE="overflow: auto; width: 1235px; height: 180; 
-                    border-left: 0px gray solid; border-bottom: 0px gray solid; 
-                    padding:0px; margin: 0px">
-        <TABLE cellspacing=10 cellpadding=8> 
+        <div class="rxScroll"> 
     
     """)
     
     
     
     for rxName in rxNames :
-        fileHandle.write( """<tr> <td bgcolor="#99FF99" width = 600 > %s </td> """ %(rxName))
-        fileHandle.write( """<td bgcolor="#66CCFF" width = 600 >   Days :   """ )
+        fileHandle.write( """<table cellspacing=10 cellpadding=8> <tr> <td bgcolor="#99FF99"><div class = "rxTableEntry"> %s </div></td> """ %(rxName))
+        fileHandle.write( """<td bgcolor="#66CCFF"><div class = "rxTableEntry">   Days :   """ )
         
         for day in days:
             file = "%swebGraphics/daily/%s/%s.png" %( PXPaths.GRAPHS, rxName, day )
             if os.path.isfile( file ):
                 fileHandle.write(  """<a target ="%s" href="%s">%s   </a>"""%( rxName, file, day ) )
                  
+        fileHandle.write( """</div></td></tr></table>""" )
     
-    fileHandle.write( """</td> 
-
-    </table>  
+    fileHandle.write( """
+      
     </div>
        
     <br>
@@ -146,33 +187,46 @@ def main():
     <TABLE cellspacing=10 cellpadding=8 id=header bgcolor="#cccccc">   
         <tr>
 
-             <td bgcolor="#006699" width = 580><font color = "white"><div class="left">Clients</div><a target ="popup" href="%s" onClick="wopen('helpPages/client.html', 'popup', 875, 100); return false;"><div class="right">?</div></a></font></td>
-            <td bgcolor="#006699" width = 580><font color = "white">List of available daily graphics.</font></td>
+             <td bgcolor="#006699">
+                <div class = "txTableEntry">
+                    <font color = "white">
+                        <div class="left">Clients</div>
+                        <a target ="popup" href="%s" onClick="wopen('helpPages/client.html', 'popup', 875, 100); return false;">
+                            <div class="right">?</div>
+                        </a>
+                    </font>
+                </div>
+            </td>
+            
+            <td bgcolor="#006699">
+                <div class = "txTableEntry">
+                    <font color = "white">List of available daily graphics.</font>
+                </div>    
+            </td>
             
         </tr>  
      </table>   
-    <DIV STYLE="overflow: auto; width: 1235px; height: 180; 
-                border-left: 0px gray solid; border-bottom: 0px gray solid; 
-                padding:0px; margin: 0px">
-    <TABLE cellspacing=10 cellpadding=8>  
+     
+     
+    <div class="txScroll"> 
+    
        
     """   )       
         
     for txName in txNames : 
-        fileHandle.write( """<tr> <td bgcolor="#99FF99" width = 600> %s </td>""" %(txName) )
-        fileHandle.write( """<td bgcolor="#66CCFF" width = 600 >   Days :   """ )
+        fileHandle.write( """<table cellspacing=10 cellpadding=8><tr><td bgcolor="#99FF99"><div class = "txTableEntry"> %s </div></td>""" %(txName) )
+        
+        fileHandle.write( """<td bgcolor="#66CCFF"><div class = "txTableEntry">   Days :   """ )
+        
         for day in days:
             file = "%swebGraphics/daily/%s/%s.png" %( PXPaths.GRAPHS, txName, day )
             if os.path.isfile( file ):
                 fileHandle.write(  """ <a target ="%s" href="%s">%s   </a>""" %( txName, file, day ) )      
 
-        fileHandle.write( "</td>" )
+        fileHandle.write( "</div></td></tr></table>" )
 
     fileHandle.write(  """
-        </tr>
-
-    </table>
-    
+      
     </div>
     
     </body>
