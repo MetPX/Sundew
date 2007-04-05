@@ -131,10 +131,8 @@ class DiskReader:
                              return (False, 'TX')
 
            for mask in self.flow.masks:
-               parts = re.findall( mask[0], basename )
-               if len(parts) == 2 and parts[1] == '' : parts.pop(1)
-               if len(parts) == 1 :
-                  if len(mask) == 3 : return (True, 'TX')
+               if mask[3].match(basename) :
+                  if mask[4] : return (True, 'TX')
                   return (False, 'TX')
 
         return (False, 'TX')

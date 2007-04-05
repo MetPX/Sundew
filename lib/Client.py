@@ -131,8 +131,12 @@ class Client(object):
             words = line.split()
             if (len(words) >= 2 and not re.compile('^[ \t]*#').search(line)):
                 try:
-                    if   words[0] == 'accept': self.masks.append((words[1], currentDir, currentFileOption))  
-                    elif words[0] == 'reject': self.masks.append((words[1],))
+                    if   words[0] == 'accept':
+                         cmask = re.compile(words[1])
+                         self.masks.append((words[1], currentDir, currentFileOption, cmask, True))
+                    elif words[0] == 'reject':
+                         cmask = re.compile(words[1])
+                         self.masks.append((words[1], currentDir, currentFileOption, cmask, False))
 
                     elif words[0] == 'imask': self.masks_deprecated.append((words[1], currentDir, currentFileOption))  
                     elif words[0] == 'emask': self.masks_deprecated.append((words[1],))
@@ -200,10 +204,8 @@ class Client(object):
 
         # new regexp mask usage
         for mask in self.masks:
-            parts = re.findall( mask[0], filename )
-            if len(parts) == 2 and parts[1] == '' : parts.pop(1)
-            if len(parts) == 1 :
-               if len(mask) == 3 : return mask
+            if mask[3].match(filename) :
+               if mask[4] : return mask
                return None
 
         return None
@@ -299,7 +301,10 @@ class Client(object):
         print("******************************************")
 
         for mask in self.masks:
-            print mask
+            if mask[4] :
+               print(" accept %s" % mask[0] )
+            else :
+               print(" reject %s" % mask[0] )
 
         print("******************************************")
         print("*       Client Masks                     *")

@@ -164,23 +164,21 @@ class Ingestor(object):
         """
         # check against the masks
         for mask in self.source.masks:
+            # no match
+            if not mask[3].match(filename) : continue
 
-            # accept/imask
-            if len(mask) == 3 :
-               parts = re.findall( mask[0], filename )
-               if len(parts) == 2 and parts[1] == '' : parts.pop(1)
-               if len(parts) != 1 : continue
-               key = parts[0]
-               if isinstance(parts[0],tuple) : key = '_'.join(parts[0])
-               self.logger.debug("RouteKey Key = %s  Mask = %s  Filename = %s" % (key,mask[0],filename) )
-               return key
+            # reject
+            if not mask[4] : return None
 
-            # reject/emask
-            else  :
-               parts = re.findall( mask[0], filename )
-               if len(parts) == 2 and parts[1] == '' : parts.pop(1)
-               if len(parts) == 1 : return None
- 
+            # accept... so key generation
+            parts = re.findall( mask[0], filename )
+            if len(parts) == 2 and parts[1] == '' : parts.pop(1)
+            if len(parts) != 1 : continue
+            key = parts[0]
+            if isinstance(parts[0],tuple) : key = '_'.join(parts[0])
+            self.logger.debug("RouteKey Key = %s  Mask = %s  Filename = %s" % (key,mask[0],filename) )
+            return key
+
         # fallback behavior 
         return None
 
@@ -200,11 +198,7 @@ class Ingestor(object):
                        return False
 
         for mask in client.masks:
-            parts = re.findall( mask[0], ingestName )
-            if len(parts) == 2 and parts[1] == '' : parts.pop(1)
-            if len(parts) == 1 :
-               if len(mask) == 3 : return True
-               return False
+            if mask[3].match(ingestName ) : return mask[4]
 
         if isinstance(client,Source) : return True
 

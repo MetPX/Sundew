@@ -126,8 +126,12 @@ class Sourlient(object):
                             self.logger.error("Extension (%s) for source %s has wrong number of fields" % (words[1], self.name))
                         else:
                             self.extension = ':' + words[1]
-                    if   words[0] == 'accept': self.masks.append((words[1], currentDir, currentFileOption))  
-                    elif words[0] == 'reject': self.masks.append((words[1],))
+                    if   words[0] == 'accept':
+                         cmask = re.compile(words[1])
+                         self.masks.append((words[1], currentDir, currentFileOption,cmask,True))
+                    elif words[0] == 'reject':
+                         cmask = re.compile(words[1])
+                         self.masks.append((words[1], currentDir, currentFileOption,cmask,False))
                     elif words[0] == 'imask' : self.masks_deprecated.append((words[1], currentDir, currentFileOption))  
                     elif words[0] == 'emask' : self.masks_deprecated.append((words[1],))
                     elif words[0] == 'subscriber': self.subscriber =  isTrue(words[1])
@@ -179,10 +183,8 @@ class Sourlient(object):
                        return None
 
         for mask in self.masks:
-            parts = re.findall( mask[0], filename )
-            if len(parts) == 2 and parts[1] == '' : parts.pop(1)
-            if len(parts) == 1 :
-               if len(mask) == 3 : return mask
+            if mask[3].match(filename) :
+               if mask[4] : return mask
                return None
 
         return None
@@ -220,7 +222,11 @@ class Sourlient(object):
         print("******************************************")
 
         for mask in self.masks:
-            print mask
+            if mask[4] :
+               print(" accept %s" % mask[0])
+            else :
+               print(" reject %s" % mask[0])
+
         print("==========================================================================")
 
 if __name__ == '__main__':

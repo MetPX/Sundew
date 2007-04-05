@@ -28,8 +28,9 @@ class DirectRoutingParser(FileParser):
         self.routingInfos = {}          # Addressed by header name: self.routingInfos[header]['clients']
                                         #                           self.routingInfos[header]['subclients']
                                         #                           self.routingInfos[header]['priority']
-        self.keyInfos = {}              # Addressed by key pattern: self.keyInfos[key]['clients']
-                                        #                           self.keyInfos[key]['priority']
+
+        self.keyMasks = []              # Key pattern list :        mask, 'clients','priority',cmask,t/f
+        self.keyMaskMap = {}            # Addressed by Key pattern: self.keyMaskMap[key] = True
 
         self.subClients = {}            # Addressed by client name
         self.aliasedClients = {}        # Addressed by alias
@@ -48,7 +49,8 @@ class DirectRoutingParser(FileParser):
 
     def clearInfos(self):
         self.routingInfos = {}
-        self.keyInfos = {}
+        self.keyMasks = []
+        self.keyMaskMap = {}
         self.subClients = {}      
         self.aliasedClients = {}  
         self.aftnMap = {}
@@ -85,16 +87,17 @@ class DirectRoutingParser(FileParser):
     # than add this key in the routingInfos with the clients and priority
     # defined with that key pattern
     def getKeyClients(self,key):
-        for keyp in self.keyInfos :
-            parts = re.findall( keyp, key )
-            if len(parts) == 2 and parts[1] == '' : parts.pop(1)
-            if len(parts) == 1 :
+        for mask in self.keyMasks :
+            if mask[3].match(key) :
+               if not mask[4] :
+                  self.logger.debug("Key %s was rejected by key_reject %s" % (key,mask[0]) )
+                  return None
                self.routingInfos[key] = {}
-               self.routingInfos[key]['clients']    = self.keyInfos[keyp]['clients']
+               self.routingInfos[key]['clients']    = mask[1]
                self.routingInfos[key]['subclients'] = {}
-               self.routingInfos[key]['priority']   = self.keyInfos[keyp]['priority']
-               self.logger.debug("ADDED : key %s %s %s" % (key,','.join(self.keyInfos[keyp]['clients']),self.keyInfos[keyp]['priority']) )
-               return self.routingInfos[key]['clients']
+               self.routingInfos[key]['priority']   = mask[2]
+               self.logger.debug("ADDED : key %s %s %s" % (key,','.join(mask[1]),mask[2]) )
+               return mask[1]
 
         self.logger.debug("Key %s did not match any pattern " % key )
         return None
@@ -119,10 +122,10 @@ class DirectRoutingParser(FileParser):
 
     def isRoutable(self, key):
         if self.routingInfos.has_key(key): return True
-        for keyp in self.keyInfos :
-            parts = re.findall( keyp, key )
-            if len(parts) == 2 and parts[1] == '' : parts.pop(1)
-            if len(parts) == 1 : return True
+        for mask in self.keyMasks :
+            if mask[3].match(key) :
+               if mask[4] : return True
+               return False
         return False
 
     def getClients(self,key):
@@ -172,7 +175,8 @@ class DirectRoutingParser(FileParser):
 
     def reparse(self):
         routingInfosOld = self.routingInfos.copy()
-        keytInfosOld = self.keyInfos.copy()
+        keyMaskMapOld = self.keyMaskMap.copy()
+        keyMasksOld = self.keyMasks.copy()
         subClientsOld = self.subClients.copy()
         #goodClientsOld = self.goodClients.copy()
         #badClientsOld = self.badClients.copy()
@@ -182,7 +186,8 @@ class DirectRoutingParser(FileParser):
             self.logger.info("Reparse has been done successfully")
         except:
             self.routingInfos = routingInfosOld 
-            self.keyInfos = keyInfosOld 
+            self.keyMaskMap   = keyMaskMapOld 
+            self.keyMasks = keyMasksOld 
             self.subClients = subClientsOld
             #self.goodClients = goodClientsOld
             #self.badClients = badClientsOld
@@ -259,9 +264,8 @@ class DirectRoutingParser(FileParser):
 
                          # Add all infos in KeyInfos
 
-                         self.keyInfos[keyI] = {}
-                         self.keyInfos[keyI]['clients']  = clients
-                         self.keyInfos[keyI]['priority'] = priority
+                         self.keyMaskMap[keyI] = True
+                         self.keyMasks.append( (keyI, clients, priority, re.compile(keyI), True) )
 
                     # Here we have a "header line"
                     elif words[0] == 'key' or (self.version == 0 and len(words[0].split()) == 2) :
@@ -428,7 +432,7 @@ class DirectRoutingParser(FileParser):
                            continue
 
                         # check that the key was not already given
-                        if self.keyInfos.has_key(keyI):
+                        if self.keyMaskMap.has_key(keyI):
                             myprint("The key_accept pattern %s was already defined" % keyI )
 
                         # check for duplicated clients
@@ -451,10 +455,8 @@ class DirectRoutingParser(FileParser):
 
                         # Add all infos in KeyInfos
 
-                        self.keyInfos[keyI] = {}
-                        self.keyInfos[keyI]['clients']  = clients
-                        self.keyInfos[keyI]['priority'] = priority
-                        #print(" key_accept %s %s %s" % (keyI, self.keyInfos[keyI]['clients'],self.keyInfos[keyI]['priority']))
+                        self.keyMaskMap[keyI] = True
+                        self.keyMasks.append( (keyI, clients, priority, re.compile(keyI), True) )
 
                     # Here we have a "header line"
                     elif words[0] == 'key' or (self.version == 0 and len(words[0].split()) == 2) :
@@ -534,7 +536,6 @@ class DirectRoutingParser(FileParser):
                                     # Subclient is not defined
                                     myprint("%s has client %s and %s is not defined with a subclient directive" % (words[0], client, clientParts[0]))
                                     self.routingInfos[words[0]]['clients'].remove(client)
-                        #print(" key %s %s %s" % (words[0], self.routingInfos[words[0]]['clients'],self.keyInfos[keyI]['priority']))
 
                         
                 except:
@@ -552,8 +553,11 @@ class DirectRoutingParser(FileParser):
         for header in self.routingInfos:
             print ("%s(%s): %s, sub: %s" % (header, self.routingInfos[header]['priority'], self.routingInfos[header]['clients'], self.routingInfos[header]['subclients']))
         print "#---------------------------------------------------------------#"
-        for keyI   in self.keyInfos:
-            print ("%s(%s): %s" % (keyI, self.keyInfos[keyI]['priority'], self.keyInfos[keyI]['clients']))
+        for mask in self.keyMasks:
+            if mask[4] :
+               print ("%s(%s): %s" % (mask[0],mask[2],mask[1]) )
+            else :
+               print ("key_reject %s(%s): %s" % (mask[0],mask[2],mask[1]) )
         print "#---------------------------------------------------------------#"
         for client in self.subClients:
             print("%s: %s" % (client, self.subClients[client]))
