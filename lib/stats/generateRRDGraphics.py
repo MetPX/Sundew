@@ -205,10 +205,8 @@ def getOptionsFromParser( parser ):
         print "Error. The timespan value needs to be an integer one above 0." 
         print "Use -h for help."
         print "Program terminated."
-        sys.exit()
-        
-        
-  
+        sys.exit()        
+         
     if fileType != "tx" and fileType != "rx":
         print "Error. File type must be either tx or rx."
         print 'Multiple types are not accepted.' 
@@ -218,8 +216,13 @@ def getOptionsFromParser( parser ):
         
         
     if clientNames[0] == "ALL":
-        rxNames, txNames = generalStatsLibraryMethods.getRxTxNames( LOCAL_MACHINE, machines[0] )
-        #get rx tx names accordingly.         
+        
+        if totals == True :# Get all of the client/sources that have run 
+                           # between graph's start and end.            
+            rxNames, txNames = generalStatsLibraryMethods.getRxTxNamesHavingRunDuringPeriod( start, end, machines )
+        else:#Build graphs only for currently runningclient/sources.      
+            rxNames, txNames = generalStatsLibraryMethods.getRxTxNames( LOCAL_MACHINE, machines[0] )
+                     
         if fileType == "tx":    
             clientNames = txNames  
         else:
@@ -227,7 +230,7 @@ def getOptionsFromParser( parser ):
             
     
     try :
-        
+            
         if fileType == "tx":       
         
             validTypes = [ "latency", "bytecount", "errors", "filesOverMaxLatency", "filecount" ]
