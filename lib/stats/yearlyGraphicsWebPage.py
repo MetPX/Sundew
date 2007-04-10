@@ -33,35 +33,56 @@ from PXManager import *
 
 LOCAL_MACHINE = os.uname()[1]
     
+NB_YEARS_DISPLAYED = 3
     
 def getYears():
     """
-        Returns the last 3 year numbers including the current year.    
+        Returns the last x year numbers including the current year.    
     """
     
     years = []
     
-    startTime = (time.time() - (3*365*24*60*60))
-    for i in range(1,4):
+    startTime = (time.time() - ( NB_YEARS_DISPLAYED*365*24*60*60))
+    for i in range( 1, NB_YEARS_DISPLAYED + 1 ):
         years.append( time.strftime("%Y",time.gmtime(startTime + (i*365*24*60*60) )) )
    
        
     return years
     
     
-def main():        
     
-
+def getStartEndOfWebPage():
+    """
+        Returns the time of the first 
+        graphics to be shown on the web 
+        page and the time of the last 
+        graphic to be displayed. 
+        
+    """
     
-    rxNames, txNames = generalStatsLibraryMethods.getRxTxNames( LOCAL_MACHINE, "pds5" )
-    pxatxrxNames, pxatxtxNames = generalStatsLibraryMethods.getRxTxNames( LOCAL_MACHINE, "pxatx" )
+    currentTime = MyDateLib.getIsoFromEpoch( time.time() )  
     
-    rxNames.extend(pxatxrxNames)
-    txNames.extend(pxatxtxNames)
+    start = MyDateLib.rewindXDays( currentTime, ( NB_YEARS_DISPLAYED - 1 ) * 365 )
+    start = MyDateLib.getIsoTodaysMidnight( start )
+         
+    end   = MyDateLib.getIsoTodaysMidnight( currentTime )
+        
     
-    rxNames.sort()
-    txNames.sort()
-    years = getYears()
+    return start, end 
+    
+        
+    
+    
+def generateWebPage( rxNames, txNames, years ):
+    """
+        Generates a web page based on all the 
+        rxnames and tx names that have run during
+        the past x years. 
+        
+        Only links to available graphics will be 
+        displayed.
+        
+    """   
     
     
     #Redirect output towards html page to generate.    
@@ -380,8 +401,19 @@ def main():
     """ )     
                 
     fileHandle.close()                 
+    
 
-
-
+        
+def main():        
+    
+    years = getYears() 
+    
+    start, end = getStartEndOfWebPage()     
+    
+    rxNames, txNames = generalStatsLibraryMethods.getSortedRxTxNamesForWebPages( start, end )
+             
+    generateWebPage( rxNames, txNames, years )
+    
+    
 if __name__ == "__main__":
     main()

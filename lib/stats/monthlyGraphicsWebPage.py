@@ -23,42 +23,48 @@ named COPYING in the root of the source directory tree.
 ##
 ##############################################################################
 
-import os, time,sys, MyDateLib, datetime
+import math, os, time, sys, MyDateLib, datetime
 import generalStatsLibraryMethods
+
+from math import *
 from MyDateLib import *
 from generalStatsLibraryMethods import *
 from PXPaths   import * 
 from PXManager import *
 
 LOCAL_MACHINE  = os.uname()[1]    
+NB_MONTHS_DISPLAYED = 3 
+
 
 def getMonths():
     """
-        Returns the 3 months including current month.
+        Returns  months including current month.
     
     """
+    
     currentTime = time.time()
     currentTime = MyDateLib.getIsoFromEpoch( currentTime )
     currentDate = datetime.date( int(currentTime[0:4]), int(currentTime[5:7]), int(currentTime[8:10]) )     
        
-    months = []
-    
-    startTime = (time.time() - (30*3*24*60*60))
-    
-    for i in range(0,3):
+    months = []   
         
-        if currentDate.month -i < 1 :
-            month = currentDate.month -i + 12
-            year  = currentDate.year -i 
-        else :     
-            month = currentDate.month -i 
+    for i in range(0,NB_MONTHS_DISPLAYED):
+        
+        if currentDate.month - (i%12) < 1 :            
+            month = currentDate.month - (i%12)+12 
+        
+        if  currentDate.month -i < 1:
+            year  = currentDate.year - int( abs(math.floor( float( ( currentDate.month - i  ) / 12 ) ) ) ) 
+        
+        else :                 
+            month = currentDate.month - i             
             year = currentDate.year
             
         if currentDate.day > 28:
             day = currentDate.day -5
         else: 
             day = currentDate.day          
-        
+               
         newdate = datetime.date( year,month,day )
         months.append( newdate.strftime("%b") )
             
@@ -67,23 +73,59 @@ def getMonths():
     return months
     
     
-def main():        
+    
+def getStartEndOfWebPage():
     """
-        Generates the web page.
-    """    
+        Returns the time of the first 
+        graphics to be shown on the web 
+        page and the time of the last 
+        graphic to be displayed. 
+        
+    """
+    
+    currentTime = MyDateLib.getIsoFromEpoch( time.time() )  
+    
+    currentDate = datetime.date( int(currentTime[0:4]), int(currentTime[5:7]), int(currentTime[8:10]) )     
+          
+        
+    nbMonthsToRevwind = NB_MONTHS_DISPLAYED - 1 
+        
+    if currentDate.month - (nbMonthsToRevwind%12) < 1 :            
+        month = currentDate.month - (nbMonthsToRevwind%12)+12 
+    
+    if  currentDate.month -nbMonthsToRevwind < 1:
+        year  = currentDate.year - int( abs(math.floor( float( ( currentDate.month - nbMonthsToRevwind  ) / 12 ) ) ) ) 
+    
+    else :                 
+        month = currentDate.month - nbMonthsToRevwind             
+        year = currentDate.year
+        
+    if currentDate.day > 28:
+        day = currentDate.day -5
+    else: 
+        day = currentDate.day          
+            
+        
+    start  = "%s-%s-%s 00:00:00" %( year,month,day )      
+    end   = MyDateLib.getIsoTodaysMidnight( currentTime )
+    
+        
+    return start, end 
+ 
+    
+    
+def generateWebPage( rxNames, txNames, months ):
+    """
+        Generates a web page based on all the 
+        rxnames and tx names that have run during
+        the past x months. 
+        
+        Only links to available graphics will be 
+        displayed.
+        
+    """           
 
-    
-    rxNames,txNames = generalStatsLibraryMethods.getRxTxNames( LOCAL_MACHINE, "pds5")
-    pxatxrxNames,pxatxtxNames = generalStatsLibraryMethods.getRxTxNames( LOCAL_MACHINE, "pxatx")
-    
-    rxNames.extend(pxatxrxNames)
-    txNames.extend(pxatxtxNames)
-    
-    rxNames.sort()
-    txNames.sort()
-    months = getMonths()
-    
-    
+        
     #Redirect output towards html page to generate. 
     if not os.path.isdir("/apps/px/stats/webPages/"):
         os.makedirs( "/apps/px/stats/webPages/" )        
@@ -413,7 +455,24 @@ def main():
     
     """  )      
                 
-    fileHandle.close()                 
+    fileHandle.close()                     
+    
+    
+    
+def main():        
+    """
+        Generates the web page.
+    """    
+
+    months = getMonths() 
+    
+    start, end = getStartEndOfWebPage()     
+    
+    rxNames, txNames = generalStatsLibraryMethods.getSortedRxTxNamesForWebPages( start, end )
+             
+    generateWebPage( rxNames, txNames, months )
+    
+    
      
 
 

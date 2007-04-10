@@ -23,15 +23,21 @@ named COPYING in the root of the source directory tree.
 ##
 ##############################################################################
 
-import os, time,sys
-import generalStatsLibraryMethods
+import os, time, sys
+import generalStatsLibraryMethods, MyDateLib
+import configFileManager
 
+from MyDateLib import *
 from PXPaths   import * 
 from PXManager import *
 from generalStatsLibraryMethods import *
+from configFileManager import *
 
+# Constants
 LOCAL_MACHINE = os.uname()[1]          
+NB_DAYS_DISPLAYED = 7 
     
+
 def getDays():
     """
         Returns the last 3 year numbers including the current year.
@@ -40,32 +46,53 @@ def getDays():
     
     days = []
     
-    startTime = (time.time() - (7*24*60*60))
-    for i in range(1,8):
-        days.append( time.strftime("%a",time.gmtime(startTime + ( i*365*24*60*60 ) )) )
-   
+    startTime = ( time.time() - (NB_DAYS_DISPLAYED*24*60*60) )
+    for i in range( 1, NB_DAYS_DISPLAYED + 1 ):
+        days.append( time.strftime("%a",time.gmtime(startTime + ( i*365*24*60*60 ) )) )   
        
     return days
     
     
-def main():        
+    
+def getStartEndOfWebPage():
+    """
+        Returns the time of the first 
+        graphics to be shown on the web 
+        page and the time of the last 
+        graphic to be displayed. 
+        
+    """
+    
+    currentTime = MyDateLib.getIsoFromEpoch( time.time() )  
+    
+    start = MyDateLib.rewindXDays( currentTime, NB_DAYS_DISPLAYED - 1 )
+    start = MyDateLib.getIsoTodaysMidnight( start )
+         
+    end   = MyDateLib.getIsoTodaysMidnight( currentTime )
+        
+    return start, end 
+    
+    
+    
+ 
     
 
     
-    rxNames,txNames = generalStatsLibraryMethods.getRxTxNames( LOCAL_MACHINE, "pds5" )
-    pxatxrxNames,pxatxtxNames = generalStatsLibraryMethods.getRxTxNames( LOCAL_MACHINE, "pxatx" )
-    
-    rxNames.extend(pxatxrxNames)
-    txNames.extend(pxatxtxNames)
-    
-    rxNames.sort()
-    txNames.sort()
-    days = getDays()
-    
-    
+def generateWebPage( rxNames, txNames, days ):
+    """
+        Generates a web page based on all the 
+        rxnames and tx names that have run during
+        the pas x days. 
+        
+        Only links to available graphics will be 
+        displayed.
+        
+    """       
+        
     #Redirect output towards html page to generate.    
     if not os.path.isdir("/apps/px/stats/webPages/"):
         os.makedirs( "/apps/px/stats/webPages/" )
+    
     fileHandle = open( "/apps/px/stats/webPages/dailyGraphs.html" , 'w' )
 
      
@@ -238,8 +265,19 @@ def main():
     """ )       
                 
     fileHandle.close()                 
+        
+        
     
-
-
+def main():   
+    
+    days = getDays() 
+    
+    start, end = getStartEndOfWebPage()     
+    
+    rxNames, txNames = generalStatsLibraryMethods.getSortedRxTxNamesForWebPages( start, end )
+             
+    generateWebPage( rxNames, txNames, days)
+    
+  
 if __name__ == "__main__":
     main()
