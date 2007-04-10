@@ -17,10 +17,12 @@ named COPYING in the root of the source directory tree.
 ##############################################################################################
 """
 
-import os,commands,PXPaths, PXManager, commands, glob
-import MyDateLib
+import os, commands, PXPaths, PXManager, commands, glob 
+import MyDateLib, configFileManager
 from PXManager import *
 from MyDateLib import *
+from configFileManager import *
+
 
 PXPaths.normalPaths()
 
@@ -177,7 +179,31 @@ def getRxTxNames( localMachine, machine ):
 
     return rxNames, txNames     
     
+
+def getSortedRxTxNamesForWebPages( start, end ):
+    """
+        Returns the list of all the rx and tx names
+        that are running between start and and.        
+        
+    """ 
     
+    rxNames = []
+    txNames = []
+    
+    interestingMachines = []
+    
+    configParameters = configFileManager.getParametersFromConfigurationFile( "statsConfig" )
+            
+    
+    for coupledMachineName in configParameters.coupledLogMachineNames :  
+                
+        machines = coupledMachineName.split(",")        
+        newRxNames, newTxNames  = getRxTxNamesHavingRunDuringPeriod( start, end, machines ) 
+
+        rxNames.extend( newRxNames )
+        txNames.extend( newTxNames )
+
+    return rxNames, txNames        
     
     
     
