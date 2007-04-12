@@ -94,7 +94,32 @@ def updateConfigurationFiles( machine, login ):
     status, output = commands.getstatusoutput( "rsync -avzr --delete-before -e ssh %s@%s:/apps/px/etc/rx/ /apps/px/stats/rx/%s/"  %( login, machine, machine ) )
 
     status, output = commands.getstatusoutput( "rsync -avzr  --delete-before -e ssh %s@%s:/apps/px/etc/tx/ /apps/px/stats/tx/%s/"  %( login, machine, machine ) )
+
     
+    
+def getDatabaseTimeOfUpdate( client, machine, fileType ):
+    """
+        If present in DATABASE-UPDATES file, returns the time of the last 
+        update associated with the databse name.      
+        
+        Otherwise returns 0 
+        
+    """ 
+    
+    lastUpdate = 0
+    folder   = PXPaths.STATS + "DATABASE-UPDATES/%s/" %(fileType )
+    fileName = folder + "%s_%s" %( client, machine )
+    
+    if os.path.isfile( fileName ):
+        
+        fileHandle  = open( fileName, "r" )
+        lastUpdate  = pickle.load( fileHandle )           
+        fileHandle.close()     
+        
+            
+    return lastUpdate 
+    
+            
 
 def getRxTxNamesHavingRunDuringPeriod( start, end, machines ):  
     """
@@ -138,18 +163,22 @@ def getRxTxNamesHavingRunDuringPeriod( start, end, machines ):
     
         
         
-    for rxDatabase in rxOnlyDatabases:
-        lastUpdate = os.stat( "/apps/px/stats/databases/bytecount/" + str(rxDatabase)).st_mtime
+    for rxDatabase in rxOnlyDatabases:  
+    
+        rxDatabase = rxDatabase.split("_%s"%combinedMachineName)[0]  
+        lastUpdate = getDatabaseTimeOfUpdate( rxDatabase, combinedMachineName, "rx" )
         if lastUpdate >= start:
             #fileName format is ../path/rxName_machineName            
-            rxNames.append(  rxDatabase.split("_%s"%combinedMachineName)[0] )
+            rxNames.append( rxDatabase  )
         
     for txDatabase in txOnlyDatabases:
-        lastUpdate = os.stat( "/apps/px/stats/databases/latency/" + str(txDatabase)).st_mtime 
+        txDatabase = txDatabase.split("_%s"%combinedMachineName)[0]
+        lastUpdate = getDatabaseTimeOfUpdate( txDatabase, combinedMachineName, "tx" )
+       
         if lastUpdate >= start:
             #fileName format is ../rxName_machineName
-            txNames.append(  txDatabase.split("_%s"%combinedMachineName)[0] )    
-    
+            txNames.append( txDatabase )    
+        
     rxNames.sort()
     txNames.sort()
             

@@ -743,30 +743,6 @@ def buildImageName(  type, client, machine, infos, logger = None ):
     return fileName 
 
 
-    
-def getDatabaseTimeOfUpdate( client, machine, fileType ):
-    """
-        If present in DATABASE-UPDATES file, returns the time of the last 
-        update associated with the databse name.      
-        
-        Otherwise returns None 
-        
-    """ 
-    
-    lastUpdate = 0
-    folder   = PXPaths.STATS + "DATABASE-UPDATES/%s/" %fileType
-    fileName = folder + "%s_%s" %( client, machine )
-    
-    if os.path.isfile( fileName ):
-        
-        fileHandle  = open( fileName, "r" )
-        lastUpdate  = pickle.load( fileHandle )           
-        fileHandle.close()     
-        
-            
-    return lastUpdate      
-
-
         
 def formatMinMaxMeanTotal( minimum, maximum, mean, total, type, averageOrTotal = "average" ):
     """
@@ -1054,9 +1030,9 @@ def plotRRDGraph( databaseName, type, fileType, client, machine, infos, logger =
     formatedTitleType, formatedYLabelType = formatedTypesForLables( type )
             
     if infos.totals != True:
-        lastUpdate = getDatabaseTimeOfUpdate( client, machine, fileType )        
+        lastUpdate = generalStatsLibraryMethods.getDatabaseTimeOfUpdate( client, machine, fileType )        
     else:
-        lastUpdate = getDatabaseTimeOfUpdate( client = fileType, machine = machine, fileType = "totals" )
+        lastUpdate = generalStatsLibraryMethods.getDatabaseTimeOfUpdate( client = fileType, machine = machine, fileType = "totals" )
          
          
     fetchedInterval = getInterval( start, lastUpdate, infos.graphicType, goal = "fetchData"  )  
@@ -1180,7 +1156,7 @@ def getInfosFromDatabases( dataOutputs, names, machine, fileType, startTime, end
     nbEntries = 0    
         
     while lastUpdate == 0 and i < len( names) : # in case some databases dont exist
-        lastUpdate = getDatabaseTimeOfUpdate( names[i], machine, fileType )    
+        lastUpdate = generalStatsLibraryMethods.getDatabaseTimeOfUpdate( names[i], machine, fileType )    
         nbEntries  = len( dataOutputs[ names[i] ] )
         i = i + 1        
          
@@ -1275,7 +1251,7 @@ def createMergedDatabases( infos, logger = None ):
             typeData[type] = {}
             i = 0 
             while i < len(infos.clientNames) and lastUpdate == 0 :
-                lastUpdate = getDatabaseTimeOfUpdate(infos.clientNames[i], machine, infos.fileType)
+                lastUpdate = generalStatsLibraryMethods.getDatabaseTimeOfUpdate(infos.clientNames[i], machine, infos.fileType)
             
             interval = getInterval( start, lastUpdate, infos.graphicType, goal = "fetchData"  )    
             

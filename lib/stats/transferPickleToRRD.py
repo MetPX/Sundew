@@ -188,36 +188,7 @@ def getOptionsFromParser( parser, logger = None  ):
     
     return infos     
 
-    
-    
-def getDatabaseTimeOfUpdate( client, machine, fileType, endTime ):
-    """
-        Is present in DATABASE-UPDATES file, returns the time of the last 
-        update associated with the databse name.      
-        
-        Otherwise returns None 
-        
-    """ 
-
-    lastUpdate = MyDateLib.getSecondsSinceEpoch( MyDateLib.getIsoTodaysMidnight( endTime ) ) 
-    folder   = PXPaths.STATS + "DATABASE-UPDATES/%s/" %fileType
-    fileName = folder + "%s_%s" %( client, machine )
-    print "fileName to be loaded : %s" %fileName
-    
-    if os.path.isfile( fileName ):
-        
-        try :
-            fileHandle  = open( fileName, "r" )
-            lastUpdate  = pickle.load( fileHandle )           
-        except:
-            lastUpdate = MyDateLib.getSecondsSinceEpoch( MyDateLib.getIsoTodaysMidnight( endTime ) ) 
-            pass
-        
-        fileHandle.close()     
             
-    return lastUpdate  
- 
-       
     
 def setDatabaseTimeOfUpdate(  client, machine, fileType, timeOfUpdate ):
     """
@@ -418,7 +389,9 @@ def updateRoundRobinDatabases(  client, machines, fileType, endTime, logger = No
     for machine in machines:
         combinedMachineName = combinedMachineName + machine
     
-    startTime   = getDatabaseTimeOfUpdate(  client, combinedMachineName, fileType, endTime )  
+    startTime   = generalStatsLibraryMethods.getDatabaseTimeOfUpdate(  client, combinedMachineName, fileType ) 
+    if  startTime == 0 :
+        startTime = MyDateLib.getSecondsSinceEpoch( MyDateLib.getIsoTodaysMidnight( endTime ) )
     endTime     = MyDateLib.getSecondsSinceEpoch( endTime )           
     dataPairs   = getPairs( client, machines, fileType, startTime, endTime, logger )   
         
