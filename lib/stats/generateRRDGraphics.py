@@ -83,6 +83,7 @@ def getOptionsFromParser( parser ):
     types            = options.types.replace( ' ', '').split(',')
     date             = options.date.replace('"','').replace("'",'')
     fileType         = options.fileType.replace("'",'')
+    havingRun        = options.havingRun
     individual       = options.individual
     totals           = options.totals
     daily            = options.daily
@@ -214,11 +215,17 @@ def getOptionsFromParser( parser ):
         print "Program terminated."
         sys.exit()            
         
-        
+                
+    if havingRun == True and clientNames[0] != "ALL":
+        print "Error. Cannot use the havingRun option while specifying client/source names."
+        print 'To use havingRun, do not use -c|--client option.' 
+        print "Use -h for additional help."
+        print "Program terminated."    
+        sys.exit()
+    
     if clientNames[0] == "ALL":
-        
-        if totals == True :# Get all of the client/sources that have run 
-                           # between graph's start and end.            
+        # Get all of the client/sources that have run between graph's start and end. 
+        if totals == True or havingRun == True :                  
             rxNames, txNames = generalStatsLibraryMethods.getRxTxNamesHavingRunDuringPeriod( start, end, machines )
         else:#Build graphs only for currently runningclient/sources.      
             rxNames, txNames = generalStatsLibraryMethods.getRxTxNames( LOCAL_MACHINE, machines[0] )
@@ -306,7 +313,7 @@ Defaults :
 
 Options:
  
-    - With -c|--clients you can specify the clients names on wich you want to collect data.
+    - With -c|--clients you can specify the clients( or sources) names on wich you want to collect data.
     - With --copy you can specify that you want to create a copy of the image file that will 
       be stored in the webGraphics folder in either the weekly, motnhly or yearly section.
     - With -d|--daily you can specify you want daily graphics.
@@ -316,6 +323,8 @@ Options:
       based on the fixed dates of the calendar.
     - With --fixedPrevious you can specify that you want a graphic based on the current( week, month year)
       based on the fixed dates of the calendar.
+    - With --havingRun you can specify that you want to use all the client/sources that have run between 
+      the graphics start and end instead of the currently running client/sources. 
     - With --individual you can specify that you want to genrate graphics for each machine 
       and not the combined data of two machines when numerous machiens are specified.
     - With -m|--monthly you can specify you want monthly graphics.
@@ -367,6 +376,8 @@ def addOptions( parser ):
     parser.add_option( "--fixedPrevious", action="store_true", dest="fixedPrevious", default=False, help="Do not use floating weeks|days|months|years. Use previous fixed interval found.")
    
     parser.add_option( "--fixedCurrent", action="store_true", dest="fixedCurrent", default=False, help="Do not use floating weeks|days|months|years. Use current fixed interval found.")
+    
+    parser.add_option( "--havingRun", action="store_true", dest="havingRun", default=False, help="Do not use only the currently running client/sources. Use all that have run between graphic(s) start and end instead.")
     
     parser.add_option("-i", "--individual", action="store_true", dest = "individual", default=False, help="Dont combine data from specified machines. Create graphs for every machine independently")
     
