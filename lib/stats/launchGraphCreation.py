@@ -68,12 +68,12 @@ def updatePickles( parameters ):
         if parameters.individualLogMachineNames[i] != parameters.picklingMachines[i]: 
             
             if parameters.picklingMachines[i] != LOCAL_MACHINE :#pickling to be done elsewhere
-                for i in range(3):#do 3 times in case of currently turning log files.
-                    status, output = commands.getstatusoutput( "ssh %s@%s 'rsync -avzr --delete-before -e ssh %s@%s:/apps/px/log/ /apps/px/log/%s/' " %( parameters.picklingMachinesLogins[i], parameters.picklingMachines[i], parameters.logMachinesLogins[i] ,parameters.individualLogMachineNames[i] , parameters.individualLogMachineNames[i] ) )
+                for j in range(3):#do 3 times in case of currently turning log files.
+                    status, output = commands.getstatusoutput( "ssh %s@%s 'rsync -avzr --delete-before -e ssh  %s@%s:/apps/px/log/ /apps/px/log/%s/' " %( parameters.picklingMachinesLogins[i], parameters.picklingMachines[i], parameters.logMachinesLogins[i] ,parameters.individualLogMachineNames[i] , parameters.individualLogMachineNames[i] ) )
                        
             else:
-                for i in range(3):#do 3 times in case of currently turning log files.
-                    status, output = commands.getstatusoutput( "rsync -avzr --delete-before -e ssh %s@%s:/apps/px/log/ /apps/px/log/%s/ " %( parameters.logMachinesLogins[i] ,parameters.individualLogMachineNames[i] , parameters.individualLogMachineNames[i] ) )
+                for j in range(3):#do 3 times in case of currently turning log files.
+                    status, output = commands.getstatusoutput( "rsync -avzr --delete-before -e ssh %s@%s:/apps/px/log/   /apps/px/log/%s/ " %( parameters.logMachinesLogins[i] ,parameters.individualLogMachineNames[i] , parameters.individualLogMachineNames[i] ) )
 
             print output   
             
@@ -206,6 +206,9 @@ def updateWebPages():
     status, output = commands.getstatusoutput( "/apps/px/lib/stats/yearlyGraphicsWebPage.py" )
     print output
     status, output = commands.getstatusoutput( "/apps/px/lib/stats/totalGraphicsWebPages.py" )
+    print output 
+    status, output = commands.getstatusoutput( "/apps/px/lib/stats/generateTopWebPage.py" )
+    print output
     
     
 def monitorActivities():

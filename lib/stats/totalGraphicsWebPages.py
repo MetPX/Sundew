@@ -23,7 +23,7 @@ named COPYING in the root of the source directory tree.
 ##
 ##############################################################################
 import os, time, sys, datetime
-import generalStatsLibraryMethods,MyDateLib
+import generalStatsLibraryMethods, MyDateLib, configFileManager
 
 
 import string 
@@ -32,6 +32,8 @@ from PXPaths   import *
 from PXManager import *
 from MyDateLib import *
 from generalStatsLibraryMethods import *
+from configFileManager import * 
+
    
 LOCAL_MACHINE = os.uname()[1]   
 
@@ -148,21 +150,28 @@ def getCombinedMachineName( machines ):
 
     return combinedMachineName
 
+
+            
+def generateWebPage( machineNames ):
+    """
+        Generates a web page based on all the 
+        rxnames and tx names that have run during
+        the pas x days. 
         
+        Only links to available graphics will be 
+        displayed.
+        
+    """  
     
-def main():
-    """
-    """
-    
-    machineNames = [ "pds5,pds6", "pxatx"]
-    rxTypes      = [ "bytecount", "filecount", "errors"]
-    txTypes      = [ "latency", "filesOverMaxLatency", "bytecount", "filecount", "errors"]
-    timeTypes    = [ "daily","weekly","monthly","yearly"]
-    updateFrequency= {"daily":"(upd. hourly)","weekly":"(upd. hourly)","monthly":"(upd. weekly)","yearly":"(upd. monthly)"}   
     days   = getDays() 
     weeks  = getWeekNumbers()
     months = getMonths()
     years  = getYears()
+    
+    rxTypes      = [ "bytecount", "filecount", "errors"]
+    txTypes      = [ "latency", "filesOverMaxLatency", "bytecount", "filecount", "errors"]
+    timeTypes    = [ "daily","weekly","monthly","yearly"]
+    updateFrequency= {"daily":"(upd. hourly)","weekly":"(upd. hourly)","monthly":"(upd. weekly)","yearly":"(upd. monthly)"}  
     
     for machineName in machineNames:
         if not os.path.isdir("/apps/px/stats/webPages/"):
@@ -326,7 +335,21 @@ def main():
         
         fileHandle.close()         
                                 
-                        
+                                
+    
+     
+       
+def main():
+    """
+    """
+    
+    configParameters = configFileManager.getParametersFromConfigurationFile( "statsConfig" )
+    
+    machineNames     = configParameters.coupledLogMachineNames
+
+    generateWebPage( machineNames )
+     
+    
 if __name__ == "__main__":
     main()            
             
