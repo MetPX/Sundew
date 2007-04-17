@@ -799,7 +799,9 @@ def gapInErrorLog( name, start, end, errorLog )  :
             if abs(MyDateLib.getSecondsSinceEpoch( logEntryTime ) - MyDateLib.getSecondsSinceEpoch(end)) <= 300:       
                 
                 if "outdated" in splitLine:
-                    if abs(MyDateLib.getSecondsSinceEpoch(splitLine[9] + " " + splitLine[10])- MyDateLib.getSecondsSinceEpoch(start)) <= 300:
+                    if "NOT FOUND" in line: # No choice but to suppose we'ere refering to the same span.
+                        startFound = True 
+                    elif abs(MyDateLib.getSecondsSinceEpoch(splitLine[9] + " " + splitLine[10])- MyDateLib.getSecondsSinceEpoch(start)) <= 300:
                         startFound = True                         
                 endFound = True                     
             
