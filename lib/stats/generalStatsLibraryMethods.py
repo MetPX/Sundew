@@ -232,6 +232,9 @@ def getSortedRxTxNamesForWebPages( start, end ):
         rxNames.extend( newRxNames )
         txNames.extend( newTxNames )
 
+    rxNames.sort()
+    txNames.sort()
+        
     return rxNames, txNames        
     
     

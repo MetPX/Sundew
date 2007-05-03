@@ -85,7 +85,7 @@ def getMaximumGaps( maxSettingsFile ):
     allNames.extend( rxNames )
     allNames.extend( txNames )
     
-    circuitsRegex, default_circuit, timersRegex, default_timer, pxGraphsRegex, default_pxGraph =    readMaxFile.readQueueMax( maxSettingsFile, "PX" )
+    circuitsRegex, default_circuit, timersRegex, default_timer, pxGraphsRegex, default_pxGraph =  readMaxFile.readQueueMax( maxSettingsFile, "PX" )
      
     for key in timersRegex.keys(): #fill all explicitly set maximum gaps.
         values = timersRegex[key]
@@ -156,16 +156,28 @@ def getPreviousMonitoringJob( currentTime ):
         
         
     
-def getTimeOfLastFilledEntry( name, startTime ):
-    """
-        Returns the time of the last
-        entry that was filled with data 
-        for a client/source name.
-        
-    """    
+def getlastValidEntry( name, startTime ):
+    '''
+    
+    @param name: Name of the client/source for wich you 
+                 want to know the time of the last valid 
+                 entry found 
+    
+    @param startTime: Start time of the current series of test. 
+                      Will be used as default value if no value is
+                      foudn for specified client/source..
+                                            
+    @return:         Returns the time of the last
+                    entry that was either filled with data 
+                    or at wich we found the presence normal
+                    lack of data.       
+                          
+    '''
+    
+    
     
     file  = "/apps/px/stats/statsMonitoring/lastEntryFilledTimes"
-    #timeOfLastFilledEntry = ""
+    #lastValidEntry = ""
     
     if os.path.isfile( file ):
         fileHandle      = open( file, "r" )
@@ -173,26 +185,33 @@ def getTimeOfLastFilledEntry( name, startTime ):
         fileHandle.close()
         
         if name not in times.keys():
-            timeOfLastFilledEntry = startTime
+            lastValidEntry = startTime
         else:
-            timeOfLastFilledEntry = times[name]     
+            lastValidEntry = times[name]     
     else:
     
-        timeOfLastFilledEntry = startTime 
+        lastValidEntry = startTime 
                 
    
-    return timeOfLastFilledEntry
+    return lastValidEntry
     
     
     
-def saveTimeOfLastFilledEntry( name, timeOfLastFilledEntry ):
-    """
-        Returns the time of the last
-        entry that was filled with data 
-        for a client/source name.
-        
-    """    
+def savelastValidEntry( name, lastValidEntry ):
+    '''
+    @summary: Saves the time of the last valid entry
+              for the specified client/source.
+             
     
+    @param name: Name of the client/source for wich you 
+                 want to know the time of the last valid 
+                 entry found 
+    
+    @param lastValidEntry: Time of the last valid entry
+              for the specified client/source.
+    
+    ''' 
+      
     file  = "/apps/px/stats/statsMonitoring/lastEntryFilledTimes"
        
     if os.path.isfile( file ):
@@ -203,7 +222,7 @@ def saveTimeOfLastFilledEntry( name, timeOfLastFilledEntry ):
     else:
         times= {}
 
-    times[ name ]  =  timeOfLastFilledEntry           
+    times[ name ]  =  lastValidEntry           
     
     fileHandle = open( file, "w" )
     pickle.dump( times, fileHandle )
@@ -792,17 +811,19 @@ def gapInErrorLog( name, start, end, errorLog )  :
         if splitLine[3].replace( ":", "" ) == name :
             
             #allows 5 minutes range prior of after start of problem for an entry to appear.
-            if abs(MyDateLib.getSecondsSinceEpoch( logEntryTime ) - MyDateLib.getSecondsSinceEpoch(start)) <= 300: 
+            if abs(MyDateLib.getSecondsSinceEpoch( logEntryTime ) - MyDateLib.getSecondsSinceEpoch(start)) <= 300:                 
                 startFound = True
                 
             #allow 5 minutes range prior or after the end of the problem forthe last entry to appear. 
             if abs(MyDateLib.getSecondsSinceEpoch( logEntryTime ) - MyDateLib.getSecondsSinceEpoch(end)) <= 300:       
                 
                 if "outdated" in splitLine:
-                    if "NOT FOUND" in line: # No choice but to suppose we'ere refering to the same span.
+                    if "NOT FOUND" in line: # No choice but to suppose we'ere refering to the same span.                        
                         startFound = True 
-                    elif abs(MyDateLib.getSecondsSinceEpoch(splitLine[9] + " " + splitLine[10])- MyDateLib.getSecondsSinceEpoch(start)) <= 300:
-                        startFound = True                         
+                        
+                    elif abs(MyDateLib.getSecondsSinceEpoch(splitLine[9] + " " + splitLine[10])- MyDateLib.getSecondsSinceEpoch(start)) <= 300:                        
+                        startFound = True
+                                                 
                 endFound = True                     
             
                 
@@ -814,7 +835,7 @@ def gapInErrorLog( name, start, end, errorLog )  :
 #             pass
             
 
-    if startFound and endFound:   
+    if startFound and endFound:           
         gapInErrorLog = True 
                       
     return gapInErrorLog
@@ -861,7 +882,7 @@ def getErrorLog( file, startTime ):
     
     
     
-def getPickleAnalysis( files, name, timeOfLastFilledEntry, maximumGap, errorLog ):
+def getPickleAnalysis( files, name, lastValidEntry, maximumGap, errorLog ):
     """
         This function is used to browse all the pickle files
         in chronological order. 
@@ -874,8 +895,9 @@ def getPickleAnalysis( files, name, timeOfLastFilledEntry, maximumGap, errorLog 
     """
     
     header = ""
-    reportLines = ""    
-    gapTooWidePresent = False    
+    reportLines = ""  
+    gapPresent = False  
+    gapFound = False    
     files.sort()    
         
     for file in files:                 
@@ -892,20 +914,22 @@ def getPickleAnalysis( files, name, timeOfLastFilledEntry, maximumGap, errorLog 
                     
                     entryTime = MyDateLib.getSecondsSinceEpoch( entry.startTime )
                     
-                    lastUpdateInSeconds = MyDateLib.getSecondsSinceEpoch( timeOfLastFilledEntry )  
+                    lastUpdateInSeconds = MyDateLib.getSecondsSinceEpoch( lastValidEntry )  
                     differenceInMinutes = ( entryTime - lastUpdateInSeconds ) / 60                   
                                             
                     if  int(differenceInMinutes) > ( int(maximumGap) + 5 ) :#give a 5 minute margin
-                                                
-                        if gapInErrorLog( name, timeOfLastFilledEntry, entry.startTime, errorLog ) == False:
-                            gapTooWidePresent = True  
-                                                
-                            reportLines = reportLines + "No data was found between %s and %s.\n" %( timeOfLastFilledEntry, entry.startTime )
-                    
-                    if nbEntries != 0 and nbEntries != nbErrors :
+                        gapPresent = True                            
                         
-                        timeOfLastFilledEntry = entry.startTime                                                        
-                           
+                        if gapInErrorLog( name, lastValidEntry, entry.startTime, errorLog ) == False:
+                            gapFound = False  
+                                                
+                            reportLines = reportLines + "No data was found between %s and %s.\n" %( lastValidEntry, entry.startTime )
+                                            
+                    #set time of the last correct entry to the time of the current entry were data was actually found.
+                    if ( gapPresent == True and gapFound == True) or ( nbEntries != 0 and nbEntries != nbErrors ) :                                                
+                        lastValidEntry = entry.startTime                                                        
+                        gapPresent = False 
+                        gapFound   = False
                     
                         
     if reportLines != "":     
@@ -913,7 +937,7 @@ def getPickleAnalysis( files, name, timeOfLastFilledEntry, maximumGap, errorLog 
         
     reportLines = header + reportLines
     
-    return reportLines, timeOfLastFilledEntry 
+    return reportLines, lastValidEntry 
     
 
             
@@ -944,17 +968,17 @@ def verifyPickleContent( parameters, report ):
         for txName in txNames:
             
             files = []           
-            timeOfLastFilledEntry = getTimeOfLastFilledEntry( txName, parameters.startTime )
-            folders = getFoldersAndFilesAssociatedWith(txName,"tx", machine, timeOfLastFilledEntry, parameters.endTime )
+            lastValidEntry = getlastValidEntry( txName, parameters.startTime )
+            folders = getFoldersAndFilesAssociatedWith(txName,"tx", machine, lastValidEntry, parameters.endTime )
             
             for folder in folders.keys(): 
                 files.extend( folders[folder] )            
 
-            brandNewReportLines, timeOfLastFilledEntry =  getPickleAnalysis( files, txName, timeOfLastFilledEntry, parameters.maximumGaps[txName], errorLog )  
+            brandNewReportLines, lastValidEntry =  getPickleAnalysis( files, txName, lastValidEntry, parameters.maximumGaps[txName], errorLog )  
                
             newReportLines = newReportLines + brandNewReportLines
             
-            saveTimeOfLastFilledEntry( txName, timeOfLastFilledEntry )
+            savelastValidEntry( txName, lastValidEntry )
     
     if newReportLines != "":
         header = "\n\nThe following data gaps were not found in error log file :\n" 
@@ -1266,12 +1290,11 @@ def main():
     report = verifyCrontab(  report  )   
     report = verifyWebPages( parameters, report )
     report = verifyGraphs( parameters, report ) 
-    
+     
     savePreviousMonitoringJob( parameters  )    
     
     sendReportByEmail( parameters, report  )
-    #print report 
-        
+
     
     
 if __name__ == "__main__":
