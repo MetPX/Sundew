@@ -10,7 +10,7 @@ named COPYING in the root of the source directory tree.
 #
 # Author: Nicholas Lemay
 #
-# Date  : 2007-02-19
+# Date  : 2007-02-19, last update on May 9th 2007
 #
 # Description: 
 #
@@ -27,7 +27,9 @@ named COPYING in the root of the source directory tree.
 
 import commands, os, sys, PXPaths 
 import ConfigParser, configFileManager
-from ConfigParser import ConfigParser    
+
+from StatsConfigParameters import StatsConfigParameters   
+from MachineConfigParameters import MachineConfigParameters
 
 PXPaths.normalPaths()
 LOCAL_MACHINE = os.uname()[1]
@@ -42,14 +44,18 @@ def transferLogFiles():
         from the source. Ex : pxatx, pds5, etc"
     """
     
-    parameters = configFileManager.getParametersFromConfigurationFile( fileType = "statsConfig" )
-    
-    for i in range( len( parameters.individualLogMachineNames ) ):      
-                
-        if parameters.picklingMachines[i] == LOCAL_MACHINE :#pickling to be done elsewhere  
-            
-            status, output = commands.getstatusoutput( "rsync -avzr --delete-before -e ssh %s@%s:/apps/px/log/ /apps/px/log/%s/ " %( parameters.logMachinesLogins[i] ,parameters.individualLogMachineNames[i] , parameters.individualLogMachineNames[i] ) )
-            
+    parameters = StatsConfigParameters()    
+    machineParameters = MachineConfigParameters()
+    machineParameters.getParametersFromMachineConfigurationFile()
+    parameters.getAllParameters()
+    individualSourceMachines   = machineParameters.getMachinesAssociatedWithListOfTags( parameters.sourceMachinesTags )
+    individualPicklingMachines = machineParameters.getMachinesAssociatedWithListOfTags( parameters.picklingMachines )
+        
+    for sourceMachine,picklingMachine in map( None, individualSourceMachines, individualPicklingMachines ) :      
+               
+        if picklingMachine == LOCAL_MACHINE :#pickling to be done here  
+            userName = machineParameters.getUserNameForMachine(sourceMachine)
+            status, output = commands.getstatusoutput( "rsync -avzr --delete-before -e ssh %s@%s:/apps/px/log/ /apps/px/log/%s/ " %( userName , sourceMachine, sourceMachine  ) )
             print output
     
     
@@ -77,7 +83,7 @@ def transfer( login, machine ):
     for path in paths:
         if not os.path.isdir( path ) :            
                 print path
-                #os.makedirs( path )
+                os.makedirs( path )
             
            
             
@@ -113,8 +119,7 @@ def transfer( login, machine ):
         print output        
         
         status, output = commands.getstatusoutput( "rsync -avzr  --delete-before -e ssh %s@%s:/apps/px/stats/PICKLED-TIMES /apps/px/stats/PICKLED-TIMES "  %( login, machine ) )
-        print output
-        
+        print output 
   
     
 def main():
@@ -160,11 +165,7 @@ def main():
         print ""
         sys.exit()
     
-    
-    
-    
-    
-        
+      
     
 if __name__ == "__main__":
     main()    
