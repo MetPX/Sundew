@@ -25,13 +25,13 @@ named COPYING in the root of the source directory tree.
 
 import os, time, sys
 import generalStatsLibraryMethods, MyDateLib
-import configFileManager
+
 
 from MyDateLib import *
 from PXPaths   import * 
 from PXManager import *
 from generalStatsLibraryMethods import *
-from configFileManager import *
+
 
 # Constants
 LOCAL_MACHINE = os.uname()[1]          
@@ -72,10 +72,7 @@ def getStartEndOfWebPage():
         
     return start, end 
     
-    
-    
- 
-    
+        
 
     
 def generateWebPage( rxNames, txNames, days ):
@@ -89,6 +86,12 @@ def generateWebPage( rxNames, txNames, days ):
         
     """       
         
+    rxNamesArray = rxNames.keys()
+    txNamesArray = txNames.keys()
+    
+    rxNamesArray.sort()
+    txNamesArray.sort()
+            
     #Redirect output towards html page to generate.    
     if not os.path.isdir("/apps/px/stats/webPages/"):
         os.makedirs( "/apps/px/stats/webPages/" )
@@ -97,7 +100,30 @@ def generateWebPage( rxNames, txNames, days ):
 
      
     fileHandle.write( """
-    <html>
+    <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+    <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
+        <link rel="stylesheet" href="windowfiles/dhtmlwindow.css" type="text/css" />
+        
+        <script type="text/javascript" src="windowfiles/dhtmlwindow.js">
+            
+            This is left here to give credit to the original 
+            creators of the dhtml script used for the group pop ups: 
+            /***********************************************
+            * DHTML Window Widget-  Dynamic Drive (www.dynamicdrive.com)
+            * This notice must stay intact for legal use.
+            * Visit http://www.dynamicdrive.com/ for full source code
+            ***********************************************/
+        
+        </script>
+        <script type="text/javascript">
+
+            var descriptionWindow=dhtmlwindow.open("description", "inline", "description", "Group description", "width=900px,height=120px,left=150px,top=10px,resize=1,scrolling=0", "recal")
+            descriptionWindow.hide()
+
+        </script>
+        
+        
         <head>
             <title> PX Graphics </title>
         </head>
@@ -193,10 +219,15 @@ def generateWebPage( rxNames, txNames, days ):
     
     
     
-    for rxName in rxNames :
-        fileHandle.write( """<table cellspacing=10 cellpadding=8> <tr> <td bgcolor="#99FF99"><div class = "rxTableEntry"> %s </div></td> """ %(rxName))
-        fileHandle.write( """<td bgcolor="#66CCFF"><div class = "rxTableEntry">   Days :   """ )
-        
+    for rxName in rxNamesArray :
+        if rxNames[rxName] == "" :
+            fileHandle.write( """<table cellspacing=10 cellpadding=8> <tr> <td bgcolor="#99FF99"><div class = "rxTableEntry"> %s </div></td> """ %(rxName))
+            fileHandle.write( """<td bgcolor="#66CCFF"><div class = "rxTableEntry">   Days :   """ )
+        else:
+            fileHandle.write( """<table cellspacing=10 cellpadding=8> <tr> <td bgcolor="#99FF99"><div class = "rxTableEntry"><div class="left"> %s </div><div class="right"><a href="#" onClick="descriptionWindow.load('inline', '%s', 'Group description');descriptionWindow.show(); return false">?</a></div></div></td> """ %(rxName, rxNames[rxName].replace("'","").replace('"','')))
+            fileHandle.write( """<td bgcolor="#66CCFF"><div class = "rxTableEntry">   Days :   """ )
+            
+                
         for day in days:
             file = "%swebGraphics/daily/%s/%s.png" %( PXPaths.GRAPHS, rxName, day )
             if os.path.isfile( file ):
@@ -240,10 +271,14 @@ def generateWebPage( rxNames, txNames, days ):
        
     """   )       
         
-    for txName in txNames : 
-        fileHandle.write( """<table cellspacing=10 cellpadding=8><tr><td bgcolor="#99FF99"><div class = "txTableEntry"> %s </div></td>""" %(txName) )
+    for txName in txNamesArray : 
+        if txNames[txName] == "" :
+            fileHandle.write( """<table cellspacing=10 cellpadding=8> <tr> <td bgcolor="#99FF99"><div class = "txTableEntry"> %s </div></td> """ %(txName))
+            fileHandle.write( """<td bgcolor="#66CCFF"><div class = "txTableEntry">   Days :   """ )
+        else:
+            fileHandle.write( """<table cellspacing=10 cellpadding=8> <tr> <td bgcolor="#99FF99"><div class = "txTableEntry"><div class="left"> %s </div><div class="right"><a href="#" onClick="descriptionWindow.load('inline', '%s', 'Group description');descriptionWindow.show(); return false">?</a></div></div></td> """ %(txName, txNames[txName].replace("'","").replace('"','') ))
+            fileHandle.write( """<td bgcolor="#66CCFF"><div class = "txTableEntry">   Days :   """ )
         
-        fileHandle.write( """<td bgcolor="#66CCFF"><div class = "txTableEntry">   Days :   """ )
         
         for day in days:
             file = "%swebGraphics/daily/%s/%s.png" %( PXPaths.GRAPHS, txName, day )
@@ -274,7 +309,7 @@ def main():
     
     start, end = getStartEndOfWebPage()     
     
-    rxNames, txNames = generalStatsLibraryMethods.getSortedRxTxNamesForWebPages( start, end )
+    rxNames, txNames = generalStatsLibraryMethods.getRxTxNamesForWebPages(start, end)
              
     generateWebPage( rxNames, txNames, days)
     
