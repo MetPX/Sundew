@@ -17,7 +17,7 @@ named COPYING in the root of the source directory tree.
 ##               will be mailed to the chosen recipients.
 ##
 ##  
-## Date   : November 29th 2006
+## Date   : November 29th 2006, last updated May 09th 2007
 ##
 #############################################################################
 
@@ -27,8 +27,9 @@ import smtplib
 import LogFileCollector
 import mailLib
 import readMaxFile
-import configFileManager
 import generalStatsLibraryMethods
+
+from StatsMonitoringConfigParameters import StatsMonitoringConfigParameters
 from generalStatsLibraryMethods import *
 from ClientStatsPickler import ClientStatsPickler 
 from PXManager import *
@@ -42,33 +43,6 @@ PXPaths.normalPaths()
 LOCAL_MACHINE = os.uname()[1]
 
         
-class _Parameters:
-    """
-        This class is usefull to store all the values
-        collected from the config file into a single 
-        object. 
-    
-    """
-    
-    def __init__( self, emails, machines, files, folders, maxUsages, maximumGaps, errorsLogFile, maxSettingsFile, startTime, endTime  ):
-        """
-            Constructor.   
-                 
-        """    
-        
-        self.emails          = emails
-        self.machines        = machines 
-        self.files           = files 
-        self.folders         = folders
-        self.maxUsages       = maxUsages
-        self.maximumGaps     = maximumGaps
-        self.startTime       = startTime 
-        self.endTime         = endTime 
-        self.errorsLogFile   = errorsLogFile
-        self.maxSettingsFile = maxSettingsFile 
-
-
-
 def getMaximumGaps( maxSettingsFile ):
     """
         lire /apps/pds/tools/Columbo/etc/maxSettings.conf
@@ -1277,10 +1251,14 @@ def main():
         
     """ 
     
-    updateRequiredfiles()        
-    report = ""       
-    parameters = getParameters( )     
+    report = ""
+    parameters = StatsMonitoringConfigParameters()
+    parameters.getParametersFromMonitoringConfigurationFile()
+    
+    updateRequiredfiles()               
+
     validateParameters( parameters )
+    
     report = buildReportHeader( parameters )
     report = verifyFreeDiskSpace( parameters, report )    
     report = verifyPicklePresence( parameters, report )    
