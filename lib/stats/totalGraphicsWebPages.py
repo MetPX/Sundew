@@ -32,8 +32,8 @@ from PXPaths   import *
 from PXManager import *
 from MyDateLib import *
 from generalStatsLibraryMethods import *
-from configFileManager import * 
-
+from StatsConfigParameters import StatsConfigParameters
+from MachineConfigParameters import MachineConfigParameters
    
 LOCAL_MACHINE = os.uname()[1]   
 
@@ -343,9 +343,11 @@ def main():
     """
     """
     
-    configParameters = configFileManager.getParametersFromConfigurationFile( "statsConfig" )
-    
-    machineNames     = configParameters.coupledLogMachineNames
+    configParameters = StatsConfigParameters()
+    configParameters.getAllParameters()
+    machineParameters = MachineConfigParameters()
+    machineParameters.getParametersFromMachineConfigurationFile()
+    machineNames     = machineParameters.getPairedMachinesAssociatedWithListOfTags( configParameters.sourceMachinesTags )
 
     generateWebPage( machineNames )
      
