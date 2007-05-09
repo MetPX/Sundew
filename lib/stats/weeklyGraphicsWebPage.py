@@ -267,12 +267,6 @@ def generateWebPage( rxNames, txNames, weekNumbers ):
             fileHandle.write( """<td bgcolor="#66CCFF"><div class = "rxTableEntry">   Weeks&nbsp;:&nbsp;""" )        
         
         
-        fileHandle.write(  """<table cellspacing=10 cellpadding=8> <tr><td bgcolor="#99FF99"><div class = "rxTableEntry"> %s </div></td>""" %(rxName) )
-        
-        fileHandle.write(  """ <td bgcolor="#66CCFF"><div class = "rxTableEntry">Weeks&nbsp;:&nbsp;""" )
-        
-        
-        
         for week in weekNumbers:
             file = "%swebGraphics/weekly/bytecount/%s/%s.png" % (PXPaths.GRAPHS, rxName, week )
             if os.path.isfile( file ):
