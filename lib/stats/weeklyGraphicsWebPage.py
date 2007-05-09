@@ -25,7 +25,7 @@ named COPYING in the root of the source directory tree.
 
 
 import os, time,sys
-import generalStatsLibraryMethods, MyDateLib, configFileManager
+import generalStatsLibraryMethods, MyDateLib
 
 from generalStatsLibraryMethods import *
 from MyDateLib import *

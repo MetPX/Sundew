@@ -6,25 +6,26 @@ named COPYING in the root of the source directory tree.
 """
 ##########################################################################
 ##
-## Name   : crontabCommands.py 
+## Name   : launchGraphCreation.py 
 ##  
 ## Author : Nicholas Lemay  
 ##
-## Date   : May 19th 2006
+## Date   : May 19th 2006, Last updated on May 07th 2007
 ##
 #############################################################################
 
 import os, sys, commands
 import PXPaths, MyDateLib
-import configFileManager
-from ConfigParser import ConfigParser
+
+from MachineConfigParameters import MachineConfigParameters
+from StatsConfigParameters import StatsConfigParameters
 from MyDateLib import *
 
 PXPaths.normalPaths()
 LOCAL_MACHINE = os.uname()[1]
             
 
-def validateParameters( parameters, logger = None  ):
+def validateParameters( parameters, machineParameters, logger = None  ):
     """
         Validates parameters. 
         
@@ -33,24 +34,34 @@ def validateParameters( parameters, logger = None  ):
           
     """   
     
-    if len(parameters.individualLogMachineNames ) != len(parameters.picklingMachines ) or  len(parameters.individualLogMachineNames ) !=  len(parameters.picklingMachines )  or len(parameters.picklingMachines ) != len( parameters.picklingMachinesLogins ):
+    if len( parameters.picklingMachines ) != len(parameters.sourceMachinesTags ) :
     
         if logger != None:
-            logger.error("Error reading config file in launchGraphCreation program. Program was terminated abruptly.") 
-        print " Error reading config file in launchGraphCreation program. Program was terminated abruptly."        
+            logger.error("Error reading config file in launchGraphCreation program. Parameter number mismatch. Program was terminated abruptly.") 
+        print "Error reading config file in launchGraphCreation program. Parameter number mismatch. Program was terminated abruptly."       
         sys.exit()
     
         
-    if len( parameters.uploadMachines ) != len( parameters.uploadMachinesLogins ):
-            
-        if logger != None:
-            logger.error("Error reading config file in launchGraphCreation program. Program was terminated abruptly.") 
-        print " Error reading config file in launchGraphCreation program. Program was terminated abruptly."        
-        sys.exit()
+    for tag in parameters.sourceMachinesTags:
+        
+        if len( parameters.detailedParameters.sourceMachinesForTag[tag]) != len( parameters.detailedParameters.picklingMachines[tag] ):    
+            if logger != None:
+                logger.error("Error reading config file in launchGraphCreation program. Parameter number mismatch. Program was terminated abruptly.") 
+            print tag
+            print "Error reading config file in launchGraphCreation program. Parameter number mismatch number 2. Program was terminated abruptly."    
+            sys.exit()
+               
+        for machine in parameters.detailedParameters.sourceMachinesForTag[tag]:
+            if machineParameters.getUserNameForMachine( machine ) == "":            
+                        
+                if logger != None:
+                    logger.error("Error reading config file in launchGraphCreation program. Program was terminated abruptly.") 
+                print "Error reading config file in launchGraphCreation program. Program was terminated abruptly."    
+                sys.exit()
     
 
             
-def updatePickles( parameters ):
+def updatePickles( parameters, machineParameters ):
     """
         Updates the pickle files for all the specified log machines
         so that they are available for graphic production.
@@ -62,49 +73,61 @@ def updatePickles( parameters ):
     
     """      
         
-    for i in range( len( parameters.individualLogMachineNames ) ):
+    for tag in parameters.sourceMachinesTags:
         
+        sourceMachines = machineParameters.getMachinesAssociatedWith(tag)            
         
-        if parameters.individualLogMachineNames[i] != parameters.picklingMachines[i]: 
+        for i in range( len( sourceMachines  ) ):
             
-            if parameters.picklingMachines[i] != LOCAL_MACHINE :#pickling to be done elsewhere
-                for j in range(3):#do 3 times in case of currently turning log files.
-                    status, output = commands.getstatusoutput( "ssh %s@%s 'rsync -avzr --delete-before -e ssh  %s@%s:/apps/px/log/ /apps/px/log/%s/' " %( parameters.picklingMachinesLogins[i], parameters.picklingMachines[i], parameters.logMachinesLogins[i] ,parameters.individualLogMachineNames[i] , parameters.individualLogMachineNames[i] ) )
-                       
-            else:
-                for j in range(3):#do 3 times in case of currently turning log files.
-                    status, output = commands.getstatusoutput( "rsync -avzr --delete-before -e ssh %s@%s:/apps/px/log/   /apps/px/log/%s/ " %( parameters.logMachinesLogins[i] ,parameters.individualLogMachineNames[i] , parameters.individualLogMachineNames[i] ) )
-
-            print output   
+            picklingMachine  = parameters.detailedParameters.picklingMachines[tag][i]
+                        
+            # If pickling and source machines differ, download log files frm source to pickling machine.            
+            if  sourceMachines[i] != picklingMachine: 
+                
+                if parameters.detailedParameters.picklingMachines[tag][i] != LOCAL_MACHINE :#pickling to be done elsewhere
+                    for j in range(3):#do 3 times in case of currently turning log files.
+                        status, output = commands.getstatusoutput( "ssh %s@%s 'rsync -avzr --delete-before -e ssh  %s@%s:/apps/px/log/ /apps/px/log/%s/' "  %( machineParameters.getUserNameForMachine( picklingMachine), picklingMachine,machineParameters.getUserNameForMachine( sourceMachines[i] ) ,sourceMachines[i] , sourceMachines[i]) )
+                        print "ssh %s@%s 'rsync -avzr --delete-before -e ssh  %s@%s:/apps/px/log/ /apps/px/log/%s/' " %( machineParameters.getUserNameForMachine( picklingMachine), picklingMachine,machineParameters.getUserNameForMachine( sourceMachines[i] ) ,sourceMachines[i] , sourceMachines[i])    
+                else:
+                    
+                    for j in range(3):#do 3 times in case of currently turning log files.
+                        status, output = commands.getstatusoutput( "rsync -avzr --delete-before -e ssh %s@%s:/apps/px/log/   /apps/px/log/%s/ " %( machineParameters.getUserNameForMachine( sourceMachines[i] ), sourceMachines[i] , sourceMachines[i] ) )
+                        print "rsync -avzr --delete-before -e ssh %s@%s:/apps/px/log/   /apps/px/log/%s/ " %( machineParameters.getUserNameForMachine( sourceMachines[i] ), sourceMachines[i] , sourceMachines[i] )
+                print output   
+                                
+                
+            if picklingMachine != LOCAL_MACHINE :#pickling to be done elsewhere,needs ssh             
+                print "*************pickling machine %s"    %picklingMachine            
+                status, output = commands.getstatusoutput( "ssh %s@%s 'python /apps/px/lib/stats/pickleUpdater.py  -m %s -f rx'   " %( machineParameters.getUserNameForMachine( picklingMachine ), picklingMachine,  sourceMachines[i] ) ) 
+                
+                print "ssh %s@%s 'python /apps/px/lib/stats/pickleUpdater.py  -m %s -f rx'   "  %( machineParameters.getUserNameForMachine( picklingMachine ), picklingMachine,  sourceMachines[i] )
+                
+                print output
+                status, output = commands.getstatusoutput( "ssh %s@%s 'python /apps/px/lib/stats/pickleUpdater.py -m %s -f tx'  "( machineParameters.getUserNameForMachine( picklingMachine ), picklingMachine ,  sourceMachines[i] ) )
+                print "ssh %s@%s 'python /apps/px/lib/stats/pickleUpdater.py -m %s -f tx'  "%( machineParameters.getUserNameForMachine( picklingMachine ), picklingMachine ,  sourceMachines[i] )
+                print output
+                status, output = commands.getstatusoutput( "/apps/px/lib/stats/pickleSynchroniser.py -l %s -m %s  "%( machineParameters.getUserNameForMachine( picklingMachine ), picklingMachine ) )      
+                print "/apps/px/lib/stats/pickleSynchroniser.py -l %s -m %s  " %( machineParameters.getUserNameForMachine( picklingMachine ), picklingMachine )
+                print output
             
-        if parameters.picklingMachines[i] != LOCAL_MACHINE :#pickling to be done elsewhere,needs ssh             
-                            
-            status, output = commands.getstatusoutput( "ssh %s@%s 'python /apps/px/lib/stats/pickleUpdater.py  -m %s -f rx'   " %( parameters.picklingMachinesLogins[i], parameters.picklingMachines[i],  parameters.individualLogMachineNames[i] ) ) 
-            
-            print output
-            status, output = commands.getstatusoutput( "ssh %s@%s 'python /apps/px/lib/stats/pickleUpdater.py -m %s -f tx'  " %( parameters.picklingMachinesLogins[i], parameters.picklingMachines[i] ,  parameters.individualLogMachineNames[i] ) )
-          
-            print output
-            status, output = commands.getstatusoutput( "/apps/px/lib/stats/pickleSynchroniser.py -l %s -m %s  " %( parameters.picklingMachinesLogins[i], parameters.picklingMachines[i] ) )      
-
-            print output
-        
-        
-        else: # pickling is to be done locally. Log files may or may not reside elsewhere.
-            
-            status, output = commands.getstatusoutput( "python /apps/px/lib/stats/pickleUpdater.py -f rx -m %s " %( parameters.individualLogMachineNames[i] ) )
-            print output
-            print "python /apps/px/lib/stats/pickleUpdater.py -f rx -m %s " %( parameters.individualLogMachineNames[i])
-            
-            status, output = commands.getstatusoutput( "python /apps/px/lib/stats/pickleUpdater.py -f tx -m %s "  %(  parameters.individualLogMachineNames[i]) )
-            print output
-            print "python /apps/px/lib/stats/pickleUpdater.py -f tx -m %s "  %(  parameters.individualLogMachineNames[i])
+                
+            else: # pickling is to be done locally. Log files may or may not reside elsewhere.
+                print "*************pickling machine %s"    %picklingMachine
+                status, output = commands.getstatusoutput( "python /apps/px/lib/stats/pickleUpdater.py -f rx -m %s "%( sourceMachines[i] ) )
+                print output
+                print "python /apps/px/lib/stats/pickleUpdater.py -f rx -m %s " %( sourceMachines[i] )
+                
+                status, output = commands.getstatusoutput( "python /apps/px/lib/stats/pickleUpdater.py -f tx -m %s "  %(  sourceMachines[i]) )
+                print output
+                
+                print "python /apps/px/lib/stats/pickleUpdater.py -f tx -m %s " %( sourceMachines[i] )
             
             
             
-def generateGraphics( parameters ):
+            
+def generateColumboGraphics( parameters, machineParameters ):
     """
-        Generates all the required graphics. 
+        Generates all the graphics required by columbo. 
         
         Will generate combined graphics for couples,
         and single for singles.
@@ -114,35 +137,44 @@ def generateGraphics( parameters ):
     start = 0 
     end   = 0
             
-    for couple in parameters.coupledLogMachineNames:
+    for machineTag in parameters.sourceMachinesTags:
         
-        end    = start + len( couple.split( "," ) ) 
-        logins = parameters.logMachinesLogins[ start:end ]
+        logins = []
+        
+        machines = parameters.detailedParameters.sourceMachinesForTag[machineTag]
+       
+        for machine in machines:
+            logins.append( machineParameters.getUserNameForMachine( machine ) )
 
-        logins = str(logins).replace( "[", "" ).replace( "]", "" ).replace( " ", "" )
+        print "logins : %s" %logins    
+        logins   = str(logins).replace( "[", "" ).replace( "]", "" ).replace( " ", "" )
+        machines = str(machines).replace( "[", "" ).replace( "]", "" ).replace( " ", "" )
         
-        if "," in couple :
-            status, output = commands.getstatusoutput( "/apps/px/lib/stats/generateAllGraphsForServer.py -m %s -c  -l %s  " %(couple.replace( "'","" ),logins.replace( "'","" )) )
+        
+        if "," in machines :
+            print "/apps/px/lib/stats/generateAllGraphsForServer.py -m %s -c  -l %s  " %( machines.replace( "'","" ),logins.replace( "'","" ))
+            status, output = commands.getstatusoutput( "/apps/px/lib/stats/generateAllGraphsForServer.py -m %s -c  -l %s  " %( machines.replace( "'","" ),logins.replace( "'","" )) )
             print output
         else:
-            status, output = commands.getstatusoutput( "/apps/px/lib/stats/generateAllGraphsForServer.py -i -m %s -l %s  " %( couple.replace( "'","" ),logins.replace( "'","" ) ) )    
+            status, output = commands.getstatusoutput( "/apps/px/lib/stats/generateAllGraphsForServer.py -i -m %s -l %s  " %( machines.replace( "'","" ),logins.replace( "'","" ) ) )    
+            print "/apps/px/lib/stats/generateAllGraphsForServer.py -i -m %s -l %s  " %( machines.replace( "'","" ),logins.replace( "'","" ) )
             print output
         
-        start = start + len( couple.split( "," )  )  
+         
 
         
         
-def uploadGraphicFiles( parameters ):
+def uploadGraphicFiles( parameters, machineParameters ):
     """
-        Takes all created graphics and uploads them
-        to the machines specified in the parameters. 
+        Takes all the created daily graphics dedicated to clumbo and 
+        uploads them to the machines specified in the parameters. 
     """
     
    
-    for i in range ( len( parameters.uploadMachines ) ):
-        status, output = commands.getstatusoutput( "scp /apps/px/stats/graphs/webGraphics/columbo/* %s@%s:/apps/pds/tools/Columbo/ColumboShow/graphs/ " %( parameters.uploadMachinesLogins[i], parameters.uploadMachines[i] ) )
+    for uploadMachine in parameters.graphicsUpLoadMachines :
+        status, output = commands.getstatusoutput( "scp /apps/px/stats/graphs/webGraphics/columbo/* %s@%s:/apps/pds/tools/Columbo/ColumboShow/graphs/ " %( uploadMachine, machineParameters.getUserNameForMachine(uploadMachine) ) )
         
-        #print "scp /apps/px/stats/graphs/symlinks/* %s@%s:/apps/pds/tools/Columbo/ColumboShow/graphs/ " %( parameters.uploadMachinesLogins[i], parameters.uploadMachines[i] )
+        print "scp /apps/px/stats/graphs/webGraphics/columbo/* %s@%s:/apps/pds/tools/Columbo/ColumboShow/graphs/ " %( machineParameters.getUserNameForMachine(uploadMachine),uploadMachine )
         
 
         
@@ -166,19 +198,38 @@ def transferToDatabaseAlreadyRunning():
     
     
     
-def updateDatabases( parameters ):
+def updateDatabases( parameters, machineParameters ):
     """
         Updates all the required databases by transferring the
         data found in the pickle files into rrd databases files.
     """
-    if transferToDatabaseAlreadyRunning() == False :    
-        for machine in parameters.databaseMachines : 
-            status, output = commands.getstatusoutput( "/apps/px/lib/stats/transferPickleToRRD.py -m '%s'" %machine )
-            print  "/apps/px/lib/stats/transferPickleToRRD.py -m '%s' " %machine
-            print "output:%s" %output
+           
+    #Small safety measure in case another instance of the program is allready running.
+    if transferToDatabaseAlreadyRunning() == False :
         
-        
+        for tag in parameters.machinesToBackupInDb :
+             machines = machineParameters.getMachinesAssociatedWith(tag)             
+             machines = str( machines ).replace( "[", "" ).replace( "]", "" ).replace( " ", "" )
+             #status, output = commands.getstatusoutput( "/apps/px/lib/stats/transferPickleToRRD.py -m '%s'" %machines )
+             print  "/apps/px/lib/stats/transferPickleToRRD.py -m '%s' " %machines
+             #print "output:%s" %output
 
+        print "###%s " %parameters.groupParameters.groups
+        print "###%s " %parameters.groupParameters.groupFileTypes
+        print "###%s " %parameters.groupParameters.groupsMembers
+        print "###%s " %parameters.groupParameters.groupsProducts
+        
+        if parameters.groupParameters.groups != []:
+            for group in  parameters.groupParameters.groups :
+                                
+                groupMembers = str( parameters.groupParameters.groupsMembers[group]).replace( "[", "" ).replace( "]", "" ).replace( " ", "" )
+                groupMachines = str( parameters.groupParameters.groupsMachines[group] ).replace( "[", "" ).replace( "]", "" ).replace( " ", "" )                 
+                groupProducts = str( parameters.groupParameters.groupsProducts[group] ).replace( "[", "" ).replace( "]", "" ).replace( " ", "" )
+                             
+                status, output = commands.getstatusoutput( "/apps/px/lib/stats/transferPickleToRRD.py -c '%s' -m '%s' -g '%s', -p '%s' " %( groupMembers, groupMachines, group, groupProducts  ) )
+                print  "/apps/px/lib/stats/transferPickleToRRD.py -c '%s' -m '%s' -g '%s', -p '%s' "  %( groupMembers, groupMachines, group, groupProducts  )
+ 
+ 
 def getGraphicsForWebPages( ):
     """
         Launchs the getGraphicsForWebPages.py
@@ -186,10 +237,11 @@ def getGraphicsForWebPages( ):
         
     """
     
-    status, output = commands.getstatusoutput("/apps/px/lib/stats/getGraphicsForWebPages.py")
-    print output                    
+    #status, output = commands.getstatusoutput("/apps/px/lib/stats/getGraphicsForWebPages.py")
+    #print output                    
 
 
+    
 def updateWebPages():
     """
         Lauchs all the programs that 
@@ -211,6 +263,7 @@ def updateWebPages():
     print output
     
     
+    
 def monitorActivities():
     """
         Monitors all the activities that occured during 
@@ -221,7 +274,7 @@ def monitorActivities():
     
     if currentHour %12 == 0:
         status, output = commands.getstatusoutput( "/apps/px/lib/stats/statsMonitor.py" )
-        
+        print "/apps/px/lib/stats/statsMonitor.py"
         
         
 def main():
@@ -234,16 +287,24 @@ def main():
     
     """
     
-    parameters = configFileManager.getParametersFromConfigurationFile( fileType = "statsConfig" )
-    validateParameters( parameters )
-    updatePickles( parameters )
-    updateDatabases( parameters )
-    generateGraphics( parameters )
+    generalParameters = StatsConfigParameters()
+    generalParameters.getAllParameters()
+    print "***generalParameters.groupParameters %s " %generalParameters.groupParameters.groups 
+                                                            
+    machineParameters = MachineConfigParameters()
+    machineParameters.getParametersFromMachineConfigurationFile()
+       
+    validateParameters( generalParameters, machineParameters, None  )
+    updatePickles( generalParameters, machineParameters )
+    updateDatabases( generalParameters, machineParameters )
+    generateColumboGraphics(generalParameters, machineParameters)
     getGraphicsForWebPages()
     updateWebPages()
-    uploadGraphicFiles( parameters )
-    monitorActivities()        
-    #print "Finished."
+    uploadGraphicFiles( generalParameters, machineParameters )
+    monitorActivities()
+    
+    
+    print "Finished."
     
     
     

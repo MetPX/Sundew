@@ -26,7 +26,7 @@ named COPYING in the root of the source directory tree.
 
 
 
-import array,time,sys,os,pickle,datetime #important files 
+import array,time,sys,os,pickle,datetime, fnmatch #important files 
 from   array     import *
 import MyDateLib
 from   MyDateLib import *
@@ -159,10 +159,59 @@ class FileStatsCollector:
             self.files    = remainingList
             self.files.append( firstItem )                            
             
-
             
+    def buildProductPattern( product = "" ):
+        '''        
+        @param product: Product for wich to build a matching pattern. Can contain wildcards.               
+        
+        '''
+        
+        pattern = '*'
+        
+        if product == "All":
+            pattern = "*"
+        else:
+            if product[0] != "*" and product[0] != '?' :
+                pattern = '*' + product
+            else:
+                pattern = product    
+            if product[len(product) -1] != "*" and product[len(product) -1] != "?":
+                pattern = pattern + "*"              
+                                      
+        return pattern
+    
+    buildProductPattern = staticmethod(buildProductPattern)
+               
+               
+               
+    def isInterestingProduct( product = "", interestingProductTypes = ["All"] ):
+        ''' 
+        @param product: Product to verifry.
+               
+        @param interestingProductTypes: Array containing the list of valid product types to look for. 
+                                        Product types can contain wildcard characters.
+        
+        '''
+        
+        isInterestingProduct = False
+        #print "produt : %s   interested in : %s " %(product , interestingProductTypes )
+        
+        for productType in interestingProductTypes:
+            pattern = FileStatsCollector.buildProductPattern( productType )
+            #print product, pattern
+            if fnmatch.fnmatch( product, pattern):
+                isInterestingProduct = True
+                break
             
-    def setMinMaxMeanMedians( self, productType = "", startingBucket = 0, finishingBucket = 0  ):
+                
+        return isInterestingProduct   
+        
+        
+    isInterestingProduct = staticmethod(isInterestingProduct)
+    
+    
+    
+    def setMinMaxMeanMedians( self, productTypes = ["All"], startingBucket = 0, finishingBucket = 0  ):
         """
             This method takes all the values set in the values dictionary, finds the minimum, maximum,
             mean and median for every types found and sets them in a dictionary.
@@ -191,7 +240,7 @@ class FileStatsCollector:
         if self.logger != None :    
             self.logger.debug( "Call to setMinMaxMeanMedians received." )
    
-                   
+               
         for i in xrange( startingBucket , finishingBucket + 1 ): #for each entries we need to deal with 
                         
             self.fileEntries[i].medians  = {}
@@ -217,7 +266,7 @@ class FileStatsCollector:
                     #set values for each bucket..... 
                     for row in xrange( 0, self.fileEntries[i].values.rows ) : # for each line in the entry 
                         
-                        if productType in self.fileEntries[i].values.productTypes[row] :
+                        if FileStatsCollector.isInterestingProduct( self.fileEntries[i].values.productTypes[row], productTypes  ) == True :
                         
                             if aType == self.statsTypes[0] : #Lower number of file only if first time we check it.
                                 self.fileEntries[i].nbFiles = self.fileEntries[i].nbFiles +1

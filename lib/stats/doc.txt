@@ -15,12 +15,44 @@ named COPYING in the root of the source directory tree.
 #                             
 #
 # Author        : Nicholas Lemay
-# Last Update   : December 11th 2006
+# Last Update   : April 2007
 #
 #
 ################################################################################
 
 
+Sections 
+-------------------------------------------------------------------------------
+
+
+1 - About this document 
+2 - Stats library overview 
+3 - DEVELOPMENT REQUIREMENTS
+4 - GUIDING PRINCIPLES
+5 - IMPLEMENTATION :
+    5.1 - Remote file handling ( rsync )
+    5.2 - Data collection 
+    5.3 - Gathering pickled files
+    5.4 - Archiving the pickled data
+    5.5 - Graphic production
+    5.6 - Dealing with remote machines
+    5.7 - Graphic interface :
+    
+6 - Monitoring the library's activities 
+7 - List of files included
+    
+    7.1 - Required files
+    7.2 - File interaction 
+    7.3 - Quick File Overview 
+    7.4 - File system 
+   
+8  - Environment variables 
+9  - Important notes ( Specifics )
+10 - Usage 
+11 - Todo, bugs etc....
+
+
+    
 About this document :
 --------------------------------------------------------------------------------
 
@@ -170,7 +202,7 @@ Remote file handling ( rsync )
 ----------------------
 For testing purposes, data collection was not made directly on the machines 
 containing the logfiles. Therefore log files were downloaded to another machine 
-using rsync. rsync has been chosensince it will only download part of the files
+using rsync. rsync has been chosen since it will only download part of the files
 that are missing when files are allready found on destination machine. It also 
 offers a --delete option wich deletes files on the destination machine wich are 
 no longer present on the source machine. This allows for a picture perfect 
@@ -204,7 +236,7 @@ Data collection :
   importance. 
   
   FilesStatsCollector.py, DirecToryStatsCollector.py, pickleUpdater.py and 
-  gzipickle.py all contain methods to deal with data pickling and pickled data.
+  cpickleWrapper.py all contain methods to deal with data pickling and pickled data.
      
 - Because of disk access times, data pickling can be rather slow. To speed it up
   cpickle has been added to the library. cpickle is a c based implementation of 
@@ -212,15 +244,6 @@ Data collection :
   
 - Data collection can be done on an automated basis using crontab to call 
   pickleUpdater.
-
-- Data colection can be made on growing files. This is true as long as the top 
-  of the file remains intact and that data is only appended at the end of the 
-  log files. If top of the file is modified, the saved positioning of the file 
-  will be corrupted and reading the file will probably produce errors.  
-
-- File positioning of the last read file is saved for every sources/clients in 
-  the /apps/px/stats/PICKLED_FILE_POSITIONS pickle file.
-  
   
 - By default all data types are collected. This is done so that there will be no 
   problem if a user wants to produce any kind of graphic for a certain 
@@ -233,6 +256,10 @@ Data collection :
 Gathering pickled files:
 ------------------------
 
+- If the machine creating pickles is different from the machine using the pickles
+  for graphics production, all the pickles found on the producer need
+  to be dowloaded on the user machine.
+   
 - Remotely located pickle files are to be transfered to the machine where the
   graphics are to be created. see pickleSynchroniser.py for details.           
 
@@ -319,12 +346,14 @@ a simple link represented by a small graphic image within Columbo's
 PX Circuits tab. 
 
 The other graphics are avaible on the following web pages : dailyGraphs.html,
-weeklyGraphs.html, monthlyGraphs.html and yearlyGraphs.html.
+weeklyGraphs.html, monthlyGraphs.html and yearlyGraphs.html. 
 
 Daily graphs gives users the acces to the daily graphics of the past 7 days. 
 Weekly graphs gives users the access to the weekly graphs of the past 5 weeks.
 Monthly graphs gives users the access to the monthly graphs of the past 3 months.
 Yearly graphs gives users the access to the yearly graphs of the past 3 years.
+
+All these web pages can be accessed on the pxstats web site. 
 
 
 Monitoring the library's activities :
@@ -380,7 +409,7 @@ Note : Files that start with a lower case character are executable programs.
        Files that start wiht an upper case character contain contain class'
        to be used as objects.
 
-These library files are required by the stats library :
+Required files :
 -------------------------------------------------------------------
 
 -DateLib.py : Many methods were added specifically for the stats library, 
@@ -395,35 +424,22 @@ These library files are required by the stats library :
 -PXPaths           : List of paths to be used in the px library. 
 
 
-Environment variables :
----------------------------------------
-The following environment variable needs to be set in order for the file
-interaction to work.
-
-PYTHONPATH=:/apps/px/lib:/apps/px/lib/importedLibs:/apps/px/lib/stats/
-
-It should be set in the .profile(or equivalent) of machines where programs are 
-to be run locally.
-
-On hosts of remotely executed commands, it should be set in the 
-$HOME/.ssh/environment file.
-
-Further more, the PermitUserEnvironment parameter must be set to yes in 
-the /etc/ssh/sshd_config file or else the environment file will be ignored
-by ssh.
-
-Finally, the same variable needs to be set in the crontab file if crontabs are
-to be used on a machine. Use crontab -e and add the line prior to the line 
-containing the command that relates to one of the programs of the library.
-
-
 
 File interaction (only main files are included): 
 -------------------------------------------------
 
 
 --------------------------------------------------------------------------------
-                                   
+
+Tools "layer"
+ 
+                      MyDateLib       generalStatsLibraryMethods           
+
+-------------------------------------------------------------------------------
+Applications "layer"            /\
+                                |
+                                |                                               
+
                                    PickleVersionChecker
                                               /\
                           FileStatsCollector  |          StatsPlotter  
@@ -432,8 +448,8 @@ DirectoryFilecollector           |       |    |             |
                    /\            |   pickleMerging          |
                    |             |                /\        | 
                    |             |                |         |
- gzippickle<--ClientStatsPickler<-----------ClientGraphicProducer           
-              /\    /\    /\                                  /\
+cpickleWrapper<-ClientStatsPickler<-----------ClientGraphicProducer           
+               /\   /\    /\                                  /\
                |    |     |                                   |
                |    |     |                                   | 
 transferPickleToRRD |  pickleUpdater                      generateGraphics
@@ -443,26 +459,30 @@ transferPickleToRRD |  pickleUpdater                      generateGraphics
      
      
 --------------------------------------------------------------------------------
-                               / \
+Highest "layer"                / \
                                 |
-                                |
+  Web "Package"                 |
 |------------------------|      | 
 | getGraphicsForWebPages |      | 
-| weeklyGraphicsWebPage  |      |
-| monthlyGraphicsWebPage |      |                    
-| dailyGraphicsWebPage   |/_____|
-| yearlyGraphicsWebPage  |\     |        
+| weeklyGraphicsWebPage  |      |            "Monitoring"
+| monthlyGraphicsWebPage |      |        |-----------------------------------|            
+| dailyGraphicsWebPage   |/_____|_______\|   statsMonitor                    |
+| yearlyGraphicsWebPage  |\     |
+| totalGraphicsWebPage   |      | |-----------------------------------|
 |------------------------|      |                          
                                 |
                                 |
                                 |                
-                         launchGraphCreation   
+                         launchGraphCreation( Main script )   
        
      
---Note : x-->y means x uses y            
+--Note : x-->y means x uses y          
 
 --------------------------------------------------------------------------------
 
+Independant tools :
+
+pickledTimesViewer
 
 
 Quick File Overview 
@@ -889,6 +909,29 @@ ws-fortsimpson_pds5pds6
 ------------------------------------------------------------
 These files are pickle files containing the time of the last database update
 of a certainclient/database 
+
+
+
+Environment variables :
+---------------------------------------
+The following environment variable needs to be set in order for the file
+interaction to work.
+
+PYTHONPATH=:/apps/px/lib:/apps/px/lib/importedLibs:/apps/px/lib/stats/
+
+It should be set in the .profile(or equivalent) of machines where programs are 
+to be run locally.
+
+On hosts of remotely executed commands, it should be set in the 
+$HOME/.ssh/environment file.
+
+Further more, the PermitUserEnvironment parameter must be set to yes in 
+the /etc/ssh/sshd_config file or else the environment file will be ignored
+by ssh.
+
+Finally, the same variable needs to be set in the crontab file if crontabs are
+to be used on a machine. Use crontab -e and add the line prior to the line 
+containing the command that relates to one of the programs of the library.
 
 
 Important notes ( Specifics )

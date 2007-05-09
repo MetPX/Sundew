@@ -46,55 +46,69 @@ class PickleVersionChecker :
         self.savedFileList         = {} # The one that was previously recorded
         
         
-    def getClientsCurrentFileList( self, client ):
+    def getClientsCurrentFileList( self, clients ):
         """
             Client list is used here since we need to find all the pickles that will be used in a merger.
-            Thus unlike all other methos we dont refer here to the combined name but rather to a list of
+            Thus unlike all other methods we dont refer here to the combined name but rather to a list of
             individual machine names. 
             
             Returns the checksum of all pickle files currently found on the disk.
             
         """  
-
-        filePattern = PXPaths.PICKLES + client + "/*/*"  #_??
-        folderNames = glob.glob( filePattern )
         
         
         fileNames = []
-        for folder in folderNames:
-            if os.path.isdir( folder ):                    
-                filePattern = folder + "/" + "*_??"
-                fileNames.extend( glob.glob( filePattern ) )       
-                
-
-        for fileName in fileNames :
-            self.currentClientFileList[fileName] = os.path.getmtime( fileName )            
+        
+        for client in clients : 
+            filePattern = PXPaths.PICKLES + client + "/*/*"  #_??
+            folderNames = glob.glob( filePattern )
+                        
+            
+            for folder in folderNames:
+                if os.path.isdir( folder ):                    
+                    filePattern = folder + "/" + "*_??"
+                    fileNames.extend( glob.glob( filePattern ) )       
+                    
+    
+            for fileName in fileNames :
+                self.currentClientFileList[fileName] = os.path.getmtime( fileName )            
    
+                
         return  self.currentClientFileList       
             
         
         
-    def getSavedList( self, user, client ):
+    def getSavedList( self, user, clients ):
         """
             Returns the checksum of the files contained in the saved list.
         
         """
         
-        directory = PXPaths.STATS + "file_versions/"
-        fileName  = user + "_" + client 
+        self.savedFileList         = {}
+        directory = PXPaths.STATS + "file_versions/"              
+                
+        combinedName = ""
+        for client in clients:
+            combinedName = combinedName + client
         
+        fileName  = user + "_" + combinedName             
+            
         try :
+            
             self.savedFileList = cpickleWrapper.load( directory + fileName )
-            if self.savedFileList == None :
+            
+            if savedFileList == None :
                 self.savedFileList = {}
+                
         except: # if file does not exist
-            self.savedFileList = {}
+            pass
+        
         
         return self.savedFileList
         
         
                     
-    def isDifferentFile( self, user ,client, file,):
+    def isDifferentFile( self, user ,clients, file):
         """
             
             Goal : Returns whether or not the file is different than 
@@ -107,20 +121,24 @@ class PickleVersionChecker :
              
         """
         
+        
         isDifferent = True  
         
         #if user did not update both list we try and do it for him....
         if self.currentClientFileList == {}:
-            self.getClientsCurrentFileList( client )
+            self.getClientsCurrentFileList( clients )
     
         if self.savedFileList == {}:
-            self.getSavedList( user, client )
-        
+            self.getSavedList( user, clients )
+
+           
         try:
+
             if self.savedFileList[file] == self.currentClientFileList[file] :
                 isDifferent = False         
             
         except:#key doesnt exist on one of the lists
+            
             pass
         
         
@@ -145,14 +163,20 @@ class PickleVersionChecker :
             self.savedFileList[file] = 0
             
     
-    def saveList( self, user, client ):   
+    def saveList( self, user, clients ):   
         """
             Saves list. Will include modification made in updateFileInlist method 
         
         """
         
         directory = PXPaths.STATS + "file_versions/"
-        fileName  = user + "_" + client 
+         
+        
+        combinedName = ""
+        for client in clients:
+            combinedName = combinedName + client
+        
+        fileName  = user + "_" + combinedName
         
         if not os.path.isdir( directory ):
             os.makedirs( directory, mode=0777 )

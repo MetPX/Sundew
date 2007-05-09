@@ -9,7 +9,7 @@ named COPYING in the root of the source directory tree.
 #
 # Author: Nicholas Lemay
 #
-# Date  : 2006-12-14
+# Date  : 2006-12-14, last updated on May 09th 2007
 #
 # Description: This file contains numerous methods helpfull to many programs within the 
 #              stats library. THey have been gathered here as to limit repetition. 
@@ -18,11 +18,13 @@ named COPYING in the root of the source directory tree.
 """
 
 import os, commands, PXPaths, PXManager, commands, glob 
-import MyDateLib, configFileManager
+import MyDateLib, MachineConfigParameters
+import rrdUtilities
+from  rrdUtilities import *
 from PXManager import *
 from MyDateLib import *
-from configFileManager import *
-
+from StatsConfigParameters import StatsConfigParameters
+from MachineConfigParameters import MachineConfigParameters
 
 PXPaths.normalPaths()
 
@@ -97,27 +99,21 @@ def updateConfigurationFiles( machine, login ):
 
     
     
-def getDatabaseTimeOfUpdate( client, machine, fileType ):
+def getDataTypesAssociatedWithFileType( fileType ):
     """
-        If present in DATABASE-UPDATES file, returns the time of the last 
-        update associated with the databse name.      
+        This method is used to get all the data types that 
+        are associated withg the file type used as parameter.
         
-        Otherwise returns 0 
+    """      
         
-    """ 
+    dataTypes = []        
     
-    lastUpdate = 0
-    folder   = PXPaths.STATS + "DATABASE-UPDATES/%s/" %(fileType )
-    fileName = folder + "%s_%s" %( client, machine )
+    if fileType == "tx":
+        dataTypes = [ "latency", "bytecount", "errors", "filesOverMaxLatency", "filecount" ]
+    elif fileType == "rx":
+        dataTypes = [ "bytecount", "errors", "filecount" ]
     
-    if os.path.isfile( fileName ):
-        
-        fileHandle  = open( fileName, "r" )
-        lastUpdate  = pickle.load( fileHandle )           
-        fileHandle.close()     
-        
-            
-    return lastUpdate 
+    return dataTypes
     
             
 
@@ -147,8 +143,8 @@ def getRxTxNamesHavingRunDuringPeriod( start, end, machines ):
     for machine in machines:
         combinedMachineName = combinedMachineName + machine
     
-    rxTxDatabasesLongNames = glob.glob( "/apps/px/stats/databases/bytecount/*%s*" %combinedMachineName ) 
-    txOnlyDatabasesLongNames = glob.glob( "/apps/px/stats/databases/latency/*%s*" %combinedMachineName )   
+    rxTxDatabasesLongNames = glob.glob( "/apps/px/stats/databases/bytecount/*_%s*" %combinedMachineName ) 
+    txOnlyDatabasesLongNames = glob.glob( "/apps/px/stats/databases/latency/*_%s*" %combinedMachineName )   
     
     
     #Keep only client/source names.
@@ -164,20 +160,27 @@ def getRxTxNamesHavingRunDuringPeriod( start, end, machines ):
         
         
     for rxDatabase in rxOnlyDatabases:  
-    
-        rxDatabase = rxDatabase.split("_%s"%combinedMachineName)[0]  
-        lastUpdate = getDatabaseTimeOfUpdate( rxDatabase, combinedMachineName, "rx" )
+        lastUpdate = rrdUtilities.getDatabaseTimeOfUpdate( rxDatabase, "rx" )
         if lastUpdate >= start:
-            #fileName format is ../path/rxName_machineName            
+            #fileName format is ../path/rxName_machineName     
+            rxDatabase = rxDatabase.split("_%s"%combinedMachineName)[0]       
             rxNames.append( rxDatabase  )
         
-    for txDatabase in txOnlyDatabases:
-        txDatabase = txDatabase.split("_%s"%combinedMachineName)[0]
-        lastUpdate = getDatabaseTimeOfUpdate( txDatabase, combinedMachineName, "tx" )
+    for txDatabase in txOnlyDatabases:  
+           
+        lastUpdate = rrdUtilities.getDatabaseTimeOfUpdate( txDatabase, "tx" )
        
         if lastUpdate >= start:
             #fileName format is ../rxName_machineName
-            txNames.append( txDatabase )    
+            
+            
+            if  "pxatx_pds5pds6" in txDatabase: 
+                print "avant : %s machine :%s" %(txDatabase,combinedMachineName )
+                txDatabase = txDatabase.split("_%s"%combinedMachineName)[0]
+                print "apres : %s" %txDatabase
+            else:
+                txDatabase = txDatabase.split("_%s"%combinedMachineName)[0]
+                txNames.append( txDatabase )    
         
     rxNames.sort()
     txNames.sort()
@@ -209,33 +212,70 @@ def getRxTxNames( localMachine, machine ):
     return rxNames, txNames     
     
 
-def getSortedRxTxNamesForWebPages( start, end ):
+
+
+def getRxTxNamesForWebPages( start, end ):
     """
-        Returns the list of all the rx and tx names
-        that are running between start and and.        
-        
-    """ 
-    
-    rxNames = []
-    txNames = []
-    
-    interestingMachines = []
-    
-    configParameters = configFileManager.getParametersFromConfigurationFile( "statsConfig" )
-            
-    
-    for coupledMachineName in configParameters.coupledLogMachineNames :  
+
+    @summary: Returns two dictionaries, rx and tx,  whose 
+              keys is the list of rx or tx having run 
+              between start and end.
+              
+              If key has an associated value different from 
+              "", this means that the entry is a group tag name. 
+              
+              The value will be the description of the group. 
                 
-        machines = coupledMachineName.split(",")        
-        newRxNames, newTxNames  = getRxTxNamesHavingRunDuringPeriod( start, end, machines ) 
+    @param start: Start of the span to look into.  
+    
+    @param end: End of the span to look into.
+    
+    @return: see summary.
+    
+    """
 
-        rxNames.extend( newRxNames )
-        txNames.extend( newTxNames )
+    
+    rxNames = {}
+    txNames = {}
 
-    rxNames.sort()
-    txNames.sort()
+    
+    configParameters = StatsConfigParameters()
+    configParameters.getAllParameters()
+    machineParameters = MachineConfigParameters()
+    machineParameters.getParametersFromMachineConfigurationFile()
+    
+    
+    for sourceMachinesTag in configParameters.sourceMachinesTags:
+        machines = machineParameters.getMachinesAssociatedWith( sourceMachinesTag )
+
+        newRxNames, newTxNames  = getRxTxNamesHavingRunDuringPeriod( start, end, machines )
+         
+        for rxName in newRxNames :
+            rxNames[rxName] = ""
+         
+        for txName in newTxNames:
+            txNames[txName] = ""
         
-    return rxNames, txNames        
+    
+    for group in configParameters.groupParameters.groups:        
+        print group
+        machines  = configParameters.groupParameters.groupsMachines[group]
+        machines  = str(machines ).replace( "[", "" ).replace( "]", "" ).replace( " ", "" )
+        members   = configParameters.groupParameters.groupsMembers[group]
+        members   = str( members ).replace( "[", "" ).replace( "]", "" ).replace( " ", "" )
+        fileTypes = configParameters.groupParameters.groupFileTypes[group]
+        fileTypes = str(fileTypes ).replace( "[", "" ).replace( "]", "" ).replace( " ", "" )
+        products  = configParameters.groupParameters.groupsProducts[group]
+        products  = str( products ).replace( "[", "" ).replace( "]", "" ).replace( " ", "" )
+        
+        description = "-Group Name : %s   -Machine(s) : %s   -Member(s) : %s   -FileType : %s   -Product(s) pattern(s) : %s " %(group, machines, members, fileTypes, products )
+        
+        if configParameters.groupParameters.groupFileTypes[group] == "tx":
+            txNames[group] = description
+        elif configParameters.groupParameters.groupFileTypes[group] == "rx":    
+            rxNames[group] = description 
+            
+    return rxNames, txNames
     
     
     

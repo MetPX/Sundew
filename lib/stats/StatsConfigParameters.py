@@ -75,9 +75,8 @@ class StatsConfigParameters:
                 
         self.detailedParameters = DetailedStatsParameters()
         
-        print " self.sourceMachinesTags %s self.picklingMachines %s " %(self.sourceMachinesTags, self.picklingMachines) 
-        for machineTag, picklingMachine in map( None, self.sourceMachinesTags, self.picklingMachines ):
-            print  machineTag
+         
+        for machineTag, picklingMachine in map( None, self.sourceMachinesTags, self.picklingMachines ):            
             sourceMachines   = machineParameters.getMachinesAssociatedWith( machineTag )
             picklingMachines = machineParameters.getMachinesAssociatedWith( picklingMachine )
                                  
@@ -139,7 +138,7 @@ class StatsConfigParameters:
         self.machinesToBackupInDb.extend( config.get( 'generalConfig', 'machinesToBackupInDb' ).split(',') ) 
         self.graphicsUpLoadMachines.extend( config.get( 'generalConfig', 'graphicsUpLoadMachines' ).split(',') ) 
         
-        print self.sourceMachinesTags
+    
      
      
     def getGroupSettingsFromConfigurationFile( self ):
@@ -159,18 +158,18 @@ class StatsConfigParameters:
         
         line = fileHandle.readline()#read until groups section, or EOF
         while line != "" and "[specialGroups]" not in line: 
-            #print line 
+            
             line = fileHandle.readline()
             
             
         if line != "":#read until next section, or EOF     
             
             line = fileHandle.readline()            
-            print line
+            
             while line != ""  and "[" not in line:
                 
                 if line != '\n' and line[0] != '#' :
-                    print line
+                    
                     splitLine = line.split()
                     if len( splitLine ) == 6:
                         groupName =  splitLine[0] 

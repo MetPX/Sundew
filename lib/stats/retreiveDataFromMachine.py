@@ -26,7 +26,7 @@ named COPYING in the root of the source directory tree.
 
 
 import commands, os, sys, PXPaths 
-import ConfigParser, configFileManager
+import ConfigParser
 
 from StatsConfigParameters import StatsConfigParameters   
 from MachineConfigParameters import MachineConfigParameters

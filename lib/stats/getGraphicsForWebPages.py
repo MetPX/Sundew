@@ -12,14 +12,10 @@ named COPYING in the root of the source directory tree.
 ##               web pages: dailyGraphs.html, weeklyGraphs.html, 
 ##               monthlyGraphs.html, yearlyGraphs.html
 ##
-## Note        : Graphics are gathered for all the rx/tx sources/clients 
-##               present in the pds5,pds6 and pxatx mahcines. This has been 
-##               hardcoded here since it is also hardocded within the web 
-##               pages.  
 ##                 
 ## Author : Nicholas Lemay  
 ##
-## Date   : November 22nd 2006
+## Date   : November 22nd 2006, last updated on May 9th 2007
 ##
 #############################################################################
 
@@ -27,12 +23,13 @@ import os, sys, time, shutil, glob, commands, configFileManager
 import PXPaths, MyDateLib
 
 from MyDateLib import *
-from configFileManager import *
+from StatsConfigParameters import StatsConfigParameters
+from MachineConfigParameters import MachineConfigParameters
 
 PXPaths.normalPaths()
 
 
-def updateThisYearsGraphs( currentTime, machineNames ):
+def updateThisYearsGraphs( currentTime, machinePairs ):
     """
         This method generates new yearly graphs
         for all the rx and tx names.       
@@ -41,7 +38,7 @@ def updateThisYearsGraphs( currentTime, machineNames ):
     
     currentTime = MyDateLib.getIsoFromEpoch(currentTime)    
     
-    for machineName in machineNames:
+    for machinePair in machinePairs:
         
         status, output = commands.getstatusoutput( "/apps/px/lib/stats/generateRRDGraphics.py -y --copy -f tx --machines '%s' --havingRun --date '%s' --fixedCurrent" %( machineName, currentTime ) )
         print output
@@ -52,10 +49,13 @@ def updateThisYearsGraphs( currentTime, machineNames ):
         print output
         status, output = commands.getstatusoutput( '/apps/px/lib/stats/generateRRDGraphics.py --copy --totals -f "tx" --machines "%s" -y  --havingRun --fixedCurrent --date "%s"'  %( machineName, currentTime ) )
         print output
-           
+    
+    for group in groupParameters:
+        groupMembers, groupMachines, groupProducts, groupFileTypes = groupParameters.getAssociatedParametersInStringFormat( group )
+        status, output = commands.getstatusoutput( "/apps/px/lib/stats/generateRRDGraphics.py -y --copy -f %s --machines '%s'  -c %s --date '%s' --fixedCurrent " %( groupFileTypes, groupMachines, group, currentTime ) )        
         
     
-def setLastYearsGraphs( currentTime, machineNames ):
+def setLastYearsGraphs( currentTime, machinePairs ):
     """
         This method generates all the yearly graphs
         of the previous year.        
@@ -63,7 +63,7 @@ def setLastYearsGraphs( currentTime, machineNames ):
     
     currentTime = MyDateLib.getIsoFromEpoch(currentTime)
     
-    for machineName in machineNames:
+    for machinePairs in machinePairs:
         
         status, output = commands.getstatusoutput( "/apps/px/lib/stats/generateRRDGraphics.py -y --copy -f tx --machines '%s' --havingRun --date '%s' --fixedPrevious" %( machineName, currentTime ) )
         print output
@@ -74,9 +74,13 @@ def setLastYearsGraphs( currentTime, machineNames ):
         print output
         status, output = commands.getstatusoutput( '/apps/px/lib/stats/generateRRDGraphics.py --copy --totals -f "tx" --machines "%s" --havingRun -y --fixedPrevious --date "%s"' %( machineName, currentTime ) )
         print output    
-         
+    
+    for group in groupParameters:
+        groupMembers, groupMachines, groupProducts, groupFileTypes = groupParameters.getAssociatedParametersInStringFormat( group )
+        status, output = commands.getstatusoutput( "/apps/px/lib/stats/generateRRDGraphics.py -y --copy -f %s --machines '%s'  -c %s --date '%s' --fixedPrevious " %( groupFileTypes, groupMachines, group, currentTime ) )
+        
       
-def updateThisMonthsGraphs( currentTime, machineNames ):
+def updateThisMonthsGraphs( currentTime, machinePairs ):
     """
     
         This method generates new monthly graphs
@@ -86,20 +90,25 @@ def updateThisMonthsGraphs( currentTime, machineNames ):
 
     currentTime = MyDateLib.getIsoFromEpoch( currentTime )
 
-    for machineName in machineNames:
+    for machinePair in machinePairs:
     
-        status, output = commands.getstatusoutput( "/apps/px/lib/stats/generateRRDGraphics.py -m --copy -f tx --machines '%s' --havingRun --date '%s' --fixedCurrent" %( machineName, currentTime ) )
+        status, output = commands.getstatusoutput( "/apps/px/lib/stats/generateRRDGraphics.py -m --copy -f tx --machines '%s' --havingRun --date '%s' --fixedCurrent" %( machinePair, currentTime ) )
         print output
-        status, output = commands.getstatusoutput( "/apps/px/lib/stats/generateRRDGraphics.py -m --copy -f rx --machines '%s' --havingRun --date '%s' --fixedCurrent" %( machineName, currentTime ) )
+        status, output = commands.getstatusoutput( "/apps/px/lib/stats/generateRRDGraphics.py -m --copy -f rx --machines '%s' --havingRun --date '%s' --fixedCurrent" %( machinePair, currentTime ) )
         print output    
         #total graphics 
-        status, output = commands.getstatusoutput( '/apps/px/lib/stats/generateRRDGraphics.py --copy --totals -f "rx" --machines "%s" --havingRun -m --fixedCurrent --date "%s"' %( machineName, currentTime ) )
+        status, output = commands.getstatusoutput( '/apps/px/lib/stats/generateRRDGraphics.py --copy --totals -f "rx" --machines "%s" --havingRun -m --fixedCurrent --date "%s"' %( machinePair, currentTime ) )
         print output
-        status, output = commands.getstatusoutput( '/apps/px/lib/stats/generateRRDGraphics.py --copy --totals -f "tx" --machines "%s" --havingRun -m --fixedCurrent --date "%s"' %( machineName, currentTime ) )
+        status, output = commands.getstatusoutput( '/apps/px/lib/stats/generateRRDGraphics.py --copy --totals -f "tx" --machines "%s" --havingRun -m --fixedCurrent --date "%s"' %( machinePair, currentTime ) )
         print output 
     
+    for group in groupParameters:
+        groupMembers, groupMachines, groupProducts, groupFileTypes = groupParameters.getAssociatedParametersInStringFormat( group )
+        status, output = commands.getstatusoutput( "/apps/px/lib/stats/generateRRDGraphics.py -m --copy -f %s --machines '%s'  -c %s --date '%s' --fixedCurrent " %( groupFileTypes, groupMachines, group, currentTime ) )
     
-def setLastMonthsGraphs( currentTime, machineNames ):
+    
+    
+def setLastMonthsGraphs( currentTime, machinePairs, groupParameters ):
     """
         This method generates all the monthly graphs
         for the previous month.
@@ -108,22 +117,26 @@ def setLastMonthsGraphs( currentTime, machineNames ):
     
     currentTime = MyDateLib.getIsoFromEpoch(currentTime)
     
-    for machineName in machineNames:
+    for machinePair in machinePairs:
         
-        status, output = commands.getstatusoutput( "/apps/px/lib/stats/generateRRDGraphics.py -m --copy -f tx --machines '%s' --havingRun --date '%s' --fixedPrevious" %( machineName, currentTime ) )
+        status, output = commands.getstatusoutput( "/apps/px/lib/stats/generateRRDGraphics.py -m --copy -f tx --machines '%s' --havingRun --date '%s' --fixedPrevious" %( machinePair, currentTime ) )
         print output
-        status, output = commands.getstatusoutput( "/apps/px/lib/stats/generateRRDGraphics.py -m --copy -f rx --machines '%s' --havingRun --date '%s' --fixedPrevious" %( machineName, currentTime ) )
+        status, output = commands.getstatusoutput( "/apps/px/lib/stats/generateRRDGraphics.py -m --copy -f rx --machines '%s' --havingRun --date '%s' --fixedPrevious" %( machinePair, currentTime ) )
         print output
         #total graphics 
-        status, output = commands.getstatusoutput( '/apps/px/lib/stats/generateRRDGraphics.py --copy --totals -f "rx" --machines "%s" --havingRun -m --fixedPrevious --date "%s"' %( machineName, currentTime ) )
+        status, output = commands.getstatusoutput( '/apps/px/lib/stats/generateRRDGraphics.py --copy --totals -f "rx" --machines "%s" --havingRun -m --fixedPrevious --date "%s"' %( machinePair, currentTime ) )
         print output
-        status, output = commands.getstatusoutput( '/apps/px/lib/stats/generateRRDGraphics.py --copy --totals -f "tx" --machines "%s" --havingRun -m --fixedPrevious --date "%s"' %( machineName, currentTime ) )
+        status, output = commands.getstatusoutput( '/apps/px/lib/stats/generateRRDGraphics.py --copy --totals -f "tx" --machines "%s" --havingRun -m --fixedPrevious --date "%s"' %( machinePair, currentTime ) )
         print output
-       
+        
+    for group in groupParameters:
+        groupMembers, groupMachines, groupProducts, groupFileTypes = groupParameters.getAssociatedParametersInStringFormat( group )
+        status, output = commands.getstatusoutput( "/apps/px/lib/stats/generateRRDGraphics.py -m --copy -f %s --machines '%s'  -c %s --date '%s' --fixedPrevious " %( groupFileTypes, groupMachines, group, currentTime ) )
+        
     
     
        
-def setLastWeeksGraphs( currentTime, machineNames ):
+def setLastWeeksGraphs( currentTime, machinePairs, groupParameters ):
     """
         Generates all the graphics of the previous week.
                 
@@ -131,20 +144,25 @@ def setLastWeeksGraphs( currentTime, machineNames ):
     
     currentTime = MyDateLib.getIsoFromEpoch( currentTime )
     
-    for machineName in machineNames:
+    for machinePair in machinePairs:
     
-        status, output = commands.getstatusoutput( "/apps/px/lib/stats/generateRRDGraphics.py -w --copy -f tx --machines '%s' --havingRun --date '%s' --fixedPrevious" %( machineName, currentTime ) )
+        status, output = commands.getstatusoutput( "/apps/px/lib/stats/generateRRDGraphics.py -w --copy -f tx --machines '%s' --havingRun --date '%s' --fixedPrevious" %( machinePair, currentTime ) )
         print output
-        status, output = commands.getstatusoutput( "/apps/px/lib/stats/generateRRDGraphics.py -w --copy -f rx --machines '%s'  --havingRun --date '%s' --fixedPrevious" %( machineName, currentTime ) )
+        status, output = commands.getstatusoutput( "/apps/px/lib/stats/generateRRDGraphics.py -w --copy -f rx --machines '%s'  --havingRun --date '%s' --fixedPrevious" %( machinePair, currentTime ) )
         print output    
         #total graphics 
-        status, output = commands.getstatusoutput( '/apps/px/lib/stats/generateRRDGraphics.py --copy --totals -f "rx" --machines "%s" --havingRun -w --fixedPrevious --date "%s"' %( machineName, currentTime ) )
+        status, output = commands.getstatusoutput( '/apps/px/lib/stats/generateRRDGraphics.py --copy --totals -f "rx" --machines "%s" --havingRun -w --fixedPrevious --date "%s"' %( machinePair, currentTime ) )
         print output
-        status, output = commands.getstatusoutput( '/apps/px/lib/stats/generateRRDGraphics.py --copy --totals -f "tx" --machines "%s" --havingRun -w --fixedPrevious --date "%s"' %( machineName, currentTime ) )
+        status, output = commands.getstatusoutput( '/apps/px/lib/stats/generateRRDGraphics.py --copy --totals -f "tx" --machines "%s" --havingRun -w --fixedPrevious --date "%s"' %( machinePair, currentTime ) )
         print output
     
+    for group in groupParameters:
+        groupMembers, groupMachines, groupProducts, groupFileTypes = groupParameters.getAssociatedParametersInStringFormat( group )
+        status, output = commands.getstatusoutput( "/apps/px/lib/stats/generateRRDGraphics.py -w --copy -f %s --machines '%s'  -c %s --date '%s' --fixedPrevious " %( groupFileTypes, groupMachines, group, currentTime ) )
+    
+    
         
-def updateThisWeeksGraphs( currentTime, machineNames ):
+def updateThisWeeksGraphs( currentTime, machinePairs, groupParameters ):
     """
     
         This method generates new monthly graphs
@@ -154,21 +172,25 @@ def updateThisWeeksGraphs( currentTime, machineNames ):
 
     currentTime = MyDateLib.getIsoFromEpoch(currentTime)
     
-    for machineName in machineNames:
+    for machinePair in machinePairs:
         #individual graphics 
-        status, output = commands.getstatusoutput( "/apps/px/lib/stats/generateRRDGraphics.py -w --copy -f tx --machines '%s' --havingRun --date '%s' --fixedCurrent " %( machineName, currentTime ) )
+        status, output = commands.getstatusoutput( "/apps/px/lib/stats/generateRRDGraphics.py -w --copy -f tx --machines '%s' --havingRun --date '%s' --fixedCurrent " %( machinePair, currentTime ) )
         print output
-        status, output = commands.getstatusoutput( "/apps/px/lib/stats/generateRRDGraphics.py -w --copy -f rx --machines '%s' --havingRun --date '%s' --fixedCurrent " %( machineName, currentTime ) )    
+        status, output = commands.getstatusoutput( "/apps/px/lib/stats/generateRRDGraphics.py -w --copy -f rx --machines '%s' --havingRun --date '%s' --fixedCurrent " %( machinePair, currentTime ) )    
         print output
         #total graphics 
-        status, output = commands.getstatusoutput( '/apps/px/lib/stats/generateRRDGraphics.py --copy --totals -f "rx" --machines "%s" --havingRun -w --fixedCurrent --date "%s"' %( machineName, currentTime ) )
+        status, output = commands.getstatusoutput( '/apps/px/lib/stats/generateRRDGraphics.py --copy --totals -f "rx" --machines "%s" --havingRun -w --fixedCurrent --date "%s"' %( machinePair, currentTime ) )
         print output
-        status, output = commands.getstatusoutput( '/apps/px/lib/stats/generateRRDGraphics.py --copy --totals -f "tx" --machines "%s" --havingRun -w --fixedCurrent --date "%s"' %( machineName, currentTime ) )
+        status, output = commands.getstatusoutput( '/apps/px/lib/stats/generateRRDGraphics.py --copy --totals -f "tx" --machines "%s" --havingRun -w --fixedCurrent --date "%s"' %( machinePair, currentTime ) )
         print output
     
+    for group in groupParameters:
+        groupMembers, groupMachines, groupProducts, groupFileTypes = groupParameters.getAssociatedParametersInStringFormat( group )
+        status, output = commands.getstatusoutput( "/apps/px/lib/stats/generateRRDGraphics.py -w --copy -f %s --machines '%s'  -c %s --date '%s' --fixedCurrent " %( groupFileTypes, groupMachines, group, currentTime ) )
     
     
-def setYesterdaysGraphs( currentTime, machineNames ):
+    
+def setYesterdaysGraphs( currentTime, machinePairs ):
     """
         Takes all of the current individual daily graphs 
         and sets them as yesterdays graph. 
@@ -182,33 +204,34 @@ def setYesterdaysGraphs( currentTime, machineNames ):
         
     """
     
-    filePattern = PXPaths.GRAPHS + "webGraphics/columbo/*.png"
+    currentTime = MyDateLib.getIsoFromEpoch(currentTime) 
     yesterday   = time.strftime( "%a", time.gmtime( currentTime  - (24*60*60) ))
     
+    filePattern = PXPaths.GRAPHS + "webGraphics/columbo/*.png"
     currentGraphs = glob.glob( filePattern )  
     
-    
+    filePattern = PXPaths.GRAPHS + "webGraphics/groups/*.png"
+    currentGraphs.extend( glob.glob( filePattern ) ) 
+   
     for graph in currentGraphs:
         clientName = os.path.basename(graph).replace( ".png","" )
         dest =  PXPaths.GRAPHS + "webGraphics/daily/%s/%s.png" %( clientName, yesterday )
         if not os.path.isdir( os.path.dirname(dest) ):
             os.makedirs( os.path.dirname(dest) )
         shutil.copyfile( graph, dest )    
-        #print "copy %s to %s" %( graph, dest )
-    
-        
-    currentTime = MyDateLib.getIsoFromEpoch(currentTime) 
-    
-    for machineName in machineNames:   
-        status, output = commands.getstatusoutput( '/apps/px/lib/stats/generateRRDGraphics.py --copy --totals -f "rx" --machines "%s" --havingRun -d --fixedPrevious --date "%s"' %( machineName, currentTime ) )
+        #print "copy %s to %s" %( graph, dest )          
+     
+    #Totals 
+    for machinePair in machinePairs:   
+        status, output = commands.getstatusoutput( '/apps/px/lib/stats/generateRRDGraphics.py --copy --totals -f "rx" --machines "%s" --havingRun -d --fixedPrevious --date "%s"' %( machinePair, currentTime ) )
         print output
-        status, output = commands.getstatusoutput( '/apps/px/lib/stats/generateRRDGraphics.py --copy --totals -f "tx" --machines "%s" --havingRun -d --fixedPrevious --date "%s"' %( machineName, currentTime ) )
+        status, output = commands.getstatusoutput( '/apps/px/lib/stats/generateRRDGraphics.py --copy --totals -f "tx" --machines "%s" --havingRun -d --fixedPrevious --date "%s"' %( machinePair, currentTime ) )
         print output
   
         
         
         
-def setCurrentColumboGraphsAsDailyGraphs( currentTime )  :
+def setCurrentColumboAndGroupGraphsAsDailyGraphs( currentTime )  :
     """
         This method takes the latest dailygraphics 
         and then copies that file in the appropriate
@@ -226,6 +249,8 @@ def setCurrentColumboGraphsAsDailyGraphs( currentTime )  :
     
     currentGraphs = glob.glob( filePattern )
     
+    filePattern = PXPaths.GRAPHS + "webGraphics/groups/*.png"
+    currentGraphs.extend( glob.glob( filePattern ) ) 
     #print "filePattern : %s" %filePattern
     
     for graph in currentGraphs:
@@ -238,33 +263,51 @@ def setCurrentColumboGraphsAsDailyGraphs( currentTime )  :
 
         
         
-def setDailyGraphs( currentTime, machineNames ):
+def updateDailyGroupsGraphics( currentTime, groupParameters ):
+    """
+    
+        @param currentTime: currentime in ISO format
+        
+        @param groupParameters: MachineConfigParameters instance containing the group 
+                                parameters found in the config file.
+    
+    """ 
+    
+    for group in groupParameters:
+        groupMembers, groupMachines, groupProducts, groupFileTypes = groupParameters.getAssociatedParametersInStringFormat( group )
+        status, output = commands.getstatusoutput( '/apps/px/lib/stats/generateGraphics.py -c %s --combineClients --copy -d %s  -m -f %s -p %s  ' %( groupsMembers, currentTime, groupMachines, groupFileTypes, groupProducts ) )
+    
+        
+        
+def setDailyGraphs( currentTime, machinePairs, groupParameters ):
     """
         Sets all the required daily graphs.
     """          
-        
-    setCurrentColumboGraphsAsDailyGraphs( currentTime )
+    
+    updateDailyGroupsGraphics    
+    setCurrentColumboAndGroupGraphsAsDailyGraphs( currentTime )
     
     currentTime = MyDateLib.getIsoFromEpoch(currentTime)     
-              
-    for machineName in machineNames:
+                  
+    setDailyGroupsGraphics( currentTime, configParameters )
+    
+    for machinePair in machinePairs:
         
         #Generate all the daily total graphs. 
-        status, output = commands.getstatusoutput( '/apps/px/lib/stats/generateRRDGraphics.py --copy --totals -f "rx" --machines "%s" -d --fixedCurrent --date "%s"' %( machineName, currentTime) )
+        status, output = commands.getstatusoutput( '/apps/px/lib/stats/generateRRDGraphics.py --copy --totals -f "rx" --machines "%s" -d --fixedCurrent --date "%s"' %( machinePair, currentTime) )
         print output
         
-        status, output = commands.getstatusoutput( '/apps/px/lib/stats/generateRRDGraphics.py --copy --totals -f "tx" --machines "%s" -d --fixedCurrent --date "%s"' %( machineName,currentTime ) )
+        status, output = commands.getstatusoutput( '/apps/px/lib/stats/generateRRDGraphics.py --copy --totals -f "tx" --machines "%s" -d --fixedCurrent --date "%s"' %( machinePair,currentTime ) )
         print output
     
-        status, output = commands.getstatusoutput( '/apps/px/lib/stats/generateRRDGraphics.py --copy --totals -f "rx" --machines "%s" -d --fixedPrevious --date "%s"' %( machineName, currentTime ) )
-        print output
-        
-        status, output = commands.getstatusoutput( '/apps/px/lib/stats/generateRRDGraphics.py --copy --totals -f "tx" --machines "%s" -d --fixedPrevious --date "%s"' %( machineName, currentTime ) )
+        status, output = commands.getstatusoutput( '/apps/px/lib/stats/generateRRDGraphics.py --copy --totals -f "rx" --machines "%s" -d --fixedPrevious --date "%s"' %( machinePair, currentTime ) )
         print output
         
-
-    
-    
+        status, output = commands.getstatusoutput( '/apps/px/lib/stats/generateRRDGraphics.py --copy --totals -f "tx" --machines "%s" -d --fixedPrevious --date "%s"' %( machinePair, currentTime ) )
+        print output
+        
+       
+        
 def main():
     """
         Set up all the graphics required by 
@@ -276,38 +319,41 @@ def main():
                          
     """
     
-    configParameters = configFileManager.getParametersFromConfigurationFile( "statsConfig" )
+    configParameters = StatsConfigParameters( )
+    configParameters.getAllParameters()       
     
-    machineNames     = configParameters.coupledLogMachineNames
-    
+    machineConfig = MachineConfigParameters()    
+    machinePairs  = machineConfig.getPairedMachinesAssociatedWithListOfTags(configParameters.sourceMachinesTags)     
+        
+        
     currentTime = time.time()
      
-    setDailyGraphs( currentTime, machineNames )    
+    setDailyGraphs( currentTime, machinePairs, configParameters.groupParameters )    
 
     if int(time.strftime( "%H", time.gmtime( currentTime ) ) ) == 0:#midnight
         
-        setYesterdaysGraphs( currentTime, machineNames )#Day has changed,lets keep yesterday's graph.
+        setYesterdaysGraphs( currentTime, machinePairs )#Day has changed,lets keep yesterday's graph.
         
-        if  time.strftime( "%a", time.gmtime( currentTime, machineNames ) ) == 'Mon':#first day of week
-            setLastWeeksGraphs( currentTime, machineNames )
-            updateThisMonthsGraphs( currentTime, machineNames )
-            updateThisWeeksGraphs( currentTime, machineNames )
+        if  time.strftime( "%a", time.gmtime( currentTime ) ) == 'Mon':#first day of week
+            setLastWeeksGraphs( currentTime, machinePairs, configParameters.groupParameters )
+            updateThisMonthsGraphs( currentTime, machinePairs, configParameters.groupParameters )
+            updateThisWeeksGraphs( currentTime, machinePairs, configParameters.groupParameters )
         else:#update daily.
-            updateThisWeeksGraphs( currentTime, machineNames )
+            updateThisWeeksGraphs( currentTime, machinePairs, configParameters.groupParameters )
             
         if int(time.strftime( "%d", time.gmtime( currentTime ) )) == 1:#first day of month
-            setLastMonthsGraphs( currentTime, machineNames )# month is over let's wrap it up.
-            updateThisYearsGraphs( currentTime, machineNames )#add past month to years graph.
+            setLastMonthsGraphs( currentTime, machinePairs, configParameters.groupParameters )# month is over let's wrap it up.
+            updateThisYearsGraphs( currentTime, machinePairs, configParameters.groupParameters )#add past month to years graph.
             
             if time.strftime( "%a", time.gmtime( currentTime ) ) != 'Mon':#first day of week
-                updateThisMonthsGraphs( currentTime, machineNames )         
+                updateThisMonthsGraphs( currentTime, machinePairs, configParameters.groupParameters )         
         
         if int(time.strftime( "%j", time.gmtime( currentTime ) )) == 1:#first day of year
-            setLastYearsGraphs( currentTime, machineNames )        
+            setLastYearsGraphs( currentTime, machinePairs, configParameters.groupParameters )        
     
     else:        
-        updateThisWeeksGraphs( currentTime, machineNames )
-
+        updateThisWeeksGraphs( currentTime, machinePairs, configParameters.groupParameters )
+        
     
 if __name__ == "__main__" :
     main()

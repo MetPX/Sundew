@@ -35,7 +35,7 @@ class _StatsConfigParameters:
     
     """
     
-    def __init__( self, individualLogMachineNames, logMachinesLogins, coupledLogMachineNames, picklingMachines, picklingMachinesLogins, databaseMachines, uploadMachines, uploadMachinesLogins  ):
+    def __init__( self, individualLogMachineNames, logMachinesLogins, coupledLogMachineNames, picklingMachines, picklingMachinesLogins, databaseMachines, uploadMachines, uploadMachinesLogins, groups = [], groupsMachines = [], groupsFileTypes = [], groupsMembers = [], groupsProducts = [] ):
         """
             Constructor.        
         """    
@@ -51,6 +51,13 @@ class _StatsConfigParameters:
         
         self.uploadMachines            = uploadMachines
         self.uploadMachinesLogins      = uploadMachinesLogins
+        
+        #Data groups handling
+        self.groups                     = groups
+        self.groupsFileTypes            = groupsFileTypes
+        self.groupsMachines             = groupsMachines
+        self.groupsMembers              = groupsMembers       
+        self.groupsProducts             = groupsProducts       
         
         
         
@@ -73,7 +80,43 @@ def getIndividualValues( values ):
     return individualValues
     
     
+    
+def getGroupSettings( config ):
+    """
+        Reads all the group settings from 
+        the configuration file.
+    """
+    
+    groups         = []
+    groupsMachines = []
+    groupsMembers  = []      
+    groupsProducts = [] 
+    
+    fileHandle = open( config, "r" )
+    
+    line = fileHandle.readline()#read until groups section, or EOF
+    while line != "" and "[groups]" not in line: 
+        print line 
+        line = fileHandle.readline()
         
+        
+    if line != "":#read until next section, or EOF     
+        line = fileHandle.readline()
+        while line != "" and "[" not in line:
+            splitLine = line.split()
+            if len( splitLine ) == 4:
+                groups.append( splitLine[0] )
+                groupsMachines.append( splitLine[1] )
+                groupsMembers.append( splitLine[2] )
+                groupsProducts.append( splitLine[3] )
+            line = fileHandle.readline()
+            
+    fileHandle.close()            
+    
+    return groups, groupsMachines, groupsMembers, groupsProducts
+            
+    
+    
 def getParametersFromStatsConfigurationFile():
     """
         Gather all the parameters from the /apps/px/.../config file.
@@ -105,7 +148,10 @@ def getParametersFromStatsConfigurationFile():
     uploadMachines       = config.get( 'uploads', 'machineNames' ).split( ";" )
     uploadMachinesLogins = config.get( 'uploads', 'logins' ).split( ";" )
     
-    parameters = _StatsConfigParameters( individualLogMachineNames, logMachinesLogins, coupledLogMachineNames, picklingMachines, picklingMachinesLogins, databaseMachines, uploadMachines, uploadMachinesLogins )
+    groups, groupsMachines, groupsMembers, groupsProducts = getGroupSettings( CONFIG )
+    
+    
+    parameters = _StatsConfigParameters( individualLogMachineNames, logMachinesLogins, coupledLogMachineNames, picklingMachines, picklingMachinesLogins, databaseMachines, uploadMachines, uploadMachinesLogins,  groups, groupsMachines, groupsMembers, groupsProducts )
 
     
     return parameters

@@ -29,7 +29,6 @@ from PXPaths   import *
 from PXManager import *
 from MyDateLib import *
 from generalStatsLibraryMethods import *
-from configFileManager import * 
 from StatsConfigParameters import StatsConfigParameters
 from MachineConfigParameters import MachineConfigParameters
    

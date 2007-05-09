@@ -11,13 +11,16 @@ named COPYING in the root of the source directory tree.
 ##  
 ## Author : Nicholas Lemay  
 ##
-## Date   : September 26th 2006
+## Date   : September 26th 2006, Last update May 8th 2007
 ##
 ## Goal   : This files contains all the methods needed to transfer pickled data 
 ##          that was saved using pickleUpdater.py into an rrd database. 
 ##          In turn, the rrd database can be used to plot graphics using rrdTool.
 ##          
 ##          
+## Note :  Any change in the file naming struture of the databses generated here 
+##         will impact generateRRDGraphics.py. Modify the other file accordingly. 
+##
 #######################################################################################
 
 import os, time, getopt, random, pickle, PXPaths  
@@ -26,7 +29,9 @@ import ClientStatsPickler
 import rrdtool
 import generalStatsLibraryMethods
 
+
 from   generalStatsLibraryMethods import *
+from   rrdUtilities import *
 from   ClientStatsPickler import *
 from   optparse  import OptionParser
 from   PXPaths   import *
@@ -45,7 +50,7 @@ LOCAL_MACHINE = os.uname()[1]
 ################################################################# 
 class _Infos:
 
-    def __init__( self, endTime, clients, fileTypes, machines ):
+    def __init__( self, endTime, clients, fileTypes, machines, products = "all", group = "" ):
         """
             Data structure to be used to store parameters within parser.
         
@@ -54,7 +59,8 @@ class _Infos:
         self.clients   = clients   # Clients for wich to do the updates.
         self.machines  = machines  # Machines on wich resides these clients.
         self.fileTypes = fileTypes # Filetypes of each clients.        
-        
+        self.products  = products  # Products we are interested in.
+        self.group     = group     # Whether or not we group data together.
         
         
 def createParser( ):
@@ -81,8 +87,11 @@ Options:
     - With -c|--clients you can specify wich clients to transfer.  
     - With -e|--end you can specify the ending time of the transfer.
     - With -f|--fileTypes you can specify the files types of each clients.
+    - With -g|--group you can specify that you wan to group the data of the specified clients
+      together.
     - With -m|--machines you can specify the list of machines on wich the data client resides.
-       
+    - With -p|--products you can specify the list of products you are interested in. 
+      Note : this option requires the group options to be enabled.    
                 
 Ex1: %prog                                   --> All default values will be used. Not recommended.  
 Ex2: %prog -m pds5                           --> All default values, for machine pds5. 
@@ -111,8 +120,11 @@ def addOptions( parser ):
     
     parser.add_option( "-f", "--fileTypes", action="store", type="string", dest="fileTypes", default="", help="Specify the data type for each of the clients." )
         
+    parser.add_option( "-g", "--group", action="store", type="string", dest = "group", default=False, help="Transfer the combined data of all the specified clients/sources into a grouped database.")
+    
     parser.add_option( "-m", "--machines", action="store", type="string", dest="machines", default="ALL", help ="Specify on wich machine the clients reside." ) 
   
+    parser.add_option( "-p", "--products",action="store", type="string", dest="products", default="ALL", help ="Specify wich product you are interested in.")
     
     
   
@@ -133,8 +145,10 @@ def getOptionsFromParser( parser, logger = None  ):
     clients   = options.clients.replace( ' ','' ).split( ',' )
     machines  = options.machines.replace( ' ','' ).split( ',' )
     fileTypes = options.fileTypes.replace( ' ','' ).split( ',' )  
-   
-        
+    products  = options.products.replace( ' ','' ).split( ',' ) 
+    group     = options.group.replace( ' ','' ) 
+    
+         
     try: # Makes sure date is of valid format. 
          # Makes sure only one space is kept between date and hour.
         t =  time.strptime( end, '%Y-%m-%d %H:%M:%S' )#will raise exception if format is wrong.
@@ -149,14 +163,21 @@ def getOptionsFromParser( parser, logger = None  ):
      
     #round ending hour to match pickleUpdater.     
     end   = MyDateLib.getIsoWithRoundedHours( end )
-    
-    if machines[0] == 'ALL' : 
+        
+    if machines[0] == 'ALL' : #use defaults
         machines = [ 'pds5','pds6' ]
-    
+            
     for machine in machines:
         if machine != LOCAL_MACHINE:
             generalStatsLibraryMethods.updateConfigurationFiles( machine, "pds" )
-                
+    
+    if products[0] != "ALL" and group == "" :
+        print "Error. Products can only be specified when using special groups." 
+        print "Use -h for help."
+        print "Program terminated."
+        sys.exit()        
+    
+                        
     #init fileTypes array HERE     
     if clients[0] == "ALL" and fileTypes[0] != "":
         print "Error. Filetypes cannot be specified when all clients are to be updated." 
@@ -184,80 +205,30 @@ def getOptionsFromParser( parser, logger = None  ):
             fileTypes.append( "rx" )                 
       
               
-    infos = _Infos( endTime = end, machines = machines, clients = clients, fileTypes = fileTypes )   
+    infos = _Infos( endTime = end, machines = machines, clients = clients, fileTypes = fileTypes, products = products, group = group )   
     
     return infos     
 
-            
-    
-def setDatabaseTimeOfUpdate(  client, machine, fileType, timeOfUpdate ):
+      
+        
+def createRoundRobinDatabase( databaseName, startTime, dataType ):
     """
-        This method set the time of the last update made on the database.
-        
-        Usefull for testing. Round Robin Databae cannot be updates with 
-        dates prior to the date of the last update.
-        
-    """      
-     
-    folder   = PXPaths.STATS + "DATABASE-UPDATES/%s/" %fileType
-    fileName = folder + "%s_%s" %( client, machine )   
-    if not os.path.isdir( folder ):
-        os.makedirs( folder )
-    fileHandle  = open( fileName, "w" )
-    pickle.dump( timeOfUpdate, fileHandle )
-    fileHandle.close()
     
+    @param databaseName: Name of the database to create.
     
-
-
-def getDataTypesAssociatedWithFileType( fileType ):
-    """
-        This method is used to get all the data types that 
-        are associated withg the file type used as parameter.
-        
-    """      
-        
-    dataTypes = []        
+    @param startTime: needs to be in seconds since epoch format.
     
-    if fileType == "tx":
-        dataTypes = [ "latency", "bytecount", "errors", "filesOverMaxLatency", "filecount" ]
-    elif fileType == "rx":
-        dataTypes = [ "bytecount", "errors", "filecount" ]
+    @param dataType: will be used for data naming within the database. 
     
-    return dataTypes
+    @note: startime used within the method will be a minute less than real startTime.
+           RRD does not allow to enter data from the same minute as the one
+           of the very start of the db. Please DO NOT substract that minute 
+           prior to calling this method
     
-    
-    
-def buildRRDFileName( dataType, client, machine ):
-    """
-        DataType : bytecount,errors,latency
-        Client   : awws1, ukmetin etc 
-        Machine  : pds5, pds6, pxatx, etc.. 
-        
-        Note : If using combined data coming from multiple machines, 
-               combine the name of the machines together. ex pds5 pds6 becomes pds5pds6
-               just like in the pickle names.  
-        
-    """         
-        
-    return PXPaths.STATS + "databases/%s/%s_%s" %( dataType, client, machine )    
-        
-
-        
-def createRoundRobinDatabase( dataType, client, machine, startTime ):
-    """
-        
-        startTime needs to be in seconds since epoch format.
-        
-        Note : startime needs to be a minute less than real startTime.
-               RRD does not allow to enter data from the same minute as the one
-               of the very start of the db.
-               
-                
     """
     
     databaseName = buildRRDFileName( dataType, client, machine )
-    startTime = int( startTime )    
+    startTime = int( startTime - 60 )    
       
     # 1st  rra : keep last 5 days for daily graphs. Each line contains 1 minute of data. 
     # 2nd  rra : keep last 14 days for weekly graphs. Each line contains 1 hours of data.
@@ -325,7 +296,7 @@ def getPairsFromMergedData( statType, mergedData, logger = None  ):
         
         
     
-def getMergedData( client, fileType,  machines, startTime, endTime, logger = None ):
+def getMergedData( clients, fileType,  machines, startTime, endTime, logger = None ):
     """
         This method returns all data comprised between startTime and endTime as 
         to be able to build pairs.
@@ -338,12 +309,12 @@ def getMergedData( client, fileType,  machines, startTime, endTime, logger = Non
         types = [ "errors","bytecount" ]
     
    
-    if len( machines ) > 1 :    
-        statsCollection = pickleMerging.mergePicklesFromDifferentMachines( logger = logger , startTime = MyDateLib.getIsoFromEpoch(startTime), endTime = MyDateLib.getIsoFromEpoch(endTime), client = client, fileType = fileType, machines = machines )                           
+    if len( machines ) > 1 or len( clients) > 1:    
+        statsCollection = pickleMerging.mergePicklesFromDifferentSources( logger = logger , startTime = MyDateLib.getIsoFromEpoch(startTime), endTime = MyDateLib.getIsoFromEpoch(endTime), clients = clients, fileType = fileType, machines = machines )                           
     
     else:#only one machine, only merge different hours together
        
-        statsCollection = pickleMerging.mergePicklesFromDifferentHours( logger = logger , startTime = MyDateLib.getIsoFromEpoch(startTime), endTime = MyDateLib.getIsoFromEpoch(endTime), client = client, fileType = fileType, machine = machines[0] )
+        statsCollection = pickleMerging.mergePicklesFromDifferentHours( logger = logger , startTime = MyDateLib.getIsoFromEpoch(startTime), endTime = MyDateLib.getIsoFromEpoch(endTime), client = clients[0], fileType = fileType, machine = machines[0] )
         
     
     combinedMachineName = ""
@@ -351,13 +322,13 @@ def getMergedData( client, fileType,  machines, startTime, endTime, logger = Non
         combinedMachineName = combinedMachineName + machine
     
        
-    dataCollector =  ClientStatsPickler( client = client, statsTypes = types, directory = "", statsCollection = statsCollection, machine = combinedMachineName, logger = logger )
+    dataCollector =  ClientStatsPickler( client = clients[0], statsTypes = types, directory = "", statsCollection = statsCollection, machine = combinedMachineName, logger = logger )
     
     return dataCollector    
       
         
     
-def getPairs( client, machines, fileType, startTime, endTime, logger = None ):
+def getPairs( clients, machines, fileType, startTime, endTime, logger = None ):
     """
         
         This method gathers all the data pairs needed to update the different 
@@ -366,8 +337,8 @@ def getPairs( client, machines, fileType, startTime, endTime, logger = None ):
     """
     
     dataPairs = {}
-    dataTypes  = getDataTypesAssociatedWithFileType( fileType ) 
-    mergedData = getMergedData( client, fileType, machines, startTime, endTime, logger )
+    dataTypes  = generalStatsLibraryMethods.getDataTypesAssociatedWithFileType(fileType) 
+    mergedData = getMergedData( clients, fileType, machines, startTime, endTime, logger )
         
     for dataType in dataTypes :  
         dataPairs[ dataType ]  = getPairsFromMergedData( dataType, mergedData, logger )
@@ -389,19 +360,18 @@ def updateRoundRobinDatabases(  client, machines, fileType, endTime, logger = No
     for machine in machines:
         combinedMachineName = combinedMachineName + machine
     
-    startTime   = generalStatsLibraryMethods.getDatabaseTimeOfUpdate(  client, combinedMachineName, fileType ) 
+    startTime   = rrdUtilities.getDatabaseTimeOfUpdate(  client, combinedMachineName, fileType ) 
     if  startTime == 0 :
         startTime = MyDateLib.getSecondsSinceEpoch( MyDateLib.getIsoTodaysMidnight( endTime ) )
     endTime     = MyDateLib.getSecondsSinceEpoch( endTime )           
-    dataPairs   = getPairs( client, machines, fileType, startTime, endTime, logger )   
+    dataPairs   = getPairs( [client], machines, fileType, startTime, endTime, logger )   
         
     for key in dataPairs.keys():
         
         rrdFileName = buildRRDFileName( dataType = key, client = client, machine = combinedMachineName )        
         
-        if not os.path.isfile( rrdFileName ):  
-            
-            createRoundRobinDatabase( dataType = key, client = client, machine = combinedMachineName, startTime= startTime - 60 )
+        if not os.path.isfile( rrdFileName ):             
+            createRoundRobinDatabase(  databaseName = rrdFileName , startTime= startTime, dataType = key )
                       
         
         if endTime > startTime :  
@@ -416,44 +386,97 @@ def updateRoundRobinDatabases(  client, machines, fileType, endTime, logger = No
             if logger != None :
                 logger.warning( "This database was not updated since it's last update was more recent than specified date : %s" %rrdFileName )
         
+                
     setDatabaseTimeOfUpdate(  client, combinedMachineName, fileType, endTime )  
 
+
+        
+def updateGroupedRoundRobinDatabases( infos, logger = None ):    
+    """
+        This method is to be used to update the database 
+        used to stored the merged data of a group.
+         
+    """
+    
+    try:
+        tempRRDFileName = buildRRDFileName( dataType = dataPairs.keys()[0], clients = infos.clients, machines = infos.machines )  
+        startTime       = rrdUtilities.getDatabaseTimeOfUpdate(  entireName, combinedMachineName, fileType )
+    except:
+        startTime = 0 
+     
+    
+    if startTime == 0 :
+        startTime = MyDateLib.getSecondsSinceEpoch( MyDateLib.getIsoTodaysMidnight( endTime ) )
+    endTime     = MyDateLib.getSecondsSinceEpoch( endTime )           
+        
+    dataPairs   = getPairs( infos.clients, machines, fileType, startTime, endTime, logger )       
+     
+    for key in dataPairs.keys():
+        
+        rrdFileName = buildRRDFileName( dataType = key, clients = infos.clients, machines =  infos.machines )  
+        
+        if not os.path.isfile( rrdFileName ):  
+            createRoundRobinDatabase( rrdFileName, startTime, key)
+            
+        
+        if endTime > startTime :  
+            
+            for pair in dataPairs[ key ]:
+                rrdtool.update( rrdFileName, '%s:%s' %( int(pair[0]), pair[1] ) ) 
+
+            if logger != None :
+                logger.info( "Updated  %s db for %s in db named : %s" %( key, entireName, rrdFileName ) )
+        
+        else:
+            if logger != None :
+                logger.warning( "This database was not updated since it's last update was more recent than specified date : %s" %rrdFileName )        
     
     
+    setDatabaseTimeOfUpdate(  entireName, combinedMachineName, fileType, endTime )         
+    
+    
+        
 def transferPickleToRRD( infos, logger = None ):
     """
         This method is a higher level method to be used to update as many rrd's as 
         is desired. 
         
-        A single process is launched for every client to be transferred.
+        If data is not to be grouped, a new process will be launched 
+        for every client to be transferred.
            
-        Simultaneous number of launched process has been limited to 10 process 
+        Simultaneous number of launched process has been limited to 5 process' 
         
     """    
     
-       
-    for i in range( len( infos.clients ) ):  
-        pid = os.fork() #create child process
+  
+    
+    if infos.group == "" :    
         
-        if pid == 0 :#if child 
-            updateRoundRobinDatabases( infos.clients[i], infos.machines, infos.fileTypes[i], infos.endTime, logger =logger )                           
-            sys.exit()#terminate child immidiatly
-        
-        elif (i%5) == 0:
-            while True:#wait on all non terminated child process'
-                try:   #will raise exception when no child process remain.        
-                    pid, status = os.wait()                    
-                except:    
-                    break            
-        
-        
-    while True:#wait on all non terminated child process'
-        try:   #will raise exception when no child process remain.  
-            pid, status = os.wait( )
-        except:    
-            break 
+        for i in range( len( infos.clients ) ):  
+            pid = os.fork() #create child process
+            
+            if pid == 0 :#if child 
+                updateRoundRobinDatabases( infos.clients[i], infos.machines, infos.fileTypes[i], infos.endTime, logger =logger )                           
+                sys.exit()#terminate child immidiatly
+            
+            elif (i%5) == 0:
+                while True:#wait on all non terminated child process'
+                    try:   #will raise exception when no child process remain.        
+                        pid, status = os.wait()                    
+                    except:    
+                        break            
+            
+            
+        while True:#wait on all non terminated child process'
+            try:   #will raise exception when no child process remain.  
+                pid, status = os.wait( )
+            except:    
+                break 
+    
+    else:
+        updateGroupedRoundRobinDatabases( infos, logger )
 
-
+              
                         
 def createPaths():
     """
