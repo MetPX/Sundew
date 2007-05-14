@@ -73,7 +73,8 @@ class bulletinManager:
             extension=':',
             pathFichierCircuit=None,
             mapEnteteDelai=None,
-            source=None):
+            source=None,
+            addStationInFilename = False):
 
         self.pathTemp = self.__normalizePath(pathTemp)
         self.logger = logger
@@ -83,6 +84,7 @@ class bulletinManager:
         self.extension = extension
         self.mapEnteteDelai = mapEnteteDelai
         self.source = source
+        self.addStationInFilename = addStationInFilename
 
         # FIXME: this should be read from a config file, haven't understood enough yet.
         self.compteur = 0
@@ -329,7 +331,7 @@ class bulletinManager:
               station = bulletin.getStation()
            if station == None       : station = ''
            if not station.isalnum() : station = ''
-           if not isinstance(bulletin, bulletinAm.bulletinAm) :
+           if not isinstance(bulletin, bulletinAm.bulletinAm) or not addStationInFilename:
               if not (bulletin.getHeader())[:6] in ["SRCN40","SXCN40","SRMT60","SXAK50"] : station = ''
            
         # adding a counter to the file name insure its uniqueness
