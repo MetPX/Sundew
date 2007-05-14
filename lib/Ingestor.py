@@ -179,8 +179,8 @@ class Ingestor(object):
             self.logger.debug("RouteKey Key = %s  Mask = %s  Filename = %s" % (key,mask[0],filename) )
             return key
 
-        # fallback behavior 
-        return None
+        # fallback behavior return filename
+        return filename
 
     def isMatching(self, client, ingestName):
         """
@@ -396,9 +396,19 @@ class Ingestor(object):
 
         priority = None
         if self.source.routemask :
-           potentials = []
-           key = self.getRouteKey(ingestName)
+
+           # ingestBase is the ingestName without the postfix reception date
+           lst = ingestName.split(':')
+           pos = -1
+           if lst[-2] == '' : pos = -2
+           ingestBase = ':'.join(lst[:pos])
+
+           # build the key 
+           key = self.getRouteKey(ingestBase)
+
+           # get the clients for that key (if possible)
            lst = None
+           potentials = []
            if key != None :
               lst = self.drp.getClients(key)
               if lst != None :
