@@ -17,11 +17,7 @@
 # 
 #############################################################################################
 '''
-import PXPaths
-from PXPaths import *
-
-PXPaths.normalPaths()
-
+import StatsPaths
 
 
 class MachineConfigParameters:
@@ -228,7 +224,7 @@ class MachineConfigParameters:
         
         '''
                   
-        CONFIG = PXPaths.STATS + "configForMachines"     
+        CONFIG = StatsPaths.STATSROOT + "configForMachines"     
         
         if os.path.isfile( CONFIG ):
             

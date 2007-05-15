@@ -25,7 +25,7 @@ named COPYING in the root of the source directory tree.
 #important files 
 import os,time, pwd, sys,getopt, commands, fnmatch,pickle
 import PXManager
-import PXPaths 
+import StatsPaths 
 import generalStatsLibraryMethods
 
 from Logger import * 
@@ -34,11 +34,9 @@ from ConfigParser import ConfigParser
 from MyDateLib import *
 from ClientStatsPickler import ClientStatsPickler
 from PXManager import *
-from PXPaths import *
 from generalStatsLibraryMethods import * 
-     
+   
 
-PXPaths.normalPaths()
 
 LOCAL_MACHINE = os.uname()[1]   
     
@@ -79,7 +77,7 @@ def setLastCronJob( machine, client, fileType, currentDate, collectUpToNow = Fal
     
     times = {}
     lastCronJob = {}
-    fileName = PXPaths.STATS + "PICKLED-TIMES"  
+    fileName = StatsPaths.STATSROOT + "PICKLED-TIMES"  
     
     if collectUpToNow == False :
         currentDate = MyDateLib.getIsoWithRoundedHours( currentDate ) 
@@ -119,7 +117,7 @@ def getLastCronJob( machine, client, fileType, currentDate, collectUpToNow = Fal
     
     times = {}
     lastCronJob = {}
-    fileName = PXPaths.STATS +  "PICKLED-TIMES"  
+    fileName = StatsPaths.STATSROOT +  "PICKLED-TIMES"  
     
     if os.path.isfile( fileName ):
         
@@ -451,13 +449,13 @@ def main():
     
     """
     
-    if not os.path.isdir( PXPaths.PICKLES ):
-        os.makedirs( PXPaths.PICKLES, mode=0777 )    
+    if not os.path.isdir( StatsPaths.STATSPICKLES ):
+        os.makedirs( StatsPaths.STATSPICKLES, mode=0777 )    
     
-    if not os.path.isdir( PXPaths.LOG  ):
-        os.makedirs( PXPaths.LOG, mode=0777 )
+    if not os.path.isdir( StatsPaths.PXLOG ):
+        os.makedirs( StatsPaths.PXLOG, mode=0777 )
     
-    logger = Logger( PXPaths.LOG + 'stats_' + 'pickling' + '.log.notb', 'INFO', 'TX' + 'pickling', bytes = True  ) 
+    logger = Logger( StatsPaths.PXLOG + 'stats_' + 'pickling' + '.log.notb', 'INFO', 'TX' + 'pickling', bytes = True  ) 
     logger = logger.getLogger()
    
     parser = createParser( )  #will be used to parse options 

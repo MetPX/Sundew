@@ -27,8 +27,10 @@ named COPYING in the root of the source directory tree.
 
 import os, time, sys
 import generalStatsLibraryMethods
+import StatsPaths
+
 from generalStatsLibraryMethods import *
-from PXPaths   import * 
+
 from PXManager import *
 
 LOCAL_MACHINE = os.uname()[1]
@@ -91,9 +93,9 @@ def generateWebPage( rxNames, txNames, years ):
     txNamesArray.sort()
     
     #Redirect output towards html page to generate.    
-    if not os.path.isdir("/apps/px/stats/webPages/"):
-        os.makedirs( "/apps/px/stats/webPages/" )     
-    fileHandle = open( "/apps/px/stats/webPages/yearlyGraphs.html" , 'w' )
+    if not os.path.isdir( StatsPaths.STATSWEBPAGES ):
+        os.makedirs( StatsPaths.STATSWEBPAGES )     
+    fileHandle = open( "%syearlyGraphs.html" %StatsPaths.STATSWEBPAGES , 'w' )
 
     fileHandle.write(  """
     <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
@@ -256,7 +258,7 @@ def generateWebPage( rxNames, txNames, years ):
             fileHandle.write( """<td bgcolor="#66CCFF"><div class = "rxTableEntry">Years&nbsp;:&nbsp;""" )
                    
         for year in years:
-            file = "%swebGraphics/yearly/bytecount/%s/%s.png" % (PXPaths.GRAPHS, rxName, year )
+            file = "%swebGraphics/yearly/bytecount/%s/%s.png" % (StatsPaths.STATSGRAPHS, rxName, year )
             if os.path.isfile( file ):
                 fileHandle.write(  """<a target ="popup" href="%s" onClick="wopen('%s', 'popup', 875, 240); return false;">%s&nbsp;</a>"""%( rxName, file , year ) ) 
         
@@ -265,7 +267,7 @@ def generateWebPage( rxNames, txNames, years ):
         fileHandle.write(  """ <td bgcolor="#66CCFF"><div class = "rxTableEntry">Years&nbsp;:&nbsp;""" )
         
         for year in years:
-            file = "%swebGraphics/yearly/filecount/%s/%s.png" % (PXPaths.GRAPHS, rxName, year )
+            file = "%swebGraphics/yearly/filecount/%s/%s.png" % (StatsPaths.STATSGRAPHS, rxName, year )
             if os.path.isfile( file ):
                 fileHandle.write(  """<a target ="popup" href="%s" onClick="wopen('%s', 'popup', 875, 240); return false;">%s&nbsp;</a>"""%( rxName, file , year ) ) 
         
@@ -275,7 +277,7 @@ def generateWebPage( rxNames, txNames, years ):
         fileHandle.write(  """ <td bgcolor="#66CCFF"><div class = "rxTableEntry">Years&nbsp;:&nbsp;""" )
         
         for year in years:
-            file = "%swebGraphics/yearly/errors/%s/%s.png" % (PXPaths.GRAPHS, rxName, year )
+            file = "%swebGraphics/yearly/errors/%s/%s.png" % (StatsPaths.STATSGRAPHS, rxName, year )
             if os.path.isfile( file ):
                 fileHandle.write(  """<a target ="popup" href="%s" onClick="wopen('%s', 'popup', 875, 240); return false;">%s&nbsp;</a>"""%( rxName, file , year ) ) 
         
@@ -376,7 +378,7 @@ def generateWebPage( rxNames, txNames, years ):
             
        
         for year in years:
-            file = "%swebGraphics/yearly/latency/%s/%s.png" % (PXPaths.GRAPHS, txName, year )
+            file = "%swebGraphics/yearly/latency/%s/%s.png" % (StatsPaths.STATSGRAPHS, txName, year )
             if os.path.isfile( file ):
                 fileHandle.write(  """<a target ="popup" href="%s" onClick="wopen('%s', 'popup', 875, 240); return false;">%s&nbsp;</a>"""%( txName, file , str(year)[-2:] ) )
         
@@ -385,7 +387,7 @@ def generateWebPage( rxNames, txNames, years ):
         fileHandle.write(  """ <td bgcolor="#66CCFF"><div class = "txTableEntry">Years&nbsp;:&nbsp;""" )
         
         for year in years:
-            file = "%swebGraphics/yearly/filesOverMaxLatency/%s/%s.png" % (PXPaths.GRAPHS, txName, year )
+            file = "%swebGraphics/yearly/filesOverMaxLatency/%s/%s.png" % ( StatsPaths.STATSGRAPHS, txName, year )
             if os.path.isfile( file ):
                 fileHandle.write(  """<a target ="popup" href="%s" onClick="wopen('%s', 'popup', 875, 240); return false;">%s&nbsp;</a>"""%( txName, file , str(year)[-2:] ) )
         
@@ -394,7 +396,7 @@ def generateWebPage( rxNames, txNames, years ):
         fileHandle.write(  """ <td bgcolor="#66CCFF"><div class = "txTableEntry">Years&nbsp;:&nbsp;""" )
         
         for year in years:
-            file = "%swebGraphics/yearly/bytecount/%s/%s.png" % (PXPaths.GRAPHS, txName, year )
+            file = "%swebGraphics/yearly/bytecount/%s/%s.png" % ( StatsPaths.STATSGRAPHS, txName, year )
             if os.path.isfile( file ):
                 fileHandle.write(  """<a target ="popup" href="%s" onClick="wopen('%s', 'popup', 875, 240); return false;">%s&nbsp;</a>"""%( txName, file , str(year)[-2:] ) )
         
@@ -403,7 +405,7 @@ def generateWebPage( rxNames, txNames, years ):
         fileHandle.write(  """ <td bgcolor="#66CCFF"><div class = "txTableEntry">Years&nbsp;:&nbsp;""" )
         
         for year in years:
-            file = "%swebGraphics/yearly/filecount/%s/%s.png" % (PXPaths.GRAPHS, txName, year )
+            file = "%swebGraphics/yearly/filecount/%s/%s.png" % ( StatsPaths.STATSGRAPHS, txName, year )
             if os.path.isfile( file ):
                 fileHandle.write(  """<a target ="popup" href="%s" onClick="wopen('%s', 'popup', 875, 240); return false;">%s&nbsp;</a>"""%( txName, file , str(year)[-2:] ) )
         
@@ -412,7 +414,7 @@ def generateWebPage( rxNames, txNames, years ):
         fileHandle.write(  """ <td bgcolor="#66CCFF"><div class = "txTableEntry">""" )
         
         for year in years:
-            file = "%swebGraphics/yearly/errors/%s/%s.png" % (PXPaths.GRAPHS, txName, year )
+            file = "%swebGraphics/yearly/errors/%s/%s.png" % ( StatsPaths.STATSGRAPHS, txName, year )
             if os.path.isfile( file ):
                 fileHandle.write(  """<a target ="popup" href="%s" onClick="wopen('%s', 'popup', 875, 240); return false;">%s&nbsp;</a>"""%( txName, file , str(year)[-2:] ) )
         

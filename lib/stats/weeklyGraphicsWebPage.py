@@ -26,10 +26,10 @@ named COPYING in the root of the source directory tree.
 
 import os, time,sys
 import generalStatsLibraryMethods, MyDateLib
+import StatsPaths
 
 from generalStatsLibraryMethods import *
 from MyDateLib import *
-from PXPaths   import * 
 from PXManager import *
 
 LOCAL_MACHINE = os.uname()[1]      
@@ -90,9 +90,9 @@ def generateWebPage( rxNames, txNames, weekNumbers ):
     txNamesArray.sort()
     
     #Redirect output towards html page to generate.   
-    if not os.path.isdir("/apps/px/stats/webPages/"):
-        os.makedirs( "/apps/px/stats/webPages/" )      
-    fileHandle = open( "/apps/px/stats/webPages/weeklyGraphs.html" , 'w' )
+    if not os.path.isdir( StatsPaths.STATSWEBPAGES ):
+        os.makedirs(  StatsPaths.STATSWEBPAGES )      
+    fileHandle = open( "%sweeklyGraphs.html" % StatsPaths.STATSWEBPAGES , 'w' )
 
 
     fileHandle.write(  """
@@ -268,7 +268,7 @@ def generateWebPage( rxNames, txNames, weekNumbers ):
         
         
         for week in weekNumbers:
-            file = "%swebGraphics/weekly/bytecount/%s/%s.png" % (PXPaths.GRAPHS, rxName, week )
+            file = "%swebGraphics/weekly/bytecount/%s/%s.png" % ( StatsPaths.STATSGRAPHS, rxName, week )
             if os.path.isfile( file ):
                 fileHandle.write(  """<a target ="popup" href="%s" onClick="wopen('%s', 'popup', 875, 240); return false;">%s&nbsp;</a>"""%( rxName, file , week ) ) 
         
@@ -279,7 +279,7 @@ def generateWebPage( rxNames, txNames, weekNumbers ):
         fileHandle.write(  """ <td bgcolor="#66CCFF"><div class = "rxTableEntry">Weeks&nbsp;:&nbsp;""" )
         
         for week in weekNumbers:
-            file = "%swebGraphics/weekly/filecount/%s/%s.png" % (PXPaths.GRAPHS, rxName, week )
+            file = "%swebGraphics/weekly/filecount/%s/%s.png" % (StatsPaths.STATSGRAPHS, rxName, week )
             if os.path.isfile( file ):
                 fileHandle.write(  """<a target ="popup" href="%s" onClick="wopen('%s', 'popup', 875, 240); return false;">%s&nbsp;</a>"""%( rxName, file , week ) ) 
         
@@ -289,7 +289,7 @@ def generateWebPage( rxNames, txNames, weekNumbers ):
         fileHandle.write(  """ <td bgcolor="#66CCFF"><div class = "rxTableEntry">Weeks&nbsp;:&nbsp;""" )
         
         for week in weekNumbers:
-            file = "%swebGraphics/weekly/errors/%s/%s.png" % (PXPaths.GRAPHS, rxName, week )
+            file = "%swebGraphics/weekly/errors/%s/%s.png" % ( StatsPaths.STATSGRAPHS, rxName, week )
             if os.path.isfile( file ):
                 fileHandle.write(  """<a target ="popup" href="%s" onClick="wopen('%s', 'popup', 875, 240); return false;">%s&nbsp;</a>"""%( rxName, file , week ) ) 
         
@@ -389,7 +389,7 @@ def generateWebPage( rxNames, txNames, weekNumbers ):
           
         
         for week in weekNumbers:
-            file = "%swebGraphics/weekly/latency/%s/%s.png" % (PXPaths.GRAPHS, txName, week )
+            file = "%swebGraphics/weekly/latency/%s/%s.png" % ( StatsPaths.STATSGRAPHS, txName, week )
             if os.path.isfile( file ):
                 fileHandle.write(  """<a target ="popup" href="%s" onClick="wopen('%s', 'popup', 875, 240); return false;">&nbsp;%s</a>"""%( txName, file , week ) )
         
@@ -399,7 +399,7 @@ def generateWebPage( rxNames, txNames, weekNumbers ):
         fileHandle.write(  """ <td bgcolor="#66CCFF"><div class = "txTableEntry">Weeks&nbsp;:&nbsp;""" )
         
         for week in weekNumbers:
-            file = "%swebGraphics/weekly/filesOverMaxLatency/%s/%s.png" % (PXPaths.GRAPHS, txName, week )
+            file = "%swebGraphics/weekly/filesOverMaxLatency/%s/%s.png" % ( StatsPaths.STATSGRAPHS, txName, week )
             if os.path.isfile( file ):
                 fileHandle.write(  """<a target ="popup" href="%s" onClick="wopen('%s', 'popup', 875, 240); return false;">&nbsp;%s</a>"""%( txName, file, week ) )
         
@@ -409,7 +409,7 @@ def generateWebPage( rxNames, txNames, weekNumbers ):
         fileHandle.write(  """ <td bgcolor="#66CCFF"><div class = "txTableEntry">Weeks&nbsp;:&nbsp;""" )
         
         for week in weekNumbers:
-            file = "%swebGraphics/weekly/bytecount/%s/%s.png" % (PXPaths.GRAPHS, txName, week )
+            file = "%swebGraphics/weekly/bytecount/%s/%s.png" % ( StatsPaths.STATSGRAPHS, txName, week )
             if os.path.isfile( file ):
                 fileHandle.write(  """<a target ="popup" href="%s" onClick="wopen('%s', 'popup', 875, 240); return false;">&nbsp;%s</a>"""%( txName, file, week ) )
         
@@ -418,7 +418,7 @@ def generateWebPage( rxNames, txNames, weekNumbers ):
         fileHandle.write(  """<td bgcolor="#66CCFF"><div class = "txTableEntry">Weeks&nbsp;:&nbsp;""" )
         
         for week in weekNumbers:
-            file = "%swebGraphics/weekly/filecount/%s/%s.png" % (PXPaths.GRAPHS, txName, week )
+            file = "%swebGraphics/weekly/filecount/%s/%s.png" % (StatsPaths.STATSGRAPHS, txName, week )
             if os.path.isfile( file ):
                 fileHandle.write(  """<a target ="popup" href="%s" onClick="wopen('%s', 'popup', 875, 240); return false;">&nbsp;%s</a>"""%( txName, file, week ) )
         
@@ -427,7 +427,7 @@ def generateWebPage( rxNames, txNames, weekNumbers ):
         fileHandle.write(  """ <td bgcolor="#66CCFF"><div class = "txTableEntry">Weeks&nbsp;:&nbsp;""" )
         
         for week in weekNumbers:
-            file = "%swebGraphics/weekly/errors/%s/%s.png" % (PXPaths.GRAPHS, txName, week )
+            file = "%swebGraphics/weekly/errors/%s/%s.png" % (StatsPaths.STATSGRAPHS, txName, week )
             if os.path.isfile( file ):
                 fileHandle.write(  """<a target ="popup" href="%s" onClick="wopen('%s', 'popup', 875, 240); return false;">&nbsp;%s</a>"""%( txName, file, week ) )
         

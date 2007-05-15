@@ -23,10 +23,10 @@ named COPYING in the root of the source directory tree.
 """
 
 import os, commands, time, sys, pickle, glob
-import MyDateLib, PXPaths, backupRRDDatabases 
+import MyDateLib, StatsPaths, backupRRDDatabases 
 from   MyDateLib import * 
 from   backupRRDDatabases import *
-PXPaths.normalPaths()
+
 
 
 def restoreDatabases( timeToRestore, currentTime ):
@@ -40,8 +40,8 @@ def restoreDatabases( timeToRestore, currentTime ):
     backupRRDDatabases.backupDatabases( currentTime )
         
     #restore desired 
-    source = PXPaths.STATS + "databases_backups/%s" %timeToRestore
-    destination = PXPaths.STATS + "databases"
+    source = StatsPaths.STATSROOT + "databases_backups/%s" %timeToRestore
+    destination = StatsPaths.STATSROOT+ "databases"
     status, output = commands.getstatusoutput( "rm -r %s" %( destination ) )
     os.makedirs(destination)
     status, output = commands.getstatusoutput( "cp -r %s/* %s" %( source, destination ) )
@@ -59,8 +59,8 @@ def restoreDatabaseUpdateTimes( timeToRestore, currentTime ):
     backupRRDDatabases.backupDatabaseUpdateTimes( currentTime )
     
     #restore desired 
-    source = PXPaths.STATS + "DATABASE-UPDATES_BACKUPS/%s" %timeToRestore
-    destination = PXPaths.STATS + "DATABASE-UPDATES" 
+    source = StatsPaths.STATSROOT + "DATABASE-UPDATES_BACKUPS/%s" %timeToRestore
+    destination = StatsPaths.STATSROOT + "DATABASE-UPDATES" 
     status, output = commands.getstatusoutput( "rm -r %s" %( destination ) )
     os.makedirs(destination)
     status, output = commands.getstatusoutput( "cp -rf %s/* %s" %( source, destination ) )

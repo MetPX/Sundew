@@ -5,11 +5,11 @@ named COPYING in the root of the source directory tree.
 """
 ##########################################################################
 ##
-## Name   : DirectoryFileCollector.py 
+## Name   : LogFileCollector.py ( formely DirectoryFileCollector.py ) 
 ##  
 ## Author : Nicholas Lemay  
 ##
-## Date   : May 19th 2006
+## Date   : December 12th 2006
 ##
 ## Goal   : This class' goal is to find all the interesting log files within 
 ##          a certain directory. 
@@ -23,13 +23,15 @@ named COPYING in the root of the source directory tree.
 
 import os,sys,glob #important files 
 import backwardReader 
+import StatsPaths
 from   Logger             import * 
 from   FileStatsCollector import *
+from   generalStatsLibraryMethods import *
 
-LOCAL_MACHINE = os.uname()[1]    
 
+LOCAL_MACHINE = os.uname()[1]   
 
-class DirectoryFileCollector: 
+class LogFileCollector: 
     """ 
         This class' goal is to find all the interesting files within a certain directory. 
         
@@ -41,7 +43,7 @@ class DirectoryFileCollector:
                  
     """
     
-    def __init__( self, startTime = "2006-06-06 01:00:00", endTime = "2006-06-06 02:00:00", directory = None, lastLineRead = "", fileType = "tx", client = "satnet", logger = None ):
+    def __init__( self, startTime = "2006-06-06 01:00:00", endTime = "2006-06-06 02:00:00", directory = None, lastLineRead = "", logType = "tx", name = "satnet", logger = None ):
         """ 
             Constructor.
             -Builds a directoryFileCollector with no entries.   
@@ -52,17 +54,17 @@ class DirectoryFileCollector:
         self.startTime    = startTime       # Starting time of the data wich interests us. 
         self.endTime      = endTime         # Width of time for wich we are interested to collec data. 
         self.lastLineRead = lastLineRead    # Last line read during a previous collection of data.  
-        self.fileType     = fileType        # Type of file we will be searching for here. tx,rx etc...
-        self.client       = client          # Name of the client for wich we are searching files.  
+        self.logType      = logType         # Type of file we will be searching for here. tx,rx etc...
+        self.name         = name            # Name for wich we are searching files.  
         self.entries      = []              # List containing filenames of all interesting files found. 
         self.logger       = logger          # Used to log warning error infos etc.
         self.loggerName   = 'fileCollector' # Name used for the logger if none was specified.
        
         
         if logger is None: # Enable logging
-            if not os.path.isdir( PXPaths.LOG  ):
-                os.makedirs( PXPaths.LOG , mode=0777 )
-            self.logger = Logger( PXPaths.LOG + 'stats_' + self.loggerName + '.log.notb', 'INFO', 'TX' + self.loggerName, bytes = True  ) 
+            if not os.path.isdir( StatsPaths.PXLOG  ):
+                os.makedirs( StatsPaths.PXLOG , mode=0777 )
+            self.logger = Logger( StatsPaths.PXLOG + 'stats_' + self.loggerName + '.log.notb', 'INFO', 'TX' + self.loggerName, bytes = True  ) 
             self.logger = self.logger.getLogger()
             
             
@@ -118,7 +120,7 @@ class DirectoryFileCollector:
     def collectEntries( self ):
         """ 
             If the directory is valid, this method will add all the valid  
-            directory entries to the DirectoryFileCollector's entries field. 
+            directory entries to the LogFileCollector's entries field. 
             
             Pre-condition : Files in the specified directory must all be of the valid 
                             log file format. 
@@ -127,10 +129,10 @@ class DirectoryFileCollector:
               
         entries = []
         
-                
+           
         if os.path.isdir( self.directory ):            
             
-            filePattern = self.directory + "%s_%s.log*" %( self.fileType, self.client )                  
+            filePattern = self.directory + "%s_%s.log*" %( self.logType, self.name )                  
             fileNames = glob.glob( filePattern )                        
                                   
             for fileName in fileNames: #verify every entries.
@@ -142,7 +144,7 @@ class DirectoryFileCollector:
         else:
             
             if self.logger != None :
-                self.logger.warning( "Warning in DirectoryFileCollector. Folder named %s does not exist."%self.directory )
+                self.logger.warning( "Warning in LogFileCollector. Folder named %s does not exist."%self.directory )
 
                           
                     
@@ -153,8 +155,8 @@ if __name__ == "__main__":
     """
     
     pathToLogFiles = generalStatsLibraryMethods.getPathToLogFiles( LOCAL_MACHINE, LOCAL_MACHINE )
-   
-    dc = DirectoryFileCollector( startTime = "2006-07-20 01:00:00", endTime= "2006-07-20 02:00:00", directory = pathToLogFiles, lastLineRead = "", fileType = "tx", client = "satnet"  )
-    dc.collectEntries() 
+
+    lfc = LogFileCollector( startTime = "2006-07-20 01:00:00", endTime= "2006-07-20 02:00:00", directory = pathToLogFiles, lastLineRead = "", logType = "tx", name = "satnet"  )
+    lfc.collectEntries() 
     
-    print "Files returned : %s " %dc.entries            
+    print "Files returned : %s " %lfc.entries            

@@ -25,7 +25,7 @@ named COPYING in the root of the source directory tree.
 #######################################################################################
 
 
-
+import generalStatsLibraryMethods
 import array,time,sys,os,pickle,datetime, fnmatch #important files 
 from   array     import *
 import MyDateLib
@@ -34,10 +34,12 @@ import commands
 import backwardReader
 import cpickleWrapper
 import logging 
-import PXPaths
-from   Logger                 import *
+import StatsPaths
 
-PXPaths.normalPaths()
+from Logger  import *
+from fnmatch import  fnmatch
+from generalStatsLibraryMethods import *
+
 
 LOCAL_MACHINE = os.uname()[1]
 
@@ -140,7 +142,7 @@ class FileStatsCollector:
         self.nbEntries        = len ( self.timeSeperators ) -1 # Nb of entries or "buckets" 
         
         if self.logger == None: # Enable logging
-            self.logger = Logger( PXPaths.LOG + 'stats_' + self.loggerName + '.log.notb', 'INFO', 'TX' + self.loggerName, bytes = True  ) 
+            self.logger = Logger( StatsPaths.PXLOG + 'stats_' + self.loggerName + '.log.notb', 'INFO', 'TX' + self.loggerName, bytes = True  ) 
             self.logger = self.logger.getLogger()
             
         
@@ -160,29 +162,7 @@ class FileStatsCollector:
             self.files.append( firstItem )                            
             
             
-    def buildProductPattern( product = "" ):
-        '''        
-        @param product: Product for wich to build a matching pattern. Can contain wildcards.               
-        
-        '''
-        
-        pattern = '*'
-        
-        if product == "All":
-            pattern = "*"
-        else:
-            if product[0] != "*" and product[0] != '?' :
-                pattern = '*' + product
-            else:
-                pattern = product    
-            if product[len(product) -1] != "*" and product[len(product) -1] != "?":
-                pattern = pattern + "*"              
-                                      
-        return pattern
-    
-    buildProductPattern = staticmethod(buildProductPattern)
-               
-               
+             
                
     def isInterestingProduct( product = "", interestingProductTypes = ["All"] ):
         ''' 
@@ -196,10 +176,16 @@ class FileStatsCollector:
         isInterestingProduct = False
         #print "produt : %s   interested in : %s " %(product , interestingProductTypes )
         
+        
         for productType in interestingProductTypes:
-            pattern = FileStatsCollector.buildProductPattern( productType )
-            #print product, pattern
-            if fnmatch.fnmatch( product, pattern):
+            
+            if productType == "All":
+                pattern = '*'
+            else:    
+                pattern = generalStatsLibraryMethods.buildPattern(productType)
+            
+
+            if fnmatch( product, pattern):
                 isInterestingProduct = True
                 break
             
@@ -343,7 +329,7 @@ class FileStatsCollector:
                     maximum = 0
                     total   = 0
                     mean    = 0
-                    
+                                  
                 self.fileEntries[i].medians[aType]= median# appending values to a list   
                 self.fileEntries[i].means[aType] = mean     
                 self.fileEntries[i].totals[aType] =  float(total)
@@ -734,7 +720,7 @@ if __name__ == "__main__":
     
     types = [ "latency", "errors","bytecount" ]
     
-    filename = PXPaths.LOG + 'tx_amis.log'
+    filename = StatsPaths.PXLOG + 'tx_amis.log'
     
     startingHours=["00:00:00","01:00:00","02:00:00","03:00:00","04:00:00","05:00:00","06:00:00","07:00:00","08:00:00","09:00:00","10:00:00","11:00:00","12:00:00","13:00:00","14:00:00","15:00:00","16:00:00","17:00:00","18:00:00","19:00:00","20:00:00","21:00:00","22:00:00","23:00:00" ]
     
@@ -745,7 +731,7 @@ if __name__ == "__main__":
               
         stats = FileStatsCollector( files = [ filename ], statsTypes = types , startTime = '2006-08-01 %s' %startingHours[i], endTime = '2006-08-01 %s' %endingHours[i], interval = 1*MINUTE  )
         stats.collectStats()
-        saveFile = PXPaths.STATS + "test/%s" %startingHours[i]
+        saveFile = StatsPaths.STATSROOT + "test/%s" %startingHours[i]
         del stats.logger
         cpickleWrapper.save( object = stats, filename = saveFile )
        

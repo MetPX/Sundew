@@ -23,7 +23,7 @@ named COPYING in the root of the source directory tree.
 ##
 #######################################################################################
 
-import os, time, getopt, random, pickle, PXPaths  
+import os, time, getopt, random, pickle, StatsPaths
 import MyDateLib, pickleMerging, PXManager
 import ClientStatsPickler
 import rrdtool
@@ -34,12 +34,10 @@ from   generalStatsLibraryMethods import *
 from   rrdUtilities import *
 from   ClientStatsPickler import *
 from   optparse  import OptionParser
-from   PXPaths   import *
 from   PXManager import *
 from   MyDateLib import *    
 from   Logger    import *       
-
-PXPaths.normalPaths()             
+        
 
 LOCAL_MACHINE = os.uname()[1]   
     
@@ -54,7 +52,8 @@ class _Infos:
         """
             Data structure to be used to store parameters within parser.
         
-        """             
+        """    
+        print "???????????????????????????? %s"  %machines          
         self.endTime   = endTime   # Ending time of the pickle->rrd transfer.         
         self.clients   = clients   # Clients for wich to do the updates.
         self.machines  = machines  # Machines on wich resides these clients.
@@ -120,7 +119,7 @@ def addOptions( parser ):
     
     parser.add_option( "-f", "--fileTypes", action="store", type="string", dest="fileTypes", default="", help="Specify the data type for each of the clients." )
         
-    parser.add_option( "-g", "--group", action="store", type="string", dest = "group", default=False, help="Transfer the combined data of all the specified clients/sources into a grouped database.")
+    parser.add_option( "-g", "--group", action="store", type="string", dest = "group", default="", help="Transfer the combined data of all the specified clients/sources into a grouped database.")
     
     parser.add_option( "-m", "--machines", action="store", type="string", dest="machines", default="ALL", help ="Specify on wich machine the clients reside." ) 
   
@@ -148,6 +147,7 @@ def getOptionsFromParser( parser, logger = None  ):
     products  = options.products.replace( ' ','' ).split( ',' ) 
     group     = options.group.replace( ' ','' ) 
     
+         
          
     try: # Makes sure date is of valid format. 
          # Makes sure only one space is kept between date and hour.
@@ -177,8 +177,13 @@ def getOptionsFromParser( parser, logger = None  ):
         print "Program terminated."
         sys.exit()        
     
+     
                         
     #init fileTypes array HERE     
+    if len(fileTypes) == 1 and len(clients) !=1:
+        for i in range(1,len(clients) ):
+            fileTypes.append(fileTypes[0])
+        
     if clients[0] == "ALL" and fileTypes[0] != "":
         print "Error. Filetypes cannot be specified when all clients are to be updated." 
         print "Use -h for help."
@@ -186,7 +191,7 @@ def getOptionsFromParser( parser, logger = None  ):
         sys.exit()        
     
     elif clients[0] != "ALL" and len(clients) != len( fileTypes ) :
-        print "Error. Filetypes cannot be specified when all clients are to be updated." 
+        print "Error. Specified filetypes must be either 1 for all the group or of the exact same lenght as the number of clients/sources." 
         print "Use -h for help."
         print "Program terminated."
         sys.exit()          
@@ -226,8 +231,8 @@ def createRoundRobinDatabase( databaseName, startTime, dataType ):
            prior to calling this method
     
     """
-    
-    databaseName = buildRRDFileName( dataType, client, machine )
+   
+   
     startTime = int( startTime - 60 )    
       
     # 1st  rra : keep last 5 days for daily graphs. Each line contains 1 minute of data. 
@@ -296,7 +301,7 @@ def getPairsFromMergedData( statType, mergedData, logger = None  ):
         
         
     
-def getMergedData( clients, fileType,  machines, startTime, endTime, logger = None ):
+def getMergedData( clients, fileType,  machines, startTime, endTime, groupName = "", logger = None ):
     """
         This method returns all data comprised between startTime and endTime as 
         to be able to build pairs.
@@ -310,7 +315,8 @@ def getMergedData( clients, fileType,  machines, startTime, endTime, logger = No
     
    
     if len( machines ) > 1 or len( clients) > 1:    
-        statsCollection = pickleMerging.mergePicklesFromDifferentSources( logger = logger , startTime = MyDateLib.getIsoFromEpoch(startTime), endTime = MyDateLib.getIsoFromEpoch(endTime), clients = clients, fileType = fileType, machines = machines )                           
+       
+        statsCollection = pickleMerging.mergePicklesFromDifferentSources( logger = logger , startTime = MyDateLib.getIsoFromEpoch(startTime), endTime = MyDateLib.getIsoFromEpoch(endTime), clients = clients, fileType = fileType, machines = machines, groupName = groupName )                           
     
     else:#only one machine, only merge different hours together
        
@@ -328,7 +334,7 @@ def getMergedData( clients, fileType,  machines, startTime, endTime, logger = No
       
         
     
-def getPairs( clients, machines, fileType, startTime, endTime, logger = None ):
+def getPairs( clients, machines, fileType, startTime, endTime, groupName = "", logger = None ):
     """
         
         This method gathers all the data pairs needed to update the different 
@@ -338,7 +344,8 @@ def getPairs( clients, machines, fileType, startTime, endTime, logger = None ):
     
     dataPairs = {}
     dataTypes  = generalStatsLibraryMethods.getDataTypesAssociatedWithFileType(fileType) 
-    mergedData = getMergedData( clients, fileType, machines, startTime, endTime, logger )
+   
+    mergedData = getMergedData( clients, fileType, machines, startTime, endTime, groupName, logger )
         
     for dataType in dataTypes :  
         dataPairs[ dataType ]  = getPairsFromMergedData( dataType, mergedData, logger )
@@ -360,15 +367,17 @@ def updateRoundRobinDatabases(  client, machines, fileType, endTime, logger = No
     for machine in machines:
         combinedMachineName = combinedMachineName + machine
     
-    startTime   = rrdUtilities.getDatabaseTimeOfUpdate(  client, combinedMachineName, fileType ) 
+    tempRRDFileName = rrdUtilities.buildRRDFileName( dataType = "errors", clients = [client], machines = machines, fileType = fileType)
+    startTime   = rrdUtilities.getDatabaseTimeOfUpdate(  tempRRDFileName, fileType ) 
+   
     if  startTime == 0 :
         startTime = MyDateLib.getSecondsSinceEpoch( MyDateLib.getIsoTodaysMidnight( endTime ) )
     endTime     = MyDateLib.getSecondsSinceEpoch( endTime )           
-    dataPairs   = getPairs( [client], machines, fileType, startTime, endTime, logger )   
+    dataPairs   = getPairs( [client], machines, fileType, startTime, endTime, groupName = "", logger = logger )   
         
     for key in dataPairs.keys():
-        
-        rrdFileName = buildRRDFileName( dataType = key, client = client, machine = combinedMachineName )        
+                               
+        rrdFileName = rrdUtilities.buildRRDFileName( dataType = key, clients = [client], machines = machines, fileType = fileType )        
         
         if not os.path.isfile( rrdFileName ):             
             createRoundRobinDatabase(  databaseName = rrdFileName , startTime= startTime, dataType = key )
@@ -387,7 +396,7 @@ def updateRoundRobinDatabases(  client, machines, fileType, endTime, logger = No
                 logger.warning( "This database was not updated since it's last update was more recent than specified date : %s" %rrdFileName )
         
                 
-    setDatabaseTimeOfUpdate(  client, combinedMachineName, fileType, endTime )  
+    rrdUtilities.setDatabaseTimeOfUpdate(  rrdFileName, fileType, endTime )  
 
 
         
@@ -398,41 +407,46 @@ def updateGroupedRoundRobinDatabases( infos, logger = None ):
          
     """
     
-    try:
-        tempRRDFileName = buildRRDFileName( dataType = dataPairs.keys()[0], clients = infos.clients, machines = infos.machines )  
-        startTime       = rrdUtilities.getDatabaseTimeOfUpdate(  entireName, combinedMachineName, fileType )
-    except:
-        startTime = 0 
-     
+    endTime     = MyDateLib.getSecondsSinceEpoch( infos.endTime ) 
     
+    
+    tempRRDFileName = rrdUtilities.buildRRDFileName( "errors", clients = infos.group, machines = infos.machines, fileType = infos.fileTypes[0]  )  
+    startTime       = rrdUtilities.getDatabaseTimeOfUpdate(  tempRRDFileName, infos.fileTypes[0] )
+    
+   
     if startTime == 0 :
-        startTime = MyDateLib.getSecondsSinceEpoch( MyDateLib.getIsoTodaysMidnight( endTime ) )
-    endTime     = MyDateLib.getSecondsSinceEpoch( endTime )           
         
-    dataPairs   = getPairs( infos.clients, machines, fileType, startTime, endTime, logger )       
-     
+        startTime = MyDateLib.getSecondsSinceEpoch( MyDateLib.getIsoTodaysMidnight( infos.endTime ) )
+              
+    dataPairs   = getPairs( infos.clients, infos.machines, infos.fileTypes[0], startTime, endTime, infos.group, logger )     
+          
+    print  dataPairs
     for key in dataPairs.keys():
         
-        rrdFileName = buildRRDFileName( dataType = key, clients = infos.clients, machines =  infos.machines )  
+        rrdFileName = rrdUtilities.buildRRDFileName( dataType = key, clients = infos.group, groupName = infos.group, machines =  infos.machines,fileType = infos.fileTypes[0], usage = "group" )  
+        print rrdFileName
+        commands.getstatusoutput("rm %s" %rrdFileName)
         
         if not os.path.isfile( rrdFileName ):  
+            
             createRoundRobinDatabase( rrdFileName, startTime, key)
             
         
         if endTime > startTime :  
             
-            for pair in dataPairs[ key ]:
+            for pair in dataPairs[ key ]:       
+                         
                 rrdtool.update( rrdFileName, '%s:%s' %( int(pair[0]), pair[1] ) ) 
 
             if logger != None :
-                logger.info( "Updated  %s db for %s in db named : %s" %( key, entireName, rrdFileName ) )
+                logger.info( "Updated  %s db for %s in db named : %s" %( key, infos.clients, rrdFileName ) )
         
         else:
             if logger != None :
                 logger.warning( "This database was not updated since it's last update was more recent than specified date : %s" %rrdFileName )        
     
     
-    setDatabaseTimeOfUpdate(  entireName, combinedMachineName, fileType, endTime )         
+    setDatabaseTimeOfUpdate( tempRRDFileName, infos.fileTypes[0], endTime )         
     
     
         
@@ -474,6 +488,7 @@ def transferPickleToRRD( infos, logger = None ):
                 break 
     
     else:
+        print "updates a group"
         updateGroupedRoundRobinDatabases( infos, logger )
 
               
@@ -488,14 +503,14 @@ def createPaths():
     
         
     for dataType in dataTypes:
-        if not os.path.isdir( PXPaths.STATS + "databases/%s/" %dataType ):
-            os.makedirs( PXPaths.STATS + "databases/%s/" %dataType, mode=0777 )          
+        if not os.path.isdir( StatsPaths.STATSDB + "%s/" %dataType ):
+            os.makedirs(StatsPaths.STATSDB + "%s/" %dataType, mode=0777 )          
             
-    if not os.path.isdir( PXPaths.STATS + "DATABASE-UPDATES/tx" ):
-        os.makedirs( PXPaths.STATS + "DATABASE-UPDATES/tx/", mode=0777 )
+    if not os.path.isdir( StatsPaths.STATSDBUPDATES + "tx" ):
+        os.makedirs( StatsPaths.STATSDBUPDATES + "tx", mode=0777 )
      
-    if not os.path.isdir( PXPaths.STATS + "DATABASE-UPDATES/rx" ):
-        os.makedirs( PXPaths.STATS + "DATABASE-UPDATES/rx/", mode=0777 )      
+    if not os.path.isdir( StatsPaths.STATSDBUPDATES + "rx" ):
+        os.makedirs( StatsPaths.STATSDBUPDATES + "rx" , mode=0777 )      
         
                                
                
@@ -507,7 +522,7 @@ def main():
 
     createPaths()
     
-    logger = Logger( PXPaths.LOG + 'stats_' + 'rrd_transfer' + '.log.notb', 'INFO', 'TX' + 'rrd_transfer', bytes = True  ) 
+    logger = Logger( StatsPaths.PXLOG + 'stats_' + 'rrd_transfer' + '.log.notb', 'INFO', 'TX' + 'rrd_transfer', bytes = True  ) 
     
     logger = logger.getLogger()
        

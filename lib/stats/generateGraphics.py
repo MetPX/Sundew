@@ -25,7 +25,6 @@ named COPYING in the root of the source directory tree.
 
 import os, time, sys
 import generalStatsLibraryMethods
-import PXPaths
 import MyDateLib
 
 from MyDateLib import  *
@@ -33,9 +32,7 @@ from optparse import OptionParser
 from ConfigParser import ConfigParser
 from ClientGraphicProducer import *
 from generalStatsLibraryMethods import *
-
-
-PXPaths.normalPaths()
+from fnmatch import fnmatch
 
 LOCAL_MACHINE = os.uname()[1]
 
@@ -63,6 +60,49 @@ class _GraphicsInfos:
 #############################PARSER##############################
 #                                                               #
 #################################################################   
+
+def filterClientsNamesUsingWilcardFilters( currentTime, timespan, clientNames, machines, fileType ):
+    """
+    
+        @param currentTime: currentTime specified in the parameters.
+        @param timespan: Time span specified within the parameters.
+        @param clientNames:List of client names found in the parameters.
+    
+    """
+    
+    newClientNames = []
+    
+    end   = currentTime
+    start = MyDateLib.getIsoFromEpoch( MyDateLib.getSecondsSinceEpoch(currentTime)- 60*60*timespan )
+    
+    for clientName in clientNames:
+        print clientName
+        
+        if  '?' in clientName or '*' in clientName :           
+            pattern = generalStatsLibraryMethods.buildPattern(clientName)
+            
+            print "pattern : %s " %pattern
+            
+            rxHavingRun,txHavingRun = generalStatsLibraryMethods.getRxTxNamesHavingRunDuringPeriod(start, end, machines, pattern)
+            
+            if fileType == "rx":
+                namesHavingrun = rxHavingRun
+            else:    
+                namesHavingrun = txHavingRun
+            
+            newClientNames.extend( namesHavingrun )   
+                
+                
+        else:
+            newClientNames.append( clientName )   
+    
+    print "######%s" %newClientNames
+    
+    return newClientNames
+    
+    
+    
+    
 def getOptionsFromParser( parser ):
     """
         
@@ -90,6 +130,7 @@ def getOptionsFromParser( parser ):
     combineClients   = options.combineClients
     productTypes     = options.productTypes.replace( ' ', '' ).split( ',' )     
     groupName        = options.groupName.replace( ' ','' ) 
+      
     
     
     try: # Makes sure date is of valid format. 
@@ -162,6 +203,9 @@ def getOptionsFromParser( parser ):
         print "Use -h for additional help."
         print "Program terminated."
         sys.exit()
+    
+    
+    clientNames = filterClientsNamesUsingWilcardFilters( currentTime, timespan, clientNames, machines, fileType)
     
     directory =  generalStatsLibraryMethods.getPathToLogFiles( LOCAL_MACHINE, machines[0] )
     

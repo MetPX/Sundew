@@ -209,6 +209,7 @@ def mergePicklesFromSameHour( logger = None , pickleNames = None, mergedPickleNa
     temp = newFSC.logger
     del newFSC.logger
     cpickleWrapper.save( newFSC, mergedPickleName )
+    print "saved : %s" %mergedPickleName
     newFSC.logger = temp
     
     return newFSC
@@ -232,7 +233,7 @@ def createNonMergedPicklesList( currentTime, machines, fileType, clients ):
 
 
 
-def createMergedPicklesList( startTime, endTime, clients, fileType, machines, seperators ):
+def createMergedPicklesList( startTime, endTime, clients, groupName, fileType, machines, seperators ):
     """
         
         Pre-condition : Machines must be an array containing the list of machines to use. 
@@ -247,18 +248,21 @@ def createMergedPicklesList( startTime, endTime, clients, fileType, machines, se
     for machine in machines:
         combinedMachineName = combinedMachineName + machine     
     
-    for client in clients: 
-        combinedClientName = combinedClientName + client
+    #print "groupname in create merged pickle list %s" %groupName
     
+    if groupName == "":        
+        for client in clients: 
+            groupName = groupName + client
+        
     for seperator in seperators:
-        pickleList.append( ClientStatsPickler.buildThisHoursFileName(  client = combinedClientName, currentTime = seperator, fileType = fileType, machine = combinedMachineName ) )
+        pickleList.append( ClientStatsPickler.buildThisHoursFileName(  client = groupName, currentTime = seperator, fileType = fileType, machine = combinedMachineName ) )
 
  
     return pickleList
     
     
         
-def mergePicklesFromDifferentSources( logger = None , startTime = "2006-07-31 13:00:00", endTime = "2006-07-31 19:00:00", clients = ["satnet"], fileType = "tx", machines = [] ):
+def mergePicklesFromDifferentSources( logger = None , startTime = "2006-07-31 13:00:00", endTime = "2006-07-31 19:00:00", clients = ["satnet"], fileType = "tx", machines = [], groupName = "" ):
     """
         This method allows user to merge pickles coming from numerous machines
         covering as many hours as wanted, into a single FileStatsCollector entry.
@@ -288,7 +292,7 @@ def mergePicklesFromDifferentSources( logger = None , startTime = "2006-07-31 13
     seperators.extend( MyDateLib.getSeparatorsWithStartTime( startTime = startTime , width=width, interval=60*MINUTE )[:-1])
     
     
-    mergedPickleNames = createMergedPicklesList(  startTime = startTime, endTime = endTime, machines = machines, fileType = fileType, clients = clients, seperators = seperators ) #Resulting list of the merger.
+    mergedPickleNames = createMergedPicklesList(  startTime = startTime, endTime = endTime, machines = machines, fileType = fileType, clients = clients, groupName = groupName, seperators = seperators ) #Resulting list of the merger.
     
     
     for i in range( len( mergedPickleNames ) ) : #for every merger needed
@@ -316,13 +320,25 @@ def mergePicklesFromDifferentSources( logger = None , startTime = "2006-07-31 13
                 for pickle in pickleNames :
                     vc.updateFileInList( file = pickle )
                    
-                vc.saveList( user = combinedMachineName, clients = clients )
+                if groupName !="":
+                    clientsForVersionManagement = groupName 
+                else:
+                    clientsForVersionManagement = clients
+                          
+                vc.saveList( user = combinedMachineName, clients = clientsForVersionManagement )
                 
                 
                         
     # Once all machines have merges the necessary pickles we merge all pickles 
     # into a single file stats entry. 
-    newFSC = mergePicklesFromDifferentHours( logger = logger , startTime = startTime, endTime = endTime, client = combinedClientName, machine = combinedMachineName,fileType = fileType  )
+    if groupName !="":
+        nameToUseForMerger = groupName 
+    else:
+        nameToUseForMerger = ""
+        for client in clients:
+            nameToUseForMerger = nameToUseForMerger + client
+    
+    newFSC = mergePicklesFromDifferentHours( logger = logger , startTime = startTime, endTime = endTime, client = nameToUseForMerger, machine = combinedMachineName,fileType = fileType  )
    
     return newFSC
 

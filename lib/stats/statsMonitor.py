@@ -22,7 +22,7 @@ named COPYING in the root of the source directory tree.
 #############################################################################
 
 import os, sys, commands, pickle, fnmatch
-import PXPaths, cpickleWrapper
+import StatsPaths, cpickleWrapper
 import smtplib
 import LogFileCollector
 import mailLib
@@ -38,14 +38,14 @@ from ConfigParser import ConfigParser
 from MyDateLib import *
 from mailLib import *
 
-PXPaths.normalPaths()
 
 LOCAL_MACHINE = os.uname()[1]
 
         
 def getMaximumGaps( maxSettingsFile ):
     """
-        lire /apps/pds/tools/Columbo/etc/maxSettings.conf
+        @summary : Reads columbos 
+                   maxSettings.conf file
         
     """
     
@@ -93,7 +93,7 @@ def savePreviousMonitoringJob( parameters ) :
     
     """
     
-    file  = "/apps/px/stats/statsMonitoring/previousMonitoringJob"
+    file  = "%spreviousMonitoringJob" %StatsPaths.STATSMONITORING
      
     if not os.path.isdir( os.path.dirname( file ) ):
         os.makedirs(  os.path.dirname( file ) )
@@ -114,7 +114,7 @@ def getPreviousMonitoringJob( currentTime ):
         
     """     
     
-    file  = "/apps/px/stats/statsMonitoring/previousMonitoringJob"
+    file  = "%spreviousMonitoringJob" %StatsPaths.STATSMONITORING
     previousMonitoringJob = ""
     
     if os.path.isfile( file ):
@@ -146,11 +146,9 @@ def getlastValidEntry( name, startTime ):
                     or at wich we found the presence normal
                     lack of data.       
                           
-    '''
+    '''      
     
-    
-    
-    file  = "/apps/px/stats/statsMonitoring/lastEntryFilledTimes"
+    file  = "%slastEntryFilledTimes" %StatsPaths.STATSMONITORING
     #lastValidEntry = ""
     
     if os.path.isfile( file ):
@@ -186,7 +184,7 @@ def savelastValidEntry( name, lastValidEntry ):
     
     ''' 
       
-    file  = "/apps/px/stats/statsMonitoring/lastEntryFilledTimes"
+    file  = "%slastEntryFilledTimes" %StatsPaths.STATSMONITORING
        
     if os.path.isfile( file ):
         fileHandle      = open( file, "r" )
@@ -217,8 +215,8 @@ def buildReportHeader( parameters ):
     reportHeader = reportHeader + "Time of test : %s\n" %parameters.endTime
     reportHeader = reportHeader + "Time of previous test : %s\n" %parameters.startTime
     reportHeader = reportHeader + "Machine name      : %s\n" %(LOCAL_MACHINE)
-    reportHeader = reportHeader + "Config file  used : %s\n" %( PXPaths.STATS + "statsMonitoring/statsMonitoring.conf" )
-    reportHeader = reportHeader + "Stats monitor help file can be found here : %s" %( PXPaths.STATS + "doc/monitoring.txt")
+    reportHeader = reportHeader + "Config file  used : %s\n" %( StatsPaths.STATSROOT + "statsMonitoring/statsMonitoring.conf" )
+    reportHeader = reportHeader + "Stats monitor help file can be found here : %s" %( StatsPaths.STATSROOT + "doc/monitoring.txt")
     
     
     return reportHeader
@@ -310,7 +308,7 @@ def verifyFreeDiskSpace( parameters, report ):
     
     if onediskUsageIsAboveMax == True:
         header = "\n\nThe following disk usage warnings have been found : \n"         
-        helpLines = "\nDisk usage errors can either be cause by missing folders or disk usage percentage \nabove allowed percentage.\n If folder is missing verify if it is requiered.\n If it is not remove it from the folders section of the config file.\n If disk usage is too high verify if %s is configured properly.\n" %(PXPaths.ETC + "clean.conf")  
+        helpLines = "\nDisk usage errors can either be cause by missing folders or disk usage percentage \nabove allowed percentage.\n If folder is missing verify if it is requiered.\n If it is not remove it from the folders section of the config file.\n If disk usage is too high verify if %s is configured properly.\n" %(StatsPaths.PXETC + "clean.conf")  
         
     else:
         header = "\n\nNo disk usage warning has been found.\n"
@@ -329,7 +327,7 @@ def saveCurrentCrontab( currentCrontab ) :
         Set current crontab as the previous crontab.
     """
     
-    file  = "/apps/px/stats/statsMonitoring/previousCrontab"
+    file  = "%spreviousCrontab" %StatsPaths.STATSMONITORING
      
     if not os.path.isdir( os.path.dirname( file ) ):
         os.makedirs(  os.path.dirname( file ) )
@@ -350,7 +348,7 @@ def getPreviousCrontab():
         
     """     
     
-    file  = "/apps/px/stats/statsMonitoring/previousCrontab"
+    file  = "%spreviousCrontab" %StatsPaths.STATSMONITORING
     previousCrontab = ""
     
     if os.path.isfile( file ):
@@ -532,7 +530,7 @@ def verifyStatsLogs( parameters, report ,logger = None ):
     
     for logFileType in logFileTypes:
         
-        lfc =  LogFileCollector( startTime  = parameters.startTime , endTime = parameters.endTime, directory = PXPaths.LOG, lastLineRead = "", logType = "stats", name = logFileType, logger = logger )    
+        lfc =  LogFileCollector( startTime  = parameters.startTime , endTime = parameters.endTime, directory = StatsPaths.pxlog, lastLineRead = "", logType = "stats", name = logFileType, logger = logger )    
         
         lfc.collectEntries()
         logs = lfc.entries                
@@ -752,7 +750,7 @@ def verifyPicklePresence( parameters, report ):
         report = report + "\n\nMissing files were found on this machine.\n"
         report = report + "----------------------------------------------------------------------------------------------------------------------------------\n"
         report = report + newReportLines
-        report = report + "\n\nIf pickle files are missing verify if source/client is new.\n If it's new, some missing files are to be expected.\nIf source/client is not new, verify if %s is configured properly.\nOtherwise investigate cause.( Examples : stopped cron, deleted by user, program bug, etc...)\nSee help file for details.\n" %(PXPaths.ETC + "clean.conf")
+        report = report + "\n\nIf pickle files are missing verify if source/client is new.\n If it's new, some missing files are to be expected.\nIf source/client is not new, verify if %s is configured properly.\nOtherwise investigate cause.( Examples : stopped cron, deleted by user, program bug, etc...)\nSee help file for details.\n" %(StatsPaths.PXETC + "clean.conf")
         
         
         
@@ -1047,7 +1045,7 @@ def getSavedFileChecksums():
         
     """    
     
-    file = "/apps/px/stats/statsMonitoring/previousFileChecksums"
+    file = "%spreviousFileChecksums" %StatsPaths.STATSMONITORING
     checksums = {}
         
     if os.path.isfile( file ):
@@ -1064,11 +1062,11 @@ def saveCurrentChecksums( currentChecksums ) :
     """
         Takes the current checksums and set them 
         as the previous checksums in a pickle file named 
-        /apps/px/stats/statsMonitoring/previousFileChecksums
+        StatsPaths.STATSMONITORING/previousFileChecksums
         
     """   
     
-    file  = "/apps/px/stats/statsMonitoring/previousFileChecksums"
+    file  = "%spreviousFileChecksums" %StatsPaths.STATSMONITORING
      
     if not os.path.isdir( os.path.dirname( file ) ):
         os.makedirs(  os.path.dirname( file ) )
@@ -1142,7 +1140,7 @@ def verifyWebPages( parameters, report ):
     
     newReportLines = ""
     outdatedPageFound = False 
-    files = glob.glob( "/apps/px/stats/webPages/*Graphs*.html" )  
+    files = glob.glob( "%s*Graphs*.html" %StatsPaths.STATSWEBPAGES )  
     currentTime = MyDateLib.getSecondsSinceEpoch( parameters.endTime )
     
     
@@ -1176,7 +1174,7 @@ def verifyGraphs( parameters, report ):
     
     newReportLines = ""
     outdatedGraphsFound = False 
-    folder = ( "/apps/px/stats/graphs/webGraphics/columbo/" )  
+    folder = ( "%swebGraphics/columbo/" %StatsPaths.STATSGRAPHS )  
     currentTime = MyDateLib.getSecondsSinceEpoch( parameters.endTime )
     
     allNames = []
@@ -1214,6 +1212,7 @@ def verifyGraphs( parameters, report ):
     return report
     
 
+
 def updateRequiredfiles():
     """
         This method is used to download 
@@ -1222,10 +1221,11 @@ def updateRequiredfiles():
         
     """    
     
-    status, output = commands.getstatusoutput( "scp pds@lvs1-op:/apps/pds/tools/Columbo/ColumboShow/log/PX_Errors.txt* /apps/px/stats/statsMonitoring/ >>/dev/null 2>&1" )
+    status, output = commands.getstatusoutput( "scp pds@lvs1-op:%sPX_Errors.txt* %s >>/dev/null 2>&1" %(StatsPaths.PDSCOLLOGS, StatsPaths.STATSMONITORING ) )
     
-    status, output = commands.getstatusoutput( "scp pds@lvs1-op:/apps/pds/tools/Columbo/etc/maxSettings.conf /apps/px/stats/statsMonitoring/maxSettings.conf >>/dev/null 2>&1" ) 
+    status, output = commands.getstatusoutput( "scp pds@lvs1-op:%smaxSettings.conf %smaxSettings.conf >>/dev/null 2>&1" %( StatsPaths.PDSCOLETC, StatsPaths.STATSMONITORING ) ) 
     
+
 
 def validateParameters( parameters ):
     """

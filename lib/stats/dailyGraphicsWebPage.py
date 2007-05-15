@@ -25,10 +25,9 @@ named COPYING in the root of the source directory tree.
 
 import os, time, sys
 import generalStatsLibraryMethods, MyDateLib
-
+import StatsPaths
 
 from MyDateLib import *
-from PXPaths   import * 
 from PXManager import *
 from generalStatsLibraryMethods import *
 
@@ -93,10 +92,10 @@ def generateWebPage( rxNames, txNames, days ):
     txNamesArray.sort()
             
     #Redirect output towards html page to generate.    
-    if not os.path.isdir("/apps/px/stats/webPages/"):
-        os.makedirs( "/apps/px/stats/webPages/" )
+    if not os.path.isdir(StatsPaths.STATSWEBPAGES ):
+        os.makedirs( StatsPaths.STATSWEBPAGES )
     
-    fileHandle = open( "/apps/px/stats/webPages/dailyGraphs.html" , 'w' )
+    fileHandle = open( StatsPaths.STATSWEBPAGES  +" dailyGraphs.html" , 'w' )
 
      
     fileHandle.write( """
@@ -229,7 +228,7 @@ def generateWebPage( rxNames, txNames, days ):
             
                 
         for day in days:
-            file = "%swebGraphics/daily/%s/%s.png" %( PXPaths.GRAPHS, rxName, day )
+            file = "%swebGraphics/daily/%s/%s.png" %( StatsPaths.STATSGRAPHS , rxName, day )
             if os.path.isfile( file ):
                 fileHandle.write(  """<a target ="%s" href="%s">%s   </a>"""%( rxName, file, day ) )
                  
@@ -281,7 +280,7 @@ def generateWebPage( rxNames, txNames, days ):
         
         
         for day in days:
-            file = "%swebGraphics/daily/%s/%s.png" %( PXPaths.GRAPHS, txName, day )
+            file = "%swebGraphics/daily/%s/%s.png" %( StatsPaths.STATSGRAPHS, txName, day )
             if os.path.isfile( file ):
                 fileHandle.write(  """ <a target ="%s" href="%s">%s   </a>""" %( txName, file, day ) )      
 

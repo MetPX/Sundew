@@ -18,15 +18,15 @@
 #############################################################################################
 '''
 
-import PXPaths
+import StatsPaths
 import ConfigParser
 from MachineConfigParameters import MachineConfigParameters
 from DetailedStatsParameters import DetailedStatsParameters
 from GroupConfigParameters   import GroupConfigParameters
-from PXPaths import *
+
 from ConfigParser import ConfigParser
 
-PXPaths.normalPaths()
+
 
 
 class StatsConfigParameters:
@@ -119,13 +119,13 @@ class StatsConfigParameters:
  
     def getGeneralParametersFromStatsConfigurationFile(self):
         """
-            Gather all the parameters from the /apps/px/.../config file.
+            Gather all the parameters from the  StatsPath.STATSROOT/config file.
             
             Returns all collected values in a  _StatsConfigParameters instance.
         
         """   
     
-        CONFIG = PXPaths.STATS + "config" 
+        CONFIG = StatsPaths.STATSROOT + "config" 
         config = ConfigParser()
         config.readfp( open( CONFIG ) ) 
                   
@@ -153,7 +153,7 @@ class StatsConfigParameters:
         machineParameters.getParametersFromMachineConfigurationFile()
         
         
-        config = PXPaths.STATS + "config"
+        config = StatsPaths.STATSROOT  + "config"
         fileHandle = open( config, "r" )
         
         line = fileHandle.readline()#read until groups section, or EOF

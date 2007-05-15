@@ -30,9 +30,7 @@ named COPYING in the root of the source directory tree.
 ##
 ##############################################################################
 
-import os, commands, pwd, sys, PXPaths, cpickleWrapper,glob
-
-PXPaths.normalPaths()
+import os, commands, pwd, sys, StatsPaths, cpickleWrapper,glob
 
 
 class PickleVersionChecker :
@@ -60,7 +58,7 @@ class PickleVersionChecker :
         fileNames = []
         
         for client in clients : 
-            filePattern = PXPaths.PICKLES + client + "/*/*"  #_??
+            filePattern = StatsPaths.STATSPICKLES + client + "/*/*"  #_??
             folderNames = glob.glob( filePattern )
                         
             
@@ -85,7 +83,7 @@ class PickleVersionChecker :
         """
         
         self.savedFileList         = {}
-        directory = PXPaths.STATS + "file_versions/"              
+        directory = StatsPaths.STATSROOT + "file_versions/"              
                 
         combinedName = ""
         for client in clients:
@@ -169,7 +167,7 @@ class PickleVersionChecker :
         
         """
         
-        directory = PXPaths.STATS + "file_versions/"
+        directory = StatsPaths.STATSROOT + "file_versions/"
          
         
         combinedName = ""

@@ -30,10 +30,9 @@ from MyDateLib import *
 import ClientStatsPickler
 from Numeric import *
 import Gnuplot, Gnuplot.funcutils
-import PXPaths
+import StatsPaths
 from   Logger  import *
 
-PXPaths.normalPaths()
 
 LOCAL_MACHINE = os.uname()[1]
 
@@ -89,7 +88,7 @@ class StatsPlotter:
             self.sourlient = "Source"  
         
         if self.logger == None: # Enable logging
-            self.logger = Logger( PXPaths.LOG +  'stats_' + self.loggerName + '.log', 'INFO', 'TX' + self.loggerName, bytes = True  ) 
+            self.logger = Logger( StatsPaths.PXLOG +  'stats_' + self.loggerName + '.log', 'INFO', 'TX' + self.loggerName, bytes = True  ) 
             self.logger = self.logger.getLogger()
             
         self.xtics       = self.getXTics( )        # Seperators on the x axis.
@@ -145,7 +144,7 @@ class StatsPlotter:
         else:
             formattedProductName = "Specific"    
                 
-        fileName = PXPaths.GRAPHS + "others/gnuplot/%.50s/%s_%.50s_%s_%s_%shours_on_%s_for %s products.png" %( entityName, self.fileType, entityName, date, self.statsTypes, self.timespan, self.machines, formattedProductName )
+        fileName = StatsPaths.STATSGRAPHS + "others/gnuplot/%.50s/%s_%.50s_%s_%s_%shours_on_%s_for %s products.png" %( entityName, self.fileType, entityName, date, self.statsTypes, self.timespan, self.machines, formattedProductName )
         
         
         fileName = fileName.replace( '[', '').replace(']', '').replace(" ", "").replace( "'","" )               
@@ -394,7 +393,12 @@ class StatsPlotter:
                         
         statType = statType[0].upper() + statType[1:]             
               
-        title =  "%s for %s for a span of %s hours ending at %s\\n%s\\n\\nMAX: %s  MEAN: %3.2f MIN: %s " %( statType, self.clientNames[clientIndex], self.timespan, self.currentTime, explanation, maximum, self.means[clientIndex][typeCount], minimum )     
+        if self.groupName == "":
+            entityName = self.clientNames[clientIndex]
+        else:          
+            entityName = self.groupName
+            
+        title =  "%s for %s for a span of %s hours ending at %s\\n%s\\n\\nMAX: %s  MEAN: %3.2f MIN: %s " %( statType, entityName, self.timespan, self.currentTime, explanation, maximum, self.means[clientIndex][typeCount], minimum )     
         
         return title
         
@@ -409,9 +413,9 @@ class StatsPlotter:
         
         src = self.imageName
         
-        if self.groupName == "":            
+        if self.groupName != "":            
             
-            destination = PXPaths.GRAPHS + "webGraphics/groups/%s.png"  %self.groupName 
+            destination = StatsPaths.STATSGRAPHS + "webGraphics/groups/%s.png"  %self.groupName 
                 
         else:   
         
@@ -425,7 +429,7 @@ class StatsPlotter:
                     if name != self.clientNames[ len(self.clientNames) -1 ] :
                         clientName = clientName + "-" 
         
-            destination = PXPaths.GRAPHS + "webGraphics/columbo/%s.png" %clientName
+            destination = StatsPaths.STATSGRAPHS + "webGraphics/columbo/%s.png" %clientName
 
         
         if not os.path.isdir( os.path.dirname( destination ) ):
@@ -540,9 +544,12 @@ class StatsPlotter:
             timeOfMax = ""
             maximum = ""       
             
+            
         if self.groupName == "" :
+            entityType = self.sourlient
             entityName = self.clientNames[clientIndex]
         else:
+            entityType = "Group"
             entityName = self.groupName
                   
         
@@ -554,7 +561,7 @@ class StatsPlotter:
 
         self.graph.ylabel( 'latency (seconds)' )
         
-        self.graph( 'set label "%s : %s" at screen .545, screen %3.2f' % ( self.sourlient, entityName,(.26+(nbGraphs) *.40)  ))
+        self.graph( 'set label "%s : %s" at screen .545, screen %3.2f' % ( entityType, entityName,(.26+(nbGraphs) *.40)  ))
         
         self.graph( 'set label "Machines : %s" at screen .545, screen %3.2f' % ( self.machines,(.24+(nbGraphs) *.40)  ) )
         
@@ -602,12 +609,14 @@ class StatsPlotter:
             timeOfMax = ""
             maximum = ""
        
-       
+        
         if self.groupName == "" :
+            entityType = self.sourlient
             entityName = self.clientNames[clientIndex]
         else:
-            entityName = self.groupName    
-       
+            entityType = "Group"
+            entityName = self.groupName
+        
        
         if self.totalNumberOfBytes[clientIndex] < 1000:#less than a k
             totalNumberOfBytes = "%s Bytes" %int( self.totalNumberOfBytes[clientIndex] )
@@ -628,7 +637,7 @@ class StatsPlotter:
         
         self.graph.ylabel( 'Bytes/Minute' )
         
-        self.graph( 'set label "%s : %s" at screen .545, screen %3.2f' % ( self.sourlient, entityName,(.26+(nbGraphs) *.40)  ))
+        self.graph( 'set label "%s : %s" at screen .545, screen %3.2f' % ( entityType, entityName,(.26+(nbGraphs) *.40)  ))
         
         self.graph( 'set label "Machines : %s" at screen .545, screen %3.2f' % ( self.machines,(.24+(nbGraphs) *.40)  ) )
         
@@ -678,9 +687,11 @@ class StatsPlotter:
             maximum = ""
                
         if self.groupName == "" :
+            entityType = self.sourlient
             entityName = self.clientNames[clientIndex]
         else:
-            entityName = self.groupName       
+            entityType = "Group"
+            entityName = self.groupName    
         
         formatedProductTypes = "%-25s" %( (str)( self.productTypes ) ).replace('[','' ).replace( ']', '' ).replace("'","")
         
@@ -690,7 +701,7 @@ class StatsPlotter:
         
         self.graph.ylabel( 'Errors/Minute' )
         
-        self.graph( 'set label "%s : %s" at screen .545, screen %3.2f' % ( self.sourlient,entityName,(.26+(nbGraphs) *.40)  ))
+        self.graph( 'set label "%s : %s" at screen .545, screen %3.2f' % ( entityType, entityName,(.26+(nbGraphs) *.40)  ))
         
         self.graph( 'set label "Machines : %s" at screen .545, screen %3.2f' % ( self.machines,(.24+(nbGraphs) *.40)  ) )
         

@@ -29,7 +29,7 @@ import generalStatsLibraryMethods
 from math import *
 from MyDateLib import *
 from generalStatsLibraryMethods import *
-from PXPaths   import * 
+from StatsPaths import * 
 from PXManager import *
 
 LOCAL_MACHINE  = os.uname()[1]    
@@ -132,9 +132,9 @@ def generateWebPage( rxNames, txNames, months ):
     txNamesArray.sort()
         
     #Redirect output towards html page to generate. 
-    if not os.path.isdir("/apps/px/stats/webPages/"):
-        os.makedirs( "/apps/px/stats/webPages/" )        
-    fileHandle = open( "/apps/px/stats/webPages/monthlyGraphs.html" , 'w' )
+    if not os.path.isdir( StatsPaths.STATSWEBPAGES ):
+        os.makedirs(  StatsPaths.STATSWEBPAGES )        
+    fileHandle = open( "%smonthlyGraphs.html" %StatsPaths.STATSWEBPAGES , 'w' )
 
     
     fileHandle.write(  """
@@ -303,7 +303,7 @@ def generateWebPage( rxNames, txNames, months ):
         
         
         for month in months:
-            file = "%swebGraphics/monthly/bytecount/%s/%s.png" % (PXPaths.GRAPHS, rxName, month )
+            file = "%swebGraphics/monthly/bytecount/%s/%s.png" % ( StatsPaths.STATSGRAPHS , rxName, month )
             if os.path.isfile( file ):
                 fileHandle.write(  """<a target ="popup" href="%s" onClick="wopen('%s', 'popup', 875, 240); return false;">%s&nbsp;</a>"""%( rxName, file ,month ) ) 
         
@@ -313,7 +313,7 @@ def generateWebPage( rxNames, txNames, months ):
         fileHandle.write(  """ <td bgcolor="#66CCFF"><div class = "rxTableEntry">Months&nbsp;:&nbsp;""" )        
         
         for month in months:
-            file = "%swebGraphics/monthly/filecount/%s/%s.png" % (PXPaths.GRAPHS, rxName, month )
+            file = "%swebGraphics/monthly/filecount/%s/%s.png" % ( StatsPaths.STATSGRAPHS, rxName, month )
             if os.path.isfile(file):
                 fileHandle.write(  """<a target ="popup" href="%s" onClick="wopen('%s', 'popup', 875, 240); return false;">%s&nbsp;</a>"""%( rxName, file ,month ) )   
                         
@@ -323,7 +323,7 @@ def generateWebPage( rxNames, txNames, months ):
         fileHandle.write(  """ <td bgcolor="#66CCFF"><div class = "rxTableEntry">Months&nbsp;:&nbsp;""" )
         
         for month in months:
-            file = "%swebGraphics/monthly/errors/%s/%s.png" % (PXPaths.GRAPHS, rxName, month )
+            file = "%swebGraphics/monthly/errors/%s/%s.png" % (StatsPaths.STATSGRAPHS, rxName, month )
             if os.path.isfile( file ):
                 fileHandle.write(  """ <a target ="popup" href="%s" onClick="wopen('%s', 'popup', 875, 240); return false;">%s&nbsp;</a>"""%( rxName, file ,month ) )  
         
@@ -429,7 +429,7 @@ def generateWebPage( rxNames, txNames, months ):
         
         
         for month in months:
-            file = "%swebGraphics/monthly/latency/%s/%s.png" % (PXPaths.GRAPHS, txName, month )
+            file = "%swebGraphics/monthly/latency/%s/%s.png" % ( StatsPaths.STATSGRAPHS, txName, month )
             if os.path.isfile( file ):
                 fileHandle.write(  """<a target ="popup" href="%s" onClick="wopen('%s', 'popup', 875, 240); return false;">&nbsp;%s</a>"""%( txName, file ,month ) )
         
@@ -439,7 +439,7 @@ def generateWebPage( rxNames, txNames, months ):
         fileHandle.write(  """ <td bgcolor="#66CCFF"  ><div class = "txTableEntry">Months:&nbsp;""" )
         
         for month in months:
-            file = "%swebGraphics/monthly/filesOverMaxLatency/%s/%s.png" % (PXPaths.GRAPHS, txName, month )
+            file = "%swebGraphics/monthly/filesOverMaxLatency/%s/%s.png" % ( StatsPaths.STATSGRAPHS, txName, month )
             if os.path.isfile( file ):
                 fileHandle.write(  """<a target ="popup" href="%s" onClick="wopen('%s', 'popup', 875, 240); return false;">&nbsp;%s</a>"""%( txName, file ,month ) )
         
@@ -450,7 +450,7 @@ def generateWebPage( rxNames, txNames, months ):
         fileHandle.write(  """ <td bgcolor="#66CCFF"  ><div class = "txTableEntry">Months:&nbsp;""" )
         
         for month in months:
-            file = "%swebGraphics/monthly/bytecount/%s/%s.png" % (PXPaths.GRAPHS, txName, month )
+            file = "%swebGraphics/monthly/bytecount/%s/%s.png" % ( StatsPaths.STATSGRAPHS, txName, month )
             if os.path.isfile( file ):
                 fileHandle.write(  """<a target ="popup" href="%s" onClick="wopen('%s', 'popup', 875, 240); return false;">&nbsp;%s</a>"""%( txName, file ,month ) )
         
@@ -460,7 +460,7 @@ def generateWebPage( rxNames, txNames, months ):
         fileHandle.write(  """ <td bgcolor="#66CCFF"  ><div class = "txTableEntry">Months:&nbsp;""" )
         
         for month in months:
-            file = "%swebGraphics/monthly/filecount/%s/%s.png" % (PXPaths.GRAPHS, txName, month )
+            file = "%swebGraphics/monthly/filecount/%s/%s.png" % ( StatsPaths.STATSGRAPHS, txName, month )
             if os.path.isfile( file ):
                 fileHandle.write(  """<a target ="popup" href="%s" onClick="wopen('%s', 'popup', 875, 240); return false;">&nbsp;%s</a>"""%( txName, file ,month ) )
         
@@ -470,7 +470,7 @@ def generateWebPage( rxNames, txNames, months ):
         fileHandle.write(  """ <td bgcolor="#66CCFF"><div class = "txTableEntry">Months:&nbsp;""" )
         
         for month in months:
-            file = "%swebGraphics/monthly/errors/%s/%s.png" % (PXPaths.GRAPHS, txName, month )
+            file = "%swebGraphics/monthly/errors/%s/%s.png" % ( StatsPaths.STATSGRAPHS, txName, month )
             if os.path.isfile( file ):
                 fileHandle.write(  """<a target ="popup" href="%s" onClick="wopen('%s', 'popup', 875, 240); return false;">&nbsp;%s</a>"""%( txName, file ,month ) )
         

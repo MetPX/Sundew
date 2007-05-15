@@ -25,10 +25,10 @@ named COPYING in the root of the source directory tree.
 """
 
 import os, commands, time, sys, pickle
-import MyDateLib,PXPaths 
+import MyDateLib, StatsPaths 
 from   MyDateLib import * 
 
-PXPaths.normalPaths()
+
 
 
 def updatePickledTimes( dateToSet = "2006-10-23 09:00:00"  ):
@@ -36,7 +36,7 @@ def updatePickledTimes( dateToSet = "2006-10-23 09:00:00"  ):
           Get all the keys then set all of them to the desired date.
     """
     
-    fileName = PXPaths.STATS +"PICKLED-TIMES"
+    fileName = StatsPaths.STATSROOT +"PICKLED-TIMES"
 
     if os.path.isfile( fileName ):
 
@@ -64,8 +64,8 @@ def removePickledFilePositions(  ):
         a certain file for each source/client.
     """
     
-    if os.path.isfile( PXPaths.STATS +  "PICKLED_FILE_POSITIONS" ) :
-        status, output = commands.getstatusoutput("rm %s " %(PXPaths.STATS +  "PICKLED_FILE_POSITIONS" ) )
+    if os.path.isfile( StatsPaths.STATSROOT +  "PICKLED_FILE_POSITIONS" ) :
+        status, output = commands.getstatusoutput("rm %s " %( StatsPaths.STATSROOT +  "PICKLED_FILE_POSITIONS" ) )
                 
     
     
@@ -74,7 +74,7 @@ def main():
         Deletes pickle file containing the position where we last read 
         a certain file for each source/client.
         
-        Set date of last update in PXPaths.STATS +"PICKLED-TIMES"
+        Set date of last update in StatsPaths.STATSROOT +"PICKLED-TIMES"
         
     """
     

@@ -20,12 +20,11 @@ named COPYING in the root of the source directory tree.
 ##
 ##############################################################################
 import os, time, sys, datetime, string
-import generalStatsLibraryMethods, MyDateLib, configFileManager
-
-
+import generalStatsLibraryMethods, MyDateLib
+import St
 import string 
 
-from PXPaths   import * 
+
 from PXManager import *
 from MyDateLib import *
 from generalStatsLibraryMethods import *
@@ -44,7 +43,7 @@ def generateWebPage( machineNames ):
         of the pxstats web site.
     """
 
-    file = "/apps/px/stats/webPages/top.html" 
+    file = "%stop.html" %StatsPaths.STATSWEBPAGES 
     fileHandle = open( file , 'w' )
     
     fileHandle.write( """ 

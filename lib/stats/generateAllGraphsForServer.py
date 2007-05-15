@@ -27,15 +27,11 @@ named COPYING in the root of the source directory tree.
 
 
 import os, time, pwd, sys, getopt, commands, fnmatch, pickle
-import PXPaths 
 import generalStatsLibraryMethods
 from generalStatsLibraryMethods import *
 from optparse  import OptionParser
-from PXPaths   import * 
 from PXManager import *
 from MyDateLib import *
-
-PXPaths.normalPaths()
 
 LOCAL_MACHINE  = os.uname()[1]
 
@@ -221,7 +217,7 @@ def generateGraphsForIndividualMachines( infos ) :
             pid = os.fork()#create child process
             
             if pid == 0: #child process
-                status, output = commands.getstatusoutput( "python /apps/px/lib/stats/generateGraphics.py -m '%s' -f tx -c '%s' -d '%s' -s %s --copy" %( infos.machines[i], txName, infos.date, infos.timespan) )               
+                status, output = commands.getstatusoutput( "python %sgenerateGraphics.py -m '%s' -f tx -c '%s' -d '%s' -s %s --copy" %( StatsPaths.STATSLIBRARY, infos.machines[i], txName, infos.date, infos.timespan) )               
                 print output 
                 sys.exit()
         
@@ -247,7 +243,7 @@ def generateGraphsForIndividualMachines( infos ) :
             pid = os.fork()#create child process
             
             if pid == 0 :#child process
-                status, output = commands.getstatusoutput( "python /apps/px/lib/stats/generateGraphics.py -m '%s' -f rx -c '%s' -d '%s' -s %s --copy" %( infos.machines[i] , rxName, infos.date,infos.timespan ) )     
+                status, output = commands.getstatusoutput( "python %sgenerateGraphics.py -m '%s' -f rx -c '%s' -d '%s' -s %s --copy" %( StatsPaths.STATSLIBRARY, infos.machines[i] , rxName, infos.date,infos.timespan ) )     
                 print output
                 sys.exit()
         
@@ -286,7 +282,7 @@ def generateGraphsForPairedMachines( infos ) :
         
         if pid == 0 :#child process
             
-            status, output = commands.getstatusoutput( "python /apps/px/lib/stats/generateGraphics.py -m %s -f tx -c %s -d '%s' -s %s  --copy" %( infos.combinedName, txName, infos.date, infos.timespan ) )
+            status, output = commands.getstatusoutput( "python %sgenerateGraphics.py -m %s -f tx -c %s -d '%s' -s %s  --copy" %( StatsPaths.STATSLIBRARY, infos.combinedName, txName, infos.date, infos.timespan ) )
             print output
             sys.exit()    #terminate child process
     
@@ -312,7 +308,7 @@ def generateGraphsForPairedMachines( infos ) :
         pid = os.fork()#create child process
         
         if pid == 0:#child process            
-            status, output = commands.getstatusoutput( "python /apps/px/lib/stats/generateGraphics.py -m %s -f rx -c %s -d '%s' -s %s  --copy" %( infos.combinedName, rxName, infos.date, infos.timespan ) )     
+            status, output = commands.getstatusoutput( "python %sgenerateGraphics.py -m %s -f rx -c %s -d '%s' -s %s  --copy" %( StatsPaths.STATSLIBRARY, infos.combinedName, rxName, infos.date, infos.timespan ) )     
             print output 
             sys.exit()
         else:

@@ -24,6 +24,16 @@ named COPYING in the root of the source directory tree.
 import os 
 import PXPaths
 
+
+
+"""
+    PDS RELATED PATHS
+"""
+PDSCOLGRAPHS = '/apps/pds/tools/Columbo/ColumboShow/graphs/'
+PDSCOLLOGS   = '/apps/pds/tools/Columbo/ColumboShow/log/'
+PDSCOLETC    = '/apps/pds/tools/Columbo/etc/'
+
+
 """
     MetPX related paths
 """
@@ -36,8 +46,9 @@ PXETCRX  = PXPaths.RX_CONF
 PXETCTX  = PXPaths.TX_CONF
 PXETCTRX = PXPaths.TRX_CONF
 
+
 """
-    Stats-only paths.
+    Stats specific paths.
 """
 STATSROOT   =  PXROOT + 'stats/'
 
@@ -47,11 +58,16 @@ STATSPXTXCONFIGS  = STATSPXCONFIGS + 'tx/'
 STATSPXTRXCONFIGS = STATSPXCONFIGS + 'trx/'
 
 STATSLIBRARY    = PXLIB + 'stats/'
-STATSGRAPHS     = STATSROOT + 'graphs/'
+STATSDBUPDATESBACKUPS = STATSROOT + 'DATABASE-UPDATES_BACKUPS/'
 STATSDB         = STATSROOT + 'databases/'
 STATSDBBACKUPS  = STATSROOT + 'databases_backups/'
 STATSDBUPDATES  = STATSROOT + 'DATABASE-UPDATES/'
 STATSMONITORING = STATSROOT + 'statsMonitoring/'
 STATSPICKLES    = STATSROOT + 'pickles/'
 STATSWEBPAGES   = STATSROOT + 'webPages/'
-STATSDBUPDATESBACKUPS = STATSROOT + 'DATABASE-UPDATES_BACKUPS/'
+STATSGRAPHS     = STATSROOT + 'graphs/'
+STATSWEBGRAPHS  = STATSGRAPHS + 'webGraphics'
+STATSCOLGRAPHS  = STATSWEBGRAPHS + 'columbo'
+
+
+

@@ -24,9 +24,6 @@ named COPYING in the root of the source directory tree.
 ##############################################################################
 
 import os,sys 
-import PXPaths
-
-PXPaths.normalPaths() 
 
 def tail( nbLines = 1, file = "", printIt = False ):
     """
@@ -152,26 +149,26 @@ if __name__ == "__main__":
         Small test case. Tests if everything works plus gives an idea on proper usage.
     """
     
-    print "tail tests :"
-    tail( nbLines =10, file = PXPaths.STATS + "testFiles/empty", printIt = True )
-    tail( nbLines =10, file = PXPaths.STATS + "testFiles/tx_amis.log", printIt = True )
-    tail( nbLines =10, file = PXPaths.STATS + "testFiles/onelinefile", printIt = True)        
-    
-    print "read lines backward test :"
-    fileName = PXPaths.STATS + "testFiles/bob"
-    fileHandle = open(fileName, "r")
-    
-    fileSize = os.stat(fileName)[6]
-    line,offset  = readLineBackwards( fileHandle, offset = -1, fileSize = fileSize  )
-    
-    print line
-    
-    while line != "":
-        line,offset = readLineBackwards( fileHandle = fileHandle, offset = offset , fileSize = fileSize )
-        if line != "":
-            print line 
-    
-    tail( nbLines =10, file = PXPaths.STATS + "testFiles/nonexisting", printIt = True )    
-    
-    fileHandle.close()
+    #------------------------------------------------------ print "tail tests :"
+    # tail( nbLines =10, file = PXPaths.STATS + "testFiles/empty", printIt = True )
+    # tail( nbLines =10, file = PXPaths.STATS + "testFiles/tx_amis.log", printIt = True )
+    # tail( nbLines =10, file = PXPaths.STATS + "testFiles/onelinefile", printIt = True)
+#------------------------------------------------------------------------------ 
+    #---------------------------------------- print "read lines backward test :"
+    #-------------------------------- fileName = PXPaths.STATS + "testFiles/bob"
+    #------------------------------------------ fileHandle = open(fileName, "r")
+#------------------------------------------------------------------------------ 
+    #------------------------------------------- fileSize = os.stat(fileName)[6]
+    # line,offset  = readLineBackwards( fileHandle, offset = -1, fileSize = fileSize  )
+#------------------------------------------------------------------------------ 
+    #---------------------------------------------------------------- print line
+#------------------------------------------------------------------------------ 
+    #--------------------------------------------------------- while line != "":
+        # line,offset = readLineBackwards( fileHandle = fileHandle, offset = offset , fileSize = fileSize )
+        #-------------------------------------------------------- if line != "":
+            #-------------------------------------------------------- print line
+#------------------------------------------------------------------------------ 
+    # tail( nbLines =10, file = PXPaths.STATS + "testFiles/nonexisting", printIt = True )
+#------------------------------------------------------------------------------ 
+    #-------------------------------------------------------- fileHandle.close()
     

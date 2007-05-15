@@ -24,11 +24,9 @@ named COPYING in the root of the source directory tree.
 ##############################################################################
 import os, time, sys, datetime
 import generalStatsLibraryMethods, MyDateLib
-
-
+import StatsPaths
 import string 
 
-from PXPaths   import * 
 from PXManager import *
 from MyDateLib import *
 from generalStatsLibraryMethods import *
@@ -174,12 +172,12 @@ def generateWebPage( machineNames ):
     updateFrequency= {"daily":"(upd. hourly)","weekly":"(upd. hourly)","monthly":"(upd. weekly)","yearly":"(upd. monthly)"}  
     
     for machineName in machineNames:
-        if not os.path.isdir("/apps/px/stats/webPages/"):
-            os.makedirs( "/apps/px/stats/webPages/" )
+        if not os.path.isdir("StatsPaths.STATSWEBPAGES"):
+            os.makedirs( "StatsPaths.STATSWEBPAGES" )
         machineName = getCombinedMachineName( machineName )
-        file = "/apps/px/stats/webPages/%s.html" %machineName
+        file = "%s%s.html" %( StatsPaths.STATSWEBPAGES,machineName)
         fileHandle = open( file , 'w' )
-        #print "/apps/px/stats/webPages/%s.html" %machineName
+        
         
         fileHandle.write( """ <html>         
             <head>
@@ -263,7 +261,7 @@ def generateWebPage( machineNames ):
                 fileHandle.write( """<td bgcolor="#66CCFF">  """ )
                 
                 for x in timeContainer:
-                    file = "%s/webGraphics/totals/%s/rx/%s/%s/%s.png" %( PXPaths.GRAPHS, machineName, type, timeType, x ) 
+                    file = "%s/webGraphics/totals/%s/rx/%s/%s/%s.png" %( StatsPaths.STATSGRAPHS, machineName, type, timeType, x ) 
                     if os.path.isfile(file):    
                         fileHandle.write(  """<a target ="popup" href="%s" onClick="wopen('%s', 'popup', 875, 240); return false;">%s&nbsp;</a>""" %( x, file, x ) )
                     
@@ -319,7 +317,7 @@ def generateWebPage( machineNames ):
                 fileHandle.write( """<td bgcolor="#66CCFF"> """) 
                 
                 for x in timeContainer:
-                    file = "%swebGraphics/totals/%s/tx/%s/%s/%s.png" %( PXPaths.GRAPHS, machineName, type, timeType,x ) 
+                    file = "%swebGraphics/totals/%s/tx/%s/%s/%s.png" %( StatsPaths.STATSGRAPHS, machineName, type, timeType,x ) 
                     if os.path.isfile(file):    
                         fileHandle.write(  """<a target ="popup" href="%s" onClick="wopen('%s', 'popup', 875, 240); return false;">%s </a>""" %( x,file, x ) )
                     else:

@@ -19,13 +19,13 @@ named COPYING in the root of the source directory tree.
 #############################################################################
 
 import os, sys, commands
-import PXPaths, MyDateLib
+import StatsPaths, MyDateLib
 from ConfigParser import ConfigParser
 from MachineConfigParameters import MachineConfigParameters
 from MyDateLib import *
 from FileStatsCollector import FileStatsCollector
 # 
-PXPaths.normalPaths()
+
 LOCAL_MACHINE = os.uname()[1]
 
 
@@ -81,14 +81,14 @@ class StatsMonitoringConfigParameters:
     
     def getParametersFromMonitoringConfigurationFile( self ):
         """
-            Gather all the parameters from the /apps/px/.../config file.
+            Gather all the parameters from the StatsPaths.STATSROOT/config file.
             
             Returns all collected values in this order emails, machines,
             files, folders, maxUsages, errorsLogFile, maxSettingsFile.
         
         """   
     
-        CONFIG = PXPaths.STATS + "statsMonitoring/statsMonitoring.conf" 
+        CONFIG = StatsPaths.STATSMONITORING +"statsMonitoring.conf" 
         config = ConfigParser()
         
         if os.path.isfile( CONFIG ):

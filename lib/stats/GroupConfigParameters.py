@@ -63,9 +63,9 @@ class GroupConfigParameters:
     
         """
            
-        groupMembers   = self.groupsMembers[group].replace( "[", "" ).replace( "]", "" ).replace( " ", "" )
-        groupMachines  = self.groupsMachines[group].replace( "[", "" ).replace( "]", "" ).replace( " ", "" )                 
-        groupProducts  = self.groupsProducts[group].replace( "[", "" ).replace( "]", "" ).replace( " ", "" )
-        groupFileTypes = self.groupFileTypes[group].replace( "[", "" ).replace( "]", "" ).replace( " ", "" )
+        groupMembers   = str(self.groupsMembers[group]).replace( "[", "" ).replace( "]", "" ).replace( " ", "" )
+        groupMachines  = str(self.groupsMachines[group]).replace( "[", "" ).replace( "]", "" ).replace( " ", "" )                 
+        groupProducts  = str(self.groupsProducts[group]).replace( "[", "" ).replace( "]", "" ).replace( " ", "" )
+        groupFileTypes = str(self.groupFileTypes[group]).replace( "[", "" ).replace( "]", "" ).replace( " ", "" )
 
         return groupMembers, groupMachines, groupProducts, groupFileTypes

@@ -23,22 +23,21 @@ named COPYING in the root of the source directory tree.
 
 
 import os, time, getopt, rrdtool, shutil  
-import ClientStatsPickler, MyDateLib, pickleMerging, PXManager, PXPaths, transferPickleToRRD
+import ClientStatsPickler, MyDateLib, pickleMerging, PXManager, StatsPaths, transferPickleToRRD
 import generalStatsLibraryMethods
 import rrdUtilities
 
 from   transferPickleToRRD import *
 from   generalStatsLibraryMethods import *
 from   rrdUtilities import *
+
+from   sys import *
 from   ClientStatsPickler import *
 from   optparse  import OptionParser
-from   PXPaths   import *
 from   PXManager import *
 from   MyDateLib import *
 from   Logger    import *     
 from   Logger    import *       
-
-PXPaths.normalPaths()
 
 LOCAL_MACHINE = os.uname()[1]
     
@@ -746,9 +745,8 @@ def buildImageName(  type, client, machine, infos, logger = None ):
                     
     date = infos.endTime.replace( "-","" ).replace( " ", "_")
     
-    fileName = PXPaths.GRAPHS + "others/rrd/%s/%s_%s_%s_%s_%s%s_on_%s.png" %( client, infos.fileType, client, date, type, span, timeMeasure, machine )
-    
-    
+    fileName = StatsPaths.STATSGRAPHS + "others/rrd/%s/%s_%s_%s_%s_%s%s_on_%s.png" %( client, infos.fileType, client, date, type, span, timeMeasure, machine )
+        
     fileName = fileName.replace( '[', '').replace(']', '').replace(" ", "").replace( "'","" )               
     
     splitName = fileName.split( "/" ) 
@@ -968,7 +966,7 @@ def getCopyDestination( type, client, machine, infos ):
         else:
             fileName = client
         
-        destination = PXPaths.GRAPHS + "webGraphics/%s/%s/%s/%.50s.png" %( infos.graphicType, type , client, fileName )
+        destination = StatsPaths.STATSGRAPHS + "webGraphics/%s/%s/%s/%.50s.png" %( infos.graphicType, type , client, fileName )
     
     else :
         if infos.graphicType == "weekly":
@@ -982,7 +980,7 @@ def getCopyDestination( type, client, machine, infos ):
         else:
             fileName = client
         
-        destination = "%s/webGraphics/totals/%s/%s/%s/%s/%s.png" %( PXPaths.GRAPHS, machine,infos.fileType, type, infos.graphicType, fileName)
+        destination = "%s/webGraphics/totals/%s/%s/%s/%s/%s.png" %( StatsPaths.STATSGRAPHS, machine,infos.fileType, type, infos.graphicType, fileName)
     
     
     return destination    
@@ -1114,7 +1112,7 @@ def plotRRDGraph( databaseName, type, fileType, client, machine, infos, logger =
         
         
 
-def createNewMergedDatabase( dataType = type, machine = machine, infos  ) :       
+def createNewMergedDatabase( infos, dataType,  machine, start, interval    ) :       
     """
     
     @summary: Creates a brand new database for data merging based on parameters.
@@ -1138,37 +1136,32 @@ def createNewMergedDatabase( dataType = type, machine = machine, infos  ) :
     
     """
        
-    rrdFilename = rrdUtilities.buildRRDFileName( dataType = dataType, clients = infos.clients, mahcines =[machine], fileType = infos.fileType, usage =infos.mergerType)
+    rrdFilename = rrdUtilities.buildRRDFileName( dataType = dataType, clients = infos.clientNames, machines =[machine], fileType = infos.fileType, usage =infos.mergerType)
     
-    if os.path.isfile( rrdFilename ):
-         status, output = commands.getstatusoutput("rm %s " %rrdFilename )
     
-    elif not os.path.isdir( PXPaths.STATS + "databases/tempForGraphics/" ):
-        os.makedirs( PXPaths.STATS + "databases/tempForGraphics/" )
-    
-    rrdFilename = PXPaths.STATS + "databases/tempForGraphics/" +  os.path.basename( os.path.basename(rrdFilename)) + os.path.basename(rrdFilename)
     
     if interval == 1:#daily :
         start = start - 60
-         rrdtool.create( combinedDatabaseName, '--start','%s' %( start ), '--step', '60', 'DS:%s:GAUGE:60:U:U' %type,'RRA:AVERAGE:0:1:7200','RRA:MIN:0:1:7200', 'RRA:MAX:0:1:7200' )
+        #print "^^^^^^^^^^^", rrdFilename, '--start','%s' %( start ), '--step', '60', 'DS:%s:GAUGE:60:U:U' %dataType,'RRA:AVERAGE:0:1:7200','RRA:MIN:0:1:7200', 'RRA:MAX:0:1:7200'
+        rrdtool.create( rrdFilename, '--start','%s' %( start ), '--step', '60', 'DS:%s:GAUGE:60:U:U' %dataType,'RRA:AVERAGE:0:1:7200','RRA:MIN:0:1:7200', 'RRA:MAX:0:1:7200' )
     
     
     elif interval == 60:#weekly :
         start = start - (60*60)
-         rrdtool.create( combinedDatabaseName, '--start','%s' %( start ), '--step', '3600', 'DS:%s:GAUGE:3600:U:U' %type,'RRA:AVERAGE:0:1:336','RRA:MIN:0:1:336', 'RRA:MAX:0:1:336' )
+        rrdtool.create( rrdFilename, '--start','%s' %( start ), '--step', '3600', 'DS:%s:GAUGE:3600:U:U' %dataType,'RRA:AVERAGE:0:1:336','RRA:MIN:0:1:336', 'RRA:MAX:0:1:336' )
     
     
     elif interval == 240:#monthly
         start = start - (240*60)
-         rrdtool.create( combinedDatabaseName, '--start','%s' %( start ), '--step', '14400', 'DS:%s:GAUGE:14400:U:U' %type, 'RRA:AVERAGE:0:1:1460','RRA:MIN:0:1:1460','RRA:MAX:0:1:1460' )
+        rrdtool.create( rrdFilename, '--start','%s' %( start ), '--step', '14400', 'DS:%s:GAUGE:14400:U:U' %dataType, 'RRA:AVERAGE:0:1:1460','RRA:MIN:0:1:1460','RRA:MAX:0:1:1460' )
     
     
     else:#yearly
         start = start - (1440*60)
-         rrdtool.create( combinedDatabaseName, '--start','%s' %( start ), '--step', '86400', 'DS:%s:GAUGE:86400:U:U' %type, 'RRA:AVERAGE:0:1:3650','RRA:MIN:0:1:3650','RRA:MAX:0:1:3650' )
+        rrdtool.create( rrdFilename, '--start','%s' %( start ), '--step', '86400', 'DS:%s:GAUGE:86400:U:U' %dataType, 'RRA:AVERAGE:0:1:3650','RRA:MIN:0:1:3650','RRA:MAX:0:1:3650' )
     
     
-    return combinedDatabaseName
+    return rrdFilename
     
     
     
@@ -1193,7 +1186,7 @@ def getInfosFromDatabases( dataOutputs, names, machine, fileType, startTime, end
         
     while lastUpdate == 0 and i < len( names) : # in case some databases dont exist
         
-        rrdFileName = rrdUtilities.buildRRDFileName( "errors", clients[ names[i] ], machines = [machine], fileType = fileType, usage = "regular" )
+        rrdFileName = rrdUtilities.buildRRDFileName( "errors", clients = [ names[i] ], machines = [machine], fileType = fileType, usage = "regular" )
         lastUpdate  = rrdUtilities.getDatabaseTimeOfUpdate( rrdFileName, fileType )    
         nbEntries   = len( dataOutputs[ names[i] ] )
         i = i + 1        
@@ -1220,7 +1213,7 @@ def getPairsFromAllDatabases( type, machine, start, end, infos, logger=None ):
     
     for client in infos.clientNames:#Gather all pairs for that type
         
-        databaseName = transferPickleToRRD.buildRRDFileName( type, client, machine )
+        databaseName = rrdUtilities.buildRRDFileName( dataType = type , clients = [client], machines = machine, fileType = infos.fileType) 
 
         status, output = commands.getstatusoutput("rrdtool fetch %s  'AVERAGE' -s %s  -e %s" %( databaseName, (start), end) )
 
@@ -1290,14 +1283,14 @@ def createMergedDatabases( infos, logger = None ):
             typeData[type] = {}
             i = 0 
             while i < len(infos.clientNames) and lastUpdate == 0 :
-                databaseName = rrdUtilities.buildRRDFileName( dataType = type, infos.clientName[i] , machines = [machine],  fileType = infos.fileType, usage = "regular"  ):  
-                lastUpdate  =  rrdUtilities.getDatabaseTimeOfUpdate( databaseName, infos.fileType, usage = "regular" )
+                databaseName = rrdUtilities.buildRRDFileName( dataType = type, clients = [infos.clientNames[i]] , machines = [machine],  fileType = infos.fileType, usage = "regular"  )
+                lastUpdate  =  rrdUtilities.getDatabaseTimeOfUpdate( databaseName, infos.fileType )
             
             interval = getInterval( start, lastUpdate, infos.graphicType, goal = "fetchData"  )    
             
             pairs = getPairsFromAllDatabases( type, machine, start, end, infos, logger )                        
                
-            combinedDatabaseName = createNewMergedDatabase( dataType = type, machine = machine, infos  )
+            combinedDatabaseName = createNewMergedDatabase( infos = infos, dataType = type, machine = machine, interval = interval,start = start   )
                                                      
             databaseNames[type] = combinedDatabaseName                            
                 
@@ -1305,7 +1298,8 @@ def createMergedDatabases( infos, logger = None ):
                 if pair[1] != None :
                     rrdtool.update( combinedDatabaseName, '%s:%s' %( int(pair[0]), pair[1] ) )
                         
-            rrdUtilities.setDatabaseTimeOfUpdate( client = infos.fileType, machine = machine, fileType = "totals", timeOfUpdate = lastUpdate)                       
+            rrdUtilities.setDatabaseTimeOfUpdate(combinedDatabaseName, infos.fileType, lastUpdate)
+            
                 
     return databaseNames
                     
@@ -1334,7 +1328,7 @@ def generateRRDGraphics( infos, logger = None ):
                 
                 for type in infos.types : 
                    
-                    databaseName = transferPickleToRRD.buildRRDFileName( dataType = type, clients = [client], machines = [machine] )
+                    databaseName = rrdUtilities.buildRRDFileName( dataType = type, clients = [client], machines = [machine], fileType = infos.fileType )
                     plotRRDGraph( databaseName, type, infos.fileType, client, machine, infos,logger = logger )
                 
 
@@ -1345,10 +1339,10 @@ def main():
     
     """        
         
-    if not os.path.isdir( PXPaths.LOG  ):
-        os.makedirs( PXPaths.LOG , mode=0777 )
+    if not os.path.isdir( StatsPaths.PXLOG  ):
+        os.makedirs( StatsPaths.PXLOG  , mode=0777 )
     
-    logger = Logger( PXPaths.LOG  + 'stats_'+'rrd_graphs' + '.log.notb', 'INFO', 'TX' + 'rrd_graphs', bytes = True  ) 
+    logger = Logger( StatsPaths.PXLOG   + 'stats_'+'rrd_graphs' + '.log.notb', 'INFO', 'TX' + 'rrd_graphs', bytes = True  ) 
     
     logger = logger.getLogger()
        

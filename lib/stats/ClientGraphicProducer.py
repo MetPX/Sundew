@@ -31,7 +31,7 @@ import MyDateLib
 import pickleUpdater
 import pickleMerging
 import logging 
-import PXPaths
+import StatsPaths
 import generalStatsLibraryMethods
 
 from Logger import *
@@ -41,7 +41,6 @@ from ClientStatsPickler import *
 from FileStatsCollector import FileStatsCollector, _FileStatsEntry
 from generalStatsLibraryMethods import *
 
-PXPaths.normalPaths()
 
 LOCAL_MACHINE = os.uname()[1]
 
@@ -80,9 +79,9 @@ class ClientGraphicProducer:
         self.logger       = logger             # Enable logging
         
         if self.logger is None: # Enable logging
-            if not os.path.isdir( PXPaths.LOG ):
-                os.makedirs( PXPaths.LOG , mode=0777 )
-            self.logger = Logger( PXPaths.LOG  + 'stats_' + self.loggerName + '.log.notb', 'INFO', 'TX' + self.loggerName, bytes = True  ) 
+            if not os.path.isdir( StatsPaths.PXLOG ):
+                os.makedirs( StatsPaths.PXLOG , mode=0777 )
+            self.logger = Logger( StatsPaths.PXLOG  + 'stats_' + self.loggerName + '.log.notb', 'INFO', 'TX' + self.loggerName, bytes = True  ) 
             self.logger = self.logger.getLogger()
                 
             
@@ -131,7 +130,7 @@ class ClientGraphicProducer:
             if len( self.machines ) > 1 :   
                 clientArray = []
                 clientArray.append(client) 
-                statsCollection = pickleMerging.mergePicklesFromDifferentSources( logger = self.logger , startTime = startTime, endTime = endTime, clients = clientArray, fileType = self.fileType, machines = self.machines )
+                statsCollection = pickleMerging.mergePicklesFromDifferentSources( logger = self.logger , startTime = startTime, endTime = endTime, clients = clientArray, fileType = self.fileType, machines = self.machines, groupName = self.groupName  )
                                     
             else:#only one machine, only merge different hours together
                
@@ -161,7 +160,7 @@ class ClientGraphicProducer:
         
         dataCollection = []        
        
-        statsCollection = pickleMerging.mergePicklesFromDifferentSources( logger = None , startTime = startTime, endTime = endTime, clients = self.clientNames, fileType = self.fileType, machines =  self.machines )
+        statsCollection = pickleMerging.mergePicklesFromDifferentSources( logger = None , startTime = startTime, endTime = endTime, clients = self.clientNames, fileType = self.fileType, machines =  self.machines, groupName = self.groupName )
         
         combinedMachineName = ""
         for machine in self.machines:

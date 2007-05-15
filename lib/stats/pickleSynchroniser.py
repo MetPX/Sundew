@@ -26,11 +26,9 @@ named COPYING in the root of the source directory tree.
 
 import os
 import commands
-import PXPaths
+import StatsPaths
 from   optparse import OptionParser 
 from   Logger import *
-
-PXPaths.normalPaths()
 
 LOCAL_MACHINE = os.uname()[1]
 
@@ -132,12 +130,12 @@ def buildCommands( machines, clients ):
     if clients[0] == "All" :
         for machine in machines :
             for i in range(3):#do 3 times in case of currently turning log files. 
-                commands.append( "rsync -avzr  -e ssh pds@%s:%s %s"  %( machine, PXPaths.PICKLES, PXPaths.PICKLES )  )
+                commands.append( "rsync -avzr  -e ssh pds@%s:%s %s"  %( machine, StatsPaths.STATSPICKLES, StatsPaths.STATSPICKLES )  )
           
     else:
         
         for client in clients :
-            path = PXPaths.PICKLES + client + "/"
+            path = StatsPaths.STATSPICKLES + client + "/"
             for machine in machines :
                 for i in range(3):#do 3 times in case of currently turning log files.
                     commands.append( "rsync  -avzr -e ssh pds@%s:%s %s"  %( machine, path, path )  )
@@ -155,8 +153,8 @@ def synchronise( commandList, verbose, logger = None ):
     
     """
     
-    if not os.path.isdir( PXPaths.PICKLES ):
-        os.makedirs( PXPaths.PICKLES, mode=0777 )
+    if not os.path.isdir( StatsPaths.STATSPICKLES ):
+        os.makedirs( StatsPaths.STATSPICKLES, mode=0777 )
 
     for command in commandList :     
 
@@ -183,9 +181,9 @@ def buildLogger( output ):
     logger = None 
     
     if output != "":     
-        if not os.path.isdir( PXPaths.LOG  ):
-            os.makedirs( PXPaths.LOG , mode=0777 )  
-        logger = Logger( PXPaths.LOG + 'stats_' + output + '.log.notb', 'INFO', 'TX' + output, bytes = True  ) 
+        if not os.path.isdir( StatsPaths.PXLOG  ):
+            os.makedirs( StatsPaths.PXLOG  , mode=0777 )  
+        logger = Logger( StatsPaths.PXLOG  + 'stats_' + output + '.log.notb', 'INFO', 'TX' + output, bytes = True  ) 
         logger = logger.getLogger()    
     
     return logger 

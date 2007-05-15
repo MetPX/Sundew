@@ -29,10 +29,8 @@ named COPYING in the root of the source directory tree.
 """
 
 import os, commands, time, sys, pickle, glob
-import MyDateLib,PXPaths 
+import MyDateLib, StatsPaths 
 from   MyDateLib import * 
-
-PXPaths.normalPaths()
 
 
 def backupDatabases( timeOfBackup ):
@@ -43,15 +41,16 @@ def backupDatabases( timeOfBackup ):
     """
     
     
-    source = PXPaths.STATS + "databases"
-    destination = PXPaths.STATS + "databases_backups/" + "%s" %timeOfBackup
+    source = StatsPaths.STATSDB
+    destination = StatsPaths.STATSDBBACKUPS + "%s" %timeOfBackup
+    
     if not os.path.isdir( destination ):
         os.makedirs( destination )
     status, output = commands.getstatusoutput( "cp -r %s/* %s" %( source, destination ) )
     print output    
     
     #limit number of backup
-    filePattern = PXPaths.STATS + "databases_backups/*"           
+    filePattern = StatsPaths.STATSDBBACKUPS + "*"           
     fileNames = glob.glob( filePattern )  
     fileNames.sort()       
     
@@ -73,8 +72,8 @@ def backupDatabaseUpdateTimes( timeOfBackup ):
         Limits the number of database backups to 3.
     """
     
-    source = PXPaths.STATS + "DATABASE-UPDATES"
-    destination = PXPaths.STATS + "DATABASE-UPDATES_BACKUPS/" + "%s" %timeOfBackup
+    source = StatsPaths.STATSDBUPDATES
+    destination = StatsPaths.STATSDBUPDATESBACKUPS + "%s" %timeOfBackup
     
     if not os.path.isdir( destination ):
         os.makedirs( destination )
@@ -82,7 +81,7 @@ def backupDatabaseUpdateTimes( timeOfBackup ):
     print output 
 
     #limit number of backups         
-    filePattern = PXPaths.STATS + "DATABASE-UPDATES_BACKUPS/*"          
+    filePattern = StatsPaths.STATSDBUPDATESBACKUPS + "*"          
     fileNames = glob.glob( filePattern )  
     fileNames.sort()       
     

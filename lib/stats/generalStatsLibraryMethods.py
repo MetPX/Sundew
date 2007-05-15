@@ -17,16 +17,18 @@ named COPYING in the root of the source directory tree.
 ##############################################################################################
 """
 
-import os, commands, PXPaths, PXManager, commands, glob 
+import os, commands, StatsPaths, PXManager, commands, glob 
 import MyDateLib, MachineConfigParameters
 import rrdUtilities
+import PXPaths # Needed by PXManager
+
 from  rrdUtilities import *
 from PXManager import *
 from MyDateLib import *
 from StatsConfigParameters import StatsConfigParameters
 from MachineConfigParameters import MachineConfigParameters
+from fnmatch import fnmatch
 
-PXPaths.normalPaths()
 
 def getPathToLogFiles( localMachine, desiredMachine ):
     """
@@ -36,9 +38,9 @@ def getPathToLogFiles( localMachine, desiredMachine ):
     """
     
     if localMachine == desiredMachine:
-        pathToLogFiles = PXPaths.LOG 
+        pathToLogFiles = StatsPaths.PXLOG 
     else:      
-        pathToLogFiles = PXPaths.LOG + desiredMachine + "/"        
+        pathToLogFiles = StatsPaths.PXLOG + desiredMachine + "/"        
         
     return pathToLogFiles    
         
@@ -58,20 +60,20 @@ def getPathToConfigFiles( localMachine, desiredMachine, confType ):
     if localMachine == desiredMachine : 
         
         if confType == 'rx': 
-            pathToConfigFiles = PXPaths.RX_CONF
+            pathToConfigFiles = StatsPaths.PXETCRX
         elif confType == 'tx':
-            pathToConfigFiles = PXPaths.TX_CONF
+            pathToConfigFiles = StatsPaths.PXETCTX
         elif confType == 'trx':
-            pathToConfigFiles = PXPaths.TRX_CONF
+            pathToConfigFiles = StatsPaths.PXETCTRX
     
     else:
         
         if confType == 'rx': 
-            pathToConfigFiles =  '/apps/px/stats/rx/%s/' %desiredMachine
+            pathToConfigFiles =  StatsPaths.STATSPXRXCONFIGS + desiredMachine
         elif confType == 'tx':
-            pathToConfigFiles = '/apps/px/stats/tx/%s/' %desiredMachine
+            pathToConfigFiles =  StatsPaths.STATSPXTXCONFIGS + desiredMachine
         elif confType == 'trx':
-            pathToConfigFiles = '/apps/px/stats/trx/%s/'  %desiredMachine             
+            pathToConfigFiles =  StatsPaths.STATSPXTRXCONFIGS + desiredMachine             
     
                 
     return pathToConfigFiles       
@@ -85,17 +87,17 @@ def updateConfigurationFiles( machine, login ):
 
     """
 
-    if not os.path.isdir( '/apps/px/stats/rx/%s' %machine ):
-        os.makedirs(  '/apps/px/stats/rx/%s' %machine , mode=0777 )
-    if not os.path.isdir( '/apps/px/stats/tx/%s' %machine  ):
-        os.makedirs( '/apps/px/stats/tx/%s' %machine, mode=0777 )
-    if not os.path.isdir( '/apps/px/stats/trx/%s' %machine ):
-        os.makedirs(  '/apps/px/stats/trx/%s' %machine, mode=0777 )
+    if not os.path.isdir( StatsPaths.STATSPXRXCONFIGS + machine ):
+        os.makedirs(  StatsPaths.STATSPXRXCONFIGS + machine , mode=0777 )
+    if not os.path.isdir( StatsPaths.STATSPXTXCONFIGS + machine  ):
+        os.makedirs( StatsPaths.STATSPXTXCONFIGS + machine, mode=0777 )
+    if not os.path.isdir( StatsPaths.STATSPXTRXCONFIGS + machine ):
+        os.makedirs(  StatsPaths.STATSPXTRXCONFIGS + machine, mode=0777 )
 
 
-    status, output = commands.getstatusoutput( "rsync -avzr --delete-before -e ssh %s@%s:/apps/px/etc/rx/ /apps/px/stats/rx/%s/"  %( login, machine, machine ) )
+    status, output = commands.getstatusoutput( "rsync -avzr --delete-before -e ssh %s@%s:%s  %s%s/"  %( login, machine, StatsPaths.PXETCRX, StatsPaths.STATSPXRXCONFIGS, machine ) )
 
-    status, output = commands.getstatusoutput( "rsync -avzr  --delete-before -e ssh %s@%s:/apps/px/etc/tx/ /apps/px/stats/tx/%s/"  %( login, machine, machine ) )
+    status, output = commands.getstatusoutput( "rsync -avzr  --delete-before -e ssh %s@%s:%s %s%s/"  %( login, machine, StatsPaths.PXETCTX, StatsPaths.STATSPXTXCONFIGS, machine ) )
 
     
     
@@ -114,10 +116,34 @@ def getDataTypesAssociatedWithFileType( fileType ):
         dataTypes = [ "bytecount", "errors", "filecount" ]
     
     return dataTypes
-    
-            
 
-def getRxTxNamesHavingRunDuringPeriod( start, end, machines ):  
+    
+
+def buildPattern( pattern = "" ):
+    '''        
+    @param Pattern: pattern from wich to build a matching pattern. Can contain wildcards.               
+    
+    '''
+    
+    newPattern = '*'
+    
+    if pattern == "All":
+        newPattern = "*"
+    else:
+        if pattern[0] != "*" and pattern[0] != '?' :
+            newPattern = '*' + pattern
+        else:
+            newPattern = pattern    
+        if pattern[len(pattern) -1] != "*" and pattern[len(pattern) -1] != "?":
+            newPattern = newPattern + "*"              
+    
+    #print "new pattern : %s" %newPattern
+                                  
+    return newPattern            
+
+
+
+def getRxTxNamesHavingRunDuringPeriod( start, end, machines, pattern = None ):  
     """
         Browses all the rrd database directories to find 
         the time of the last update of each databases.
@@ -143,17 +169,30 @@ def getRxTxNamesHavingRunDuringPeriod( start, end, machines ):
     for machine in machines:
         combinedMachineName = combinedMachineName + machine
     
-    rxTxDatabasesLongNames = glob.glob( "/apps/px/stats/databases/bytecount/*_%s*" %combinedMachineName ) 
-    txOnlyDatabasesLongNames = glob.glob( "/apps/px/stats/databases/latency/*_%s*" %combinedMachineName )   
+    rxTxDatabasesLongNames = glob.glob( "%s/bytecount/*_%s*" %( StatsPaths.STATSDB, combinedMachineName ) )
+    txOnlyDatabasesLongNames = glob.glob( "%s/latency/*_%s*" %( StatsPaths.STATSDB, combinedMachineName )   )
     
-    
+    #print combinedMachineName
+
     #Keep only client/source names.
     for rxtxLongName in rxTxDatabasesLongNames:
-        rxTxDatabases.append( os.path.basename(rxtxLongName) )
+        if pattern == None:
+            rxTxDatabases.append( os.path.basename(rxtxLongName) )
+        else:
+            if fnmatch(os.path.basename(rxtxLongName), pattern ):
+                rxTxDatabases.append( rxtxLongName )
+         
             
     for txLongName in txOnlyDatabasesLongNames:
-        txOnlyDatabases.append( os.path.basename(txLongName) )    
-    
+        if pattern == None:
+            txOnlyDatabases.append( os.path.basename(txLongName) )    
+        else:
+            #print "trying to match : %s to %s" %( os.path.basename(txLongName), pattern)
+            if fnmatch(os.path.basename(txLongName), pattern):
+             #   print "and it succeeded"
+                txOnlyDatabases.append( txLongName )
+   
+    #print "@@@@@ %s" %txOnlyDatabases
     #Filter tx names from rxTxNames
     rxOnlyDatabases = filter( lambda x: x not in txOnlyDatabases, rxTxDatabases )    
     
@@ -169,22 +208,17 @@ def getRxTxNamesHavingRunDuringPeriod( start, end, machines ):
     for txDatabase in txOnlyDatabases:  
            
         lastUpdate = rrdUtilities.getDatabaseTimeOfUpdate( txDatabase, "tx" )
-       
-        if lastUpdate >= start:
+        #print "lastUpdate: %s" %lastUpdate
+        #if lastUpdate >= start:
             #fileName format is ../rxName_machineName
-            
-            
-            if  "pxatx_pds5pds6" in txDatabase: 
-                print "avant : %s machine :%s" %(txDatabase,combinedMachineName )
-                txDatabase = txDatabase.split("_%s"%combinedMachineName)[0]
-                print "apres : %s" %txDatabase
-            else:
-                txDatabase = txDatabase.split("_%s"%combinedMachineName)[0]
-                txNames.append( txDatabase )    
+        txDatabase = os.path.basename( txDatabase )    
+        txDatabase = txDatabase.split("_%s"%combinedMachineName)[0]
+        txNames.append( txDatabase )    
         
     rxNames.sort()
     txNames.sort()
-            
+    #print "******%s" %rxNames 
+    #print "******%s" %txNames        
     return rxNames, txNames
            
     
@@ -217,20 +251,20 @@ def getRxTxNames( localMachine, machine ):
 def getRxTxNamesForWebPages( start, end ):
     """
 
-    @summary: Returns two dictionaries, rx and tx,  whose 
-              keys is the list of rx or tx having run 
-              between start and end.
-              
-              If key has an associated value different from 
-              "", this means that the entry is a group tag name. 
-              
-              The value will be the description of the group. 
-                
-    @param start: Start of the span to look into.  
-    
-    @param end: End of the span to look into.
-    
-    @return: see summary.
+        @summary: Returns two dictionaries, rx and tx,  whose 
+                  keys is the list of rx or tx having run 
+                  between start and end.
+                  
+                  If key has an associated value different from 
+                  "", this means that the entry is a group tag name. 
+                  
+                  The value will be the description of the group. 
+                    
+        @param start: Start of the span to look into.  
+        
+        @param end: End of the span to look into.
+        
+        @return: see summary.
     
     """
 
@@ -258,7 +292,7 @@ def getRxTxNamesForWebPages( start, end ):
         
     
     for group in configParameters.groupParameters.groups:        
-        print group
+        #print group
         machines  = configParameters.groupParameters.groupsMachines[group]
         machines  = str(machines ).replace( "[", "" ).replace( "]", "" ).replace( " ", "" )
         members   = configParameters.groupParameters.groupsMembers[group]

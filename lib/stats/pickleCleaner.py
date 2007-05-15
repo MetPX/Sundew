@@ -23,6 +23,7 @@ named COPYING in the root of the source directory tree.
 
 import os, commands, time, sys
 import MyDateLib 
+import StatsPaths
 from   MyDateLib import * 
 
 
@@ -47,11 +48,11 @@ def cleanPickles( dirsToKeep ):
         Deletes every pickle directory that is not within the list to keep.
     """
     
-    clientdirs = os.listdir( "/apps/px/stats/pickles/" )
+    clientdirs = os.listdir( StatsPaths.STATSPICKLES )
     
     
     for clientDir in clientdirs :
-        upperDir = "/apps/px/stats/pickles/" + clientDir 
+        upperDir = StatsPaths.STATSPICKLES  + clientDir 
         innerList = os.listdir( upperDir )
         for innerFolder in innerList:
             completePath = upperDir + "/" + innerFolder

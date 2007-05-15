@@ -32,7 +32,7 @@ import pickle
 import cPickle
 import LogFileCollector
 import cpickleWrapper
-import PXPaths
+import StatsPaths
 import Logger
 from   Logger                 import Logger
 from   Logger                 import *
@@ -41,9 +41,7 @@ from   FileStatsCollector     import *
 from   random                 import *
 from   LogFileCollector       import *
 from   MyDateLib              import *
-from generalStatsLibraryMethods import *
-
-PXPaths.normalPaths()
+from   generalStatsLibraryMethods import *
 
 LOCAL_MACHINE = os.uname()[1]   
     
@@ -69,9 +67,9 @@ class ClientStatsPickler:
         self.logger           = logger                 # Permits a logging system for this object.
         
         if logger is None: # Enable logging
-            if not os.path.isdir( PXPaths.LOG ):
-                os.makedirs( PXPaths.LOG , mode=0777 )
-            self.logger = Logger( PXPaths.LOG + 'stats_' + self.loggerName + '.log.notb', 'INFO', 'TX' + self.loggerName, bytes = True  ) 
+            if not os.path.isdir( StatsPaths.PXLOG ):
+                os.makedirs( StatsPaths.PXLOG , mode=0777 )
+            self.logger = Logger( StatsPaths.PXLOG + 'stats_' + self.loggerName + '.log.notb', 'INFO', 'TX' + self.loggerName, bytes = True  ) 
             self.logger = self.logger.getLogger()
            
         self.statsCollection  = statsCollection or FileStatsCollector( logger = self.logger )
@@ -84,8 +82,8 @@ class ClientStatsPickler:
             Builds a filename using current currentTime.
             
             The format will be something like this :
-            /apps/px/lib/stats/pickles/clientName/date/hour
-            Ex :/apps/px/lib/stats/pickles/clientName/20060707/12:00:00
+            StatsPaths.STATSPICKLES/clientName/date/hour
+            Ex : StatsPaths.STATSPICKLES/clientName/20060707/12:00:00
             
             offset can be used to find a file from an hour close to the current one 
             
@@ -96,7 +94,8 @@ class ClientStatsPickler:
                 
         """    
         
-        fileName = PXPaths.PICKLES +  client + "/"
+        
+        fileName = StatsPaths.STATSPICKLES +  client + "/"
         
         
         if currentTime == "":
@@ -158,7 +157,7 @@ class ClientStatsPickler:
             
         """
 
-        filePickle = PXPaths.STATS + "PICKLED_FILE_POSITIONS" 
+        filePickle = StatsPaths.STATSROOT + "PICKLED_FILE_POSITIONS" 
         
         #Find up to date file list. 
         self.fileCollection =  LogFileCollector( startTime  = startTime , endTime = endTime, directory = directory, lastLineRead = "", logType = fileType, name = self.client, logger = self.logger )   
@@ -218,15 +217,13 @@ class ClientStatsPickler:
              
     def printStats( self ) :       
         """
-            This method prints out all the stats concerning each files. 
-            Mostly usefull for debugging.
-            
-            file is printed in currentWorkingDirectory/CSC_output_file
-            
+            This utility method prints out all the stats concerning each files. 
+            Mostly usefull for debugging.           
+                     
         """    
         
-        absoluteFilename = str( PXPaths.STATS ) + "CSP_output_file "
-        print "Absolute filename : %s" %absoluteFilename
+        absoluteFilename = str( StatsPaths.STATSROOT ) + "CSP_output_file "
+        print "Output filename used : %s" %absoluteFilename
         fileHandle = open( absoluteFilename , 'w' )
         old_stdout = sys.stdout 
         sys.stdout = fileHandle 

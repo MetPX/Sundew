@@ -25,13 +25,13 @@ named COPYING in the root of the source directory tree.
 ##############################################################################################
 
 
-import commands, os, sys, PXPaths 
+import commands, os, sys 
 import ConfigParser
-
+import StatsPaths
 from StatsConfigParameters import StatsConfigParameters   
 from MachineConfigParameters import MachineConfigParameters
 
-PXPaths.normalPaths()
+
 LOCAL_MACHINE = os.uname()[1]
 
 
@@ -55,7 +55,8 @@ def transferLogFiles():
                
         if picklingMachine == LOCAL_MACHINE :#pickling to be done here  
             userName = machineParameters.getUserNameForMachine(sourceMachine)
-            status, output = commands.getstatusoutput( "rsync -avzr --delete-before -e ssh %s@%s:/apps/px/log/ /apps/px/log/%s/ " %( userName , sourceMachine, sourceMachine  ) )
+            print  "rsync -avzr --delete-before -e ssh %s@%s:/%s %s%s/ " %( userName , sourceMachine, StatsPaths.PXLOG, StatsPaths.PXLOG, sourceMachine  )
+            status, output = commands.getstatusoutput( "rsync -avzr --delete-before -e ssh %s@%s:%s %s%s/ " %( userName , sourceMachine, StatsPaths.PXLOG, StatsPaths.PXLOG, sourceMachine  ) )
             print output
     
     
@@ -78,7 +79,7 @@ def transfer( login, machine ):
         
     """    
     
-    paths = [ "/apps/px/stats/statsMonitoring/" ,"/apps/px/stats/graphs/ ","/apps/px/stats/pickles/","/apps/px/stats/databases/","/apps/px/stats/databases_backups/","/apps/px/stats/DATABASE-UPDATES/","/apps/px/stats/DATABASE-UPDATES_BACKUPS/" ]
+    paths = [ StatsPaths.STATSMONITORING , StatsPaths.STATSGRAPHS , StatsPaths.STATSPICKLES, StatsPaths.STATSDB, StatsPaths.STATSDBBACKUPS , StatsPaths.STATSDBUPDATES, StatsPaths.STATSDBUPDATESBACKUPS ]
     
     for path in paths:
         if not os.path.isdir( path ) :            
@@ -91,34 +92,34 @@ def transfer( login, machine ):
                 
         transferLogFiles()
         
-        status, output = commands.getstatusoutput( "rsync -avzr  --delete-before -e ssh %s@%s:/apps/px/stats/statsMonitoring/maxSettings.conf /apps/px/stats/statsMonitoring/maxSettings.conf"  %( login, machine ) )
+        status, output = commands.getstatusoutput( "rsync -avzr  --delete-before -e ssh %s@%s:%smaxSettings.conf %smaxSettings.conf"  %( login, machine, StatsPaths.STATSMONITORING, StatsPaths.STATSMONITORING ) )
         print output
         
-        status, output = commands.getstatusoutput( "rsync -avzr  --delete-before -e ssh %s@%s:/apps/px/stats/statsMonitoring/previousCrontab /apps/px/stats/statsMonitoring/previousCrontab"  %( login, machine ))
+        status, output = commands.getstatusoutput( "rsync -avzr  --delete-before -e ssh %s@%s:%spreviousCrontab %spreviousCrontab"  %( login, machine, StatsPaths.STATSMONITORING, StatsPaths.STATSMONITORING ))
         print output
         
-        status, output = commands.getstatusoutput( "rsync -avzr  --delete-before -e ssh %s@%s:/apps/px/stats/statsMonitoring/previousFileChecksums /apps/px/stats/statsMonitoring/previousFileChecksums"  %( login, machine ))
+        status, output = commands.getstatusoutput( "rsync -avzr  --delete-before -e ssh %s@%s:%spreviousFileChecksums %spreviousFileChecksums"  %( login, machine, StatsPaths.STATSMONITORING, StatsPaths.STATSMONITORING ))
         print output
         
-        status, output = commands.getstatusoutput( "rsync -avzr  --delete-before -e ssh %s@%s:/apps/px/stats/graphs/ /apps/px/stats/graphs/"  %( login, machine ) )
+        status, output = commands.getstatusoutput( "rsync -avzr  --delete-before -e ssh %s@%s:%s %s"  %( login, machine, StatsPaths.STATSGRAPHS,  StatsPaths.STATSGRAPHS  ) )
         print output
         
-        status, output = commands.getstatusoutput( "rsync -avzr  --delete-before -e ssh %s@%s:/apps/px/stats/pickles/ /apps/px/stats/pickles/"  %( login, machine ) )
+        status, output = commands.getstatusoutput( "rsync -avzr  --delete-before -e ssh %s@%s:%s %s"  %( login, machine, StatsPaths.STATSPICKLES, StatsPaths.STATSPICKLES  ) )
         print output
         
-        status, output = commands.getstatusoutput( "rsync -avzr  --delete-before -e ssh %s@%s:/apps/px/stats/databases/ /apps/px/stats/databases/"  %( login, machine ) )
+        status, output = commands.getstatusoutput( "rsync -avzr  --delete-before -e ssh %s@%s:%s %s"  %( login, machine, StatsPaths.STATSDB, StatsPaths.STATSDB ) )
         print output
         
-        status, output = commands.getstatusoutput( "rsync -avzr  --delete-before -e ssh %s@%s:/apps/px/stats/databases_backups/ /apps/px/stats/databases_backups/"  %( login, machine ) )
+        status, output = commands.getstatusoutput( "rsync -avzr  --delete-before -e ssh %s@%s:%s %s"  %( login, machine, StatsPaths.STATSDBBACKUPS, StatsPaths.STATSDBBACKUPS  ) )
         print output
                 
-        status, output = commands.getstatusoutput( "rsync -avzr  --delete-before -e ssh %s@%s:/apps/px/stats/DATABASE-UPDATES/ /apps/px/stats/DATABASE-UPDATES/"  %( login, machine ) )
+        status, output = commands.getstatusoutput( "rsync -avzr  --delete-before -e ssh %s@%s:%s %s"  %( login, machine, StatsPaths.STATSDBUPDATES, StatsPaths.STATSDBUPDATES ) )
         print output
         
-        status, output = commands.getstatusoutput( "rsync -avzr  --delete-before -e ssh %s@%s:/apps/px/stats/DATABASE-UPDATES_BACKUPS/ /apps/px/stats/DATABASE-UPDATES_BACKUPS/"  %( login, machine ) )
+        status, output = commands.getstatusoutput( "rsync -avzr  --delete-before -e ssh %s@%s:%s %s"  %( login, machine, StatsPaths.STATSDBUPDATESBACKUPS, StatsPaths.STATSDBUPDATESBACKUPS ) )
         print output        
         
-        status, output = commands.getstatusoutput( "rsync -avzr  --delete-before -e ssh %s@%s:/apps/px/stats/PICKLED-TIMES /apps/px/stats/PICKLED-TIMES "  %( login, machine ) )
+        status, output = commands.getstatusoutput( "rsync -avzr  --delete-before -e ssh %s@%s:%sPICKLED-TIMES %sPICKLED-TIMES "  %( login, machine, StatsPaths.STATSROOT, StatsPaths.STATSROOT ) )
         print output 
   
     
