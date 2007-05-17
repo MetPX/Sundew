@@ -1,0 +1,244 @@
+.TH "generateRRDGraphics.py" "1" "0.0.0" "Nicholas Lemay" "PXStats"
+.SH "NAME"
+.LP 
+generateRRDGraphics.py \- Program used to generate graphics based on rrd databases.   
+
+
+.SH "SYNTAX"
+.LP 
+generateGraphics.py 
+.br 
+generateGraphics.py [\fIoption\fP]<\fIvalue\fP> [\fIoption\fP] <\fIvalue\fP> ...;
+.SH "DESCRIPTION"
+.LP 
+RRD implementation of generateGraphics/generateAllGraphsForServer that
+is made different by using rrd databases as data sources and rrdgraph
+to produce graphics instead of gnuplot.
+
+.LP 
+Otherwise it is similar to generateGraphics and generateAllGraphsForServer
+as it allow to create graphs from command line and for as many sources/clients
+as desired.
+.SH "OPTIONS"
+.LP 
+.TP 
+\fB\-c|\-\-clients\fR <\fI"client1"\fP,\fI"client2"\fP>
+.LP 
+    Specifies the clients(or sources) names for wich you want to 
+    produce graphics.
+.TP 
+\fB\-\-copy\fR
+.LP 
+    Specifies that you want to create a copy of the image file that
+    will be stored in the webGraphics folder in either the weekly,
+    monthly or yearly section.
+.LP     
+    ***Note : MUST be used with either the weekly, monthly or
+              yearly options.
+.TP 
+\fB\-d|\-\-daily\fR
+.LP 
+    Specifies that you want daily graphics.
+.TP 
+\fB\-\-date\fR <\fI"date"\fP>
+.LP 
+    Specifies the time of the request.
+    ( Usefull for past dates and testing. )
+.TP 
+\fB\-f|\-\-filetype\fR <\fI"fileType1"\fP,\fI"fileType2"\fP>
+.LP 
+     Specifies the file type of the client or sources that 
+     were specified.If all of the client/sources are of the same
+     type, you can enter only one type for the entire group.
+     Otherwise you need to specify a type for each of them. 
+
+.TP 
+\fB\-\-fixedCurrent\fR
+.LP 
+    Specifies that you want a graphic based on the current
+    (week, month year) based on the date used in the parameters.
+    Date used here will be the real starting/ending dates of
+    the current week, month or year.
+
+.TP 
+\fB\-\-fixedPrevious\fR
+.LP 
+    Specifies that you want a graphic based on the previous 
+    week, month or year based on the date used in the parameters.
+    Date used here will be the real starting/ending dates of 
+    the previous week, month or year.
+ 
+.TP 
+\fB\-\-havingRun\fR
+.LP 
+    Specifies thatyou can specify that you want to use all 
+    the client/sources that have run between the graphics 
+    start and end instead of the currently running 
+    client/sources.
+
+.TP 
+\fB\-h|\-\-help\fR
+.LP 
+    Outputs help information and exit.    
+
+.TP 
+\fB\-\-individual\fR
+.LP 
+    Specifies that you want to genrate graphics for 
+    each machine and not the combined data of two machines
+    when numerous machines are specified.
+
+.TP 
+\fB\-m|\-\-monthly\fR
+.LP 
+    Specifies you want monthly graphics.    
+
+.TP 
+\fB\-\-machines\fR <\fI"machine1"\fP,\fI"machine2"\fP>
+.LP 
+     Specifies from wich machine the data is to be used.
+
+.TP 
+\fB\-s|\-\-span\fR <\fI"span"\fP>
+.LP 
+     Specifies the time span(in hours) to be used to 
+     create the graphic(s).
+
+.TP 
+\fB\-t|\-\-types\fR <\fI"type1"\fP,\fI"type2"\fP>
+.LP 
+     Specifies what data types you want to be drawn.
+     Accepted values for rx sources : bytecount, filecount 
+                                      errors
+     Accepted values for tx sources : latency, fileOverMaxLatency,
+                                      bytecount, filecount, 
+                                      errors 
+ 
+.TP 
+\fB\-\-totals\fR
+.LP 
+     Specifies that you want a single graphic for every 
+     datatype that uses the combined data of all the client
+     or sources of a machine or collection of machines instead
+     of creating a single graphic per client/source for each
+     data types.
+.TP 
+\fB\-w|\-\-weekly\fR
+.LP 
+    Specifies that you want weekly graphics.
+.TP 
+\fB\-y|\-\-yearly\fR
+.LP 
+    Specifies that you want yearly graphics.
+
+.SH "FILES"
+.BR 
+.TP 
+The following standard python modules are required :
+.TP 
+\fIos, time, getopt, rrdtool, shutil\fP 
+.BR 
+.TP 
+The following px modules are required : 
+.TP 
+\fIPXManager, Logger\fP 
+.BR 
+.TP 
+The following stats library modules are required :  
+.TP 
+\fIClientStatsPickler, MyDateLib, pickleMerging, PXManager,StatsPaths, transferPickleToRRD, rrdUtilities, generalStatsLibraryMethods \fP
+.BR 
+.SH "ENVIRONMENT VARIABLES"
+.BR 
+.TP 
+\fBPXROOT\fP
+Specifies the where metPx was installed.
+.SH "EXAMPLES"
+.LP 
+\-\-Example 1
+.LP 
+    python generateRRDGraphics.py \-m \-\-copy \-f tx \-\-machines 
+    'pds5,pds6' \-e '2006\-10\-10 01:00:00'
+.LP 
+    Creates monthly graphics for all the tx client from the combined
+    data of the files found on pds5 and pds6. Since this is a tx 
+    client, 5 graphic types will be created : errors, bytecount, 
+    filecount, filesOverMaxLatency and latency.
+
+    The end of the week will be  2006\-10\-10 01:00:00. Graphics will
+    show all dataof the month prior to that date. The \-\-copy option
+    creates a copy of the the graphics so that they can be viewed
+    from the web page interface.
+
+.LP 
+\-\-Example 2
+.LP 
+    python generateRRDGraphics.py \-m \-\-copy \-f rx \-\-machines 
+    'pds5,pds6' \-e '2006\-10\-10 01:00:00'
+
+    Same as 1 but with rx sources. This will generate 3 graphic types :
+    bytecount, errors and filecount.
+
+.LP 
+\-\-Example 3
+.LP 
+    python generateRRDGraphics.py \-m \-\-copy \-f tx \-\-machines 
+    \-c clientx 'pds5,pds6' \-e '2006\-10\-10 01:00:00'
+.LP 
+     Same as 1 but only for a single specific tx client named clientx.
+
+.LP 
+\-\-Example 4
+.LP 
+    python generateRRDGraphics.py \-m \-\-copy \-f tx \-\-machines
+    'pds5,pds6 \-e '2006\-10\-10 01:00:00' \-\-totals
+.LP 
+    Same as 1 except that instead of creating a single graphic per tx
+    client, for each data types( errors, latency, bytecount, 
+    filecount,filesOverMaxLatency) it draws a single graphics for
+    all the clients based on the total of all the data associated
+    with all the tx clients currently runnning on these machines.
+
+
+.LP 
+\-\-Example 5
+.LP 
+    python generateRRDGraphics.py \-m \-\-copy \-f tx \-\-machines 
+    'pds5,pds6' \-e '2006\-10\-10 01:00:00' \-\-totals \-\-havingRun 
+.LP 
+    Same as 4 except that instead of using only the currently running 
+    clients of the specified machines, we will use every single clients 
+    that have run within the specified timespan. 
+
+
+.LP 
+\-\-Example 6
+.LP 
+    python generateRRDGraphics.py \-m \-\-copy \-f tx \-\-machines 
+    'pds5,pds6'\-e '2006\-10\-10 01:00:00' \-\-totals \-\-havingRun 
+    \-\-fixedCurrent 
+.LP 
+    Same as 5 except that instead of using an arbitrary start for 
+    the month wich ends on 2006\-10\-10 01:00:00 and  2006\-10\-10 01:00:00
+    as the end of the graphic, we will use the precise start of the
+    month ( 2006\-10\-01 00:00:00 ) and the precise end of the month
+    ( 2006\-11\-01 00:00:00) as the start and end of the graphic.
+ 
+
+.LP 
+\-\-Example 7
+.LP 
+    python generateRRDGraphics.py \-m \-\-copy \-f tx \-\-machines
+    'pds5,pds6'\-e '2006\-10\-10 01:00:00' \-\-totals \-\-havingRun
+    \-\-fixedPrevious 
+.LP 
+    Same as 6 but instead of using the boundaries of the current month
+    we use the boundaries of the previus month. Start will be  
+    2006\-09\-01 00:00:00 and  the end will be 2006\-10\-01 00:00:00.
+
+.SH "AUTHORS"
+.LP 
+Nicholas Lemay<Nicholas.Lemay@ec.gc.ca>
+.SH "SEE ALSO"
+.LP 
+doc folder contains extra documentation both for developers and users.

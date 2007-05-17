@@ -1,0 +1,74 @@
+.TH "dailyGraphicsWebPage.py" "1" "0.0.0" "Nicholas Lemay" "PxStats"
+.SH "NAME"
+.LP 
+dailyGraphicsWebPage.py \- Generates a web page that allows the viewing of daily graphics. 
+.SH "SYNTAX"
+.LP 
+dailyGraphicsWebPage.py
+
+
+.SH "DESCRIPTION"
+Generates a web page that allows the viewing of daily graphics.
+
+Web page will show a web page for all the clients/sources that 
+have run on the machines specified in the config files during 
+the period that the web pages covers. Details on how 
+to set up the different ocnfiguration files cann be found in the
+\fB\fISEE ALSO\fR\fR section. 
+.SH "DEFAULT VALUES"
+No default values exists since no options exist in the current version of this program.
+.SH "OPTIONS"
+No options exists for this program at the moment. 
+
+.SH "FILES"
+.BR 
+.TP 
+The following standard python modules are required :
+.TP 
+\fIos, sys, time, shutil, glob, commands \fP 
+.TP 
+The following stats library modules are required :  
+.TP 
+\fIStatsDateLib,StatsPats, StatsConfigParameters, MachineConfigParameters\fP
+.BR 
+.TP 
+The following configuration files are required
+.TP 
+\fIconfig, configForMachines\fP
+.SH "ENVIRONMENT VARIABLES"
+.BR 
+.TP 
+\fBPXROOT\fP
+Specifies the where metPx was installed.
+
+.SH "EXAMPLES"
+python dailyGraphicsWebPage.py
+
+****IMPORTANT NOTES :
+.TP 
+This is the only way to use this program at the moment. 
+.TP 
+This program is built in a way that it is expected to be run at least once per hour. Running it more often isn't really desirable but will not be harmfull. 
+.TP 
+Problems in the graphics shown in the web pages will appear if this program is not run every hour.
+.TP 
+This file is being called automatically by the launchGraphCreationprogram. Thus if launchGraphCreation is run properly, this program should barely, if ever, be used directly.
+
+
+
+
+.SH "AUTHORS"
+.BR 
+Nicholas Lemay <nicholas.lemay@ec.gc.ca>
+
+
+
+
+.SH "SEE ALSO"
+.TP 
+
+\fB".../px/stats/doc/"\fR wich contains infos for both users and developers.
+.TP 
+\fBman statsConfig\fR
+.TP 
+\fBman statsConfigForMachines\fR
