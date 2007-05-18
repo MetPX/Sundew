@@ -1,0 +1,82 @@
+.TH "statsMonitor.py" "1" "0.0.0" "Nicholas Lemay" "PxStats"
+.SH "NAME"
+.LP 
+statsMonitor.py \- Small utility that is used to monitor all the activities of the stats library as to limit user interaction with the library.
+.SH "SYNTAX"
+.LP 
+statsMonitor.py 
+
+.SH "DESCRIPTION"
+.LP 
+statsMonitor.py 
+.LP 
+This utility was created as as to limit user interaction with the library
+to the bare minimum. Therefore it monitors most of the vital
+aspects of the library so that the user does not have to. 
+.LP 
+For information on how to configure the configuration file of the stats monitor
+see one of the following :
+.IP 
+.LP 
+\fI"../px/stats/doc/monitoringDoc.txt"\fR General doc of the monitor 
+
+\fI"../px/stats/statsMonitoring/statsMonitoring.conf"\fR The header contains instructions 
+
+\fIman statsMonitoringConfiguration\fR Man page of the configuration file 
+
+
+.LP 
+Monitoring is to be made on a frequent interval and results are mailed to the 
+library's administrator. Actions can then be taken to correct the errors
+using the utilities found in the library. 
+.LP 
+See the troubleshooting section of \fI"../px/stats/doc/monitoringDoc.txt"\fR for details on how to handle the events reported by this program.   
+
+.SH "DEFAULT VALUES"
+.TP 
+There exists no default values for this program.
+
+.SH "OPTIONS"
+.TP 
+The current version of this program has no options.
+
+.SH "FILES"
+.TP 
+The following standard python modules are required :
+.TP 
+\fIos, sys, commands, pickle, fnmatch, smtplib\fP 
+.TP 
+The following MetPX modules are required :
+.TP 
+\fImailLib, PXManager, ConfigParser \fP 
+.TP 
+The following stats library modules are required :  
+.TP 
+\fILogFileCollector, StatsPaths, StatsDateLib, MachineConfigParameters, ClientStatsPickler, StatsMonitoringConfigParameters, StatsConfigParameters, generalStatsLibraryMethods \fP
+
+
+.SH "ENVIRONMENT VARIABLES"
+.BR 
+.TP 
+\fBPXROOT\fP
+Specifies the where metPx was installed.
+
+.SH "EXAMPLES"
+.TP 
+statsMonitor.py 
+.TP 
+***IMPORTANT NOTE : 
+This program was designed to be run on at a frequent interval to keep the administrator of the stats library informed of any problem that is occuring within the library. A good idea would be to run this program at least once a day. If you are using launchGraphCreation.py, it will be called every 12 hours.  
+
+
+.SH "AUTHORS"
+.BR 
+Nicholas Lemay <nicholas.lemay@ec.gc.ca>
+
+.SH "SEE ALSO"
+.LP 
+\fI"../px/stats/doc/monitoringDoc.txt"\fR General doc of the monitor 
+
+\fI"../px/stats/statsMonitoring/statsMonitoring.conf"\fR The header contains instructions 
+
+\fIman statsMonitoringConfiguration\fR Man page of the configuration file 

@@ -1,0 +1,73 @@
+.TH "statsMonitoring.conf" "1" "0.0.0" "Nicholas Lemay" "PxStats"
+.SH "NAME"
+.LP 
+statsMonitoring.conf \- Configuration file that contains all the info relative to the monitoring of the stats library.
+.SH "SYNTAX"
+.LP 
+statsMonitoring.conf
+
+.SH "DESCRIPTION"
+.LP 
+statsMonitoring.conf
+.LP 
+This config file is to be read by statsMonitoring.py from the stats library. Monitoring activity is totally dependant on the parameters found in the configuration file.
+
+.SH "DEFAULT VALUES"
+.TP 
+There exists no default values for this configuration file.
+
+.SH "FIELDS"
+.TP 
+Configuration file has the following fields :
+.TP 
+\- emails : Speficies the recipients to wich the results of the monitoring will be forwarded          
+.TP 
+\- machines : Specifies the machines for wich this machine is currently producing graphics for. Machines specified here MUST be found in the machine configuration file.( /apps/px/stats/configForMachines )
+.TP 
+\- files    : List of files used by the stats library. statsMonitoring monitors the version fo these files and warns user if they were changed since the last monitoring job occured. 
+.TP 
+\- folders  : List of all folders used by the stats library. statsMonitoring  will monitor disk usage for all these folder to make sure they do not go over a specified limit. If it does report sent to  user will have a mention of excessive disk usage.
+.TP              
+\- maxusage:  Specifies the maximum disk usage allowed for each of the specified folders. Important note : The number of parameters used here must be the exact same number of parameters used in the folders parameters.  
+.TP 
+\- errorsLogFile : Specify where the log file containing all the detected px errors were detected in the columbo interface.
+.TP 
+\- maxSettingsFile : Specify where the config file containing the maximum timer values are set. 
+.SH "FILES"
+No required files exist.
+
+
+
+.SH "ENVIRONMENT VARIABLES"
+No environment variables are required. 
+
+
+
+
+.SH "EXAMPLES"
+.TP 
+[statsMonitoring]
+.TP 
+emails   = nicholas.lemay@ec.gc.ca
+.TP 
+machines = pds\-op;pxatx
+.TP 
+files    = /apps/px/lib/stats/;/apps/px/lib/
+.TP 
+folders =/apps/px/lib/stats;/apps/px/stats/pickles/;/apps/px/stats/databases/;/apps/px/stats/databases_backups/; /apps/px/stats/graphs/;/apps/px/stats/log
+.TP 
+maxUsages = 70;70;70;70;70;70
+.TP 
+errorsLogFile=/apps/px/stats/statsMonitoring/PX_Errors.txt
+.TP 
+maxSettingsFile=/apps/px/stats/maxSettings.conf
+ 
+
+.SH "AUTHORS"
+.BR 
+Nicholas Lemay <nicholas.lemay@ec.gc.ca>
+
+.SH "SEE ALSO"
+.LP 
+
+\fI"../px/stats/statsMonitoring/statsMonitoring.conf"\fR The header contains instructions

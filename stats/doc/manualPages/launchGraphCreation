@@ -1,0 +1,75 @@
+.TH "launchGraphCreation.py" "1" "0.0.0" "Nicholas Lemay" "PxStats"
+.SH "NAME"
+.LP 
+launchGraphCreation.py \- Main script of the library. This will call all the required programs with the proper parameters to ensure that the stats and graphics are produced properly.   
+.SH "SYNTAX"
+.LP 
+launchGraphCreation.py
+
+.SH "DESCRIPTION"
+.LP 
+statsMonitor.py 
+.LP 
+Main script of the library. This will call all the required programs with the proper parameters to ensure that the stats and graphics are produced properly.
+.LP 
+This will also call the different cleaning program as to make sure the machine where this program is installed does not get polluted with useless data. 
+
+.SH "DEFAULT VALUES"
+.TP 
+There exists no default values for this program.
+
+.SH "OPTIONS"
+.TP 
+The current version of this program has no options.
+
+.SH "FILES"
+.TP 
+The following standard python modules are required :
+.TP 
+\fIos, sys, commands\fP 
+.TP 
+The following stats library modules are required :  
+.TP 
+\fI StatsPaths, StatsDateLib, StatsConfigParameters ,MachineConfigParameters\fP
+
+
+.SH "ENVIRONMENT VARIABLES"
+.BR 
+.TP 
+\fBPXROOT\fP
+Specifies the where metPx was installed.
+
+.SH "EXAMPLES"
+.TP 
+launchGraphCreation.py 
+.TP 
+***IMPORTANT NOTE : 
+This program was designed to be run on a frequent interval and should be run from a crontab to make sure that  frequency is always respected. Ideally, this frequency would be once per hour. 
+
+.TP 
+The behavior of this program is completly dependant on the way the different configuration files are configured. For more details on how to configure de config files see the following :
+.LP 
+
+\fI"../px/stats/ConfigFormachines"\fR The header contains instructions 
+
+\fIman statsConfigFormachines\fR Man page of the configuration file 
+
+
+\fI"../px/stats/config"\fR The header contains instructions 
+
+\fIman statsConfig\fR Man page of the configuration file 
+.SH "AUTHORS"
+.BR 
+Nicholas Lemay <nicholas.lemay@ec.gc.ca>
+
+.SH "SEE ALSO"
+.LP 
+
+\fI"../px/stats/ConfigFormachines"\fR The header contains instructions 
+
+\fIman statsConfigFormachines\fR Man page of the configuration file 
+
+
+\fI"../px/stats/config"\fR The header contains instructions 
+
+\fIman statsConfig\fR Man page of the configuration file 

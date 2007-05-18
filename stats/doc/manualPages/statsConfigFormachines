@@ -1,0 +1,79 @@
+.TH "configForMachines" "1" "0.0.0" "Nicholas Lemay" "PxStats"
+.SH "NAME"
+.LP 
+configForMachines \- Configuration file that contains all the info relative to the machines used by the stats library.
+.SH "SYNTAX"
+.LP 
+configForMachines
+
+.SH "DESCRIPTION"
+.LP 
+configForMachines
+.LP 
+This config file is to be used to set tag names to different
+machines. If machines that host the concept of a particular group
+(Example pds5,pds6 currently host pds\-op ) were ever to change,
+simply changing the associated machines here will keep the entire
+collection of stats library applications running properly.
+
+.SH "DEFAULT VALUES"
+.TP 
+There exists no default values for this configuration file.
+
+.SH "OPTIONS"
+.TP 
+Configuration file has the following syntax : 
+.TP 
+\- Line starting with the # character are considered comment lines. 
+.TP 
+\- Entry lines must contain 3 fields, seperated by spaces.
+.TP 
+\- Those 3 fields must be in this order : tagName  machine(s) login(s)
+.TP 
+\- When using a list of items for the machines or logins, each machine or login must be seperated by the ','. No other characters are allowed.
+.TP 
+\- When using a of machines, the number of specified machines must be the exact same number as the number of specified logins.   
+.SH "FILES"
+No required files exist.
+
+
+
+.SH "ENVIRONMENT VARIABLES"
+No environment variables are required. 
+
+
+
+
+.SH "EXAMPLES"
+.LP 
+pds\-op			    pds5,pds6		    pds,pds
+.LP 
+pxatx                   pxatx               pds
+.LP 
+logan2ForPdsop          logan2,logan2       px,px
+.LP 
+logan2ForPxatx          logan2              px
+.LP 
+lvs1\-op                 lvs1\-op             pds
+.LP 
+lvs2\-op                 lvs2\-op             pds
+
+.LP 
+This is the current configuration found on a machine. 
+.LP 
+The field on the left is the name tag that can be used in the other configuration files of the library. 
+As you can see, when the real name of a machine is to be used elsewhere, you still need to declare the name tag of that machien here. 
+.LP 
+The field in the middle is the machine or list of machines that is associated with the tag specified on the left.
+.LP 
+The field on the outter right is the list of logins to be used for the list of machines specified in the middle of the line. The number of logins MUST match the number of machines found on that line even if a user name was specified on a preceding line for that same machine. 
+
+ 
+.SH "AUTHORS"
+.BR 
+Nicholas Lemay <nicholas.lemay@ec.gc.ca>
+
+.SH "SEE ALSO"
+.LP 
+
+\fI"../px/stats/ConfigFormachines"\fR The header contains instructions
