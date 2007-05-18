@@ -1,0 +1,48 @@
+.TH PX "1" "May 2007" "px 1.0.0" "Metpx suite"
+.SH NAME
+pxRouting.conf \- defining the file's syntax
+.SH DESCRIPTION
+.Pp
+The product routing table is a simple ascii file. It must be placed in 
+directory $PXROOT/etc (PXROOT is usually /apps/px). The default file's name
+is \fB pxRouting.conf\fR. You can overwrite the default with the option 
+\fBroutingTable <filename>\fR. 
+
+Basically, the routing table is a table indexed by "product keys". To each product key
+is associated two informations : the product's priority and the product's list of interested
+processes (clients).
+
+The product priority is a number from 1 to 5 where 1 gets the highest attention...etc.
+The syntax to define such a table entry is :
+
+\fBkey <productKey> <client1,client2,...,clientN> <productPriority>\fR
+
+A client list can become very long. Fortunately, some clients can be grouped, 
+or associated in some intelligable fashion. To make our table entries more readable
+(and shorter) the user can define aliases for lists of clients. Each clientAlias 
+defines a unique name that refers to a particular list of clients. To define a clientAlias :
+
+\fBclientAlias <aliasName> <client1,client2,...,clientN>\fR
+
+and a product table entry can become :
+
+\fBkey <productKey> <client1,alias1,...,aliasX,clientN> <productPriority>\fR
+
+When parsing the routing table file, duplicated clients in resulting client list are removed.
+
+Defining exhaustive key entries  becomes fastidious. It is possible to associate a priority and a client list
+to all the product keys that match a regexp pattern. The routing table instruction to use is key_accept and
+its syntax is :
+
+\fBkey_accept <regexpKeyPattern> <client1,alias1,...,aliasX,clientN> <productPriority>\fR
+
+#-------------------------------------------------------
+
+AFTN STUFF DAN PLEASE HELP !
+
+Two more line types are permitted in the routing table. They were added solely for
+the use of a transceiver called aftn. Then lines'syntax are :
+
+\fBsubclient   <transceiver>  <adress> \fR
+
+\fBaftnMap     <address>     <header1,header2,...,headerN>\fR
