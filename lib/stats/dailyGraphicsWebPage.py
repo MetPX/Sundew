@@ -95,7 +95,7 @@ def generateWebPage( rxNames, txNames, days ):
     if not os.path.isdir(StatsPaths.STATSWEBPAGES ):
         os.makedirs( StatsPaths.STATSWEBPAGES )
     
-    fileHandle = open( StatsPaths.STATSWEBPAGES  +" dailyGraphs.html" , 'w' )
+    fileHandle = open( StatsPaths.STATSWEBPAGES  +"dailyGraphs.html" , 'w' )
 
      
     fileHandle.write( """

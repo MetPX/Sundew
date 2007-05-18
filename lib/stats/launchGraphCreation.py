@@ -123,47 +123,7 @@ def updatePickles( parameters, machineParameters ):
                 
                 print "python %spickleUpdater.py -f tx -m %s " %( StatsPaths.STATSLIBRARY, sourceMachines[i] )
             
-            
-            
-            
-def generateColumboGraphics( parameters, machineParameters ):
-    """
-        Generates all the graphics required by columbo. 
-        
-        Will generate combined graphics for couples,
-        and single for singles.
-        
-    """
-    
-    start = 0 
-    end   = 0
-            
-    for machineTag in parameters.sourceMachinesTags:
-        
-        logins = []
-        
-        machines = parameters.detailedParameters.sourceMachinesForTag[machineTag]
-       
-        for machine in machines:
-            logins.append( machineParameters.getUserNameForMachine( machine ) )
 
-        print "logins : %s" %logins    
-        logins   = str(logins).replace( "[", "" ).replace( "]", "" ).replace( " ", "" )
-        machines = str(machines).replace( "[", "" ).replace( "]", "" ).replace( " ", "" )
-        
-        
-        if "," in machines :
-            print "%sgenerateAllGraphsForServer.py -m %s -c  -l %s  " %( StatsPaths.STATSLIBRARY, machines.replace( "'","" ),logins.replace( "'","" ))
-            status, output = commands.getstatusoutput( "%sgenerateAllGraphsForServer.py -m %s -c  -l %s  " %( StatsPaths.STATSLIBRARY, machines.replace( "'","" ),logins.replace( "'","" )) )
-            print output
-        else:
-            status, output = commands.getstatusoutput( "%sgenerateAllGraphsForServer.py -i -m %s -l %s  " %( StatsPaths.STATSLIBRARY, machines.replace( "'","" ),logins.replace( "'","" ) ) )    
-            print "%sgenerateAllGraphsForServer.py -i -m %s -l %s  " %( StatsPaths.STATSLIBRARY, machines.replace( "'","" ),logins.replace( "'","" ) )
-            print output
-        
-         
-
-        
         
 def uploadGraphicFiles( parameters, machineParameters ):
     """
@@ -300,8 +260,7 @@ def main():
        
     validateParameters( generalParameters, machineParameters, None  )
     updatePickles( generalParameters, machineParameters )
-    updateDatabases( generalParameters, machineParameters )
-    generateColumboGraphics(generalParameters, machineParameters)
+    updateDatabases( generalParameters, machineParameters )   
     getGraphicsForWebPages()
     updateWebPages()
     uploadGraphicFiles( generalParameters, machineParameters )

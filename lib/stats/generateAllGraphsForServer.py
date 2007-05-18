@@ -27,7 +27,7 @@ named COPYING in the root of the source directory tree.
 
 
 import os, time, pwd, sys, getopt, commands, fnmatch, pickle
-import generalStatsLibraryMethods
+import generalStatsLibraryMethods, StatsPaths
 from generalStatsLibraryMethods import *
 from optparse  import OptionParser
 from PXManager import *

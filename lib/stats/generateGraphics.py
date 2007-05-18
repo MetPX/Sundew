@@ -61,48 +61,7 @@ class _GraphicsInfos:
 #                                                               #
 #################################################################   
 
-def filterClientsNamesUsingWilcardFilters( currentTime, timespan, clientNames, machines, fileType ):
-    """
-    
-        @param currentTime: currentTime specified in the parameters.
-        @param timespan: Time span specified within the parameters.
-        @param clientNames:List of client names found in the parameters.
-    
-    """
-    
-    newClientNames = []
-    
-    end   = currentTime
-    start = MyDateLib.getIsoFromEpoch( MyDateLib.getSecondsSinceEpoch(currentTime)- 60*60*timespan )
-    
-    for clientName in clientNames:
-        print clientName
-        
-        if  '?' in clientName or '*' in clientName :           
-            pattern = generalStatsLibraryMethods.buildPattern(clientName)
-            
-            print "pattern : %s " %pattern
-            
-            rxHavingRun,txHavingRun = generalStatsLibraryMethods.getRxTxNamesHavingRunDuringPeriod(start, end, machines, pattern)
-            
-            if fileType == "rx":
-                namesHavingrun = rxHavingRun
-            else:    
-                namesHavingrun = txHavingRun
-            
-            newClientNames.extend( namesHavingrun )   
-                
-                
-        else:
-            newClientNames.append( clientName )   
-    
-    print "######%s" %newClientNames
-    
-    return newClientNames
-    
-    
-    
-    
+
 def getOptionsFromParser( parser ):
     """
         
@@ -205,7 +164,7 @@ def getOptionsFromParser( parser ):
         sys.exit()
     
     
-    clientNames = filterClientsNamesUsingWilcardFilters( currentTime, timespan, clientNames, machines, fileType)
+    clientNames = generalStatsLibraryMethods.filterClientsNamesUsingWilcardFilters( currentTime, timespan, clientNames, machines, [fileType])
     
     directory =  generalStatsLibraryMethods.getPathToLogFiles( LOCAL_MACHINE, machines[0] )
     

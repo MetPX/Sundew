@@ -23,13 +23,12 @@ named COPYING in the root of the source directory tree.
 ##
 ##############################################################################
 
-import math, os, time, sys, MyDateLib, datetime
+import math, os, time, sys, MyDateLib, datetime, StatsPaths
 import generalStatsLibraryMethods
 
 from math import *
 from MyDateLib import *
 from generalStatsLibraryMethods import *
-from StatsPaths import * 
 from PXManager import *
 
 LOCAL_MACHINE  = os.uname()[1]    

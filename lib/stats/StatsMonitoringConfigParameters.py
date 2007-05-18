@@ -18,13 +18,15 @@ named COPYING in the root of the source directory tree.
 ##
 #############################################################################
 
-import os, sys, commands
-import StatsPaths, MyDateLib
+import os, sys, commands, time, pickle , fnmatch
+import StatsPaths, MyDateLib, generalStatsLibraryMethods 
+import readMaxFile
+
 from ConfigParser import ConfigParser
 from MachineConfigParameters import MachineConfigParameters
 from MyDateLib import *
 from FileStatsCollector import FileStatsCollector
-# 
+from generalStatsLibraryMethods import  *
 
 LOCAL_MACHINE = os.uname()[1]
 
@@ -39,7 +41,7 @@ class StatsMonitoringConfigParameters:
     
     '''
     
-    def __init__(self, emails = None, machines = None , files = None, folders = None, maxUsages = None, errorsLogFile = None, maxSettingsFile = None):
+    def __init__(self, emails = None, machines = None , files = None, folders = None, maxUsages = None, errorsLogFile = None, maxSettingsFile = None, startTime = None, endTime = None, maximumGaps = None):
         '''
         
         @param emails: Emails to whom the stats monitoring resultats will be sent
@@ -59,8 +61,13 @@ class StatsMonitoringConfigParameters:
         self.maxUsages = maxUsages
         self.errorsLogFile = errorsLogFile
         self.maxSettingsFile = maxSettingsFile
-                 
-                 
+        self.startTime = startTime
+        self.endTime = endTime       
+        self.maximumGaps = maximumGaps            
+ 
+   
+   
+   
    
     def updateMachineNamesBasedOnExistingMachineTags(self):
         """
@@ -102,16 +109,87 @@ class StatsMonitoringConfigParameters:
             self.maxUsages     = config.get( 'statsMonitoring', 'maxUsages' ).split( ";" )
             self.errorsLogFile = config.get( 'statsMonitoring', 'errorsLogFile' )
             self.maxSettingsFile=config.get( 'statsMonitoring', 'maxSettingsFile' )
-        
+            self.endTime = MyDateLib.getIsoWithRoundedHours( MyDateLib.getIsoFromEpoch( time.time() ) )            
+            self.startTime = self.getPreviousMonitoringJob(self.endTime)
+            self.maximumGaps = self.getMaximumGaps( )
             self.updateMachineNamesBasedOnExistingMachineTags()
+            
             
         else:
             print "%s configuration file not present. Please restore file prior to running" %CONFIG
-            sys.exit()   
+            raise Exception( "%s configuration file not present. Please restore file prior to running" %CONFIG ) 
         
-        parameters = _StatsMonitoringConfigParameters(emails, machines, files, folders, maxUsages, errorsLogFile, maxSettingsFile)    
             
-        return parameters
+         
+    def getMaximumGaps( self ):
+        """
+            @summary : Reads columbos 
+                       maxSettings.conf file
+            
+        """
         
-        parameters =getParametersFromStatsConfigurationFile()
+        maximumGaps = {} 
+        
+        allNames = []
+        rxNames, txNames = generalStatsLibraryMethods.getRxTxNames( LOCAL_MACHINE, "pds5")
+        allNames.extend( rxNames )    
+        allNames.extend( txNames )
+        rxNames, txNames = generalStatsLibraryMethods.getRxTxNames( LOCAL_MACHINE, "pxatx")
+        allNames.extend( rxNames )
+        allNames.extend( txNames )
+        
+        circuitsRegex, default_circuit, timersRegex, default_timer, pxGraphsRegex, default_pxGraph =  readMaxFile.readQueueMax( self.maxSettingsFile, "PX" )
+         
+        for key in timersRegex.keys(): #fill all explicitly set maximum gaps.
+            values = timersRegex[key]
+            newKey = key.replace( "^", "" ).replace( "$","").replace(".","")
+            maximumGaps[newKey] = values
+        
+        
+        for name in allNames:#add all clients/sources for wich no value was set
+            
+            if name not in maximumGaps.keys(): #no value was set                    
+                nameFoundWithWildcard = False     
+                for key in timersRegex.keys(): # in case a wildcard character was used
+                    
+                    cleanKey = key.replace( "^", "" ).replace( "$","").replace(".","")
+                    
+                    if fnmatch( name, cleanKey ):                    
+                        maximumGaps[name] = timersRegex[key]
+                        nameFoundWithWildcard = True 
+                if nameFoundWithWildcard == False :            
+                    maximumGaps[name] = default_timer    
+        
+                   
+        return maximumGaps    
+    
+    
+    
+    
+    
+    
+        
+    def getPreviousMonitoringJob( self, currentTime ):
+        """
+            Gets the previous crontab from the pickle file.
+            
+            Returns "" if file does not exist.
+            
+        """     
+        
+        file  = "%spreviousMonitoringJob" %StatsPaths.STATSMONITORING
+        previousMonitoringJob = ""
+        
+        if os.path.isfile( file ):
+            fileHandle      = open( file, "r" )
+            previousMonitoringJob = pickle.load( fileHandle )
+            fileHandle.close()
+        
+        else:
+            previousMonitoringJob = MyDateLib.getIsoTodaysMidnight( currentTime )
+            
+            
+        return previousMonitoringJob        
+        
+        
     

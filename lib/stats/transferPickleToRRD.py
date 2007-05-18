@@ -179,7 +179,7 @@ def getOptionsFromParser( parser, logger = None  ):
     
      
                         
-    #init fileTypes array HERE     
+    #init fileTypes array here if only one fileType is specified for all clients/sources     
     if len(fileTypes) == 1 and len(clients) !=1:
         for i in range(1,len(clients) ):
             fileTypes.append(fileTypes[0])
@@ -208,7 +208,9 @@ def getOptionsFromParser( parser, logger = None  ):
             fileTypes.append( "tx" )
         for rxName in rxNames:
             fileTypes.append( "rx" )                 
-      
+    
+    
+    clients = generalStatsLibraryMethods.filterClientsNamesUsingWilcardFilters(end, 1000, clients, machines, fileTypes= fileTypes )  
               
     infos = _Infos( endTime = end, machines = machines, clients = clients, fileTypes = fileTypes, products = products, group = group )   
     
@@ -283,7 +285,10 @@ def getPairsFromMergedData( statType, mergedData, logger = None  ):
                     else:
 
                         pairs.append( [ int(MyDateLib.getSecondsSinceEpoch(mergedData.statsCollection.timeSeperators[i])) +60, 0.0 ])                    
+                
                 else:      
+                
+                    print "invalid fileType"
                     
                     pairs.append( [ int(MyDateLib.getSecondsSinceEpoch(mergedData.statsCollection.timeSeperators[i])) +60, 0.0 ] )
             
@@ -424,8 +429,6 @@ def updateGroupedRoundRobinDatabases( infos, logger = None ):
     for key in dataPairs.keys():
         
         rrdFileName = rrdUtilities.buildRRDFileName( dataType = key, clients = infos.group, groupName = infos.group, machines =  infos.machines,fileType = infos.fileTypes[0], usage = "group" )  
-        print rrdFileName
-        commands.getstatusoutput("rm %s" %rrdFileName)
         
         if not os.path.isfile( rrdFileName ):  
             

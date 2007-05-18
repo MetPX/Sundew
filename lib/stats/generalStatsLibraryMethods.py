@@ -30,6 +30,55 @@ from MachineConfigParameters import MachineConfigParameters
 from fnmatch import fnmatch
 
 
+def filterClientsNamesUsingWilcardFilters( currentTime, timespan, clientNames, machines, fileTypes ):
+    """
+    
+        @param currentTime: currentTime specified in the parameters.
+        @param timespan: Time span specified within the parameters.
+        @param clientNames:List of client names found in the parameters.
+    
+    """
+    
+    newClientNames = []
+    
+    end   = currentTime
+    start = MyDateLib.getIsoFromEpoch( MyDateLib.getSecondsSinceEpoch(currentTime)- 60*60*timespan )
+    
+    if len(clientNames) >=  len( fileTypes ) or len( fileTypes ) ==1:
+        
+        if len( fileTypes ) == 1 :
+            for i in range(1, len( clientNames ) ):
+                fileTypes.append( fileTypes[0])
+        
+        for clientName,fileType in map( None, clientNames, fileTypes ):
+            print clientName
+            
+            if  '?' in clientName or '*' in clientName :           
+                pattern = buildPattern(clientName)
+                
+                print "pattern : %s " %pattern
+                
+                rxHavingRun,txHavingRun = getRxTxNamesHavingRunDuringPeriod(start, end, machines, pattern)
+                
+                if fileType == "rx":
+                    namesHavingrun = rxHavingRun
+                else:    
+                    namesHavingrun = txHavingRun
+                
+                newClientNames.extend( namesHavingrun )   
+                    
+                    
+            else:
+                newClientNames.append( clientName )   
+        
+        
+    
+
+    
+    return newClientNames
+
+
+
 def getPathToLogFiles( localMachine, desiredMachine ):
     """
         Local machine : machine on wich we are searching the log files.
@@ -75,7 +124,8 @@ def getPathToConfigFiles( localMachine, desiredMachine, confType ):
         elif confType == 'trx':
             pathToConfigFiles =  StatsPaths.STATSPXTRXCONFIGS + desiredMachine             
     
-                
+        pathToConfigFiles =   pathToConfigFiles.replace( '"',"").replace( "'",""
+                                                                          )   
     return pathToConfigFiles       
     
     

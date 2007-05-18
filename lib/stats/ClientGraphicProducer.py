@@ -200,7 +200,8 @@ class ClientGraphicProducer:
         
             Now option not yet implemented.
             
-            Every pickle necessary for graphic production needs to be there. Filling holes with empty data not yet implemented.              
+            Every pickle necessary for graphic production needs to be there. 
+            Filling holes with empty data not yet implemented.              
             
         """         
         

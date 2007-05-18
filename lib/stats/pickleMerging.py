@@ -116,6 +116,7 @@ def mergePicklesFromDifferentHours( logger = None , startTime = "2006-07-31 13:0
             entries.extend( tempCollection.fileEntries )
             
         else:
+            print "&&&&&&&&&&&&&&&&&&&&&&&&&&& %s does not exist!!!!!!!!!!!!!!" %pickle
             
             emptyEntries = fillWithEmptyEntries( nbEmptyEntries = 60, entries = [] )
             entries.extend( emptyEntries )

@@ -29,6 +29,7 @@ import mailLib
 import readMaxFile
 import generalStatsLibraryMethods
 
+from StatsConfigParameters import StatsConfigParameters
 from StatsMonitoringConfigParameters import StatsMonitoringConfigParameters
 from generalStatsLibraryMethods import *
 from ClientStatsPickler import ClientStatsPickler 
@@ -37,53 +38,10 @@ from LogFileCollector import *
 from ConfigParser import ConfigParser
 from MyDateLib import *
 from mailLib import *
-
+from MachineConfigParameters import MachineConfigParameters
 
 LOCAL_MACHINE = os.uname()[1]
-
-        
-def getMaximumGaps( maxSettingsFile ):
-    """
-        @summary : Reads columbos 
-                   maxSettings.conf file
-        
-    """
-    
-    maximumGaps = {} 
-    
-    allNames = []
-    rxNames, txNames = generalStatsLibraryMethods.getRxTxNames( LOCAL_MACHINE, "pds5")
-    allNames.extend( rxNames )    
-    allNames.extend( txNames )
-    rxNames, txNames = generalStatsLibraryMethods.getRxTxNames( LOCAL_MACHINE, "pxatx")
-    allNames.extend( rxNames )
-    allNames.extend( txNames )
-    
-    circuitsRegex, default_circuit, timersRegex, default_timer, pxGraphsRegex, default_pxGraph =  readMaxFile.readQueueMax( maxSettingsFile, "PX" )
-     
-    for key in timersRegex.keys(): #fill all explicitly set maximum gaps.
-        values = timersRegex[key]
-        newKey = key.replace( "^", "" ).replace( "$","").replace(".","")
-        maximumGaps[newKey] = values
-    
-    
-    for name in allNames:#add all clients/sources for wich no value was set
-        
-        if name not in maximumGaps.keys(): #no value was set                    
-            nameFoundWithWildcard = False     
-            for key in timersRegex.keys(): # in case a wildcard character was used
-                
-                cleanKey = key.replace( "^", "" ).replace( "$","").replace(".","")
-                
-                if fnmatch.fnmatch( name, cleanKey ):                    
-                    maximumGaps[name] = timersRegex[key]
-                    nameFoundWithWildcard = True 
-            if nameFoundWithWildcard == False :            
-                maximumGaps[name] = default_timer    
-    
-               
-    return maximumGaps 
-    
+   
             
     
 def savePreviousMonitoringJob( parameters ) :
@@ -104,30 +62,6 @@ def savePreviousMonitoringJob( parameters ) :
      
     fileHandle.close()
     
-    
-    
-def getPreviousMonitoringJob( currentTime ):
-    """
-        Gets the previous crontab from the pickle file.
-        
-        Returns "" if file does not exist.
-        
-    """     
-    
-    file  = "%spreviousMonitoringJob" %StatsPaths.STATSMONITORING
-    previousMonitoringJob = ""
-    
-    if os.path.isfile( file ):
-        fileHandle      = open( file, "r" )
-        previousMonitoringJob = pickle.load( fileHandle )
-        fileHandle.close()
-    
-    else:
-        previousMonitoringJob = MyDateLib.getIsoTodaysMidnight( currentTime )
-        
-        
-    return previousMonitoringJob
-        
         
     
 def getlastValidEntry( name, startTime ):
@@ -530,7 +464,7 @@ def verifyStatsLogs( parameters, report ,logger = None ):
     
     for logFileType in logFileTypes:
         
-        lfc =  LogFileCollector( startTime  = parameters.startTime , endTime = parameters.endTime, directory = StatsPaths.pxlog, lastLineRead = "", logType = "stats", name = logFileType, logger = logger )    
+        lfc =  LogFileCollector( startTime  = parameters.startTime , endTime = parameters.endTime, directory = StatsPaths.PXLOG, lastLineRead = "", logType = "stats", name = logFileType, logger = logger )    
         
         lfc.collectEntries()
         logs = lfc.entries                
@@ -601,7 +535,7 @@ def getFoldersAndFilesAssociatedWith( client, fileType, machines, startTime, end
             
         for hour in hours:
             fileName = ClientStatsPickler.buildThisHoursFileName( client = client, currentTime = hour, fileType = fileType,machine = machine  )
-            
+            fileName = fileName.replace('"',"").replace( "'","")
             folder = os.path.dirname( os.path.dirname( fileName ) )
             if folder not in folders.keys():
                 folders[folder] = []
@@ -615,7 +549,7 @@ def getFoldersAndFilesAssociatedWith( client, fileType, machines, startTime, end
             
         for hour in hours:            
             fileName = ClientStatsPickler.buildThisHoursFileName( client = client, currentTime = hour, fileType = fileType,machine = combinedMachineName  ) 
-            
+            fileName = fileName.replace('"',"").replace( "'","")
             folder = os.path.dirname( os.path.dirname( fileName ) )
             
             if folder not in folders.keys():
@@ -877,32 +811,33 @@ def getPickleAnalysis( files, name, lastValidEntry, maximumGap, errorLog ):
         if os.path.isfile(file):
             
             fcs =  cpickleWrapper.load ( file )
-            
-            for entry in fcs.fileEntries:
-                nbEntries = len( entry.values.productTypes )
-                nbErrors  = entry.values.dictionary["errors"].count(1)
-                
-                if (  nbEntries != 0 and nbEntries != nbErrors ) or ( file == files[ len( files ) - 1 ] and entry==fcs.fileEntries[ fcs.nbEntries-1 ] ): 
+            if fcs != None :
+                for entry in fcs.fileEntries:
+                    nbEntries = len( entry.values.productTypes )
+                    nbErrors  = entry.values.dictionary["errors"].count(1)
                     
-                    entryTime = MyDateLib.getSecondsSinceEpoch( entry.startTime )
-                    
-                    lastUpdateInSeconds = MyDateLib.getSecondsSinceEpoch( lastValidEntry )  
-                    differenceInMinutes = ( entryTime - lastUpdateInSeconds ) / 60                   
-                                            
-                    if  int(differenceInMinutes) > ( int(maximumGap) + 5 ) :#give a 5 minute margin
-                        gapPresent = True                            
+                    if (  nbEntries != 0 and nbEntries != nbErrors ) or ( file == files[ len( files ) - 1 ] and entry==fcs.fileEntries[ fcs.nbEntries-1 ] ): 
                         
-                        if gapInErrorLog( name, lastValidEntry, entry.startTime, errorLog ) == False:
-                            gapFound = False  
+                        entryTime = MyDateLib.getSecondsSinceEpoch( entry.startTime )
+                        
+                        lastUpdateInSeconds = MyDateLib.getSecondsSinceEpoch( lastValidEntry )  
+                        differenceInMinutes = ( entryTime - lastUpdateInSeconds ) / 60                   
                                                 
-                            reportLines = reportLines + "No data was found between %s and %s.\n" %( lastValidEntry, entry.startTime )
-                                            
-                    #set time of the last correct entry to the time of the current entry were data was actually found.
-                    if ( gapPresent == True and gapFound == True) or ( nbEntries != 0 and nbEntries != nbErrors ) :                                                
-                        lastValidEntry = entry.startTime                                                        
-                        gapPresent = False 
-                        gapFound   = False
-                    
+                        if  int(differenceInMinutes) > ( int(maximumGap) + 5 ) :#give a 5 minute margin
+                            gapPresent = True                            
+                            
+                            if gapInErrorLog( name, lastValidEntry, entry.startTime, errorLog ) == False:
+                                gapFound = False  
+                                                    
+                                reportLines = reportLines + "No data was found between %s and %s.\n" %( lastValidEntry, entry.startTime )
+                                                
+                        #set time of the last correct entry to the time of the current entry were data was actually found.
+                        if ( gapPresent == True and gapFound == True) or ( nbEntries != 0 and nbEntries != nbErrors ) :                                                
+                            lastValidEntry = entry.startTime                                                        
+                            gapPresent = False 
+                            gapFound   = False
+            else:
+                print "Problematic file : %s" %file     
                         
     if reportLines != "":     
         header = "\n%s.\n" %name
@@ -965,25 +900,7 @@ def verifyPickleContent( parameters, report ):
 
     return report               
 
-    
-        
-def getParameters():
-    """
-        Get all the required parameters from 
-        the pickled files and from the config 
-        files. 
-         
-    """           
-    
-    currentTime = MyDateLib.getIsoFromEpoch( time.time() )  #"2006-12-07 00:00:00" 
-    timeOfLastUpdate = getPreviousMonitoringJob( currentTime )      
-    emails, machines, files, folders, maxUsages, errorsLogFile, maxSettingsFile = configFileManager.getParametersFromConfigurationFile( fileType = "monitoringConfig" )
-    maximumGaps = getMaximumGaps( maxSettingsFile )
-    parameters = _Parameters( emails, machines, files, folders, maxUsages, maximumGaps,errorsLogFile, maxSettingsFile, timeOfLastUpdate, currentTime )
-    
-    return parameters 
-    
-    
+              
     
 def getFileChecksum( file ):
     """
@@ -1213,17 +1130,21 @@ def verifyGraphs( parameters, report ):
     
 
 
-def updateRequiredfiles():
+def updateRequiredfiles( parameters ):
     """
         This method is used to download 
         the latest version of all the required
         files.
         
     """    
+       
+    if len( parameters.detailedParameters.uploadMachines ) != 0:
+        machine = parameters.detailedParameters.uploadMachines[0]
+        login = parameters.detailedParameters.uploadMachinesLogins[machine]
     
-    status, output = commands.getstatusoutput( "scp pds@lvs1-op:%sPX_Errors.txt* %s >>/dev/null 2>&1" %(StatsPaths.PDSCOLLOGS, StatsPaths.STATSMONITORING ) )
-    
-    status, output = commands.getstatusoutput( "scp pds@lvs1-op:%smaxSettings.conf %smaxSettings.conf >>/dev/null 2>&1" %( StatsPaths.PDSCOLETC, StatsPaths.STATSMONITORING ) ) 
+        status, output = commands.getstatusoutput( "scp %s@%s:%sPX_Errors.txt* %s >>/dev/null 2>&1" %(login, machine, StatsPaths.PDSCOLLOGS, StatsPaths.STATSMONITORING ) )
+        
+        status, output = commands.getstatusoutput( "scp %s@%s:%smaxSettings.conf %smaxSettings.conf >>/dev/null 2>&1" %(login, machine, StatsPaths.PDSCOLETC, StatsPaths.STATSMONITORING ) ) 
     
 
 
@@ -1252,10 +1173,14 @@ def main():
     """ 
     
     report = ""
+    
+    generalParameters = StatsConfigParameters( )
+    generalParameters.getAllParameters()
+   
     parameters = StatsMonitoringConfigParameters()
     parameters.getParametersFromMonitoringConfigurationFile()
     
-    updateRequiredfiles()               
+    updateRequiredfiles( generalParameters )               
 
     validateParameters( parameters )
     

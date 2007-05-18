@@ -5,7 +5,7 @@
 #############################################################################################
 #
 #
-# Name: Plotter.py
+# Name: StatsConfigParameters.py
 #
 # @author: Nicholas Lemay
 #
