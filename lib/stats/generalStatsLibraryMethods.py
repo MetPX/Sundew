@@ -51,12 +51,12 @@ def filterClientsNamesUsingWilcardFilters( currentTime, timespan, clientNames, m
                 fileTypes.append( fileTypes[0])
         
         for clientName,fileType in map( None, clientNames, fileTypes ):
-            print clientName
+            #print clientName
             
             if  '?' in clientName or '*' in clientName :           
                 pattern = buildPattern(clientName)
                 
-                print "pattern : %s " %pattern
+                #print "pattern : %s " %pattern
                 
                 rxHavingRun,txHavingRun = getRxTxNamesHavingRunDuringPeriod(start, end, machines, pattern)
                 
@@ -219,15 +219,15 @@ def getRxTxNamesHavingRunDuringPeriod( start, end, machines, pattern = None ):
     for machine in machines:
         combinedMachineName = combinedMachineName + machine
     
-    rxTxDatabasesLongNames = glob.glob( "%s/bytecount/*_%s*" %( StatsPaths.STATSDB, combinedMachineName ) )
-    txOnlyDatabasesLongNames = glob.glob( "%s/latency/*_%s*" %( StatsPaths.STATSDB, combinedMachineName )   )
+    rxTxDatabasesLongNames = glob.glob( "%sbytecount/*_%s*" %( StatsPaths.STATSDB, combinedMachineName ) )
+    txOnlyDatabasesLongNames = glob.glob( "%slatency/*_%s*" %( StatsPaths.STATSDB, combinedMachineName )   )
     
     #print combinedMachineName
 
     #Keep only client/source names.
     for rxtxLongName in rxTxDatabasesLongNames:
         if pattern == None:
-            rxTxDatabases.append( os.path.basename(rxtxLongName) )
+            rxTxDatabases.append( rxtxLongName )
         else:
             if fnmatch(os.path.basename(rxtxLongName), pattern ):
                 rxTxDatabases.append( rxtxLongName )
@@ -235,7 +235,7 @@ def getRxTxNamesHavingRunDuringPeriod( start, end, machines, pattern = None ):
             
     for txLongName in txOnlyDatabasesLongNames:
         if pattern == None:
-            txOnlyDatabases.append( os.path.basename(txLongName) )    
+            txOnlyDatabases.append( txLongName )    
         else:
             #print "trying to match : %s to %s" %( os.path.basename(txLongName), pattern)
             if fnmatch(os.path.basename(txLongName), pattern):
@@ -252,18 +252,20 @@ def getRxTxNamesHavingRunDuringPeriod( start, end, machines, pattern = None ):
         lastUpdate = rrdUtilities.getDatabaseTimeOfUpdate( rxDatabase, "rx" )
         if lastUpdate >= start:
             #fileName format is ../path/rxName_machineName     
+            rxDatabase = os.path.basename( rxDatabase )
             rxDatabase = rxDatabase.split("_%s"%combinedMachineName)[0]       
             rxNames.append( rxDatabase  )
         
     for txDatabase in txOnlyDatabases:  
            
         lastUpdate = rrdUtilities.getDatabaseTimeOfUpdate( txDatabase, "tx" )
+        
         #print "lastUpdate: %s" %lastUpdate
-        #if lastUpdate >= start:
-            #fileName format is ../rxName_machineName
-        txDatabase = os.path.basename( txDatabase )    
-        txDatabase = txDatabase.split("_%s"%combinedMachineName)[0]
-        txNames.append( txDatabase )    
+        if lastUpdate >= start:
+            
+            txDatabase = os.path.basename( txDatabase )    
+            txDatabase = txDatabase.split("_%s"%combinedMachineName)[0]
+            txNames.append( txDatabase )    
         
     rxNames.sort()
     txNames.sort()
