@@ -28,7 +28,7 @@ from   MyDateLib import *
 
 
 
-def getDirListToKeep( daysToKeep = 5 ):
+def getDirListToKeep( daysToKeep = 7 ):
     """
           Gets the list of directories to keep. Based on DAYS_TO_KEEP constant.
     """
@@ -70,15 +70,14 @@ def main():
         
     """
     
-    daysToKeep = 5
+    daysToKeep = 7
     
     if len( sys.argv ) == 2:
         try:
             daysToKeep =  int( sys.argv[1] )
         except:
-            print "Days to keep value must be an integer. Using default values instead."
-            daysToKeep = 5
-            pass    
+            print "Days to keep value must be an integer. For default 7 days value, type nothing."
+            sys.exit()
             
     dirsToKeep = getDirListToKeep( daysToKeep )
     cleanPickles( dirsToKeep )

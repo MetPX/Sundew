@@ -266,7 +266,18 @@ def getRxTxNamesHavingRunDuringPeriod( start, end, machines, pattern = None ):
             txDatabase = os.path.basename( txDatabase )    
             txDatabase = txDatabase.split("_%s"%combinedMachineName)[0]
             txNames.append( txDatabase )    
-        
+   
+            
+    try:
+        rxNames.remove('rx')    
+    except:
+        pass    
+    try:
+        txNames.remove('tx')
+    except:
+        pass
+
+    
     rxNames.sort()
     txNames.sort()
     #print "******%s" %rxNames 
