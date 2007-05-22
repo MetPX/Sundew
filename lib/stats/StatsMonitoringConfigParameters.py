@@ -23,6 +23,7 @@ import StatsPaths, MyDateLib, generalStatsLibraryMethods
 import readMaxFile
 
 from ConfigParser import ConfigParser
+from StatsConfigParameters import *
 from MachineConfigParameters import MachineConfigParameters
 from MyDateLib import *
 from FileStatsCollector import FileStatsCollector
@@ -128,15 +129,31 @@ class StatsMonitoringConfigParameters:
             
         """
         
-        maximumGaps = {} 
-        
         allNames = []
-        rxNames, txNames = generalStatsLibraryMethods.getRxTxNames( LOCAL_MACHINE, "pds5")
-        allNames.extend( rxNames )    
-        allNames.extend( txNames )
-        rxNames, txNames = generalStatsLibraryMethods.getRxTxNames( LOCAL_MACHINE, "pxatx")
-        allNames.extend( rxNames )
-        allNames.extend( txNames )
+        rxNames  = []
+        txNames  = []
+        maximumGaps = {} 
+
+        machineConfig = MachineConfigParameters()
+        machineConfig.getParametersFromMachineConfigurationFile()
+        generalParameters = StatsConfigParameters()
+        generalParameters.getAllParameters()
+                       
+
+        for tag in generalParameters.sourceMachinesTags:
+            
+            try:
+                machines = generalParameters.detailedParameters.sourceMachinesForTag[tag]    
+                machine  = machines[0]
+            except:
+                raise Exception("Invalid tag found in main configuration file.")
+                    
+            newRxNames, newTxNames = generalStatsLibraryMethods.getRxTxNames( LOCAL_MACHINE, machine )
+            rxNames.extend(newRxNames)
+            txNames.extend(newTxNames)
+            allNames.extend( rxNames )    
+            allNames.extend( txNames )
+
         
         circuitsRegex, default_circuit, timersRegex, default_timer, pxGraphsRegex, default_pxGraph =  readMaxFile.readQueueMax( self.maxSettingsFile, "PX" )
          
@@ -162,12 +179,9 @@ class StatsMonitoringConfigParameters:
         
                    
         return maximumGaps    
-    
-    
-    
-    
-    
-    
+      
+      
+       
         
     def getPreviousMonitoringJob( self, currentTime ):
         """
