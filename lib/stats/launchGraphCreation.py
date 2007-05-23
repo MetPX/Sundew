@@ -47,7 +47,7 @@ def validateParameters( parameters, machineParameters, logger = None  ):
         if len( parameters.detailedParameters.sourceMachinesForTag[tag]) != len( parameters.detailedParameters.picklingMachines[tag] ):    
             if logger != None:
                 logger.error("Error reading config file in launchGraphCreation program. Parameter number mismatch. Program was terminated abruptly.") 
-            print tag
+           
             print "Error reading config file in launchGraphCreation program. Parameter number mismatch number 2. Program was terminated abruptly."    
             sys.exit()
                
@@ -87,41 +87,42 @@ def updatePickles( parameters, machineParameters ):
                 if parameters.detailedParameters.picklingMachines[tag][i] != LOCAL_MACHINE :#pickling to be done elsewhere
                     for j in range(3):#do 3 times in case of currently turning log files.
                         status, output = commands.getstatusoutput( "ssh %s@%s 'rsync -avzr --delete-before -e ssh  %s@%s:%s/ %s%s/' "  %( machineParameters.getUserNameForMachine( picklingMachine), picklingMachine,machineParameters.getUserNameForMachine( sourceMachines[i] ) , sourceMachines[i] , StatsPaths.PXLOG, StatsPaths.PXLOG, sourceMachines[i] ) )
-                        print "ssh %s@%s 'rsync -avzr --delete-before -e ssh  %s@%s:%s %s%s/' "%( machineParameters.getUserNameForMachine( picklingMachine), picklingMachine,machineParameters.getUserNameForMachine( sourceMachines[i] ) , sourceMachines[i] , StatsPaths.PXLOG, StatsPaths.PXLOG, sourceMachines[i] ) 
-                        print output
+                        #print "ssh %s@%s 'rsync -avzr --delete-before -e ssh  %s@%s:%s %s%s/' "%( machineParameters.getUserNameForMachine( picklingMachine), picklingMachine,machineParameters.getUserNameForMachine( sourceMachines[i] ) , sourceMachines[i] , StatsPaths.PXLOG, StatsPaths.PXLOG, sourceMachines[i] ) 
+                        #print output
                 else:
                     
                     for j in range(3):#do 3 times in case of currently turning log files.
                         status, output = commands.getstatusoutput( "rsync -avzr --delete-before -e ssh %s@%s:%s   %s%s/ " %( machineParameters.getUserNameForMachine( sourceMachines[i] ), sourceMachines[i] , StatsPaths.PXLOG, StatsPaths.PXLOG, sourceMachines[i] ) )
-                        print "rsync -avzr --delete-before -e ssh %s@%s:%s   %s%s/ " %( machineParameters.getUserNameForMachine( sourceMachines[i] ), sourceMachines[i] , StatsPaths.PXLOG, StatsPaths.PXLOG, sourceMachines[i] )
-                        print output   
+                        #print "rsync -avzr --delete-before -e ssh %s@%s:%s   %s%s/ " %( machineParameters.getUserNameForMachine( sourceMachines[i] ), sourceMachines[i] , StatsPaths.PXLOG, StatsPaths.PXLOG, sourceMachines[i] )
+                        #print output   
                                 
                
             if picklingMachine != LOCAL_MACHINE :#pickling to be done elsewhere,needs ssh             
-                print "*************pickling machine %s"    %picklingMachine            
+                          
                 status, output = commands.getstatusoutput( "ssh %s@%s 'python %spickleUpdater.py  -m %s -f rx'   " %( machineParameters.getUserNameForMachine( picklingMachine ), picklingMachine, StatsPaths.STATSLIBRARY,  sourceMachines[i] ) ) 
+                #print "ssh %s@%s 'python %spickleUpdater.py  -m %s -f rx'   "  %( machineParameters.getUserNameForMachine( picklingMachine ), picklingMachine, StatsPaths.STATSLIBRARY, sourceMachines[i] )
+                #print output
                 
-                print "ssh %s@%s 'python %spickleUpdater.py  -m %s -f rx'   "  %( machineParameters.getUserNameForMachine( picklingMachine ), picklingMachine, StatsPaths.STATSLIBRARY, sourceMachines[i] )
-                
-                print output
                 status, output = commands.getstatusoutput( "ssh %s@%s 'python %spickleUpdater.py -m %s -f tx'  "( machineParameters.getUserNameForMachine( picklingMachine ), picklingMachine , StatsPaths.STATSLIBRARY, sourceMachines[i] ) )
-                print "ssh %s@%s 'python %spickleUpdater.py -m %s -f tx'  "%( machineParameters.getUserNameForMachine( picklingMachine ), picklingMachine , StatsPaths.STATSLIBRARY, sourceMachines[i] )
-                print output
+                #print "ssh %s@%s 'python %spickleUpdater.py -m %s -f tx'  "%( machineParameters.getUserNameForMachine( picklingMachine ), picklingMachine , StatsPaths.STATSLIBRARY, sourceMachines[i] )
+                #print output
+                
                 status, output = commands.getstatusoutput( "%spickleSynchroniser.py -l %s -m %s  "%( StatsPaths.STATSLIBRARY, machineParameters.getUserNameForMachine( picklingMachine ), picklingMachine ) )      
-                print "%spickleSynchroniser.py -l %s -m %s  " %( StatsPaths.STATSLIBRARY, machineParameters.getUserNameForMachine( picklingMachine ), picklingMachine )
-                print output
+                #print "%spickleSynchroniser.py -l %s -m %s  " %( StatsPaths.STATSLIBRARY, machineParameters.getUserNameForMachine( picklingMachine ), picklingMachine )
+                #print output
             
                 
             else: # pickling is to be done locally. Log files may or may not reside elsewhere.
-                print "*************pickling machine %s"    %picklingMachine
+                
                 status, output = commands.getstatusoutput( "python %spickleUpdater.py -f rx -m %s "%( StatsPaths.STATSLIBRARY, sourceMachines[i] ) )
-                print output
-                print "python %spickleUpdater.py -f rx -m %s " %( StatsPaths.STATSLIBRARY, sourceMachines[i] )
+                #print output
+                #print "python %spickleUpdater.py -f rx -m %s " %( StatsPaths.STATSLIBRARY, sourceMachines[i] )
                 
                 status, output = commands.getstatusoutput( "python %spickleUpdater.py -f tx -m %s "  %(  StatsPaths.STATSLIBRARY, sourceMachines[i]) )
-                print output
+                #print "python %spickleUpdater.py -f tx -m %s " %( StatsPaths.STATSLIBRARY, sourceMachines[i] )
+                #print output
                 
-                print "python %spickleUpdater.py -f tx -m %s " %( StatsPaths.STATSLIBRARY, sourceMachines[i] )
+                
             
 
         
@@ -135,8 +136,8 @@ def uploadGraphicFiles( parameters, machineParameters ):
     for uploadMachine in parameters.graphicsUpLoadMachines :
         status, output = commands.getstatusoutput( "scp %s* %s@%s:%s " %( StatsPaths.STATSCOLGRAPHS, machineParameters.getUserNameForMachine(uploadMachine), uploadMachine, StatsPaths.PDSCOLGRAPHS   ) )
         
-        print "scp %s* %s@%s:%s " %( StatsPaths.STATSCOLGRAPHS, machineParameters.getUserNameForMachine(uploadMachine),uploadMachine, StatsPaths.PDSCOLGRAPHS )
-        print output
+        #print "scp %s* %s@%s:%s " %( StatsPaths.STATSCOLGRAPHS, machineParameters.getUserNameForMachine(uploadMachine),uploadMachine, StatsPaths.PDSCOLGRAPHS )
+        #print output
 
         
 def transferToDatabaseAlreadyRunning():
@@ -172,25 +173,21 @@ def updateDatabases( parameters, machineParameters ):
              machines = machineParameters.getMachinesAssociatedWith(tag)             
              machines = str( machines ).replace( "[", "" ).replace( "]", "" ).replace( " ", "" )
              status, output = commands.getstatusoutput( "%stransferPickleToRRD.py -m '%s'" %(StatsPaths.STATSLIBRARY, machines )  )
-             print  "%stransferPickleToRRD.py -m '%s' " %( StatsPaths.STATSLIBRARY, machines )
+             #print  "%stransferPickleToRRD.py -m '%s' " %( StatsPaths.STATSLIBRARY, machines )
              #print "output:%s" %output
-
-        print "###%s " %parameters.groupParameters.groups
-        print "###%s " %parameters.groupParameters.groupFileTypes
-        print "###%s " %parameters.groupParameters.groupsMembers
-        print "###%s " %parameters.groupParameters.groupsProducts
         
         if parameters.groupParameters.groups != []:
+            
             for group in  parameters.groupParameters.groups :
                                 
                 groupMembers = str( parameters.groupParameters.groupsMembers[group]).replace( "[", "" ).replace( "]", "" ).replace( " ", "" )
                 groupMachines = str( parameters.groupParameters.groupsMachines[group] ).replace( "[", "" ).replace( "]", "" ).replace( " ", "" )                 
                 groupProducts = str( parameters.groupParameters.groupsProducts[group] ).replace( "[", "" ).replace( "]", "" ).replace( " ", "" )
                 groupFileTypes = str(parameters.groupParameters.groupFileTypes[group]).replace( "[", "" ).replace( "]", "" ).replace( " ", "" )
-                             
+               
                 status, output = commands.getstatusoutput( "%stransferPickleToRRD.py -c '%s' -m '%s' -g '%s' -f %s -p '%s' " %( StatsPaths.STATSLIBRARY, groupMembers, groupMachines, group, groupFileTypes, groupProducts  ) )
-                print  "%stransferPickleToRRD.py -c '%s' -f '%s' -m '%s' -g '%s' -p '%s' "  %( StatsPaths.STATSLIBRARY, groupMembers, groupFileTypes, groupMachines, group, groupProducts  )
-                print output
+                #print   "%stransferPickleToRRD.py -c '%s' -m '%s' -g '%s' -f %s -p '%s' " %( StatsPaths.STATSLIBRARY, groupMembers, groupMachines, group, groupFileTypes, groupProducts  )
+                #print output
  
  
  
@@ -202,7 +199,7 @@ def getGraphicsForWebPages( ):
     """
     
     status, output = commands.getstatusoutput( StatsPaths.STATSLIBRARY + "getGraphicsForWebPages.py" )
-    print output                    
+    #print output                    
 
 
     
@@ -213,19 +210,13 @@ def updateWebPages():
             
     """ 
        
-    status, output = commands.getstatusoutput( StatsPaths.STATSLIBRARY + "dailyGraphicsWebPage.py" )
-    print output
-    status, output = commands.getstatusoutput( StatsPaths.STATSLIBRARY + "weeklyGraphicsWebPage.py" )
-    print output
-    status, output = commands.getstatusoutput( StatsPaths.STATSLIBRARY + "monthlyGraphicsWebPage.py" )
-    print output
-    status, output = commands.getstatusoutput( StatsPaths.STATSLIBRARY + "yearlyGraphicsWebPage.py" )
-    print output
-    status, output = commands.getstatusoutput( StatsPaths.STATSLIBRARY + "totalGraphicsWebPages.py" )
-    print output 
+    status, output = commands.getstatusoutput( StatsPaths.STATSLIBRARY + "dailyGraphicsWebPage.py" )  
+    status, output = commands.getstatusoutput( StatsPaths.STATSLIBRARY + "weeklyGraphicsWebPage.py" )    
+    status, output = commands.getstatusoutput( StatsPaths.STATSLIBRARY + "monthlyGraphicsWebPage.py" )    
+    status, output = commands.getstatusoutput( StatsPaths.STATSLIBRARY + "yearlyGraphicsWebPage.py" )    
+    status, output = commands.getstatusoutput( StatsPaths.STATSLIBRARY + "totalGraphicsWebPages.py" )    
     status, output = commands.getstatusoutput( StatsPaths.STATSLIBRARY + "generateTopWebPage.py" )
-    print output
-    
+       
     
     
 def monitorActivities():
@@ -238,8 +229,10 @@ def monitorActivities():
     
     if currentHour %12 == 0:
         status, output = commands.getstatusoutput( StatsPaths.STATSLIBRARY + "statsMonitor.py" )
-        print StatsPaths.STATSLIBRARY + "statsMonitor.py"
-        print output
+        #print StatsPaths.STATSLIBRARY + "statsMonitor.py"
+        #print output
+        
+        
         
 def main():
     """
@@ -253,8 +246,7 @@ def main():
     
     generalParameters = StatsConfigParameters()
     generalParameters.getAllParameters()
-    print "***generalParameters.groupParameters %s " %generalParameters.groupParameters.groups 
-                                                            
+                                                                
     machineParameters = MachineConfigParameters()
     machineParameters.getParametersFromMachineConfigurationFile()
        
@@ -267,7 +259,7 @@ def main():
     monitorActivities()
     
     
-    print "Finished."
+    #print "Finished."
     
     
     

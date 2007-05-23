@@ -82,15 +82,16 @@ def load( filename ):
     if os.path.isfile( filename ): 
         
         try :
+            
             file = open( filename, 'rb' )
             
             object = cPickle.load( file )
             
             file.close()
             
-        except:
-            print  "Error occured in cpickleWrapper.load()"
-            
+        except Exception, e:            
+            raise Exception ( "Error occured in cpickleWrapper.load(). Exception was the following : %s" %e )
+    
     else:
         
         raise Exception ( "Error occured in cpickleWrapper.load().Filename used : %s, does not exist." %filename)

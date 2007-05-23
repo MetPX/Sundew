@@ -54,10 +54,9 @@ def filterClientsNamesUsingWilcardFilters( currentTime, timespan, clientNames, m
             #print clientName
             
             if  '?' in clientName or '*' in clientName :           
-                pattern = buildPattern(clientName)
                 
-                #print "pattern : %s " %pattern
-                
+                pattern =clientName
+               
                 rxHavingRun,txHavingRun = getRxTxNamesHavingRunDuringPeriod(start, end, machines, pattern)
                 
                 if fileType == "rx":
@@ -71,10 +70,6 @@ def filterClientsNamesUsingWilcardFilters( currentTime, timespan, clientNames, m
             else:
                 newClientNames.append( clientName )   
         
-        
-    
-
-    
     return newClientNames
 
 

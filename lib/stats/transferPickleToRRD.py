@@ -53,7 +53,7 @@ class _Infos:
             Data structure to be used to store parameters within parser.
         
         """    
-        print "???????????????????????????? %s"  %machines          
+        
         self.endTime   = endTime   # Ending time of the pickle->rrd transfer.         
         self.clients   = clients   # Clients for wich to do the updates.
         self.machines  = machines  # Machines on wich resides these clients.
@@ -121,7 +121,7 @@ def addOptions( parser ):
         
     parser.add_option( "-g", "--group", action="store", type="string", dest = "group", default="", help="Transfer the combined data of all the specified clients/sources into a grouped database.")
     
-    parser.add_option( "-m", "--machines", action="store", type="string", dest="machines", default="ALL", help ="Specify on wich machine the clients reside." ) 
+    parser.add_option( "-m", "--machines", action="store", type="string", dest="machines", default=LOCAL_MACHINE, help ="Specify on wich machine the clients reside." ) 
   
     parser.add_option( "-p", "--products",action="store", type="string", dest="products", default="ALL", help ="Specify wich product you are interested in.")
     
@@ -146,8 +146,7 @@ def getOptionsFromParser( parser, logger = None  ):
     fileTypes = options.fileTypes.replace( ' ','' ).split( ',' )  
     products  = options.products.replace( ' ','' ).split( ',' ) 
     group     = options.group.replace( ' ','' ) 
-    
-         
+          
          
     try: # Makes sure date is of valid format. 
          # Makes sure only one space is kept between date and hour.
@@ -164,8 +163,6 @@ def getOptionsFromParser( parser, logger = None  ):
     #round ending hour to match pickleUpdater.     
     end   = MyDateLib.getIsoWithRoundedHours( end )
         
-    if machines[0] == 'ALL' : #use defaults
-        machines = [ 'pds5','pds6' ]
             
     for machine in machines:
         if machine != LOCAL_MACHINE:
@@ -209,9 +206,10 @@ def getOptionsFromParser( parser, logger = None  ):
         for rxName in rxNames:
             fileTypes.append( "rx" )                 
     
-    
+     
     clients = generalStatsLibraryMethods.filterClientsNamesUsingWilcardFilters(end, 1000, clients, machines, fileTypes= fileTypes )  
-              
+   
+    
     infos = _Infos( endTime = end, machines = machines, clients = clients, fileTypes = fileTypes, products = products, group = group )   
     
     return infos     
@@ -243,7 +241,7 @@ def createRoundRobinDatabase( databaseName, startTime, dataType ):
     # 4th  rra : keep last 10 years of data. Each line contains 24 hours of data.
     rrdtool.create( databaseName, '--start','%s' %( startTime ), '--step', '60', 'DS:%s:GAUGE:60:U:U' %dataType, 'RRA:AVERAGE:0.5:1:7200','RRA:MIN:0.5:1:7200', 'RRA:MAX:0.5:1:7200','RRA:AVERAGE:0.5:60:336','RRA:MIN:0.5:60:336', 'RRA:MAX:0.5:60:336','RRA:AVERAGE:0.5:240:1460','RRA:MIN:0.5:240:1460','RRA:MAX:0.5:240:1460', 'RRA:AVERAGE:0.5:1440:3650','RRA:MIN:0.5:1440:3650','RRA:MAX:0.5:1440:3650' )      
               
-    print "created :%s" %databaseName   
+      
     
 
     
@@ -287,15 +285,12 @@ def getPairsFromMergedData( statType, mergedData, logger = None  ):
                         pairs.append( [ int(MyDateLib.getSecondsSinceEpoch(mergedData.statsCollection.timeSeperators[i])) +60, 0.0 ])                    
                 
                 else:      
-                
-                    print "invalid fileType"
-                    
+                                                      
                     pairs.append( [ int(MyDateLib.getSecondsSinceEpoch(mergedData.statsCollection.timeSeperators[i])) +60, 0.0 ] )
             
             
             except KeyError:
-                if logger != None :
-                    print "keyError statype was : %s" %statType
+                if logger != None :                    
                     logger.error( "Error in getPairs." )
                     logger.error( "The %s stat type was not found in previously collected data." %statType )    
                 pairs.append( [ int(MyDateLib.getSecondsSinceEpoch(mergedData.statsCollection.timeSeperators[i])) +60, 0.0 ] )
@@ -425,7 +420,7 @@ def updateGroupedRoundRobinDatabases( infos, logger = None ):
               
     dataPairs   = getPairs( infos.clients, infos.machines, infos.fileTypes[0], startTime, endTime, infos.group, logger )     
           
-    print  dataPairs
+     
     for key in dataPairs.keys():
         
         rrdFileName = rrdUtilities.buildRRDFileName( dataType = key, clients = infos.group, groupName = infos.group, machines =  infos.machines,fileType = infos.fileTypes[0], usage = "group" )  
@@ -448,7 +443,8 @@ def updateGroupedRoundRobinDatabases( infos, logger = None ):
             if logger != None :
                 logger.warning( "This database was not updated since it's last update was more recent than specified date : %s" %rrdFileName )        
     
-    
+        
+        
     setDatabaseTimeOfUpdate( tempRRDFileName, infos.fileTypes[0], endTime )         
     
     
@@ -491,7 +487,6 @@ def transferPickleToRRD( infos, logger = None ):
                 break 
     
     else:
-        print "updates a group"
         updateGroupedRoundRobinDatabases( infos, logger )
 
               
@@ -523,6 +518,7 @@ def main():
     
     """
 
+    
     createPaths()
     
     logger = Logger( StatsPaths.PXLOG + 'stats_' + 'rrd_transfer' + '.log.notb', 'INFO', 'TX' + 'rrd_transfer', bytes = True  ) 
@@ -532,10 +528,11 @@ def main():
     parser = createParser() 
    
     infos = getOptionsFromParser( parser, logger = logger )
-
+   
     transferPickleToRRD( infos, logger = logger )
    
 
 if __name__ == "__main__":
+    
     main()
                               

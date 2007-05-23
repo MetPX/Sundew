@@ -102,27 +102,29 @@ def mergePicklesFromDifferentHours( logger = None , startTime = "2006-07-31 13:0
     
     seperators = [startTime]
     seperators.extend( MyDateLib.getSeparatorsWithStartTime( startTime = startTime , width=width, interval=60*MINUTE )[:-1])
-    
-    
+        
     for seperator in seperators :
         pickles.append( ClientStatsPickler.buildThisHoursFileName(  client = client, offset = 0, currentTime = seperator, machine = machine, fileType = fileType ) )        
     
     
     for pickle in pickles : 
-    
+        
         if os.path.isfile( pickle ) :
                  
             tempCollection = cpickleWrapper.load( pickle )
-            entries.extend( tempCollection.fileEntries )
-            
+            if tempCollection != None :
+                entries.extend( tempCollection.fileEntries )
+            else:
+                
+                sys.exit()
         else:
-            print "&&&&&&&&&&&&&&&&&&&&&&&&&&& %s does not exist!!!!!!!!!!!!!!" %pickle
-            
+                        
             emptyEntries = fillWithEmptyEntries( nbEmptyEntries = 60, entries = [] )
             entries.extend( emptyEntries )
      
             
     statsCollection = FileStatsCollector(  startTime = startTime , endTime = endTime, interval = MyDateLib.MINUTE, totalWidth = width, fileEntries = entries, logger = logger )
+       
     
     return statsCollection        
 
@@ -189,8 +191,7 @@ def mergePicklesFromSameHour( logger = None , pickleNames = None, mergedPickleNa
                     for type in newFSC.statsTypes :
                          
                         newFSC.fileEntries[j].values.dictionary[type].append( entryList[i].fileEntries[j].values.dictionary[type][k] ) 
-                    
-                    #print entryList[i].fileEntries[j].values.dictionary[type][k]        
+                                           
                     newFSC.fileEntries[j].values.rows = newFSC.fileEntries[j].values.rows + 1
 
         
@@ -210,7 +211,7 @@ def mergePicklesFromSameHour( logger = None , pickleNames = None, mergedPickleNa
     temp = newFSC.logger
     del newFSC.logger
     cpickleWrapper.save( newFSC, mergedPickleName )
-    print "saved : %s" %mergedPickleName
+    
     newFSC.logger = temp
     
     return newFSC
@@ -228,7 +229,7 @@ def createNonMergedPicklesList( currentTime, machines, fileType, clients ):
         for client in clients: 
             pickleList.append( ClientStatsPickler.buildThisHoursFileName(  client = client, currentTime = currentTime, fileType = fileType, machine = machine ) )
     
-    #print pickleList    
+       
     
     return pickleList
 
@@ -249,8 +250,7 @@ def createMergedPicklesList( startTime, endTime, clients, groupName, fileType, m
     for machine in machines:
         combinedMachineName = combinedMachineName + machine     
     
-    #print "groupname in create merged pickle list %s" %groupName
-    
+       
     if groupName == "":        
         for client in clients: 
             groupName = groupName + client
@@ -281,51 +281,52 @@ def mergePicklesFromDifferentSources( logger = None , startTime = "2006-07-31 13
     for client in clients: 
         combinedClientName = combinedClientName + client
     
+    if groupName !="":
+        clientsForVersionManagement = groupName 
+    else:
+        clientsForVersionManagement = clients
     
-    vc  = PickleVersionChecker()
-    vc.getClientsCurrentFileList( clients )
-    vc.getSavedList( user = combinedMachineName, clients = clients )      
+    vc  = PickleVersionChecker()    
+       
+    vc.getClientsCurrentFileList( clients )    
+        
+    vc.getSavedList( user = combinedMachineName, clients = clientsForVersionManagement )           
    
     width = MyDateLib.getSecondsSinceEpoch( endTime ) - MyDateLib.getSecondsSinceEpoch( startTime )
     startTime = MyDateLib.getIsoWithRoundedHours( startTime )
     
     seperators = [startTime]
     seperators.extend( MyDateLib.getSeparatorsWithStartTime( startTime = startTime , width=width, interval=60*MINUTE )[:-1])
-    
-    
+        
     mergedPickleNames = createMergedPicklesList(  startTime = startTime, endTime = endTime, machines = machines, fileType = fileType, clients = clients, groupName = groupName, seperators = seperators ) #Resulting list of the merger.
-    
-    
+        
+   
     for i in range( len( mergedPickleNames ) ) : #for every merger needed
             
             needToMergeSameHoursPickle = False 
             pickleNames = createNonMergedPicklesList( currentTime = seperators[i], machines = machines, fileType = fileType, clients = clients )
             
-            if not os.path.isfile( mergedPickleNames[i] ):
+            if not os.path.isfile( mergedPickleNames[i] ):                
                 needToMergeSameHoursPickle = True 
             else:    
+                
                 for pickle in pickleNames : #Verify every pickle implicated in merger.
-                    #print pickleNames
-                    # if for some reason pickle has changed since last time
-                    if vc.isDifferentFile( file = pickle, user = combinedMachineName, clients = clients ) == True : 
-                        
+                    # if for some reason pickle has changed since last time                    
+                    if vc.isDifferentFile( file = pickle, user = combinedMachineName, clients = clientsForVersionManagement ) == True : 
+                           
                         needToMergeSameHoursPickle = True 
                         break
                         
             
             if needToMergeSameHoursPickle == True :#First time or one element has changed   
-                #print "problem" 
+                
                 mergePicklesFromSameHour( logger = logger , pickleNames = pickleNames , clientName = combinedClientName, combinedMachineName = combinedMachineName, currentTime = seperators[i], mergedPickleName = mergedPickleNames[i], fileType = fileType  )
                 
-                #print pickleNames
+                
                 for pickle in pickleNames :
-                    vc.updateFileInList( file = pickle )
-                   
-                if groupName !="":
-                    clientsForVersionManagement = groupName 
-                else:
-                    clientsForVersionManagement = clients
-                          
+                    print pickle
+                    vc.updateFileInList( file = pickle )                                               
+                
                 vc.saveList( user = combinedMachineName, clients = clientsForVersionManagement )
                 
                 

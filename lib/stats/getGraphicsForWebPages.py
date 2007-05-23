@@ -371,7 +371,7 @@ def main():
     currentTime = time.time()
      
     setDailyGraphs( currentTime, machinePairs, machineConfig, configParameters )
-
+        
     if int(time.strftime( "%H", time.gmtime( currentTime ) ) ) == 0:#midnight
 
         setYesterdaysGraphs( currentTime, machinePairs )#Day has changed,lets keep yesterday's graph.
