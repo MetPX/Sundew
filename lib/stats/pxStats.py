@@ -6,7 +6,7 @@ named COPYING in the root of the source directory tree.
 """
 ##########################################################################
 ##
-## Name   : launchGraphCreation.py 
+## Name   : pxStats.py 
 ##  
 ## Author : Nicholas Lemay  
 ##
@@ -14,7 +14,7 @@ named COPYING in the root of the source directory tree.
 ##
 #############################################################################
 
-import os, sys, commands
+import os, sys, commands, time
 import StatsPaths, MyDateLib
 
 from MachineConfigParameters import MachineConfigParameters
@@ -39,8 +39,7 @@ def validateParameters( parameters, machineParameters, logger = None  ):
             logger.error("Error reading config file in launchGraphCreation program. Parameter number mismatch. Program was terminated abruptly.") 
         print "Error reading config file in launchGraphCreation program. Parameter number mismatch. Program was terminated abruptly."       
         sys.exit()
-    
-    
+        
         
     for tag in parameters.sourceMachinesTags:
         
@@ -219,21 +218,133 @@ def updateWebPages():
        
     
     
-def monitorActivities():
+def monitorActivities( timeParameters, currentTime ):
     """
-        Monitors all the activities that occured during 
+        @summary: Monitors all the activities that occured during 
         the course of this program. Report is sent out by mail
         to recipients specified in the config file.
+        
+        @param timeParameters: Parameters specifying at wich 
+                               frequency the programs need to run.
+                               
+        @param currenTime: currentTime in seconds since epoch format.
+        
     """    
-    currentHour = int( MyDateLib.getIsoFromEpoch( time.time() ).split()[1].split(":")[0] )
+   
     
-    if currentHour %12 == 0:
+    if needsToBeRun(timeParameters.monitoringFrequency, currentTime ):        
         status, output = commands.getstatusoutput( StatsPaths.STATSLIBRARY + "statsMonitor.py" )
         #print StatsPaths.STATSLIBRARY + "statsMonitor.py"
         #print output
         
+ 
+def needsToBeRun( frequency, currentTime ):        
+    """
+    
+        @summary : This method is built to mimick the behavior of a crontab entry. 
+                    
+                   Entries will be judged to be needing to be run if the current time 
+                   minus epoch is a multiple of the frequency that was asked in the 
+                   parameters. This way we ensure that program are run at every 5 hours
+                   for example at not at every hour of the day where the hour number is a
+                   5 multiple.
+                   
+                   Also this prevents us from having to save the time of the last time a 
+                   certain program has ran, wich could become troublesome if this program 
+                   did not run for a while. 
         
+        @param frequency: Frequency at wich a certain program needs to be run.
+                          MUST be of the array type and of the the following form: 
+                          { value : unitOfTime  } 
+       
+       @param currentTime: CurrentTime in seconds since epoch format.
+       
+       @return: Returns wheter a certain program needs to be run or not.
         
+    """
+    
+    needsToBeRun = False     
+    
+    value = frequency.keys()[0]
+     
+        
+    if frequency[value] == "minutes":
+       value = float(value) 
+       currentTime = currentTime - ( currentTime % (60) )
+       
+       if int(currentTime) % int(value*60) == 0:
+            needsToBeRun = True    
+         
+    elif frequency[value] == "hours":      
+        value = float(value) 
+        currentTime = currentTime - ( currentTime % (60*60) )
+        
+        if int(currentTime) % int(value*60*60) == 0:
+            needsToBeRun = True 
+    
+    elif frequency[value] == "days":     
+        value = float(value)     
+        currentTime = currentTime - ( currentTime % (60*60) )
+        
+        int(currentTime) % int(value*60*60*24)
+        if int(currentTime) % int(value*60*60*24) == 0:
+            needsToBeRun = True 
+    
+    elif frequency[value] == "months":
+        value = float(value) 
+        
+        currentMonth = time.strftime( "%m", time.gmtime( currentTime ) )
+        if int(currentTime) % int(value) == 0:
+            needsToBeRun = True 
+    
+    return needsToBeRun
+    
+    
+    
+def cleanUp( timeParameters, currentTime, daysOfPicklesToKeep ):
+    """
+    
+        @summary: Based on current time and frequencies contained
+                  within the time parameters, we will run 
+                  the cleaners that need to be run.       
+                            
+        @param timeParameters: Parameters specifying at wich 
+                               frequency the programs need to run.
+                               
+        @param currenTime: currentTime in seconds since epoch format.
+                                  
+    """     
+    
+    if needsToBeRun( timeParameters.pickleCleanerFrequency, currentTime ):
+        commands.getstatusoutput( StatsPaths.PXLIB + "pickleCleaner.py")
+        #print StatsPaths.PXLIB + "pickleCleaner.py" + " " + str( daysOfPicklesToKeep )
+        
+    if needsToBeRun( timeParameters.generalCleanerFrequency, currentTime ):
+        commands.getstatusoutput( StatsPaths.PXLIB + "clean_dir.plx" + " " + StatsPaths.PXETC + "clean.conf"   )
+        #print StatsPaths.PXLIB + "clean_dir.plx" + " " + StatsPaths.PXETC + "clean.conf" 
+        
+    
+    
+def backupRRDDatabases( timeParameters, currentTime, nbBackupsToKeep ):
+    """
+    
+        @summary: Based on current time and frequencies contained
+                  within the time parameters, we will backup the databases
+                  only if necessary.       
+                            
+        @param timeParameters: Parameters specifying at wich 
+                               frequency the programs need to run.
+                               
+        @param currenTime: currentTime in seconds since epoch format.
+                                  
+    """  
+        
+    if needsToBeRun( timeParameters.dbBackupsFrequency, currentTime ):
+        commands.getstatusoutput( StatsPaths.PXLIB + "backupRRDDatabases.py" + " " + str(nbBackupsToKeep) )             
+        #print StatsPaths.PXLIB + "backupRRDDatabases.py" + " " + str(nbBackupsToKeep)
+
+
+
 def main():
     """
         Gets all the parameters from config file.
@@ -244,22 +355,29 @@ def main():
     
     """
     
+    currentTime = time.time()
+    
     generalParameters = StatsConfigParameters()
+    
     generalParameters.getAllParameters()
                                                                 
     machineParameters = MachineConfigParameters()
     machineParameters.getParametersFromMachineConfigurationFile()
-       
     validateParameters( generalParameters, machineParameters, None  )
+    
     updatePickles( generalParameters, machineParameters )
     updateDatabases( generalParameters, machineParameters )   
+    backupRRDDatabases( generalParameters.timeParameters, currentTime, generalParameters.nbDbBackupsToKeep )
+        
     getGraphicsForWebPages()
     updateWebPages()
-    uploadGraphicFiles( generalParameters, machineParameters )
-    monitorActivities()
+    uploadGraphicFiles( generalParameters, machineParameters )       
     
+    cleanUp( generalParameters.timeParameters, currentTime, generalParameters.daysOfPicklesToKeep )
     
-    #print "Finished."
+    monitorActivities( generalParameters.timeParameters, currentTime )
+    
+    print "Finished."
     
     
     
