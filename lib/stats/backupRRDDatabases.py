@@ -33,11 +33,14 @@ import MyDateLib, StatsPaths
 from   MyDateLib import * 
 
 
-def backupDatabases( timeOfBackup ):
+def backupDatabases( timeOfBackup, backupsToKeep ):
     """
-       Copy all databases into a folder sporting the data of the backup.
+       @summary: Copy all databases into a folder sporting the data of the backup.
        
-       Limits the number of backups to 5
+       @param timeOfBackup : Used to tag the database backup folder. 
+       
+       @param backupsToKepp : Limits the number of backups to the specified value.
+    
     """
     
     
@@ -59,17 +62,23 @@ def backupDatabases( timeOfBackup ):
         fileNames.reverse()
         newList = newList + fileNames[:-1]
     
-        if len( newList) > 20 :
-            for i in range( 20, len(newList) ):
+        if len( newList) > backupsToKeep :
+            for i in range( backupsToKeep, len(newList) ):
                 status, output = commands.getstatusoutput( "rm -r %s " %( newList[i] ) ) 
     
     
     
-def backupDatabaseUpdateTimes( timeOfBackup ):
+def backupDatabaseUpdateTimes( timeOfBackup, backupsToKeep ):
     """
-        Copy all databases into a folder sporting the data of the backup.
-        
-        Limits the number of database backups to 3.
+    
+       @summary: Copy all databases update times into a folder sporting
+                 the data of the backup.
+       
+       @param timeOfBackup : Used to tag the database backup folder. 
+       
+       @param backupsToKeep : Limits the number of backups to the 
+                              specified value.
+    
     """
     
     source = StatsPaths.STATSDBUPDATES
@@ -91,8 +100,8 @@ def backupDatabaseUpdateTimes( timeOfBackup ):
         fileNames.reverse()
         newList = newList + fileNames[:-1]
     
-        if len( newList) > 20 :
-            for i in range( 20, len(newList) ):
+        if len( newList) > backupsToKeep :
+            for i in range( backupsToKeep, len(newList) ):
                 status, output = commands.getstatusoutput( "rm -r %s " %( newList[i] ) )
     
 
@@ -109,8 +118,18 @@ def main():
     currentTime = MyDateLib.getIsoFromEpoch( currentTime )
     currentTime = MyDateLib.getIsoWithRoundedSeconds( currentTime )
     currentTime = currentTime.replace(" ", "_")
-    backupDatabaseUpdateTimes( currentTime )
-    backupDatabases( currentTime )
+    
+    backupsToKeep = 20
+    
+    if len( sys.argv ) == 2:
+        try:
+            backupsToKeep =  int( sys.argv[1] )
+        except:
+            print "Days to keep value must be an integer. For default 20 backups value, type nothing."
+            sys.exit()
+                      
+    backupDatabaseUpdateTimes( currentTime, backupsToKeep )
+    backupDatabases( currentTime, backupsToKeep )
     
     
 if __name__ == "__main__":

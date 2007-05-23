@@ -246,7 +246,7 @@ class MachineConfigParameters:
                             self.addMachineToMachineTag(machines[i], machineTag)
                             self.setUserNameForMachine(machines[i], userNames[i])
             
-                      
+            fileHandle.close()          
             
             
             

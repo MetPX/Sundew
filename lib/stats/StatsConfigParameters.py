@@ -20,10 +20,11 @@
 
 import StatsPaths
 import ConfigParser
+import TimeParameters
 from MachineConfigParameters import MachineConfigParameters
 from DetailedStatsParameters import DetailedStatsParameters
 from GroupConfigParameters   import GroupConfigParameters
-
+from TimeParameters import TimeConfigParameters
 from ConfigParser import ConfigParser
 
 
@@ -38,24 +39,34 @@ class StatsConfigParameters:
     """  
             
     
-    def __init__( self, sourceMachinesTags = [], picklingMachines = [] , machinesToBackupInDb = [] , graphicsUpLoadMachines = [], detailedParameters = None, groupParameters = None  ):
+    def __init__( self, sourceMachinesTags = [], picklingMachines = [] , machinesToBackupInDb = [] , graphicsUpLoadMachines = [], daysOfPicklesToKeep = None, nbDbBackupsToKeep = None,  timeParameters = None, detailedParameters = None, groupParameters = None  ):
         """
         
-        @param sourceMachinesTags:
-        @param picklingMachines:
-        @param machinesToBackupInDb:
-        @param graphicsUpLoadMachines:
-        @param detailedParameters:
+            @param sourceMachinesTags:
+            @param picklingMachines:
+            @param machinesToBackupInDb:
+            @param graphicsUpLoadMachines:
+            @param daysOfPickledtoKeep:
+            @param nbDbBackupsToKeep:
+            @param timeParameters:
+            @param detailedParameters:
+            @param groupParameters:
+        
+
         """
         
-        
-        self.sourceMachinesTags     = sourceMachinesTags
-        self.picklingMachines       = picklingMachines
-        self.machinesToBackupInDb   = machinesToBackupInDb
+        self.sourceMachinesTags = sourceMachinesTags
+        self.picklingMachines = picklingMachines
+        self.machinesToBackupInDb = machinesToBackupInDb
         self.graphicsUpLoadMachines = graphicsUpLoadMachines
-        self.detailedParameters     = detailedParameters
-        self.groupParameters        = groupParameters
-       
+        self.daysOfPickledtoKeep = daysOfPicklesToKeep
+        self.nbDbBackupsToKeep = nbDbBackupsToKeep
+        self.timeParameters = timeParameters
+        self.detailedParameters = detailedParameters
+        self.groupParameters = groupParameters
+        
+
+        
         
        
     def getDetailedParametersFromMachineConfig( self ):
@@ -132,15 +143,27 @@ class StatsConfigParameters:
         self.sourceMachinesTags     = []   
         self.picklingMachines       = []
         self.machinesToBackupInDb   = []
-        self.graphicsUpLoadMachines = []
+        self.graphicsUpLoadMachines = []        
         self.sourceMachinesTags.extend( config.get( 'generalConfig', 'sourceMachinesTags' ).split(',') )
         self.picklingMachines.extend( config.get( 'generalConfig', 'picklingMachines' ).split(',') ) 
         self.machinesToBackupInDb.extend( config.get( 'generalConfig', 'machinesToBackupInDb' ).split(',') ) 
         self.graphicsUpLoadMachines.extend( config.get( 'generalConfig', 'graphicsUpLoadMachines' ).split(',') ) 
+        self.daysOfPicklesToKeep = float( config.get( 'generalConfig', 'daysOfPicklesToKeep' ) )
+        self.nbDbBackupsToKeep   = float( config.get( 'generalConfig', 'nbDbBackupsToKeep' ) )
         
     
-     
-     
+    def getTimeParametersFromConfigurationFile(self):
+        """
+            @summary : Reads all the time related parameters of the 
+                       config file and sets them  in the timeParameters
+                       attribute's values.
+            
+        """
+        
+        self.timeParameters = TimeConfigParameters()
+        self.timeParameters.getTimeParametersFromConfigurationFile()
+              
+                
     def getGroupSettingsFromConfigurationFile( self ):
         """
             Reads all the group settings from 
@@ -199,12 +222,14 @@ class StatsConfigParameters:
         
     def getAllParameters(self):
         """
+            @summary : Get all the parameters form the different configuration files.
         
         """       
+        
         self.getGeneralParametersFromStatsConfigurationFile()        
         self.getGroupSettingsFromConfigurationFile()       
         self.getDetailedParametersFromMachineConfig()      
-        
+        self.getTimeParametersFromConfigurationFile()
       
  
 def main():
@@ -224,6 +249,8 @@ def main():
     print "test.graphicsUpLoadMachines %s" %test.graphicsUpLoadMachines
     print "test.sourceMachinesTags %s" %test.sourceMachinesTags
     print "test.machinesToBackupInDb %s" %test.machinesToBackupInDb
+    print "test.daysOfPicklesToKeep %s" %test.daysOfPicklesToKeep
+    print "test.nbDbBackupsToKeep %s" %test.nbDbBackupsToKeep
     print "test.groupParameters %s " %test.groupParameters
     print "self.groups %s" %test.groupParameters.groups
     print "self.groupsMachines %s" %test.groupParameters.groupsMachines
