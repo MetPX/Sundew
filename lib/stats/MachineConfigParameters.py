@@ -230,10 +230,10 @@ class MachineConfigParameters:
             
             fileHandle =  open( CONFIG )    
             lines = fileHandle.readlines() 
-    
+            
             for line in lines:
                 if line != '' and  line[0] != '#' and line[0] != '\n' :
-                    #print line
+                    
                     splitLine = line.split()                    
                     machineTag = splitLine[0]
                     machines = splitLine[1].split(",")
@@ -246,6 +246,7 @@ class MachineConfigParameters:
                             self.addMachineToMachineTag(machines[i], machineTag)
                             self.setUserNameForMachine(machines[i], userNames[i])
             
+            fileHandle.seek(0)
             fileHandle.close()          
             
             

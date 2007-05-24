@@ -41,7 +41,7 @@ def transferLogFiles():
         Log files will not be tansferred if local machine
         is not designed to be a pickling machine. 
         If log files are to be transferred, they will be straight
-        from the source. Ex : pxatx, pds5, etc"
+        from the source."
     """
     
     parameters = StatsConfigParameters()    
@@ -152,7 +152,7 @@ def main():
         print "#    This will also serve as to take out the guesswork as to why the program is taking so long to complete it's execution."
         print "#"
         print "#    Log files will not be tansferred if local machine is not designed to be a pickling machine. "
-        print "#    If log files are to be transferred, they will be straight from the source. Ex : pxatx, pds5, etc"
+        print "#    If log files are to be transferred, they will be straight from the source."
         print "#"
         print "#    ******Make sur /appx/px/stats/config is filled properly prio to running this script !!!*****"
         print "#"

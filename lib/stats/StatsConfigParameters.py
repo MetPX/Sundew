@@ -39,7 +39,7 @@ class StatsConfigParameters:
     """  
             
     
-    def __init__( self, sourceMachinesTags = [], picklingMachines = [] , machinesToBackupInDb = [] , graphicsUpLoadMachines = [], daysOfPicklesToKeep = None, nbDbBackupsToKeep = None,  timeParameters = None, detailedParameters = None, groupParameters = None  ):
+    def __init__( self, sourceMachinesTags = None, picklingMachines = None , machinesToBackupInDb = None , graphicsUpLoadMachines = None, daysOfPicklesToKeep = None, nbDbBackupsToKeep = None,  timeParameters = None, detailedParameters = None, groupParameters = None  ):
         """
         
             @param sourceMachinesTags:
@@ -55,10 +55,10 @@ class StatsConfigParameters:
 
         """
         
-        self.sourceMachinesTags = sourceMachinesTags
-        self.picklingMachines = picklingMachines
-        self.machinesToBackupInDb = machinesToBackupInDb
-        self.graphicsUpLoadMachines = graphicsUpLoadMachines
+        self.sourceMachinesTags = sourceMachinesTags or []
+        self.picklingMachines = picklingMachines or [] 
+        self.machinesToBackupInDb = machinesToBackupInDb or [] 
+        self.graphicsUpLoadMachines = graphicsUpLoadMachines or []
         self.daysOfPickledtoKeep = daysOfPicklesToKeep
         self.nbDbBackupsToKeep = nbDbBackupsToKeep
         self.timeParameters = timeParameters
@@ -84,7 +84,7 @@ class StatsConfigParameters:
         
         machineParameters.getParametersFromMachineConfigurationFile()
                 
-        self.detailedParameters = DetailedStatsParameters()
+        self.detailedParameters =   DetailedStatsParameters()
         
          
         for machineTag, picklingMachine in map( None, self.sourceMachinesTags, self.picklingMachines ):            
@@ -98,7 +98,8 @@ class StatsConfigParameters:
                 self.detailedParameters.picklingMachines[machineTag] =[]
                 
                 for machine in sourceMachines :
-                    if machine not in   self.detailedParameters.individualSourceMachines: 
+                    
+                    if machine not in  self.detailedParameters.individualSourceMachines:                        
                         self.detailedParameters.sourceMachinesForTag[machineTag].append(machine) 
                         self.detailedParameters.individualSourceMachines.append(machine)
                         self.detailedParameters.sourceMachinesLogins[machine] = machineParameters.getUserNameForMachine(machine)
@@ -107,7 +108,7 @@ class StatsConfigParameters:
                     if machine not in self.detailedParameters.sourceMachinesForTag[machineTag]:
                         self.detailedParameters.picklingMachines[machineTag].append(machine)
                         self.detailedParameters.picklingMachinesLogins[machine] = machineParameters.getUserNameForMachine(machine)
-                    
+    
                     
         for uploadMachine in self.graphicsUpLoadMachines:
             uploadMachines = machineParameters.getMachinesAssociatedWith( uploadMachine )
@@ -126,6 +127,8 @@ class StatsConfigParameters:
                     if machine not in self.detailedParameters.databaseMachines:
                         self.detailedParameters.databaseMachines.append(machine)
  
+                   
+ 
  
  
     def getGeneralParametersFromStatsConfigurationFile(self):
@@ -138,7 +141,8 @@ class StatsConfigParameters:
     
         CONFIG = StatsPaths.STATSROOT + "config" 
         config = ConfigParser()
-        config.readfp( open( CONFIG ) ) 
+        file = open( CONFIG )
+        config.readfp( file ) 
                   
         self.sourceMachinesTags     = []   
         self.picklingMachines       = []
@@ -151,6 +155,11 @@ class StatsConfigParameters:
         self.daysOfPicklesToKeep = float( config.get( 'generalConfig', 'daysOfPicklesToKeep' ) )
         self.nbDbBackupsToKeep   = float( config.get( 'generalConfig', 'nbDbBackupsToKeep' ) )
         
+        try:
+            file.close()
+        except:
+            pass    
+    
     
     def getTimeParametersFromConfigurationFile(self):
         """
@@ -232,6 +241,7 @@ class StatsConfigParameters:
         self.getTimeParametersFromConfigurationFile()
       
  
+ 
 def main():
     """
      
@@ -241,7 +251,8 @@ def main():
        the config files.
         
     """
-        
+   
+
     test = StatsConfigParameters()
     test.getAllParameters()
     
@@ -258,6 +269,16 @@ def main():
     print "self.groupsMembers  %s"  %test.groupParameters.groupsMembers
     print "self.groupsProducts %s"   %test.groupParameters.groupsProducts
     print "test.detailedParameters %s " %test.detailedParameters
+    print "test.detailedParameters.sourceMachinesForTag %s"   %test.detailedParameters.sourceMachinesForTag
+    print "test.detailedParameters.individualSourceMachines %s" %test.detailedParameters.individualSourceMachines
+    print "test.detailedParameters.sourceMachinesLogins %s" %test.detailedParameters.sourceMachinesLogins
+    print "test.detailedParameters.picklingMachines %s"   %test.detailedParameters.picklingMachines
+    print "test.detailedParameters.picklingMachinesLogins %s" %test.detailedParameters.picklingMachinesLogins
+    print "test.detailedParameters.databaseMachines %s" %test.detailedParameters.databaseMachines
+    print "test.detailedParameters.uploadMachines %s" %test.detailedParameters.uploadMachines
+    print "test.detailedParameters.uploadMachinesLogins %s" %test.detailedParameters.uploadMachinesLogins 
+    
+    
     print "self.sourceMachinesForTag %s"  %test.detailedParameters.sourceMachinesForTag
     print "self.individualSourceMachines %s" %test.detailedParameters.individualSourceMachines
     print "self.sourceMachinesLogins %s" %test.detailedParameters.sourceMachinesLogins

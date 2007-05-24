@@ -1094,14 +1094,15 @@ def verifyGraphs( parameters, report ):
     folder = ( "%swebGraphics/columbo/" %StatsPaths.STATSGRAPHS )  
     currentTime = MyDateLib.getSecondsSinceEpoch( parameters.endTime )
     
-    allNames = []
-    rxNames, txNames = generalStatsLibraryMethods.getRxTxNames( LOCAL_MACHINE, "pds5")
-    allNames.extend( rxNames )    
-    allNames.extend( txNames )
-    rxNames, txNames = generalStatsLibraryMethods.getRxTxNames( LOCAL_MACHINE, "pxatx")
-    allNames.extend( rxNames )
-    allNames.extend( txNames )
     
+    allNames = []
+    for machine in parameters.machines:
+        if "," in machine:
+            machine = machine.split(",")[0]
+        rxNames, txNames = generalStatsLibraryMethods.getRxTxNames( LOCAL_MACHINE, machine )
+        allNames.extend( rxNames )    
+        allNames.extend( txNames )
+       
     for name in allNames :         
         
         image = folder + name + ".png"

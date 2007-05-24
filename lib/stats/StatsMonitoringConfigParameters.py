@@ -100,8 +100,8 @@ class StatsMonitoringConfigParameters:
         config = ConfigParser()
         
         if os.path.isfile( CONFIG ):
-        
-            config.readfp( open( CONFIG ) ) 
+            file = open( CONFIG )
+            config.readfp( file ) 
             
             self.emails        = config.get( 'statsMonitoring', 'emails' ).split( ";" )
             self.machines      = config.get( 'statsMonitoring', 'machines' ).split( ";" )
@@ -115,6 +115,10 @@ class StatsMonitoringConfigParameters:
             self.maximumGaps = self.getMaximumGaps( )
             self.updateMachineNamesBasedOnExistingMachineTags()
             
+            try:
+                file.close()
+            except:
+                pass
             
         else:
             print "%s configuration file not present. Please restore file prior to running" %CONFIG
@@ -143,6 +147,8 @@ class StatsMonitoringConfigParameters:
         for tag in generalParameters.sourceMachinesTags:
             
             try:
+                print tag
+                print "in getMaximumGaps %s" %generalParameters.detailedParameters.sourceMachinesForTag
                 machines = generalParameters.detailedParameters.sourceMachinesForTag[tag]    
                 machine  = machines[0]
             except:

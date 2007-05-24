@@ -79,7 +79,7 @@ def createParser( ):
 Defaults :
 - Default endTime is currentTime.
 - Default startTime is a weel ago.
-- Default machine is pds3-dev,pds4-dev.  
+- Default machine is LOCAL_MACHINE.  
 - Default client is all active clients.
 
 Options:
@@ -92,10 +92,10 @@ Options:
     - With -p|--products you can specify the list of products you are interested in. 
       Note : this option requires the group options to be enabled.    
                 
-Ex1: %prog                                   --> All default values will be used. Not recommended.  
-Ex2: %prog -m pds5                           --> All default values, for machine pds5. 
-Ex3: %prog -m pds5 -d '2006-06-30 05:15:00'  --> Machine pds5, Date of call 2006-06-30 05:15:00.
-Ex4: %prog -s 24                             --> Uses current time, default machine and 24 hours span.
+Ex1: %prog                                     --> All default values will be used. Not recommended.  
+Ex2: %prog -m machine1                         --> All default values, for machine machine1. 
+Ex3: %prog -m machine1 -d '2006-06-30 05:15:00'--> Machine1, Date of call 2006-06-30 05:15:00.
+Ex4: %prog -s 24                               --> Uses current time, default machine and 24 hours span.
 ********************************************
 * See /doc.txt for more details.           *
 ********************************************"""   

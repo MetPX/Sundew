@@ -192,9 +192,9 @@ def main():
     vc  = PickleVersionChecker()
     vc.currentClientFileList( "bob")
     vc.getSavedList()
-#     vc.updateFileInList( file = "/apps/px/stats/pickles/pds5/20060831/rx/lvs1-dev_15" , user = "pds5pds6" ) 
+#     vc.updateFileInList( file = "/apps/px/stats/pickles/client/20060831/rx/machine_15" , user = "someUser" ) 
 #     
-#     print vc.savedFileList["pds5pds6"]["/apps/px/stats/pickles/pds5/20060831/rx/lvs1-dev_15"]
+#     print vc.savedFileList["someUser"]["/apps/px/stats/pickles/client/20060831/rx/machine_15"]
     
     
     

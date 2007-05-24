@@ -44,7 +44,7 @@ LOCAL_MACHINE = os.uname()[1]
     
 class _GraphicsInfos:
 
-    def __init__( self, fileType, types, totals, graphicType, clientNames = None ,  timespan = 12, startTime = None, endTime = None, machines = ["pdsGG"], copy = False, mergerType = ""  ):            
+    def __init__( self, fileType, types, totals, graphicType, clientNames = None ,  timespan = 12, startTime = None, endTime = None, machines = ["machine1"], copy = False, mergerType = ""  ):            
         
         self.fileType     = fileType          # Type of log files to be used.    
         self.types        = types             # Type of graphics to produce. 
@@ -353,12 +353,12 @@ Options:
     
 Ex1: %prog                                   --> All default values will be used. Not recommended.  
 Ex2: %prog -e "2006-10-10 15:13:00" -s 12 
-     --machines "pds1" -f tx                 --> Generate all avaibable graphic types for every tx 
-                                                 client found on the machine named pds1. Graphics will
+     --machines "machine" -f tx              --> Generate all avaibable graphic types for every tx 
+                                                 client found on the machine named machine. Graphics will
                                                  be 12 hours wide and will end at 15:00:00.  
 Ex3: %prog -e "2006-10-10 15:13:00" -y 
-     --machines "pds1"                       --> Generate all yearly graphics for all tx and rx clients
-                                                 associated with the machine named pds1. 
+     --machines "machine1"                   --> Generate all yearly graphics for all tx and rx clients
+                                                 associated with the machine named machine1. 
                                                                                                 
 ********************************************
 * See /doc.txt for more details.           *
@@ -1130,7 +1130,7 @@ def createNewMergedDatabase( infos, dataType,  machine, start, interval    ) :
     @param dataType: errors, bytecount,filecount, latency or filesOverMaxLatency
     
     @param machine: machine from wich the data comes from. If data comes form two machines, 
-                    group the names togehter EX : pds5 and pds6 become pds5pds6
+                    group the names togehter EX : machine1 and machine2 become machine1machine1
     
     @param infos: _GraphicsInfos instance that is used throughout the program.
     

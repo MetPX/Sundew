@@ -58,7 +58,8 @@ class TimeConfigParameters:
         
         CONFIG = StatsPaths.STATSROOT + "config" 
         config = ConfigParser()
-        config.readfp( open( CONFIG ) ) 
+        file = open( CONFIG )
+        config.readfp( file ) 
         
         self.pxStatsFrequency =  {}
         self.monitoringFrequency =   {}
@@ -94,6 +95,12 @@ class TimeConfigParameters:
         for unit in readTimeUnits:
             if unit not in TimeConfigParameters.validTimeUnits:
                 raise Exception("Invalid time unit found in configuration file.")
+        
+        
+        try:
+            file.close() 
+        except:
+            pass
         
         
         

@@ -82,10 +82,9 @@ Options:
     - with -v|--verbose you can specify that you want to see the ryncs error printed on screen.
          
             
-Ex1: %prog                                   --> All default values will be used. 
-Ex2: %prog -c satnet                         --> All machines, for client satnet only. 
-Ex3: %prog -m 'pds5'"                        --> All clients, on machine pds5 only.
-Ex4: %prog -c 'satnet, satnet2' -m 'pds5'    --> Clients satnet, satnet2 on machine named pds5 only.
+Ex1: %prog                                    --> All default values will be used. 
+Ex2: %prog -m 'machine1'"                     --> All clients, on machine1 only.
+Ex3: %prog -c 'client1, client2' -m 'machine1 --> Machine1, for clients 1 and 2 only.
 
 ********************************************
 * See /doc.txt for more details.           *

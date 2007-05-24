@@ -78,7 +78,7 @@ Defaults :
 - If default is used for individual and combine, combine will be set to True.  
 - Default Date is current system time.
 - Default logins is pds.  
-- Default machines value is pxatx.
+- Default machines value is LOCAL_MACHINE.
 - Default span is 24 hours.
 
 Options:
@@ -123,7 +123,7 @@ def addOptions( parser ):
     
     parser.add_option( "-l", "--logins", action="store", type="string", dest="logins", default="pds", help = "Logins to be used to connect to machines." ) 
     
-    parser.add_option( "-m", "--machines", action="store", type="string", dest="machines", default="pxatx", help = "Machines for wich you want to collect data." ) 
+    parser.add_option( "-m", "--machines", action="store", type="string", dest="machines", default=LOCAL_MACHINE, help = "Machines for wich you want to collect data." ) 
     
     parser.add_option("-s", "--span", action="store",type ="int", dest = "timespan", default=24, help="timespan( in hours) of the graphic.")    
     
