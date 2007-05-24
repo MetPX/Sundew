@@ -46,10 +46,16 @@ def getOptionsFromParser( parser ):
     verbose           = options.verbose   
     machines          = options.machines.replace( " ","" ).split( ',' )
     clients           = options.clients.replace( ' ','' ).split( ',')
-    login             = options.login.replace( ' ', '' )
+    logins            = options.logins.replace( ' ', '' ).split( ',' )
     output            = options.output.replace( ' ','' )
 
-    return machines, clients, login, verbose, output 
+    if (len(logins) != len(machines) ) and len(logins)!=1:
+        raise Exception("Error. Number of logins doest not match number of machines.")    
+    elif (len(machines) >1 ) and len(logins)==1: 
+        for i in range( 1,len(machines) ):
+            logins.append( logins[0] )
+            
+    return machines, clients, logins, verbose, output 
 
     
     
@@ -69,14 +75,14 @@ Defaults :
 
 - Default list of machine names is every machine available.
 - Default list of client is every client found of a given machine at the time of the call.  
-- Default login value is pds.
+- Default logins value is pds.
 - Default verbose value is false. 
 - Default output log file is none.
 
 Options:
  
     - With -c|--clients you can specify the clients names for wich you want to synch the data. 
-    - With -l|--login you can specify the name you want to use to connect to ssh machines.
+    - With -l|--logins you can specify the name(s) you want to use to connect to ssh machines.
     - With -m|--machines you can specify the machines to be used as source for the synch.
     - With -o|--output you can specify an output log file name to be used to store errors that occured with rsync. 
     - with -v|--verbose you can specify that you want to see the ryncs error printed on screen.
@@ -106,7 +112,7 @@ def addOptions( parser ):
     parser.add_option( "-c", "--clients", action="store", type="string", dest="clients", default="All",
                         help="Clients' names" )                 
    
-    parser.add_option( "-l", "--login", action="store", type="string", dest="login", default="pds", help = "SSH login name to be used to connect to machines." ) 
+    parser.add_option( "-l", "--logins", action="store", type="string", dest="logins", default="pds", help = "SSH login name(s) to be used to connect to machines." ) 
     
     parser.add_option( "-m", "--machines", action="store", type="string", dest="machines", default=LOCAL_MACHINE, help = "Machine on wich the update is run." ) 
     
@@ -118,26 +124,34 @@ def addOptions( parser ):
 
     
     
-def buildCommands( machines, clients ):
+def buildCommands( logins, machines, clients ):
     """
-       Build all the commands that will be needed to synch the files that need to be synchronized.
+       @summary: Build all the commands that will be needed to synch the files that need to be synchronized.
        
+       @param logins: Logins to be used to build the command.
+       
+       @param machines: Machines with whom you want to be synchronised.
+       
+       @param clients: Specific clients/sources for wich you want to be synchronised.
+       
+       @return: The list of commands that need to be run to be synchronised.
+          
     """ 
     
     commands = []
 
     if clients[0] == "All" :
-        for machine in machines :
+        for login,machine in map( None, logins, machines) :
             for i in range(3):#do 3 times in case of currently turning log files. 
-                commands.append( "rsync -avzr  -e ssh pds@%s:%s %s"  %( machine, StatsPaths.STATSPICKLES, StatsPaths.STATSPICKLES )  )
+                commands.append( "rsync -avzr  -e ssh %s@%s:%s %s"  %( login, machine, StatsPaths.STATSPICKLES, StatsPaths.STATSPICKLES )  )
           
     else:
         
         for client in clients :
             path = StatsPaths.STATSPICKLES + client + "/"
-            for machine in machines :
+            for login, machine in  map( None, logins, machines ):
                 for i in range(3):#do 3 times in case of currently turning log files.
-                    commands.append( "rsync  -avzr -e ssh pds@%s:%s %s"  %( machine, path, path )  )
+                    commands.append( "rsync  -avzr -e ssh %s@%s:%s %s"  %( login, machine, path, path )  )
 
     
     return commands 
@@ -196,10 +210,10 @@ def main():
     
     """       
     parser   = createParser( )  #will be used to parse options 
-    machines, clients, login, verbose, output = getOptionsFromParser( parser )
+    machines, clients, logins, verbose, output = getOptionsFromParser( parser )
     logger   = buildLogger( output )    
-    commands = buildCommands( machines, clients )    
-    
+    commands = buildCommands( logins, machines, clients )    
+        
     synchronise( commands, verbose, logger )
     
     if logger != None :
