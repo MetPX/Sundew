@@ -72,6 +72,7 @@ class Client(object):
         # Files Attributes
         self.user = None                    # User name used to connect
         self.passwd = None                  # Password 
+        self.ssh_keyfile = None             # ssh private key file for sftp protocol
         self.ftp_mode = 'passive'           # Default is 'passive', can be set to 'active'
         self.dir_mkdir = False              # Verification and creation of directory inside ftp...
         self.dir_pattern = False            # Verification of patterns in destination directory
@@ -80,6 +81,7 @@ class Client(object):
         self.timeout_send = 0               # Timeout in sec. to consider a send to hang ( 0 means inactive )
         self.lock = '.tmp'                  # file send with extension .tmp for lock
                                             # if lock == "umask" than use umask 777 to put files
+
 
         self.destfn_script = None           # a script to rename the file for client
         self.execfile      = None
@@ -161,6 +163,7 @@ class Client(object):
                     elif words[0] == 'host': self.host = words[1]
                     elif words[0] == 'user': self.user = words[1]
                     elif words[0] == 'password': self.passwd = words[1]
+                    elif words[0] == 'ssh_keyfile': self.ssh_keyfile = words[1]
                     elif words[0] == 'batch': self.batch = int(words[1])
                     elif words[0] == 'debug' and isTrue(words[1]): self.debug = True
                     elif words[0] == 'timeout': self.timeout = int(words[1])
@@ -285,6 +288,7 @@ class Client(object):
         print("Port: %s" % client.port)
         print("User: %s" % client.user)
         print("Passwd: %s" % client.passwd)
+        print("ssh_keyfile: %s" % client.ssh_keyfile)
         print("Chmod: %s" % client.chmod)
         print("TCP SO_KEEPALIVE: %s" % client.keepAlive)
         print("Timeout_send: %i" % client.timeout_send)

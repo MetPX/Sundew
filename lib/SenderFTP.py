@@ -11,22 +11,28 @@ named COPYING in the root of the source directory tree.
 # Authors: Peter Silva (imperative style)
 #          Daniel Lemay (OO style)
 #          Michel Grenier (Path pattern and mkdir)
+#          Michel Grenier (Add SFTP support)
 #
 # Date: 2005-09-05 DL
 #       2005-11-01 MG
+#       2007-05-30 MG
 #
-# Description:
+# Description: use file/ftp/sftp to send files to clients
 #
 #############################################################################################
-
 """
 import sys, os, os.path, time, stat
 import PXPaths, signal, socket
+
+import ftplib
+#
+import paramiko
+from   paramiko import *
+
 from AlarmFTP  import AlarmFTP
 from AlarmFTP  import FtpTimeoutException
 from URLParser import URLParser
 from Logger import Logger
-import ftplib
 
 PXPaths.normalPaths()              # Access to PX paths
 
@@ -44,23 +50,35 @@ class SenderFTP(object):
 
         self.originalDir = ''
 
-        self.ftp = None
+        self.ftp  = None
+        self.sftp = None
+
         if self.client.protocol == 'ftp':
-            self.ftp = self.ftpConnect()
+           self.ftp    = self.ftpConnect()
+           self.chdir  = self.ftp.cwd
+
+        if self.client.protocol == 'sftp':
+           self.sftp   = self.sftpConnect()
+           self.chdir  = self.sftp.chdir
 
     # close connection... 
 
     def close(self):
 
-        if self.ftp == None : return
+        if self.ftp == None and self.sftp == None : return
 
-        timex = AlarmFTP('FTP connection timeout')
+        timex = AlarmFTP(self.client.protocol + ' connection timeout')
 
         try    :
                   # gives 10 seconds to close the connection
                   timex.alarm(10)
 
-                  self.ftp.quit()
+                  if self.sftp != None :
+                     self.sftp.close()
+                     self.t.close()
+
+                  if self.ftp != None :
+                     self.ftp.quit()
 
                   timex.cancel()
         except :
@@ -68,7 +86,6 @@ class SenderFTP(object):
                   (type, value, tb) = sys.exc_info()
                   self.logger.warning("Could not close connection")
                   self.logger.warning(" Type: %s, Value: %s" % (type ,value))
-
 
     def dirPattern(self,file,basename,destDir,destName) :
         """
@@ -128,22 +145,27 @@ class SenderFTP(object):
         No error check intentional... if we were not succesful then
         the error will be detected when we STOR
         """
-        self.ftp.cwd(self.originalDir)
+
+        self.chdir(self.originalDir)
 
         try   :
-                self.ftp.cwd(destDir)
+                self.chdir(destDir)
         except:
                 DD = destDir.split("/")
                 if destDir[0:1] == "/" :  DD[0] = "/" + DD[0]
 
                 for d in DD :
                     try   :
-                            self.ftp.cwd(d)
+                            self.chdir(d)
                     except:
                             try   :
-                                    self.ftp.mkd(d)
-                                    self.perm(d)
-                                    self.ftp.cwd(d)
+                                    if self.sftp != None :
+                                       self.sftp.mkdir(d,self.client.chmod)
+                                    if self.ftp != None :
+                                       self.ftp.mkd(d)
+                                       self.perm(d)
+
+                                    self.chdir(d)
                             except:
                                     return False
         return True
@@ -183,10 +205,54 @@ class SenderFTP(object):
         self.logger.critical("We exit SenderFTP after %i unsuccessful try" % maxCount)
         sys.exit(2) 
 
+    def sftpConnect(self, maxCount=200):
+        count = 0
+        while count < maxCount:
+
+            timex = AlarmFTP('SFTP connection timeout')
+
+            # gives 30 seconds to open the connection
+            try:
+                timex.alarm(30)
+                self.t = paramiko.Transport(self.client.host)
+                key=DSSKey.from_private_key_file(self.client.ssh_keyfile,self.client.passwd)
+                self.t.connect(username=self.client.user,pkey=key)
+                self.sftp = paramiko.SFTP.from_transport(self.t)
+                # WORKAROUND without going to '.' originalDir was None
+                self.sftp.chdir('.')
+                self.originalDir = self.sftp.getcwd()
+
+                timex.cancel()
+
+                return self.sftp
+
+            except FtpTimeoutException :
+                timex.cancel()
+                try    : self.sftp.close()
+                except : pass
+                try    : self.t.close()
+                except : pass
+                self.logger.error("SFTP connection timed out after 30 seconds... retrying" )
+
+            except:
+                timex.cancel()
+                (type, value, tb) = sys.exc_info()
+                self.logger.error("Unable to connect to %s (user:%s). Type: %s, Value: %s" % (self.client.host, self.client.user, type ,value))
+                try    : self.sftp.close()
+                except : pass
+                try    : self.t.close()
+                except : pass
+                count +=  1
+                time.sleep(5)   
+
+        self.logger.critical("We exit SenderSFTP after %i unsuccessful try" % maxCount)
+        sys.exit(2) 
+
     # some system doesn't support chmod... so pass exception on that
     def perm(self, path):
         try    :
-                 self.ftp.voidcmd('SITE CHMOD ' + str(self.client.chmod) + ' ' + path)
+                 if self.sftp != None : self.sftp.chmod(path,self.client.chmod)
+                 if self.ftp  != None : self.ftp.voidcmd('SITE CHMOD ' + str(self.client.chmod) + ' ' + path)
         except :
                  (type, value, tb) = sys.exc_info()
                  self.logger.debug("Could not chmod  %s" % path )
@@ -195,7 +261,8 @@ class SenderFTP(object):
     # some systems do not permit deletion... so pass exception on that
     def rm(self, path):
         try    :
-                 self.ftp.delete(path)
+                 if self.sftp != None : self.sftp.remove(path)
+                 if self.ftp  != None : self.ftp.delete(path)
         except :
                  (type, value, tb) = sys.exc_info()
                  self.logger.warning("Could not delete %s" % path )
@@ -205,20 +272,37 @@ class SenderFTP(object):
     def send_lock(self, file, destName ):
 
         tempName = destName + self.client.lock
-        fileObject = open(file, 'r')
-        self.ftp.storbinary("STOR " + tempName, fileObject)
-        fileObject.close()
-        self.ftp.rename(tempName, destName)
+
+        if self.sftp != None :
+           # does not seem to work do a straight put
+           #self.sftp.put(file,tempName)
+           #self.sftp.rename(tempName, destName)
+           self.sftp.put(file,destName)
+
+        if self.ftp != None :
+           fileObject = open(file, 'r')
+           self.ftp.storbinary("STOR " + tempName, fileObject)
+           fileObject.close()
+           self.ftp.rename(tempName, destName)
+
         self.perm(destName)
+
 
     # sending one file using umask method
     def send_umask(self, file, destName ):
 
-        self.ftp.voidcmd('SITE UMASK 777')
-        fileObject = open(file, 'r' )
-        self.ftp.storbinary('STOR ' + destName, fileObject)
-        fileObject.close()
-        self.ftp.voidcmd('SITE CHMOD ' + str(self.client.chmod) + ' ' + destName)
+        if self.sftp != None :
+           #    sftp.umask(777) does not exist
+           self.sftp.put(file,destName)
+           self.sftp.chmod(destName,self.client.chmod)
+
+        if self.ftp != None :
+           self.ftp.voidcmd('SITE UMASK 777')
+           fileObject = open(file, 'r' )
+           self.ftp.storbinary('STOR ' + destName, fileObject)
+           fileObject.close()
+           self.ftp.voidcmd('SITE CHMOD ' + str(self.client.chmod) + ' ' + destName)
+
 
     # sending a list of files
 
@@ -264,7 +348,7 @@ class SenderFTP(object):
                continue
 
             # check protocol
-            if not self.client.protocol in ['file','ftp'] :
+            if not self.client.protocol in ['file','ftp','sftp'] :
                self.logger.critical("Unknown protocol: %s" % self.client.protocol)
                sys.exit(2) 
 
@@ -293,8 +377,8 @@ class SenderFTP(object):
                       time.sleep(1)
                continue
 
-            # ftp protocol
-            if self.client.protocol == 'ftp':
+            # ftp or sftp protocol
+            if self.client.protocol == 'ftp' or self.client.protocol == 'sftp':
 
                try :
 
@@ -302,7 +386,7 @@ class SenderFTP(object):
                    # it means that everything done to a file must be done
                    # within "timeout_send" seconds
 
-                   timex = AlarmFTP('FTP timeout')
+                   timex = AlarmFTP(self.client.protocol + ' timeout')
                    if self.client.timeout_send > 0 :
                       timex.alarm(self.client.timeout_send)
 
@@ -324,10 +408,10 @@ class SenderFTP(object):
                       # just cd to the directory
                       else:
                          try:
-                                self.ftp.cwd(self.originalDir)
-                                self.ftp.cwd(destDir)
+                                self.chdir(self.originalDir)
+                                self.chdir(destDir)
                                 currentFTPDir = destDir
-                         except ftplib.error_perm:
+                         except :
                                 timex.cancel()
                                 (type, value, tb) = sys.exc_info()
                                 self.logger.error("Unable to cwd to: %s, Type: %s, Value:%s" % (destDir, type, value))
