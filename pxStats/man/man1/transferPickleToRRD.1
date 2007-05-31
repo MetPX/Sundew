@@ -1,0 +1,135 @@
+.TH "transferPickleToRRD.py" "1" "0.0.0" "Nicholas Lemay" "PxStats"
+.SH "NAME"
+.LP 
+transferPickleToRRD.py \- Transfers the data found in pickle files into different rrd databases.
+.SH "SYNTAX"
+.LP 
+transferPickleToRRD.py 
+.br 
+transferPickleToRRD.py [\fIoption\fP]<\fIvalue\fP> [\fIoption\fP] <\fIvalue\fP> ...;
+
+.SH "DESCRIPTION"
+This program contains all the methods needed to 
+transfer pickled data that was saved using 
+pickleUpdater.py into an rrd database.In turn,
+the rrd database can be used to plot graphics
+using rrdTool.
+
+
+
+.SH "DEFAULT VALUES"
+.TP 
+\- Default clients is "All" clients associated with the specified machine(s). 
+.TP 
+\- Default end time is the current time.
+.TP 
+\- Default fileType is none. If using default "All" clients option, fileType will automatically be set for all clients if none is specified.   
+.TP 
+\- Default groups is none.
+.TP 
+\- Default machines is pds5,pds6.
+.TP 
+\- Default products is all products.
+.TP 
+\- Default verbose value is False.
+.SH "OPTIONS"
+.BR 
+.TP 
+\fB\-c|\-\-clients\fR <\fI"client1,client2"\fP>
+.LP 
+    Specifies the clients names for wich you want to tramsfer the data.
+.TP 
+\fB\-e|\-\-endTime\fR <\fI"endtimeInIsoFormat"\fP>
+.LP 
+    Specifies the ending time of the update.
+.TP 
+\fB\-f|\-\-fileTypes\fR <\fI"type1"\fP,\fI"type2,"\fP>
+.LP 
+    Specifies the fileType for each of the clients.
+.TP 
+\fB\-g|\-\-group\fR<\fIgroupName\fP>
+.LP 
+    Transfer the combined data of all the specified clients/sources into a grouped database wich is labeled with the group's name.
+.TP 
+\fB\-\-machines\fR <\fI"machine1"\fP,\fI"machine2"\fP>
+.LP 
+    Specifies the machines on wich the specified client/sources reside.
+.TP 
+\fB\-p|\-\-productss\fR <\fI"product1"\fP,\fI"product2"\fP>
+.LP 
+    Specifies wich product you are interested in.
+
+.SH "FILES"
+.BR 
+.TP 
+The following standard python modules are required :
+.TP 
+\fIos, time, getopt,  pickle, rrdtool, optparse \fP 
+.BR 
+.TP 
+The following px modules are required : 
+.TP 
+\fIPXManager, Logger\fP 
+.BR 
+.TP 
+The following stats library modules are required :  
+.TP 
+\fIStatsDateLib, pickleMerging, generalStatsLibraryMethods, rrdUtilities\fP
+.BR 
+.SH "ENVIRONMENT VARIABLES"
+.BR 
+.TP 
+\fBPXROOT\fP
+Specifies the where metPx was installed.
+
+.SH "EXAMPLES"
+.TP 
+\-Example 1
+.IP 
+python transferPickleToRRD.py \-m machine
+
+This tranfers all the currently active tx and rx clients/sources pickle
+files that are found between the time of he last transfer up to the top
+of the current hour. This is the simplest and most used option of
+transferPickleToRRD.py
+
+.TP 
+\-Example 2
+.IP 
+
+python transferPickleToRRD.py \-m machine \-e "2006\-12\-10 01:00:00"
+
+
+Same as above but for files between time of last update and 2006\-12\-10
+01:00:00.This is usefull for testing purposes, if more recent pickels
+aren't available at the moment or if user wants to update database for
+shorter periods as to not have to transfer data for hours on end.
+
+.TP 
+\-Example 3
+.IP 
+
+python transferPickleToRRD.py \-m machine \-c client \-f tx
+
+Same as #1 except that we only transfer the pickles for a single
+tx client.
+
+.TP 
+\-Example 4
+.IP 
+
+python transferPickleToRRD.py \-\-fileTypes 'tx' \-c '*satnet*' \-m 'pxatx' \-g 'satnet' \-p 'MPCN'
+
+This is a common example of transferring pickle files from numerous sources and 
+combining the data into an entity wich sports the group's name. Here we will 
+take all the data coming from the pxatx machine, find the ones that relate to tx clients 
+wich have satnet in their names, browse their pickle files, take out only the lines wich 
+refer to MPCN products and the, merge all of the found data into rrd databases wich are named 
+after the specified group name. 
+.SH "AUTHORS"
+.BR 
+Nicholas Lemay <nicholas.lemay@ec.gc.ca>
+.SH "SEE ALSO"
+.BR 
+.../px/stats/doc/
+This folder contains infos for both users and developers.

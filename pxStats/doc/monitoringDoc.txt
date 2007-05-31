@@ -1,0 +1,392 @@
+"""
+MetPX Copyright (C) 2004-2006  Environment Canada
+MetPX comes with ABSOLUTELY NO WARRANTY; For details type see the file 
+named COPYING in the root of the source directory tree.
+"""
+################################################################################
+# Name          : Stats monitoring documentation.                                                      
+#                                                       
+# Author        : Nicholas Lemay
+# Last Update   : March 20th 2007
+#
+################################################################################
+
+
+About
+---------------------
+This utility was created as as to limit user interaction with the library
+to the bare minimum. Therefore it monitors most of the vital
+aspects of the library so that the user does not have to. Monitoring 
+is to be made on a frequent interval and results are mailed to the 
+library's administrator. Actions can then be taken to correct the errors
+using the utilities found in the library. See the TROUBLESHOOTING section
+for details.    
+
+
+What's monitored
+----------------------
+Disk usage : Disk usage is monitored for each of the folders
+             in wich the library writes data. A warning will be raised 
+             if disk usage % goes over the amount specified in the config file or if
+             the specified path does not exist.  
+
+     
+Missing pickle files : Machines are supposed to keep the pickle files for at 
+                       least 7 days. The stats monitor thus checks 
+                       if the pickles for the clients/sources of all the specified
+                       machines  are all present for the past 7 days. If files are 
+                       missing a warning will be written in the report.
+       
+Data gap             : Verifies all the pickle files to see if any data gaps deemed 
+                       too wide are found. If the gap between two transmissions has
+                       been logged in the Columbo interface it will be considered
+                       normal and will be discarted. Otherwise a warning in the
+                       report will be added describing the anomaly found.
+                        
+Stats log files      : Log files produced during the hourly activities of the stats
+                       library are monitored to see if activity has occured every
+                       hour. If more than an hour has gone by without any activity
+                       occuring, it will be reported.        
+   
+Library files        : Checksums will be run at every monitoring job and the 
+                       current checksum will be compared to the previous checksum.
+                       If the checksum for a file within the library has been 
+                       modified it will be reported. This is done in case a newer
+                       or older version of a file is being installed and that it
+                       is not compatible with the current version of the library.
+                                           
+Crontab entries      : This saves the current crontab listing every time a 
+                       monitoring job is made. If current crontab listing is 
+                       different than the previous crontab a warning will be added
+                       to the report.
+
+WebPages             : Checks if the web pages have been updated at the right
+                       interval. Adds a warning to the report if webpages seem
+                       outdated.
+   
+
+Configuring the stats library monitor
+---------------------------------------
+1 - Open the /apps/px/stats/statsMonitoring/statsMonitoring.conf configuration file.
+
+2 - Follow instructions.
+ 
+Here is an example of a config file currently being used on a machine named logan1
+
+#######################################################################################
+##
+## MetPX Copyright (C) 2004-2006  Environment Canada
+## MetPX comes with ABSOLUTELY NO WARRANTY; For details type see the file
+## named COPYING in the root of the source directory tree.
+##
+##
+## Name   : statsMonitoring.conf
+##  
+## Author : Nicholas Lemay  
+##
+## Date   : December 1st 2006
+##
+## Goal   : This config file is to be read by statsMonitoring.py from the stats library.    
+##
+##          config file must contain only valid parameters or else statsMonitoring will
+##          not work.
+##
+## Usage  : When using a list of parameters, parameters must be seperated by the ';' 
+##          character. When a single parameter is a list in itself, seperate items  
+##          with the ',' character. Paths need to be absolute path names.
+##
+##
+## Parameters: emails : Speficies the recipients to wich the results of the monitoring 
+##                      will be forwarded          
+##
+##             machines : Specifies the machines for wich this machine is currently 
+##                        producing graphics for. If paired data is used 
+##                        (ex machine1,machine2) machines must be seperated with the
+##                        ',' character Ex: pds5,pds6;pxatx
+##
+##             files    : List of files used by the stats library. statsMonitoring
+##                        monitors the version fo these files and warns user if they 
+##                        were changed since the last monitoring job occured. 
+##
+##             folders  : List of all folders used by the stats library. statsMonitoring 
+##                        will monitor disk usage for all these folder to make sure 
+##                        they do not go over a specified limit. If it does report sent to 
+##                        user will have a mention of excessive disk usage.
+##              
+##             maxusage:  Specifies the maximum disk usage allowed for each of the 
+##                        specified folders. Important note : The number of arameters used
+##                        here must be the exact same number of parameters used in the
+##                        folders parameters.  
+##
+##             errorsLogFile : Specify where the log file containing all the detected
+##                             px errors were detected in the columbo interface.
+##
+##             maxSettingsFile : Specify where the config file containing the maximum 
+##                               timer values are set. 
+##             
+##
+##
+##
+#######################################################################################
+
+[statsMonitoring]
+emails   = nicholas.lemay@ec.gc.ca
+machines = pds5,pds6;pxatx
+files    = /apps/px/lib/stats/;/apps/px/lib/
+folders  = /apps/px/lib/stats;/apps/px/stats/pickles/;/apps/px/stats/databases/;/apps/px/stats/databases_backups/; /apps/px/stats/graphs/;/apps/px/stats/log
+maxUsages = 70;70;70;70;70;70
+errorsLogFile=/apps/px/stats/statsMonitoring/PX_Errors.txt
+maxSettingsFile=/apps/px/stats/maxSettings.conf
+
+
+
+Troubleshooting procedures:
+---------------------------------
+
+1- Disk usage warnings
+----------------------------------
+Definition : Disk usage errors can either be cause by missing folders or by a disk usage 
+percentage above allowed percentage. 
+
+Solutions : 
+Case 1 - Folder is missing
+    Step 1 : Verify if it is requiered. 
+    Step 2 : If it is not remove it from the folders section of the config file.
+    Step 3 : If it is verify why it is missing.
+
+Case 2 - Disk usage is too high.
+    Step 1 : Verify the config file to see the value of max usage.
+    Step 2 : If max usage allowed is set to a value too low set it to an higher value.
+    Step 3 : If max usage allowed is set properly verify if the cleaner, 
+             (/apps/px/etc/clean.conf) is set properly to clean your directory 
+             and if it is run frequently by crontab.(Run crontab -l to see the list of entries.)
+    Step 4 : If all is set properly and the requiered files take up too much space,
+             relocate files or add disk space...              
+
+
+
+2- Missing pickle files
+----------------------------------
+Definition : The monitor expects all pickles files to be present 
+             for all machines for the past 7 days. Is some files are missing 
+             warnings will show up in the emails.
+
+
+Case 1 - Files are missing on a new installation of the stats library.
+
+         Step 1 - Verify if missing files reported only come from 
+                  the time prior to the installation of the library. 
+         Step 2 - If they don't go to case 3
+         Step 3 - If they do, and another machine was allready running the stats library,
+                  installation of the stats library was not done properly.
+                  Refer to the installation file of the doc folder for the proper procedure.             
+
+Case 2 - Files are missing and the reported source/client is new.
+
+         Step 1 - Verify if missing files reported only come from 
+                  the time prior to the initialisation of the new client/source. 
+         Step 2 - If they don't go to case 3
+         
+
+Case 3 - Files are missing on running client/source.
+
+         Step 1 - Verify if cleaner( /apps/px/etc/clean.conf ) is configured properly. 
+                  If is is configured to keep too few of the files,
+                  warnings will show up in the reports.
+         Step 2 - If cleaner is configured properly, investigate what might cause the problem
+                  - Stopped crontab entries ( see 6- Crontab entries were modified ) 
+                  - Manual deletion by another user.
+         Step 3 - If all else fails, contact developer.                              
+                     
+
+                           
+
+
+3- Data gaps found
+----------------------------------
+Definition : Data gaps are found within pickle files and represents gaps of times
+             where no data was present in a client's pickles. 
+             
+             Gaps are often found to be normal since there was actually no data for a 
+             certain period of time. To make sure there was no data, gaps are compared 
+             to the gaps listed in Columbo's error logs.  
+             
+             If data gaps are found in the emailed reports, it means that it should no be 
+             present in the pickle files.
+        
+             Errors found here are usually code-related and troublesome to fix by 
+             a third-party. Nonetheless here is the standard procedure to spot the 
+             cause of the problem. Contact developer if problem remains.
+                  
+Solution :
+              
+Step 1 : Verify the guilty pickle to see if data really is missing during that time.
+         to do so run  pickleViewer.py pathToThePickle wich can be found within the 
+         /apps/px/lib/stats/ folder. For details on how pickles are saved, consult
+         the developers doc.  
+
+
+Case 1 - Pickle contains data within the specified gap.
+         (Problem probably resides within the statsMonitor.)
+    
+    Step 1 - Verify if statsMonitor.py was recetly modified
+             ( 5- Checksums warnings found )  
+    
+    Step 2 - If statsMonitor.py was recently modified, verify file
+             modification history to see what was modified
+             and if modifications seem like they might be responsible
+             for the problems. Install the older version fo the seemingly
+             problematic file to see if new bugs were introduced by
+             the new files.
+    
+    Step 3 - If statsMonitor.py was not recently modified, verify 
+             if the currently installed version of the monitor is the 
+             latest version found within the svn tree. If not, 
+             consult the update comments of that file and install what seems 
+             to be the latest stable version. 
+    
+    Step 4 - If problem persists after steps 2 or 4,
+             consult developer to see what is wrong with the monitor.
+    
+    
+              
+Case 2 - Pickle does not contain data within the specified gap. 
+    
+    Step 1 - Verify if the following files ( FileStatsCollector.py, ClientStatsPickler.py,
+             DirectoryFileCollector.py, pickleUpdater.py, launchGraphCreation.py )
+             have recently been modified.
+             Verify this through the last few emails that were sent.
+             ( See 5- Checksums warnings found for details )         
+    
+    Step 2 - If they were, verify if data gap problems have appeared ever since one of the files 
+             was changed. If it does, verify file modification history to see what was modified
+             and if modifications seem like they might be responsible for the problems, install 
+             the file of an older version to see if new bugs were introduced by the new files.  
+    
+    Step 3 - If they were not, verify if the latest version of these files is installed.
+             If it is not, install the lastest version of these files.
+             
+    Step 4 - If problem persists after step 2 or 3, consult developer.           
+
+         
+ 
+4- Log warnings found
+----------------------------------
+Definition: For all types of log files generated by the stats library,
+            the monitor expects to find at least one entry per hour.
+
+Case 1 - No data is found within the specified log files
+         prior to the start of the reported problems.
+         
+         Case 1.1 - If all log files of the same name( x.log, x.log.1, x.log.2,etc)
+                    seem(content distribution isn't totally reliable...) to be full 
+                    of log entries, this probably means that either the size allocated
+                    to the log files is too small or that the number of lines produced
+                    by the different programs using this log file between two monitoring
+                    job is too big.  
+                
+                Step 1 - Ask developer to increase log size or decrease number of
+                         log lines.
+                
+                Step 2 - If size and number of line seem adequate, or cannot be changed,
+                         you could change increase the frequency of the monitoring jobs.             
+                
+Case 2 - Data is found within the specified log files
+         prior to the start of the reported problems.         
+
+         This means data should be present within the log files for the reported hours.
+         
+         Step 1 - Verify if data production was halted during the reported period. 
+                  If it was, missing log entries are perfectly normal. 
+         
+         Step 2 - Verify if log producing files( transferPickleToRRD.py, generateRRDGRaphics.py,
+                  generateGraphics.py, StatsPickler.py) or the ones that use them were modified.                    
+                  If they were, reinstall the previous wroking version. 
+                  
+                  Note : To see the file interaction diagram, consult the developers doc.
+                   
+         Step 3 - If running an installation on a branch, verify if a newer version of the modified 
+                  files exists. If so, install it and see if it fixes the problem.
+                  
+         Step 4 - If all the above fail, contact developer.
+                  
+
+5- Checksums warnings found
+----------------------------------
+
+Definition : Modified checksums should not be viewed 
+as a problem per se. It can be usefull to spot problems
+wich could stem from someone modifying a file used by the program.
+
+Examples : 
+
+Case 1- Someone install a branch of the stats library containing 
+files that are older than the newest version. This could cause some 
+compatibility problems between the older and the newer files or 
+bring back old bugs that have been corrected since. 
+
+    Step 1 - Find the newest version of the problematic file through the svn trunk
+             and install it.
+
+Case 2- Someone introduces bugs by inserting a new version of a file 
+wich was not properly tested.
+
+    Step 2- Find the previous version of the file through the svn trunk and install it.
+
+
+6- Crontab entries were modified
+----------------------------------
+Modified crons should not be viewed as a problem per se.
+It can be usefull to spot problems wich could stem from someone
+the crons.
+
+Examples: 
+1- All of the graphic production artifacts are missing for x hours.
+   This is a clear sign that the main cron has been stopped.
+
+2- Log files warnings are found.
+
+3- You don't receive the statsMonitoring email.
+
+
+What to do: 
+
+Case 1-3
+---------
+    1- Connect to the problematic machine.
+    2- Verify crons under de "px" username by typing crontab -l 
+    3- Verify if crontab entry is still present of if a "#" character is present 
+       in front of the desired entry.
+    4- Find source who has modified the crons.
+    5- If everything is ok, return cron to operation by removing the # character or 
+       re-entring the entry.     
+   
+
+
+7,8- Web pages were outdated/Graphics were outdated
+------------------------------------------------------------------------------
+Description : Daily graphics and web pages are supposed to be updated hourly.
+
+Step 1 - Verify if graphic or web pages related files were recently modified.
+
+Step 2 - If they were, verify mails previous to the change to see if problems 
+         have started showing up only after the changes.
+    
+    Step 2.1 - If they did appear only after file was modified, reinstall the 
+               previous version of the file.
+    
+    Step 2.2 - Contact developer to notify of problems introduced by the newer
+               file.                    
+    
+Step 3 - If they were not, check if a more recent version of the files exists.
+         If it does, verify update history of the file to see if changes could
+         create further problems. If they seem reliable, install newer version and 
+         see if problem is resolved. 
+
+Step 4 - If problem persists, contact developer.
+
+
+
+
+
+

@@ -1,0 +1,61 @@
+.TH "getGraphicsForWebPages.py" "1" "0.0.0" "Nicholas Lemay" "PxStats"
+.SH "NAME"
+.LP 
+getGraphicsForWebPages.py \- Gathers all the graphics required by the web pages.
+.SH "SYNTAX"
+.LP 
+getGraphicsForWebPages.py
+
+
+.SH "DESCRIPTION"
+Gathers all the graphics required by the different web pages.
+
+.SH "DEFAULT VALUES"
+No default values exists since no options exist in the current version of this program.
+.SH "OPTIONS"
+No options exists for this program at the moment. 
+
+.SH "FILES"
+.BR 
+.TP 
+The following standard python modules are required :
+.TP 
+\fIos, sys, time, shutil, glob, commands \fP 
+.TP 
+The following stats library modules are required :  
+.TP 
+\fIStatsDateLib,StatsPats, StatsConfigParameters, MachineConfigParameters\fP
+.BR 
+.SH "ENVIRONMENT VARIABLES"
+.BR 
+.TP 
+\fBPXROOT\fP
+Specifies the where metPx was installed.
+
+.SH "EXAMPLES"
+python getGraphicsForWebPages.py
+
+****IMPORTANT NOTES :
+.TP 
+This is the only way to use this program at the moment. 
+.TP 
+This program is built in a way that it is expected to be run at least once per hour. Running it more often isn't really desirable but will not be harmfull. 
+.TP 
+Problems in the graphics shown in the web pages will appear if this program.
+.TP 
+This file is being called automatically by the launchGraphCreationprogram. Thus if launchGraphCreation is run properly, this program should barely, if ever, be used directly.
+
+
+
+
+.SH "AUTHORS"
+.BR 
+Nicholas Lemay <nicholas.lemay@ec.gc.ca>
+
+
+
+
+.SH "SEE ALSO"
+.BR 
+.../px/stats/doc/
+This folder contains infos for both users and developers.

@@ -1,0 +1,64 @@
+#######################################################################################
+##
+## MetPX Copyright (C) 2004-2006  Environment Canada
+## MetPX comes with ABSOLUTELY NO WARRANTY; For details type see the file
+## named COPYING in the root of the source directory tree.
+##
+##
+## Name   : statsMonitoring.conf
+##  
+## Author : Nicholas Lemay  
+##
+## Date   : December 1st 2006
+##
+## Goal   : This config file is to be read by statsMonitoring.py from the stats library.    
+##
+##          config file must contain only valid parameters or else statsMonitoring will
+##          not work.
+##
+## Usage  : When using a list of parameters, parameters must be seperated by the ';' 
+##          character. When a single parameter is a list in itself, seperate items  
+##          with the ',' character. Paths need to be absolute path names.
+##
+##
+## Parameters: emails : Speficies the recipients to wich the results of the monitoring 
+##                       will be forwarded          
+##
+##             machines : Specifies the machines for wich this machine is currently 
+##                        producing graphics for. If paired data is used (ex machine1,machine2)
+##                        machines must be seperated with the , character 
+##                        Ex machine1,machine2;machine3
+##
+##             files    : List of files used by the stats library. statsMonitoring
+##                        monitors the version fo these files and warns user if they 
+##                        were changed since the last monitoring job occured. 
+##
+##             folders  : List of all folders used by the stats library. statsMonitoring 
+##                        will monitor disk usage for all these folder to make sure 
+##                        they do not go over a specified limit. If it does report sent to 
+##                        user will have a mention of excessive disk usage.
+##              
+##             maxusage:  Specifies the maximum disk usage allowed for each of the 
+##                        specified folders. Important note : The number of arameters used
+##                        here must be the exact same number of parameters used in the
+##                        folders parameters.  
+##
+##             errorsLogFile : Specify where the log file containing all the detected
+##                             px errors were detected in the columbo interface.
+##
+##             maxSettingsFile : Specify where the config file containing the maximum 
+##                               timer values are set. 
+##             
+##
+##
+##
+#######################################################################################
+
+[statsMonitoring]
+emails   = bob@hotmail.com
+machines = tag1;tag2
+files    = /apps/px/stats/lib;/apps/px/bin/
+folders  = /apps/px/stats/data/graphics;/apps/px/stats/data/pickles/;
+maxUsages = 65;65
+errorsLogFile=/apps/px/stats/data/monitoring/PX_Errors.txt
+maxSettingsFile=/apps/px/stats/data/monitoring/maxSettings.conf

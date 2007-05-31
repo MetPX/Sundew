@@ -1,0 +1,513 @@
+"""
+MetPX Copyright (C) 2004-2006  Environment Canada
+MetPX comes with ABSOLUTELY NO WARRANTY; For details type see the file 
+named COPYING in the root of the source directory tree.
+"""
+################################################################################
+#     _____          _        _ _       _   _             
+#    |_   _|        | |      | | |     | | (_)            
+#      | | _ __  ___| |_ __ _| | | __ _| |_ _  ___  _ __  
+#      | || '_ \/ __| __/ _` | | |/ _` | __| |/ _ \| '_ \ 
+#     _| || | | \__ \ || (_| | | | (_| | |_| | (_) | | | |
+#     \___/_| |_|___/\__\__,_|_|_|\__,_|\__|_|\___/|_| |_|
+#
+#
+# Author        : Nicholas Lemay
+# Last Update   : March 22nd 2007
+#
+################################################################################
+
+
+About this document :
+--------------------------------------------------------------------------------
+
+The goal of this document is to give the proper knowledge to someone who would 
+like to start up a new installation of the stats library.
+
+
+Content:
+--------------------------------------------------------------------------------
+
+Section 1.1 Requirements
+    Section 1.1.1 Software Requirements
+    Section 1.1.2 Hardware Requirements
+
+Section 2  : Installing as the first machine.
+        
+    Section 2.1 Required Files    
+    
+    Section 2.2 Configuration files
+        Section 2.2.1 Configuring the library
+        Section 2.2.2 Configuring the cleaner
+        Section 2.2.3 Configuring the statsMonitor
+    
+    Section 2.3 Setting up ssh
+    
+    Section 2.4 Setting up Crontabs      
+
+    Section 2.5 Prior to the first crontab 
+    
+    
+Section 3 : Installing as a mirror machine.
+    
+    Section 3.1 What needs to be downloaded    
+    
+    Section 3.2 What still needs to be set up 
+
+Section 4 : Setting up a machine so that data pickling is done on a remote machine.
+
+
+Installation:
+--------------------------------------------------------------------------------
+
+Section 1.1 Requirements
+--------------------------------------------------------------------------------
+    
+    Section 1.1.1 Software Requirements
+    ----------------------------------------------------------------------------
+        Python     : version 2.3 or greater.
+        SSH        : Allows to connect and tranfer data /to/from other machines.
+        Rsync      : Allows to synchronise data between machines.
+        RRDTOOL    : Time-series storage and display system.
+        Python-rrd : Python package.
+        Gnuplot.py : Python package.
+    
+        
+    Section 1.1.2 Hardware Requirements
+    ----------------------------------------------------------------------------
+        
+        -> At least 7gb of disk space PER machine for wich you need the 
+           log files. Right now the machine with the most data takes up 6gb
+           but that number could keep on growing in the future.
+           
+           This space will be needed under /apps/px/stats/log/ if pickling is done 
+           on the machine where orgininal logs reside. 
+           
+           Otherwise it will be under /apps/px/stats/log/originalMachineName/
+            
+            
+        -> At least 1gb of disk space for graphics. Current cleaner configuration
+           and number of graphics, combined with the current number of 
+           client/sources keeps the space used under 1gb. That number could grow
+           indefinatly based on cleaner settings and a grwoing number of
+           client/sources.
+           
+           This space will be needed under /apps/px/stats/graphs/
+        
+           
+        -> At least 500 megs of disk space for databases. Right now the different 
+           databases take up 250 megs but a different consolidation configuration
+           or a growing number of client/sources could make this number climb up
+           greatly.
+           
+           This space will be needed under /apps/px/stats/databases/
+           
+                
+        -> At least 6gb of disk space for database backups. We currently keep 20
+           backups saved at every 12 hours, wich gives us access to the saved 
+           data of the past 10 days. Saving every 12 hours helps us keep a 
+           limited number of backups while keeping the gap between backups small 
+           enough to hopefully keep data recevery times low.
+           
+           This space will be needed under /apps/px/stats/databases_backups/
+           
+            
+        -> At least 10 gb of disk space per machine for wich you want to keep the
+           pickles. Currently we are averaging a 40 gig total for the pickles of 
+           21 days for 3 different machines. Keeping 10 days of pickles just like
+           10 days worth of database backups would be a good idea. 
+           40gigs/(21/10)/3 machines = 6.6 gigs, thus 10 gigs would be a good 
+           preventive minimum.
+           
+           This space will be needed under /apps/px/stats/pickles/
+        
+           
+        -> Some parts of the software were developped with a multi-processor 
+           machine architecture in mind. Perfomances will take a hit if program 
+           is run on a single processor machine.    
+           
+        
+        
+Section 2  : Installing as the first machine.
+--------------------------------------------------------------------------------
+    This section covers all required steps to install the stats library on a 
+    machine when no other machine are currently running the stats library.     
+
+   
+    Section 2.1 Required Files
+    ----------------------------------------------------------------------------    
+        -> All the found under the /apps/px/lib/stats/ folder 
+           wich can be downloaded here 
+           https://svn.sourceforge.net/svnroot/metpx/trunk/sundew/lib/stats/
+        
+        -> Python-rrd  : a Python package.
+        
+        -> Gnuplot.py  : a Python package.
+           
+        -> Logger.py   : usually found under /apps/px/lib/
+        
+        -> PXPaths.py  : usually found under /apps/px/lib/
+        
+        -> PXManager   : usually found under /apps/px/lib/
+        
+        -> readMaxFile : usually found under /apps/pds/tools/Columbo/ColumboShow/lib
+        
+        
+    Section 2.2 Configuration files
+    ----------------------------------------------------------------------------
+    
+        Section 2.2.1 Configuring the library
+        ------------------------------------------------------------------------
+            -> Go to the /apps/px/stats/ folder.
+            
+            -> Download the config file template from
+               https://metpx.svn.sourceforge.net/svnroot/metpx/trunk/sundew/stats/
+            
+            -> Follow instructions found within file header.
+        
+        Section 2.2.2 Configuring the cleaners
+        ------------------------------------------------------------------------
+            
+            Section 2.2.2.1 Setting up /apps/px/etc/clean.conf
+            --------------------------------------------------------------------
+                -> Go to the /apps/px/etc/ folder.
+                -> Download the clean.conf file template from
+                    https://metpx.svn.sourceforge.net/svnroot/metpx/trunk/
+                    sundew/etc/                 
+                -> Follow instructions found within file header.     
+                
+                Notes on the times used within the template : 
+                ---------------------------------------------------------------        
+                -> Daily graphics are supposed to remain available for 7 days 
+                   through the daily graphics web page.
+                -> Weekly graphics are supposed to remain available for the past
+                   3 weeks through the weekly graphics web pages.
+                -> Monthly graphics are supposed to remain available for 
+                   3 months through the monthly graphics web page.
+                -> Yearly graphics are suppsoed to remain avaiable 
+                   for 3 years through the yearly graphics web page.                       
+                -> Daily, weekly, monthly and yearly total graphics need to be 
+                   available for the same amount of time as their individual graphics
+                   counterpart.     
+                -> Graphics in the other section can be cleaned as often as 
+                   desired.
+            
+            
+            Section 2.2.2.1 Setting up the pickle Cleaner.
+            --------------------------------------------------------------------        
+                -> Pickles age must be determined by the date that's included in
+                   their names and not their date of creation. Therefore a 
+                   special utility needs to be used within a crontab 
+                   to clean pickles.
+                   
+                   See section 2.4.x to find out how to set up the picklecleaner. 
+                   
+        
+        Section 2.2.3 Configuring the statsMonitor
+        ------------------------------------------------------------------------
+            -> Go to the /apps/px/stats/statsMonitoring folder.
+            -> Download the statsMonitoring.conf file template from
+               https://metpx.svn.sourceforge.net/svnroot/metpx/trunk/sundew/
+               stats/statsMonitoring/
+            -> Follow instructions found within file header.
+            
+            
+    Section 2.3 Setting up ssh
+    -----------------------------------------------------------------------------
+        When setting up the config file in the apps/px/stats/ folder
+        ( section 2.2.1 ) you can set up things so that different machine do 
+        different tasks. 
+        
+        For example, things can be set up so that a central machine(x) creates the
+        graphics, calls another machine(y) to do the pickling of data, wich in turn
+        calls another machine(z) to get the log files it needs. That would actually 
+        be the worst case scenario on the machine interconnectability scale.  
+        
+        To make sure everything works smoothly you need to set up
+        ssh connections between the machines wich have a dependance in a way 
+        that an ssh connection can be made using the client name specified 
+        in the config file WITHOUT having to enter a password.       
+                        
+    
+    Section 2.4 Setting up Crontabs      
+    -----------------------------------------------------------------------------
+        Here is a sample of a crontab file that's currently being run on 
+        the Logan2 machine :
+       
+        7 * * * * /apps/px/lib/stats/launchGraphCreation.py > /dev/null 2>&1
+        20 1 * * * /apps/px/lib/stats/pickleCleaner.py 21 > /dev/null 2>&1        
+        35 */12 * * *  /apps/px/lib/stats/backupRRDDatabases.py > /dev/null 2>&1       
+        45 18 * * * /apps/px/lib/stats/clean_dir.plx /apps/px/etc/clean.conf > /dev/null 2>&1
+
+        To obtain the listing of all the entries in the crontab of the machine 
+        you are setting up, type crontab -l.
+        
+        To edit this list, type crontab -e.
+        
+        Entries starting with the '#' character will be considered comment lines.
+        
+        
+        2.4.1 launchGraphCreation.py 
+        -------------------------------------------------------------------------
+        Needs to be run hourly. Choice of minute at wich it starts is arbitrary 
+        but it should be run at the top of the hour so that tasks have the time 
+        to end prior to the start of the following hour. 
+        
+        2.4.2 pickleCleaner.py 
+        -------------------------------------------------------------------------
+        The stats monitor expects us to keep at least 7 days worth of pickle 
+        files. In this example we keep 21 days worth of pickles. 
+        
+        This entry should be run once daily as to run the minimal amount of time 
+        that is needed to keep exactly x number of days worth of data.
+        
+        The hour selected is arbitrary, but choosing one when no monitoring is 
+        being run and no database backups are being done would be a wise choice 
+        as to keep machine load as evenly distributed as possible. 
+        
+        For the same reaosn, the minute choosen should not be at the very top 
+        of the hour as to not run at the same time as th graphic creation.   
+        
+        In the example we run it at the 20th minute of the first hour of every 
+        day wich respects both criteria.
+                
+        
+        2.4.3 backupRRDDatabases.py 
+        -------------------------------------------------------------------------
+            This utility allows us to keep backups of rrd databases at different 
+            points in time. This way, if errors start polluting the data present 
+            in the databases, we can recuperate the saved state of the database 
+            prior to the start of the polluting or at least reduce the amount of 
+            time where incorrect data was fed to the databases.
+            
+            Database should NOT be saved every hour since transferring pickles 
+            to rrd databases is quite quick and backuping the databases every hour
+            would be overkill. Never the less, data bases shoudl be backed up at 
+            a frequency that will allow data retrieval to remain quick.
+            
+            In the above example it is saved eveyr 12 hours wich has proven to 
+            be a good compromise between the amount of space taken by the backups,
+            the number of time the backups are done per day and the time taken to
+            retreive data when something goes wrong. 
+            
+            
+            
+        2.4.4 /apps/px/lib/stats/clean_dir.plx
+        -------------------------------------------------------------------------
+            This is the main cleaner used for cleanign all the artifacts created 
+            by the stats library.
+            
+            It should be run at a frequency wich will allow all the different 
+            entries found in to meet their cleaning frequnecy criteria.
+            
+            In the current configuration, the thing that gets cleaned up after
+            the least amount of time are files that are kept for 7 days. 
+            Therefore we run the utility daily. The choice to run it at the 45th
+            minute of the 18th hours was to meet the same 2 criterias that were 
+            expressed in section (2.4.2)
+            
+        
+        
+Section 3: Installing as a second machine(or more) or as a mirror machine.
+---------------------------------------------------------------------------------
+    This section covers the different aspects that need to be covered to start up 
+    (or restart) a machine when another machine is currently producing graphics 
+    for the same machine as the one you want to start up.  
+   
+    
+    Section 3.1 What needs to be set up.    
+    -----------------------------------------------------------------------------
+        With such a machine, all the configuration files and the crontabs that 
+        are needed to be configured in a first machine still need to be 
+        configured.
+        
+        If a different set up is to be used( example remotely generated pickles 
+        vs locally generated pickles ) of if not all of the source machine will 
+        be handled by the two machines, a manual set up(section 3.1.1) is
+        required.
+        
+        Otherwise when the new machine will have the exact same behavior as the 
+        mirrored machine, a transfer of settings(section 3.1.2) should be done. 
+        
+        3.1.1 Settings things up manually.
+        -------------------------------------------------------------------------
+            Step 1 -> Open a console session to the allready running machine.
+            Step 2 -> Open a console session to the new machine. 
+            Step 3 -> Follow step 2.2 to 2.4 of this document.
+            Step 4 -> Copy all the parameters that seem usefull from the mirrored
+                      machine into the settings you are configuring on the new 
+                      machine.
+            Step 5 -> Add/modify/remove any parameters that is different from 
+                      the mirror machine.          
+            
+        3.1.2 Downloading remote parameters.
+        -------------------------------------------------------------------------
+            -> To have the exact same configuration files as a remote machine
+               you need to execute the following commands.
+            
+            scp login@remoteMachine:/apps/px/stats/config /apps/px/stats/config
+            scp login@remoteMachine:/apps/px/etc/cleaner.conf /apps/px/etc/cleaner.conf 
+            scp login@remoteMachine:/apps/px/stats/statsMonitoring/statsMonitoring.conf
+            /apps/px/stats/statsMonitoring/statsMonitoring.conf
+            
+            -> Some settings cannot be downloaded. The crontab entries 
+               of the remote machine will need to be copied on the local machine.
+            
+            -> Step 2.3 setting up ssh will also need to be done ion the exact 
+               same fashion as the mirrored machine on the local machine.  
+            
+    
+    Section 3.2 What needs to be downloaded.
+               (Also usefull when restarting a machine)    
+    ----------------------------------------------------------------------------- 
+        
+        3.2.1 On a mirror machine
+        -------------------------------------------------------------------------  
+            On a mirror machine a small utility allready exists wich will transfer
+            all the monitoring artifacts, pickles, graphs, databases, backups from 
+            one machine to another one.
+            
+            To use this utility use the following command : 
+            python /apps/px/lib/stats/retreiveDataFromMachine.py login remoteMachineName
+             
+            Please read warning on this utility prior to running it.
+            run this utility PRIOR to running any crontab entries( especially launchGraphCreation.)
+            
+            If for any reasons a long delay is to occur between the execution 
+            of this utility, and the first execution of the crontabs, rerun the
+            utility to make sure you have all the latest version of the different
+            files.  
+            
+            Note : /apps/px/stats/config needs to be configured PRIOR to calling 
+                   retreiveDataFromMachine.py. 
+                    
+                   ssh permissions also need to be set as to permit connection
+                   between local machine and mirrored machine without being asked
+                   for a password.
+          
+               
+        3.2.1 On a non-mirror machine
+        -------------------------------------------------------------------------
+            On a non mirror machine getting the files you require might prove to 
+            be a bit tricky...
+            
+            Here is a way to get all the type of files you need.
+            
+            Note : Make sure you have enough disk space before attempting to 
+            download all these files. Total disk space used can be considerable.
+            
+            3.2.1.1 Transferring log files :
+            ---------------------------------------------------------------------
+            You should only download the the log files of a particular machine 
+            if the local machine will be the one producing the pickles for that
+            particular machine.
+            
+            The command to use is this one :
+            rsync -avzr --delete-before -e ssh login@logProducingMachine:/apps/px/log/ 
+            /apps/px/log/logProducingMachine/ 
+            
+            3.2.1.2 Transferring monitoring artifacts :
+            ---------------------------------------------------------------------
+            This will only prove usefull if the 
+            
+            rsync -avzr  --delete-before -e ssh 
+            login@remoteMachine:/apps/px/stats/statsMonitoring/maxSettings.conf
+            /apps/px/stats/statsMonitoring/maxSettings.conf
+
+            rsync -avzr  --delete-before -e ssh 
+            login@remoteMachine:/apps/px/stats/statsMonitoring/previousCrontab
+            /apps/px/stats/statsMonitoring/previousCrontab
+
+            rsync -avzr  --delete-before -e ssh 
+            login@remoteMachine:/apps/px/stats/statsMonitoring/previousFileChecksums
+            /apps/px/stats/statsMonitoring/previousFileChecksums
+
+            
+            3.2.1.2 Transferring graphics :
+            ---------------------------------------------------------------------
+           
+            rsync -avzr  --delete-before -e ssh login@remoteMachine:/apps/px/stats/graphs/
+             /apps/px/stats/graphs/
+             
+            Note : If the current machine does not handle all of the machines that
+            the source machine handles, you will be downloading some useless files.
+            Never the less, if disk space allows it, it will be much easier to 
+            download all the graphs instead of finding only the required ones. 
+            
+            3.2.1.2 Transferring pickles :
+            ---------------------------------------------------------------------                        
+            rsync -avzr  --delete-before -e ssh login@remoteMachine:/apps/px/stats/pickles/ 
+            /apps/px/stats/pickles/
+            
+            rsync -avzr  --delete-before -e ssh login@remoteMachine:/apps/px/stats/PICKLED-TIMES
+             /apps/px/stats/PICKLED-TIMES
+            
+            3.2.1.2 Transferring databases :
+            ---------------------------------------------------------------------                              
+            rsync -avzr  --delete-before -e ssh 
+            login@remoteMachine:/apps/px/stats/databases/ 
+            /apps/px/stats/databases/  
+                
+            rsync -avzr  --delete-before -e ssh 
+            login@remoteMachine:/apps/px/stats/databases_backups/
+            /apps/px/stats/databases_backups/
+        
+            rsync -avzr  --delete-before -e ssh 
+            login@remoteMachine:/apps/px/stats/DATABASE-UPDATES/ 
+            /apps/px/stats/DATABASE-UPDATES/  
+        
+            rsync -avzr  --delete-before -e ssh 
+            login@remoteMachine:/apps/px/stats/DATABASE-UPDATES_BACKUPS/ 
+            /apps/px/stats/DATABASE-UPDATES_BACKUPS/
+
+            
+            Transferring a huge amount of file might take a few hours.
+            This means that the first type of filed(ex : pickles ) will be 
+            missing some files by the time you finish to download the last type 
+            of files(ex : databases). This might cause inconstancy.
+             
+            To overcome this, run the commands in a specific sequence numerous times.
+            After a few times no new data will be present(except maybe for log files 
+            wich will not be a problem). This can be seen by analysing the output 
+            produced by the different rsync commands you have decided to run.
+            
+            
+            
+            
+Section 4 : Setting up a remote machine for pickling.
+---------------------------------------------------------------------------------
+
+    A remote machine used only for pickling will need the following :
+    
+    4.1 Required Files
+    -----------------------------------------------------------------------------    
+        -> All the found under the /apps/px/lib/stats/ folder 
+        wich can be downloaded here 
+        https://svn.sourceforge.net/svnroot/metpx/trunk/sundew/lib/stats/  
+            
+        -> Logger.py   : usually found under /apps/px/lib/
+                            
+        -> PXPaths.py  : usually found under /apps/px/lib/
+        
+        -> PXManager   : usually found under /apps/px/lib/
+        
+        All of wich can be downloaded here : 
+        https://svn.sourceforge.net/svnroot/metpx/trunk/sundew/lib/ 
+
+        
+    4.2 Required disk space
+    -----------------------------------------------------------------------------
+        Depending on the number of handled machine, required disk space will vary
+        greatly. Consult section 1.1.2 for details.
+    
+        
+    4.3 Setting up ssh
+    ------------------------------------------------------------------------------    
+        SSH will minimally need to be set up so that the machine generating the 
+        graphics will be able to call the pickle generating machine without 
+        asking the user to enter a password.
+            
+        If the pickle generating machine is not the one producing the log files
+        it will also need a similar set up between itself and the log producing 
+        machine.
+    

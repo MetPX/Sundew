@@ -1,0 +1,160 @@
+.TH "pickleUpdater.py" "1" "0.0.0" "Nicholas Lemay" "PxStats"
+.SH "NAME"
+.LP 
+pickleUpdater.py \- Small application usefull for pickling stats.
+.SH "SYNTAX"
+.LP 
+generateGraphics.py 
+.br 
+generateGraphics.py [\fIoption\fP]<\fIvalue\fP> [\fIoption\fP] <\fIvalue\fP> ...;
+
+.SH "DESCRIPTION"
+.LP 
+    This program is the one to be used to make automated data updates.
+    Recommended usage is to call this program every hours using crons
+    to create the hourly pickles the contain stats on a source/client.
+
+
+.SH "DEFAULT VALUES"
+.TP 
+\- Default client/source name is the list of all currently running 
+  client/sources of the specified machines.
+.TP 
+\- Default date is the current date and time. 
+.TP 
+\- Default interval value is 1 minute.
+.TP 
+\- Default fileType is tx. 
+.TP 
+\- Default machine is the local machine.
+.TP 
+\- Default now value is false. Data would thus  be collected up to the top of the specified hour.
+.TP 
+\- Default Types value is all those associated with the fileType value.
+.IP 
+For tx this means : errors,latency,bytecount
+For rx this means : errors,bytecount
+.TP 
+***Note : by default data that will be fetched will start at the time of the last last pickle update. 
+.IP           
+If no prior pickling has been made, data will only 
+be fetched for the hour preceding the current hour,
+or the specified hour if one was specified.
+If for some reason you want to modify the time of 
+the last update of your client/sources use 
+setTimeOfLastUpdates.py. Type "man setTimeOfLastUpdates" 
+for help on that utility program.
+.SH "OPTIONS"
+.BR 
+.TP 
+\fB\-c|\-\-clients\fR <\fI"client1,client2"\fP>
+.LP 
+    Specifies the clients or sources for wich you want to
+    generate the graphics.
+.TP 
+\fB\-d|\-\-date\fR <\fIdateInIsoFormat\fP>
+.LP 
+    Specifies a time of request different from the default 
+    current time.( Usefull for past days and testing. ).
+.TP 
+\fB\-f|\-\-fileType\fR <\fIfileType\fP>
+.LP 
+    Specifies the file type of the logs associated with 
+    the specified clients/sources. File type can either be
+    'rx' or 'tx' meaning data comes from reception or 
+    transmission log files.
+.TP 
+\fB\-i|\-\-interval\fR <\fIspan\fP>
+.LP 
+    Specifies the interval in minutes at wich data is
+    collected.
+.TP 
+\fB\-\-machines\fR <\fI"machine1"\fP,\fI"machine2"\fP>
+.LP 
+    Specifies from wich machine the data is to be used.
+.TP 
+\fB\-n|\-\-now\fR
+.LP 
+    Specifies that data must be collected right up to the minute of the call.
+.TP 
+\fB\-p|\-\-products\fR <\fI"product1,product2"\fP>
+.LP 
+    Specifies the products for wich you are interested in. 
+    Will discard all other products found in the pickle files.
+
+.TP 
+\fB\-t|\-\-types\fR <\fI"type1,type2"\fP>
+.LP 
+    Specifies the data type(s) wich need to be collected.
+.SH "FILES"
+.BR 
+.TP 
+The following standard python modules are required :
+.TP 
+\fIos,time, pwd, sys, getopt, commands, fnmatch, optparse,ConfigParser, pickle\fP 
+.BR 
+.TP 
+The following px modules are required : 
+.TP 
+\fIConfigParser, PXManager\fP 
+.BR 
+.TP 
+The following stats library modules are required :  
+.TP 
+\fIgeneralStatsLibraryMethods, StatsDateLib, ClientStatsPickler \fP
+.BR 
+.SH "ENVIRONMENT VARIABLES"
+.BR 
+.TP 
+\fBPXROOT\fP
+Specifies the where metPx was installed.
+
+.SH "EXAMPLES"
+.LP         
+\-Example 1
+.LP  
+    Update All tx or rx client found on the machine up to now :
+        pickleUpdater.py \-f tx
+        pickleUpdater.py \-f rx
+
+        Note These two commands will be the most used of any commands
+        that can be used with pickle updates when pickling on the log 
+        producing machine.
+.LP  
+\-Example 2 
+.LP  
+    Update a certain tx client :
+        pickleUpdater.py \-f tx \-c satnet
+        pickleUpdater.py \-f rx \-c amdar
+
+.LP  
+\-Example 3
+    update a certain tx client up to a certain date :
+
+.LP         
+        pickleUpdater.py \-f tx \-c satnet \-d "2006\-08\-08 12:15:00"
+
+        ***Very usefull to start off a new client. At first, you use
+        pickleUpdater with  the first hour where the client started
+        as parameter.
+
+        Once this has been done, you update it up to now using :
+        pickleUpdater.py \-f tx \-c satnet
+        and the application will update the data up to now no matter
+        how many hours or days there has been since the first hour.
+
+.LP 
+\-Example 4
+         
+    Update only one type of data for a client
+    Note : not recommended since it limits the graphics that can be
+           later produced
+
+    pickleUpdater.py \-f tx \-c satnet \-t bytecount
+.SH "AUTHORS"
+.BR 
+Nicholas Lemay <nicholas.lemay@ec.gc.ca>
+.SH "SEE ALSO"
+.BR 
+.../px/stats/doc/
+This folder contains infos for both users and developers.

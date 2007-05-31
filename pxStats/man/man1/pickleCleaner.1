@@ -1,0 +1,57 @@
+.TH "pickleCleaner.py" "1" "0.0.0" "Nicholas Lemay" "PxStats"
+.SH "NAME"
+.LP 
+pickleCleaner.py \- Small utility to be used to cleanup the saved pickle files.
+.SH "SYNTAX"
+.LP 
+pickleCleaner.py <\fInumberOfDaysToKeep\fR>
+
+
+.SH "DESCRIPTION"
+.LP 
+pickleCleaner.py \- This file is to be used to cleanup the saved pickle files. Simply run pickleCleaner.py and it will remove any folder containing pickle files older than x days.
+.SH "DEFAULT VALUES"
+.TP 
+Default value numberOfDaysToKeep : 7
+
+.SH "OPTIONS"
+.TP 
+numBerOfDayToKeep : Number of days for wich to keep the pickle files.
+
+.SH "FILES"
+.BR 
+.TP 
+The following standard python modules are required :
+.TP 
+\fIos, commands, time, sys\fP 
+.TP 
+The following stats library modules are required :  
+.TP 
+\fIStatsPaths, StatsDateLib \fP
+
+
+.SH "ENVIRONMENT VARIABLES"
+.BR 
+.TP 
+\fBPXROOT\fP
+Specifies the where metPx was installed.
+
+.SH "EXAMPLES"
+.TP 
+\- Example 1, keeps 5 days worth of pickels on the machine.
+python pickleCleaner.py 
+
+
+.TP 
+\- Example 2, keeps 20 days worth of pickles.
+python pickleCleaner.py 20
+
+
+.SH "AUTHORS"
+.BR 
+Nicholas Lemay <nicholas.lemay@ec.gc.ca>
+
+.SH "SEE ALSO"
+.TP 
+
+\fB".../px/stats/doc/"\fR wich contains infos for both users and developers.

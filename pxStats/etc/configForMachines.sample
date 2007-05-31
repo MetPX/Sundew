@@ -1,0 +1,41 @@
+###########################################################################
+##
+## MetPX Copyright (C) 2004-2006  Environment Canada
+## MetPX comes with ABSOLUTELY NO WARRANTY; For details type see the file
+## named COPYING in the root of the source directory tree.
+##
+##
+## Name   : configForMachines
+##
+## Author : Nicholas Lemay
+##
+## Date   : May 4th 2007
+##
+## Goal   : This config file is to be used to set tag names to different 
+##          machines. If machines that host the concept of a particular group
+##          (Example machine1,machine2 currently host tag1 ) were ever to change, 
+##          simply changing the associated machines here will keep the entire 
+##          collection of stats library applications running properly. 
+##
+## Usage  : Entry lines must have this format : tagName  associatedMachines usernames
+##          Example : tag1   machine1,machine2   login1,login1 
+##
+##          Lines starting with the # character will be considered comment lines.
+##          
+##          List of machines or passwords such as seen in the above example 
+##          must absolutely be separated by the ',' character. No other characters
+##          will be accepted.
+## 
+##          The number of specified machines for a machineTag must match the 
+##          number of specified user names of that same tag.          
+##
+##          Doubles will be accepted. However only the first defined username will 
+##          be kept. 
+##
+##
+###################################################################################### 
+
+tag1                  machine1,machine2           login1,login1
+tag2                  machine3               	  login1
+tag3        		  machine4,machine5       	  login2,login2
+tagx                  machine5                    login2 

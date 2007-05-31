@@ -1,0 +1,65 @@
+.TH "pickleViewer.py" "1" "0.0.0" "Nicholas Lemay" "PxStats"
+.SH "NAME"
+.LP 
+pickleViewer.py \- Small debugging utility wich allows user to see the contents of a pickle file on the screen on to dump it into a readable text file.
+.SH "SYNTAX"
+.LP 
+pickleViewer.py <\fIpickleFileName\fR>  <\fIoutputFileName\fR>
+
+
+.SH "DESCRIPTION"
+.LP 
+pickleViewer.py \- Small debugging utility wich allows user to see the contents of a pickle file on the screen on to dump it into a readable text file.
+.SH "DEFAULT VALUES"
+.TP 
+Default value for output file : None
+.TP  
+Default value for pickle file name : None
+.SH "OPTIONS"
+.TP 
+picklefileName : Absolute file name to the wanted pickle file.
+.TP 
+output : Absolute or relative path to the desired output file name.
+
+.SH "FILES"
+.BR 
+.TP 
+The following standard python modules are required :
+.TP 
+\fIos,sys\fP 
+.TP 
+The following stats library modules are required :  
+.TP 
+\fIcpickleWrapper, StatsDateLib \fP
+.SH "ENVIRONMENT VARIABLES"
+.BR 
+.TP 
+\fBPXROOT\fP
+Specifies the where metPx was installed.
+
+.SH "EXAMPLES"
+.TP 
+\- Example 1
+python pickleViewer.py /apps/px/stats/pickles/satnet\-ice/20070515/tx/pxatx_05
+
+.TP 
+\- Example 2
+python pickleViewer.py /apps/px/stats/pickles/satnet\-ice/20070515/tx/pxatx_05 output
+
+
+
+
+
+
+
+.SH "AUTHORS"
+.BR 
+Nicholas Lemay <nicholas.lemay@ec.gc.ca>
+
+
+
+
+.SH "SEE ALSO"
+.TP 
+
+\fB".../px/stats/doc/"\fR wich contains infos for both users and developers.

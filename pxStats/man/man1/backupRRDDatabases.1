@@ -1,0 +1,57 @@
+.TH "backupRRDDatabases.py" "1" "0.0.0" "Nicholas Lemay" "PxStats"
+.SH "NAME"
+.LP 
+backupRRDDatabases.py \- Small utility that is used to create a backup of all the existing rrd databases of a machine.
+.SH "SYNTAX"
+.LP 
+backupRRDDatabases.py 
+
+.SH "DESCRIPTION"
+.LP 
+backupRRDDatabases.py \- Small utility that is used to create a backup of all the existing rrd databases of a machine.
+.LP 
+By saving the databases using this utility, you will be able to recover the databases by using \fB\fIrestoreRoundRobinDatabases.py\fR\fR 
+
+.SH "DEFAULT VALUES"
+.TP 
+There exists no default values for this program since the current version contains no options.
+
+.SH "OPTIONS"
+.TP 
+The current version contains no options.
+
+.SH "FILES"
+.BR 
+.TP 
+The following standard python modules are required :
+.TP 
+\fIos, commands, time, sys, pickle, glob\fP 
+.TP 
+The following stats library modules are required :  
+.TP 
+\fIStatsPaths, StatsDateLib \fP
+
+
+.SH "ENVIRONMENT VARIABLES"
+.BR 
+.TP 
+\fBPXROOT\fP
+Specifies the where metPx was installed.
+
+.SH "EXAMPLES"
+.TP 
+python backupRRDDatabases.py
+
+
+
+
+
+.SH "AUTHORS"
+.BR 
+Nicholas Lemay <nicholas.lemay@ec.gc.ca>
+
+.SH "SEE ALSO"
+.TP 
+\fB".../px/stats/doc/"\fR wich contains infos for both users and developers.
+.TP 
+\fBman restoreRoundRobinDatabases\fR

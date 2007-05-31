@@ -1,0 +1,149 @@
+"""
+MetPX Copyright (C) 2004-2006  Environment Canada
+MetPX comes with ABSOLUTELY NO WARRANTY; For details type see the file 
+named COPYING in the root of the source directory tree.
+"""
+##################################################################################################
+# Name          : ifSomethingGoesWrong.txt                                                      
+#                                                       
+# Author        : Nicholas Lemay
+# Last Update   : November 3rd 2006
+#
+###################################################################################################
+
+
+
+About
+---------------------
+This section was created to help the administrator of the stats library.
+The stats library was designed as to require as little human intervention as 
+possible. Nonetheless it is likely that errors will occur through time. 
+A few utilities have been developped as to help the user get things back on track. 
+
+
+Section 1 - Data errors on only one machine.
+------------------------------------------------------
+
+Symptoms : (any of these)
+------------------------------------------------------
+1- Different graphics are produced by both machines. 
+2- Graphics are absent on one of the two machines.
+
+
+Possible causes :
+------------------------------------------------------
+1- The two(or more) machines have different versions of
+   the stats library installed on them or different 
+   versions of the crucial files.
+
+2- Graphic creation has been stopped on one of the two
+   machines.
+   
+
+   
+Recovery procedure:
+-----------------------------------------------------   
+1- Identify the source of the problem within the list 
+   of possible errors. 
+
+2- If a machine has the wrong version of the stats 
+   library files installed, install the same version
+   as the working machine on the non-working machine.    
+
+3- Stop all stats library related activities by killing
+   currently running process' and by turning off the
+   related crontab entries. To do so, run this commands : 
+   crontab -e  and write the # character in front of the 
+   entries you want to turn off. 
+
+4- Retrieve data from the working machine.               
+
+   To do so run this utility :
+   
+   /apps/px/lib/stats/retreiveDataFromMachine.py login machineName  
+
+   Warning : prior to running this script, make sure that the config file in the 
+   /apps/px/stats/ folder is properly filled !    
+
+5- relaunch graphic production
+   To do so remove the # character you have placed in the crontab entries you have modified. 
+    
+   Note: if crontab entry is set at the 15th minute of the hour, and it's hh:25:ss
+         you might want to run launchGraphicCreation manually to see if everything goes well
+         without having to wait untill the next hour.   
+
+Warnings : The preceding script is not bulletproof. If files were being updated throughout the entire 
+           time the transfer was being done, there is no way all the transferred files will be 
+           complete and accurate. You should thus make sure that the source machine 
+           is not doing any intensive work of it's own.         
+
+
+Section 2 - Data errors on all machines
+------------------------------------------------------
+
+Case 1 : data error has slipped into the pickle files:
+-------------------------------------------------------
+
+Symptoms : 
+-------------------------------------------------------
+1- Data gap is reported in the statsMonitoring report
+   received by e-mail.
+
+2- Data presented with gnuplot seems erronous.
+ 
+
+Verifying symptoms:
+--------------------------------------------------------
+1- Get the hour where symptoms occurs. 
+
+2- Verify if symptoms are really present in pickle file 
+   associated with client/source using python pickleUpdater.py /apps/px/stats/pickles/...
+
+3- Verify log files used in the pickle fileto see if data present
+   in log file is different to the one present in the pickle.
+   If it is go to solution.         
+
+
+Solution:
+-------------------------------------------------------
+Step 1 - Stop crontab entries that relates to the stats library. 
+
+Step 2 - Correct the cause of the error. First check if it comes from a missing
+         or corrupted log file.
+         
+         If error comes from pickling methods see the LaunchGraphCreation,
+         PickleUpdater, ClientStatsPickler, and FileStatsCollector files in that order
+         to find the cause of the error. 
+
+Step 3- Run the ssetTimeOfLastUpdates.py program. This file can be used to set back
+        the time of the last pickle update prior to the time if the error. 
+           
+Step 4 - Resume pickling either manually, or by letting the 
+         crontab run the program at the next interval.
+
+         
+         
+
+Case 2 : data error has slipped within the databases
+--------------------------------------------------------
+
+Symptoms
+-------------------------------------------------------
+1- Same as case 1. 
+2- If error has slipped into pickle files and that the 
+   database has been updated then database is without a 
+   doubt corrupted. 
+   
+
+Veryfing symptoms:
+----------------------------------------------------------
+Same as case 1.
+
+
+Solutions:
+----------------------------------------------------------
+1- Clean up pickles using the solutions in case 1. 
+2- Run the restoreRoundRobinDatabases.py program. This program can be used 
+   to set back a dabatase that was updated prior to the time of the error.
+3- Resume database updates either manually, or by letting the 
+   crontab run the program at the next interval.

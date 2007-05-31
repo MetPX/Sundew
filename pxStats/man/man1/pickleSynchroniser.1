@@ -1,0 +1,131 @@
+.TH "pickleSynchroniser.py" "1" "0.0.0" "Nicholas Lemay" "PxStats"
+.SH "NAME"
+.LP 
+pickleSynchroniser.py \- Small application usefull synchronising the pickles found on a machine with the pickles found on another machine.
+.SH "SYNTAX"
+.LP 
+pickleSynchorniser.py 
+.br 
+pickleSynchorniser.py [\fIoption\fP]<\fIvalue\fP> [\fIoption\fP] <\fIvalue\fP> ...;
+
+.SH "DESCRIPTION"
+Implementation of an rsync system. Allows a machine to 
+synchronise the content of it's pickle folder with the
+one located on a remote machine.
+
+
+.SH "DEFAULT VALUES"
+.TP 
+\- Default clients is "All" clients. 
+.TP 
+\- Default interval value is 1 minute.
+.TP 
+\- Default login is pds. 
+.TP 
+\- Default machine is the local machine.(Thus no transfer would actually be made)
+.TP 
+\- Default output is None.
+.TP 
+\- Default verbose value is False.
+.SH "OPTIONS"
+.BR 
+.TP 
+\fB\-c|\-\-clients\fR <\fI"client1,client2"\fP>
+.LP 
+    Specifies the clients names for wich you want to synch the data.
+.TP 
+\fB\-l|\-\-login\fR <\fIlogin\fP>
+.LP 
+    Specifies a time of request different from the default 
+    current time.( Usefull for past days and testing. ).
+.TP 
+\fB\-f|\-\-fileType\fR <\fIfileType\fP>
+.LP 
+    Specifies the user name you want to use to connect 
+    to the remote machine using rsync(wich uses ssh accounts).
+.LP 
+\fB\-\-machines\fR <\fI"machine1"\fP,\fI"machine2"\fP>
+.LP 
+    Specifies the machines to be used as source for the synch
+.TP 
+\fB\-o|\-outputs\fR <\fI"outputFileName"\fP>
+.LP 
+    Specifies an output log file name to be used to store 
+    errors that occured with rsync.
+
+.TP 
+\fB\-v|\-\-verbose\fR;
+.LP 
+    Specifies that you want to see the ryncs error printed on screen.
+.SH "FILES"
+.BR 
+.TP 
+The following standard python modules are required :
+.TP 
+\fIos, commands, optParse \fP 
+.BR 
+.TP 
+The following px modules are required : 
+.TP 
+\fILogger\fP 
+.BR 
+.TP 
+The following stats library modules are required :  
+.TP 
+\fIStatsPaths \fP
+.BR 
+.SH "ENVIRONMENT VARIABLES"
+.BR 
+.TP 
+\fBPXROOT\fP
+Specifies the where metPx was installed.
+
+.SH "EXAMPLES"
+.TP 
+\-Example 1 
+.IP 
+Get help :
+
+pickleSynchroniser.py \-h
+
+.TP 
+\-Example 2
+.IP 
+Update data from a specific machine :
+
+pickleSynchroniser.py \-m "pds5" 
+
+Note : This is the basic call. Login will be the default login.
+        
+
+.TP 
+\-Example 3
+.IP 
+Update data from a specific client of a machine
+
+pickleSynchroniser.py \-m "pds5" \-c "satnet"
+
+Note : this will make updating very long if done client per client
+       and is thus not recommended.
+
+.TP 
+Example 4
+.IP 
+Specify wich ssh login to use when connecting to the machines to
+update :
+
+pickleSynchroniser.py \-m "pds5"  \-l "myLogin"
+
+Note : This will be the most often used call made to this 
+       program. It is recommended that you use a login that 
+       has instant access to the machine when using 
+       pickleSynchroniser.py or else automatic updates 
+       using crontab will be useless since user needs to
+       type password for every ssh connection...
+.SH "AUTHORS"
+.BR 
+Nicholas Lemay <nicholas.lemay@ec.gc.ca>
+.SH "SEE ALSO"
+.BR 
+.../px/stats/doc/
+This folder contains infos for both users and developers.

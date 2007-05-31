@@ -1,0 +1,89 @@
+.TH "config" "1" "0.0.0" "Nicholas Lemay" "PxStats"
+.SH "NAME"
+.LP 
+config \- Main configuration file of the stats library. Contains all the info relative to the data collection, graphics production and file exchange of the stats library.
+.SH "SYNTAX"
+.LP 
+config
+
+.SH "DESCRIPTION"
+.LP 
+Main configuration file of the stats library. Contains all the info relative to the data collection, graphics production and file exchange of the stats library.
+
+.SH "DEFAULT VALUES"
+.TP 
+There exists no default values for this configuration file.
+
+.SH "FIELDS"
+.TP 
+Configuration file has the following sections :
+.TP 
+\- [generalConfig] : This field specifies the start of the general parameters section.
+.IP 
+\- sourceMachinesTags : Speficies the source machines from wich the log files come from.          
+.IP 
+\- picklingMachines : Specifies the machines where the stats will calculated from the log files and be pickled as to be usable by other programs.
+.IP  
+\- machinesToBackupInDb    : List of source machines for wich you want the pickled data to be preserved in round robin databases. 
+.IP 
+\- graphicsUploadMachines  : List of machine that are currently running columbo to wich you want to upload the graphics that columbo is interested in.
+
+.TP 
+\- [specialGroups] : Specifies the start of the special group parameters section. 
+.IP              
+\- Entries in this section are optional, but header should remain in the config file.
+.IP 
+\- Entries  in this section have a different format. All the fields for each entry must be found on the same line. 
+.IP 
+\- Each of these lines MUST have this from : groupName machineTag  tx|rx|trx   members  products
+.BR 
+.BR 
+.TP 
+***IMPORTANT NOTE : 
+.TP 
+All the machine names that are mentioned within this config file MUST have been set in the configForMachines file.   
+.SH "FILES"
+No required files exist.
+
+
+
+.SH "ENVIRONMENT VARIABLES"
+No environment variables are required. 
+
+.SH "EXAMPLES"
+.TP 
+.br 
+.TP 
+[generalConfig]
+.TP 
+sourceMachinesTags      = pds\-op,pxatx
+.TP 
+picklingMachines        = logan1ForPdsop,logan1ForPxatx
+.TP 
+machinesToBackupInDb    = pds\-op,pxatx
+.TP 
+graphicsUploadMachines  = lvs1\-op,lvs2\-op
+.TP 
+[specialGroups]
+.TP 
+#groupName  machineTag tx/rx/trx   members              products
+.TP  
+AllWs      =  pds\-op   tx          *ws\-*                   *
+.TP 
+AllSatnets =  pxatx    tx          *satnet\-y*,*satnet\-w*   *
+.TP 
+AllWxo\-b   =  pds\-op   tx          *wxo\-b*                 *
+.TP 
+AllWxos    =  pxatx    tx          *wxos*                  *
+
+ 
+
+.SH "AUTHORS"
+.BR 
+Nicholas Lemay <nicholas.lemay@ec.gc.ca>
+
+.SH "SEE ALSO"
+.TP 
+\fI"../px/stats/configForMachines"\fR The header contains instructions
+.TP 
+\fI"man statsConfigFormachines"\fR The header contains instructions

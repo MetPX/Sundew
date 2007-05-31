@@ -1,0 +1,959 @@
+"""
+MetPX Copyright (C) 2004-2006  Environment Canada
+MetPX comes with ABSOLUTELY NO WARRANTY; For details type see the file 
+named COPYING in the root of the source directory tree.
+"""
+################################################################################
+#      _                _                          ______           
+#     | |              | |                         |  _  \          
+#   __| | _____   _____| | ___  _ __   ___ _ __ ___| | | |___   ___ 
+#  / _` |/ _ \ \ / / _ \ |/ _ \| '_ \ / _ \ '__/ __| | | / _ \ / __|
+# | (_| |  __/\ V /  __/ | (_) | |_) |  __/ |  \__ \ |/ / (_) | (__ 
+#  \__,_|\___| \_/ \___|_|\___/| .__/ \___|_|  |___/___/ \___/ \___|
+#                              | |                                  
+#                              |_| 
+#                             
+#
+# Author        : Nicholas Lemay
+# Last Update   : December 11th 2006
+#
+#
+################################################################################
+
+
+About this document :
+--------------------------------------------------------------------------------
+
+This file was written for anyone using the stats library who might be interested 
+in it's inner workings. Developers and end-users alike will be able to 
+understand the principles behind the development of this library. Special care 
+was given to describing the requirements and observations that were made during
+development as to guide someone who might be interested in modifying this 
+library. Hopefully this will explain why things were done a certain way and keep
+the developper from doing the same errors that were made during initial 
+development.   
+
+
+Stats library overview :
+--------------------------------------------------------------------------------
+The stats library's main goal is to manage stats regarding different 
+clients/sources and to add the possibility to to draw graphics based on said 
+stats.
+
+The graphic's data is based on the data calculated from log files located 
+remotely and saved into pickle files.
+
+
+
+DEVELOPMENT REQUIREMENTS :
+--------------------------------------------------------------------------------
+
+Library has to be able to gather log files from remote locations( machines ). 
+
+- Library has to be able to read a specific format of log files.
+
+- Library must allow user to collect data of log files wich are constantly growing. 
+
+- Library must permit data collection of log files that contains information about 
+  the same source/client but that comes from numerous machine sources. Each are 
+  remotely located. 
+    
+- Library must have a way to save data collected. Data needs to be stored in an
+  efficient manner so that we can keep data for up to 10 years. 
+
+- Library must be able to collect the following data : errors, bytecount and 
+  latency.
+
+- Base on this data it must be able to make totals or mean of each types. It must 
+  also keep count count of the number of files handled. Of that number of files
+  it also must keep count of the number of files for wich the
+  latency was over 15 seconds.  
+  
+- Library must have a way to save wich product type is associated with each line
+  collected.  
+
+- Data collection and saving must be done as quickly as possible. This must also
+  be done without affecting the machine on wich it is being run too much. 
+
+- Library must be able to produce graphics of the .png format based on the 
+  saved data.
+
+- Library must be able to display such graphic to a user within an acceptable
+  time frame.( < 40 sec )    
+  
+- Library must give access to graphics through the Columbo web interface. 
+ 
+- Library must allow user to specify the following options for data collection
+  and graphics production : machine name, current time, source/client name,
+  file type.
+
+- Library must be built in such a way that all the above action can be done
+  on an automated basis.
+  
+- Library must have mechanisms that allow data collection to be reverted in 
+  case errors are found.
+ 
+
+
+GUIDING PRINCIPLES
+--------------------------------------------------------------------------------
+- Log files for a specific source/client are often stored on many different
+  machines.  
+
+- Log file for a single day from a single machine can be quite large. 
+  ( average~ >30 megs )
+
+- Log file names aren't reliable. Even if a file has a certain date in it's
+  name it doesn't necessarily mean it will contain data for that day. File 
+  content still need to be investigated to make sure it does or doesn't contain
+  usefull info.   
+
+- Having every machine perform the collection of the data found in the files
+  that are present in it's own space makes the application more scalable
+  in the event that more machines and or sources/clients are to be added. 
+  It also speeds up the collection since log filesdo not require to be 
+  transferred. 
+  
+- On the other hand, collecting the data on the machines producing the log files 
+  instead of downloading the log files into another machine can impact the machine
+  to a much greater degree.  
+  
+- Collecting a whole days worth of data and producing stats according to data
+  collected is very long therefore more frequent data collection should be made.
+  Hourly collection seems optimal for logical and performance reasons.  
+  
+- Disk access is very slow. Anything that has to be loaded or saved on the disk
+  slows down the entire process quite a lot. 
+  
+- Because of the preceding, we've found out that using a single daily file 
+  would make it impossible to meet the above requirements.  
+  
+- Even with optimization, on a users machine the time taken to pickle a single
+  hour of data using a single pickle file every day went from three seconds
+  ( maximum ) for the first few hours to almost 10 seconds( maximum ) for the 
+  last hours of the day.     
+  
+- Pickling done during the final hour of the day on a machine containing 150
+  sources/clients would mean roughly 150 * 10 sec = 1500 sec ~ 25 minutes
+  This was way too much time dedicated to collecting data.
+  
+- Saving pickled data into hourly files makes sure that time used for pickling
+  remains stable throughout the day. It also makes the total amount of time 
+  much more acceptable. 
+  
+  On a normal machine it would mean ~3 sec * 150 = 450 450/60 = 7.5 minutes
+  ( worst case scenario )
+  
+- On more performant dev machines where the app is being tested, it takes a 
+  maximum of a second to update a single source/client wich would mean 150 
+  seconds or 2.5 minutes.
+ 
+  Currently with tests on pds3-dev,and pds4-dev wich has 70 active sources/clients
+  it takes less than 15 secs to create all the hourly pickles for the 70 
+  sources/clients.          
+
+- These test machine all have numerous processors. Since data collection times 
+  have been brought down to very quick times it has been decided not to launch 
+  any more process to try and speed up the collecting since it might slow down
+  other applications for a minimal performance boost. 
+
+- Gnuplot graphics are generated rather quickly but still take a few seconds
+  each( < 5seconds ). 
+
+- Therefore it has been decided that multi-processing would be usefull when 
+  producing graphics. Number of simultaneously ran process' can be modified as
+  to not increase machine load too much.
+
+- For the same reasons multi-processing has been implemented on transfers from 
+  pickle files to rrd databases.
+
+
+
+IMPLEMENTATION :
+--------------------------------------------------------------------------------
+
+Remote file handling ( rsync )
+----------------------
+For testing purposes, data collection was not made directly on the machines 
+containing the logfiles. Therefore log files were downloaded to another machine 
+using rsync. rsync has been chosensince it will only download part of the files
+that are missing when files are allready found on destination machine. It also 
+offers a --delete option wich deletes files on the destination machine wich are 
+no longer present on the source machine. This allows for a picture perfect 
+mirror of the source, while saving us the trouble of implementing an 
+outdated-file purging mechanisn.   
+
+The following line is usually used to get and exact copy of the log folder of a
+certain machine into the desired machines.
+
+rsync -avzr --delete-before  -e ssh pds@pxatx:/apps/px/log/  PATH_TO_LOGFILES  
+
+The --delete-before option will delete from the local folder any file that is 
+no longer present in the folder we want to mirror. SSH option will allow for 
+an ssh connection to be made between machines.
+
+The avzr are standard rsync option meaning that download should be recursive(r),
+verbose(v), compressed(z) and archive(a).
+
+File synchronisation between pickle producing machines and graphic producing
+machines( pickleSynchroniser.py ) and synchronisation of running sources/clients
+between machines also use rsync connections.
+ 
+
+Data collection :
+---------------------  
+
+- To speed up data collection and stats production, data collected is saved 
+  in a pickle file. This way data for a specific timeframe only has to be
+  collected and calculated once. This can save enormous amounts of time on 
+  graphic production if the timespan of the graphic asked by the user is of any
+  importance. 
+  
+  FilesStatsCollector.py, DirecToryStatsCollector.py, pickleUpdater.py and 
+  cpickleWrapper.py all contain methods to deal with data pickling and pickled data.
+     
+- Because of disk access times, data pickling can be rather slow. To speed it up
+  cpickle has been added to the library. cpickle is a c based implementation of 
+  pickle that has much faster methods than the usual pickle.
+  
+- Data collection can be done on an automated basis using crontab to call 
+  pickleUpdater.
+
+- Data colection can be made on growing files. This is true as long as the top 
+  of the file remains intact and that data is only appended at the end of the 
+  log files. If top of the file is modified, the saved positioning of the file 
+  will be corrupted and reading the file will probably produce errors.  
+
+- File positioning of the last read file is saved for every sources/clients in 
+  the /apps/px/stats/PICKLED_FILE_POSITIONS pickle file.  
+  
+- By default all data types are collected. This is done so that there will be no 
+  problem if a user wants to produce any kind of graphic for a certain 
+  source/client.
+
+- User can specify wich data types he wants collected but that will limit user
+  choices for graphics.  
+  
+
+Gathering pickled files:
+------------------------
+
+- Remotely located pickle files are to be transfered to the machine where the
+  graphics are to be created. see pickleSynchroniser.py for details.           
+
+
+Archiving the pickled data.
+-------------------------------
+
+The data contained in pickled files takes up a lot of space and contains a lot 
+of data that is usefull for short amount of time only, and that can be discarded
+when viewing data for wide amounts of time. We have therefore decided to archive
+our pickled data by transferring it into rrd databases.
+
+Such databases have a fixed size so they are very space efficient when using 
+data that spans over a large amount of time and that precise information is not
+needed. rrdTool also offers to efficiently plot graphics(rrdgraph) based on the 
+data contained in an rrd.   
+
+To transfer data into rrd databases( transferPickleToRRD.py ) and plot graphics
+with rrdgraph( generateRRDGraphics.py) you will need to have the rrdtool python 
+library installed on your machine.
+
+See rrdToolDoc.txt for more details on rrdTool.   
+
+
+Graphic production
+-------------------
+
+- Graphics with a short timespan are to be produced using StatsPlotter.py. 
+  It's simply a modified version of Plotter.py wich was allready working and
+  available in the library. This file uses gnuplot to generate the graphic
+  so the gnuplot library is required here.    
+     
+- Graphics with longer timespans can be drawn using generateRRDGraphics.py
+  This files uses rrdtool rrdgraph program to draw its graphics. These graphics 
+  contain less detail and can only display one graphic per image but since our 
+  rrd database will contain data for up to the last ten years it will allow
+  users to easily produce daily, weekly, monthly and yearly graphics.
+    
+- It is possible to produce graphics for each data type collected. This means
+  latency, bytecount and errors.  
+
+- It is impossible to create a graphic on a data type wich was not previously
+  collected. This is why by default all types are collected and pickled. This 
+  allows users to have access to every data type possible. 
+
+
+
+Dealing with remote machines
+-----------------------------
+
+- To make the application more scalable in terms of a possible growing number of
+  machines it was decided that every machines would do it's own data pickling 
+  using pickleUpdater. 
+
+- Some sources/clients have their data stored on different machines. 
+  pickleMerging.py has been introduced in the library to make merging of 
+  different machines pickles possible.  
+
+- Since the graphic producing machine is at the heart of the library, it is 
+  this machine that will launch all the updates on the remote machines 
+  containing the log files. 
+  
+- remotely executed commands using ssh need to be run from the 
+  graphic producing machine.
+  ***See howTo.txt    
+
+- The graphic producing machine also needed access to all the pickles created
+  remotely as to generate graphics. This prompted the implementation of a rsync
+  system (pickleSynchroniser.py) that allows pickled data found on numerous 
+  machines to be brought back in a single folder of a specific machine if needed.
+
+- The graphic machine has no way of knowing if it is using the right version of 
+  the pickle files. Therefore we have implemented a file version checking program
+  that uses the time of creation of the pickle files to see if a newer version has
+  appeared on the pickleCreation machine. If so the graphic generation program
+  will use the new file next time a graphic using this pickle file is asked 
+  for by a user.  
+
+
+Graphic interface :
+--------------------------------------------------------------
+Up to date, 24 hours wide graphics are made available to users using
+a simple link represented by a small graphic image within Columbo's
+PX Circuits tab. 
+
+The other graphics are avaible on the following web pages : dailyGraphs.html,
+weeklyGraphs.html, monthlyGraphs.html and yearlyGraphs.html.
+
+Daily graphs gives users the acces to the daily graphics of the past 7 days. 
+Weekly graphs gives users the access to the weekly graphs of the past 5 weeks.
+Monthly graphs gives users the access to the monthly graphs of the past 3 months.
+Yearly graphs gives users the access to the yearly graphs of the past 3 years.
+
+
+Monitoring the library's activities :
+--------------------------------------------------------------
+
+Most parts of the library were meant to be used with automated
+calls. This means users would probably prefer to let things run
+and not have to worry about it. Furthermore, the library stores 
+it's data within a 10 years wide database. If erronous data 
+infiltrates the database, the entire set of data will be slightly
+corrupted. 
+
+This is why the statsMonitor.py program was created. It was 
+designed to be ran on a regular interval to keep track of activities 
+within the stats library and to warn the software's administrator 
+to make the needed modifications.  
+
+
+
+List of files included in the stats library are :
+--------------------------------------------------------------
+- ClientGraphicProducer.py  
+- ClientStatsPickler.py 
+- cpickleWrapper.py
+- dailyGraphicsWebPage.py
+- DirectoryFileCollector.py    
+- FileStatsCollector.py 
+- generateGraphics.py
+- generateRRDGraphics.py
+- generateAllGraphsForServer.py
+- getGraphicsForWebPages.py
+- launchGraphCreation.py
+- monthlyGraphicsWebPage.py
+- MyDateLib.py
+- pickleCleaner.py 
+- pickleMerging.py
+- pickleUpdater.py 
+- StatsPlotter.py  
+- pickleSynchroniser.py
+- pickleViewer.py
+- pickledTimesViewer.py
+- PickleVersionChecker.py
+- restoreRoundRobinDatabases
+- setTimeOfLastUpdates.py
+- statsMonitor.py
+- StatsPlotter.py
+- transferPickleToRRD.py
+- weeklyGraphicsWebPage.py
+- yearlyGraphicsWebPage.py
+
+
+Note : Files that start with a lower case character are executable programs.
+       Files that start wiht an upper case character contain contain class'
+       to be used as objects.
+
+These library files are required by the stats library :
+-------------------------------------------------------------------
+
+-DateLib.py : Many methods were added specifically for the stats library, 
+              but are written so they could be reused for other applications
+              down the road.    
+
+-Gnuplot library : Folder named Gnuplot containing the gnuplot library should
+                   be found in the imported libs folder of the library.                
+                   
+-backwardReader.py : Methods here are used to read a file backwards.
+              
+-PXPaths           : List of paths to be used in the px library. 
+
+
+Environment variables :
+---------------------------------------
+The following environment variable needs to be set in order for the file
+interaction to work.
+
+PYTHONPATH=:/apps/px/lib:/apps/px/lib/importedLibs:/apps/px/lib/stats/
+
+It should be set in the .profile(or equivalent) of machines where programs are 
+to be run locally.
+
+On hosts of remotely executed commands, it should be set in the 
+$HOME/.ssh/environment file.
+
+Further more, the PermitUserEnvironment parameter must be set to yes in 
+the /etc/ssh/sshd_config file or else the environment file will be ignored
+by ssh.
+
+Finally, the same variable needs to be set in the crontab file if crontabs are
+to be used on a machine. Use crontab -e and add the line prior to the line 
+containing the command that relates to one of the programs of the library.
+
+
+
+File interaction (only main files are included): 
+-------------------------------------------------
+
+
+--------------------------------------------------------------------------------
+                                   
+                                   PickleVersionChecker
+                                              /\
+                          FileStatsCollector  |          StatsPlotter  
+                                 /\      /\   |             /\
+DirectoryFilecollector           |       |    |             | 
+                   /\            |   pickleMerging          |
+                   |             |                /\        | 
+                   |             |                |         |
+ gzippickle<--ClientStatsPickler<-----------ClientGraphicProducer           
+              /\    /\    /\                                  /\
+               |    |     |                                   |
+               |    |     |                                   | 
+transferPickleToRRD |  pickleUpdater                      generateGraphics
+                    |                                          /\         
+                    |                                          |
+     generateRRDGraphics                        generateAllGraphsForServer                
+     
+     
+--------------------------------------------------------------------------------
+                               / \
+                                |
+                                |
+|------------------------|      | 
+| getGraphicsForWebPages |      | 
+| weeklyGraphicsWebPage  |      |
+| monthlyGraphicsWebPage |      |                    
+| dailyGraphicsWebPage   |/_____|
+| yearlyGraphicsWebPage  |\     |        
+|------------------------|      |                          
+                                |
+                                |
+                                |                
+                         launchGraphCreation   
+       
+     
+--Note : x-->y means x uses y            
+
+--------------------------------------------------------------------------------
+
+
+
+Quick File Overview 
+----------------------------                
+   
+backwardReader.py
+-----------------
+
+    Contains two usefull methods for this library and possibly for other.
+                     
+    Has a readlineBackwards method that is similar to readline but that reads
+    a file from the bottom up. 
+
+    Has a tail method that is similar to the tail used in linux but that's coded
+    in pure python. 
+
+
+                         
+ClientGraphicProducer.py
+------------------------
+
+    This file contains methods to be used when a user of this class wants 
+    to produce a graphic.
+                                
+    It first takes the previously collected data, then adds up the data 
+    produced between the last collection and the time of the call.
+    
+    After that it calls StatsPlotter.py with the collected data and uses it
+    to produce the graphic.
+
+
+                            
+ClientStatsPickler.py
+----------------------
+
+    Collects stats from all the files needed to cover a certain timespace.
+                            
+    File names are gathered using DirectoryFileCollector.py.
+    
+    Data for each file is collected using the methods found in
+    FileStatsCollector.   
+    
+    Introduces the pickling principle to the library. 
+                              
+                              
+    
+cpickleWrapper.py
+------------------- 
+ 
+    very small wrapper that allows for directory creation if the path to the 
+    file name saved does not exist.
+                        
+    Also handles exceptions when trying to open a file that does not exist.
+                 
+                     
+dailyGraphicsWebPage.py 
+------------------------
+    
+    Generate a web page named dailyGraphs.html that gives users acces
+    to the daily graphics of the past seven days of all the sources and
+    clients of the current machines. 
+                            
+                                                     
+DirectoryFileCollector.py 
+--------------------------
+    
+    This file is used to gather all the interesting files present in 
+    a specific directory.  
+    
+    Search is based on fileType, client's name and timespan for wich 
+    we need data.
+                               
+                               
+FileStatsCollector.py 
+---------------------- 
+
+    This file contains all the methods needed to collect data from files and
+    produce stats using said data.
+    
+    The general principle behind the data collection made here is that it's
+    always spit up into entries /apps/px/lib/stats/generateAllGraphsForServer.py
+    -m 'pds5,pds6' -c  -l 'pds,pds'of a certain length.
+    
+    
+    File entries are of a timespan selected by the user. Entries will
+    have the same width all throughout the total width the user has decided 
+    to collect data upon.                        
+    Once data has been collected, stats will be created for each buckets. 
+    This means that every bucket will have it's own min, max, median and 
+    mean values.  
+                      
+                                
+generateGraphics.py
+--------------------
+       
+    This file offers to the user a command line interface so he can easily
+    use the functionalities offered by ClientGraphicProducer.py. 
+
+                           
+generateAllGraphsForServer.py
+----------------------------- 
+
+    Serves as a wrapper for generate graphics by adding the possibility
+    to generate a graphic for each and every client found on a specified 
+    server. Very usefull in cron jobs to produce timely graphics.                                                     
+        
+    
+                           
+generateRRDGraphics.py
+-----------------------    
+    RRD implementation of generateGraphics/generateAllGraphsForServer that
+    is made different by using rrd databases as data sources and rrdgraph 
+    to produce graphics instead of gnuplot.
+    
+    Otherwise it is similar to generateGraphics and generateAllGraphsForServer
+    as it allow to create graphs from command line and for as many sources/clients
+    as desired.                          
+                             
+                                    
+getGraphicsForWebPages.py 
+--------------------------
+
+    This program is to be called hourly within a crontab or through another
+    program like launchGraphCreation.py. It was built to ensure that through
+    time the graphics required by the different web pages present or updated.
+
+                              
+monthlyGraphicsWebPage.py 
+-------------------------
+
+    Generate a web page named monthlyGraphs.html that gives users acces
+    to the monthly graphics of the past 3 months of all the sources and
+    clients of the current machines.                                
+                     
+                             
+MyDateLib.py
+-------------     
+    
+    Temporary file wich contains date manipulation methods I have been working
+    on.They probably should be addded to the regular DateLib.py once they are
+    found to be usefull and reliable.                      
+                                  
+                                         
+pickleMerging.py 
+-----------------
+    
+    This file contains the methods needed to combine data found in different 
+    pickle files that are covering the same time period. Example : Data that 
+    comes from the same source/client but from different machines.
+    
+    It also has the possibility to merge pickles covering a certain time 
+    frame. Forexample you could merge data coming from 12 pickles containing an
+    hour's worth of data each into a single pickle file covering the entire 12 
+    hours. 
+    
+    This will be very usefull if some pickles for the same source/client are 
+    produced on different machines and some operation concerning all the data 
+    must be done on a specific machine.
+    
+    Ex : See Clientgraphicproducer...               
+                                                   
+    
+pickledTimesViewer.py
+---------------------
+
+    Allows users to see clearly the content of the pickled times file. 
+    Might be found usefull for debuging purpouses. 
+                         
+
+pickleSynchroniser 
+------------------
+ 
+    Implementation of an rsync system. Allos a machine to synchronise the
+    content of it's pickle folder with the one located on a remote machine. 
+                      
+pickleUpdater.py 
+------------------
+
+    This program is the one to be used to make automated data updates.
+    Recommended usage is to call this program every hours to create the hourly 
+    pickles the contain stats on a source/client.     
+                                             
+
+PickleVersionChecker.py  
+------------------------- 
+    
+    This class is used in the library to keep track of the changes made
+    within files.
+    
+    Since pickles files are synchronised on graphic machine they are prone
+    to change without the local machine knowing.           
+
+                                                    
+pickleViewer.py 
+----------------
+    
+    Allows user to view the content of a cpickle file that contains a
+    FileStatsCollector instance. Output can be directed to a text file if wanted. 
+    
+    Very usefull for debugging, making sure data collected is stored at the right
+    place,and comparing it to the graphics produced to see if there are any
+    differences. 
+
+    
+restoreRoundRobinDatabases.py
+------------------------------
+
+    This program is to be used to restore the backed up databases 
+    from a certain date and use them as the main databases. This is
+    very usefull if an error is detected within the data and that we 
+    have a backup preceding the error. The error can then be corrected 
+    and the corrected data can be appended to the database without any 
+    problems. 
+    
+
+setTimeOfLastUpdates.py
+-------------------------
+
+    This program is to be used in case of a problem with pickleUpdater. It is used
+    to set back the time of the the last updates prior to the errors. That way 
+    at the next update the pickling will be redone for and might produce the right
+    pickles if the problem was corrected.
+
+
+statsMonitor.py
+---------------------- 
+
+    This file is to be used to monitor the different activities that are done with 
+    the the stats library. The report build throughout the different monitoring
+    methods will be emailed to the chosen recipients.
+                   
+      
+StatsPlotter.py
+---------------------- 
+
+    This file contains the methods to plot a gnuplot graphic once the data has
+    been collected using the previously described files. This is very similar 
+    to the Plotter.py allready found in the library.  
+
+
+transferPickleToRRD.py
+------------------------- 
+
+    This files contains all the methods needed to transfer pickled data
+    that was saved using pickleUpdater.py into an rrd database.
+    In turn, the rrd database can be used to plot graphics using rrdTool.            
+                    
+weeklyGraphicsWebPage.py 
+--------------------------
+
+    Generate a web page named weeklyGraphs.html that gives users acces
+    to the weekly graphics of the past five days of all the sources and
+    clients of the current machines.  
+                           
+     
+yearlyGraphicsWebPage.py 
+---------------------------
+
+    Generate a web page named yearlyGraphs.html that gives users acces
+    to the yearly graphics of the past three years of all the sources and
+    clients of the current machines.                                        
+
+
+File system 
+--------------------------------------------------------------------------------
+
+
+Pickle Files :
+---------------
+
+/apps/px/stats/PICKLED-TIMES :
+-------------------------------
+
+    This is the only file created to contain all the last pickleUpdates times 
+    from each of the different sources/clients. This file is save in a regular 
+    non-compressed pickle format. This is done so thata user could easily modify 
+    a certain client's date if needed.
+
+
+/apps/px/stats/PICKLED_FILE_POSITIONS:
+--------------------------------------
+Contains a list of positions stating where we last read a file for a specific
+source/client. 
+
+
+/apps/px/stats/FILE_VERSIONS:
+------------------------------
+Contains a list of file update time saved by PickleVersionChecker.
+See PickleVersionChecker.py for details.
+
+
+/apps/px/stats/pickles/clientName/YYYYMMDD/fileType/machineName_hh
+-------------------------------------------------------------------- 
+
+These file are created to save the data collected for the period covering
+the hour specified in the file's name.  This file contains a FileStatsCollector
+instance containing all the data collected for that hour saved with
+cpickleWrapper.py.
+ 
+These files will be grouped in a folder named pickles. This folder will contain
+many subfolder, all of wich named after a certain source/client name. These 
+folders will contain all the pickle files of that source/client.  
+             
+             -----
+Example :   |Stats|
+             -----
+               |
+            ------------
+            | PICKLES  |
+            ------------
+          /            \
+         /              \
+       ------          ----------
+      | pds5 |        |satnet-ice|
+       ------          ----------
+       /                    \
+      /                      \
+  ----------           -------------   
+ | 20060712 |         |  20060712   |      
+  ----------           -------------
+      /                       \
+     /                         \
+  ------                     ------
+ |  rx  |                   |  tx  |
+  ------                     ------  
+    /                           \
+   /                             \
+lvs1-dev_17                   lvs1-dev_17
+   
+
+
+
+Gnuplot Graphics :
+--------------------------------------------------------------------------------
+
+/apps/px/stats/graphs/others/gnuplot/clientName/
+fileType_clientName_YYYYMMDD_HH:MM:SS_dataTypes_XXhours_on_server_products.png
+--------------------------------------------------------------------------------
+
+The files are created everytime a graphic is asked for by a user. This will be 
+the png image containing all the graphics asked for by the user during his 
+resquest.  It will contain graphs for each of the data types asked for as many
+sources/clients as specified. 
+
+These files will be grouped in a folder named graphs. This folder will contain 
+many subfolder, all of wich named after a certain source/client name. These 
+folders will contain all the image files of that client.
+
+
+               -----
+Example :     |stats|
+               -----
+                 |
+            ------------
+            | graphs   |
+            ------------
+          /            
+         /              
+       ------         
+      | amis |        
+       ------          
+       /                    
+      /                      
+tx_amis_20060801_05:00:00_'latency','errors','bytecount'_12hours_on_lvs1-dev_forAllProducts.png
+   
+
+   
+RRD graphics :
+--------------------------------------------------------------------------------
+RRD graphics are to be used to plot graphs whose starting time is older than the 
+time for wich we keep pickle files backed up.
+
+RRD databases as they are presently set keep data for the past 10 years. This
+means that at any time user can request data for any date in the past 10 years.
+See RRD section for more details.
+
+RRD graphics are stored in this fashion : 
+/apps/px/stats/graphs/others/rrd/clientName/rrdgraphs/
+fileType_clientName_YYYYMMDD_HH:MM:SS_dataTypes_XXhours_on_server.png
+
+
+
+Graphics for the different web pages.
+--------------------------------------------------------------------------------
+
+Currently, web pages are created as to display the daily, weekly, monthly and 
+yearly graphics of the different client/sources.
+
+Graphics used by theses web pages are stored in this fashion :
+/apps/px/stats/graphs/webGraphics/timeSpan/type/clientName/fileName 
+
+Where timeSpan is either daily, weekly, monthly or yearly and where type is either bytecount, errors, filecount, filesOverMaxLatency or latency.
+
+File name style will be Mon.png, Tue.png, Wed.png etc for daily graphs.   
+File name style will be 01.png, 02.png, 03.png etc for weekly graphs.
+File name style will be Jan.png, Feb.png, Mar.png etc for monthly graphs.
+File name style will be 2005.png, 2006.png, 2007.png etc for monthly graphs.
+
+
+Databases
+----------
+
+/apps/px/stats/databases/type/client_machinename
+--------------------------------------------------
+These files are created when user asks for data to be transferred from pickle
+files to an rrd database. Type will be either bytecount, errors, filecount,
+filesOverMaxLatency or latency.
+      
+               -----
+Example :     |stats|
+               -----
+                 |
+            ------------
+            | databases |
+            ------------
+          /            
+         /              
+       --------         
+      | errors |        
+       --------          
+        /                    
+       /
+ws-fortsimpson_pds5pds6
+
+
+/apps/px/stats/DATABASE-UPDATES/fileType/client_machineName
+------------------------------------------------------------
+These files are pickle files containing the time of the last database update
+of a certainclient/database 
+
+
+Important notes ( Specifics )
+--------------------------------------------------------------------------------
+
+When using the pickleUpdater to make automatic updates, data collection will 
+start where the last data Collection was made. If no pickling at all was made 
+for that source/client, it will start at xx:00:00 of that the hour specified.   
+
+Data pickling a source/client thats not listed in PICKLED-TIMES can only be 
+done within the same hour. If data needs to be collected in a previous hour, you
+need to specify the day in the call to pickleUpdater call. 
+***See usage for details.  
+
+Data pickling can otherwise be done over numerous days. This means that if no
+pickling occured for a few days for some reason, pickling can be resumed like 
+nothing happened although first pickle update will be quite long. 
+
+While using the higher level pickleUpdater and ClientGraphicProducer classes,
+time buckets and pickle files will be created on a much more rigid daily basis.
+
+    - A FileStatsCollector instance will be created every hour and contain time
+      buckets starting at xx:00:00 that hour and ending at xx:59:59. 
+    
+    - Pickle will dave each daily instance in a file named after the source/client
+      name and the date of the pickle. 
+      
+    - Every hour, a new pickle will be created to contain the new 
+      FileStatscollector entry.     
+
+
+Graphics cannot be produced for a data type wich was not previously collected
+for that source/client. 
+
+If need be, PICKLED-TIMES can be modified so that library thinks last pickle 
+update occured at adifferent time than was written.           
+        
+
+USAGE:
+--------------------------------------------------------------------------------
+
+1- See the howTo.txt file contained in this folder.
+2- Most files whos name starts with a lower case letter can be executed with a 
+   -h option to get usage.
+3- All the code within .py files is rather heavily commented.
+
+
+Todo, bugs etc....
+--------------------------------------------------------------------------------
+None for the moment
+       
+
+
+
+
+
+ 
+
+ 
+ 

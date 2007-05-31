@@ -1,0 +1,141 @@
+.TH "generateGraphics.py" "1" "0.0.0" "Nicholas Lemay" "PxStats"
+.SH "NAME"
+.LP 
+generateGraphics.py \- Small application usefull for generating specific graphics.
+.SH "SYNTAX"
+.LP 
+generateGraphics.py 
+.br 
+generateGraphics.py [\fIoption\fP]<\fIvalue\fP> [\fIoption\fP] <\fIvalue\fP> ...;
+
+.SH "DESCRIPTION"
+.LP 
+This program is to be used to generate graphics based on data found in pickle files only.
+
+
+
+
+
+.SH "DEFAULT VALUES"
+.BR 
+.TP 
+\- Default group name does not exist.
+.TP 
+\- Default client name does not exist.
+.TP 
+\- Default Date is current system time.
+.TP 
+\- Default fileType is tx. 
+.TP 
+\- Default products is all products.
+.TP 
+\- Default span is 12 hours.
+.TP 
+\- Default Types value is all those associated with the fileType value.
+	For tx this means : errors,latency,bytecount
+	For rx this means : errors,bytecount
+
+.SH "OPTIONS"
+.BR 
+.TP 
+\fB\-c|\-\-clients\fR <\fI"client1,client2"\fP>
+Specifies the clients or sources for wich you want to generate the graphics.
+.TP 
+\fB\-\-combineClients\fR
+Specify that you want to combine the data from all
+the specified client into a single graph per data type.
+.TP 
+\fB\-d|\-\-date\fR <\fIdateInIsoFormat\fP>
+Specifies a time of request different from the default current time.( Usefull for past days and testing. ).
+.TP 
+\fB\-f|\-\-fileType\fR <\fIfileType\fP>
+Specifies the file type of the data contianed in the pickles to be used. File type can either be  'rx' or 'tx' meaning data comes from reception or transmission log files.
+.TP 
+\fB\-g|\-\-groupName\fR <\fIgroupName\fP>
+Specifies a name to give to a group of clients you want to combine.
+.TP 
+\fB\-n|\-\-collectUpToNow\fR
+Specifies that data used for the graphics will be collected and drawn up untill the the very 
+minute of the time of the call.( Not yet implemented )
+.TP 
+\fB\-p|\-\-products\fR <\fI"product1,product2"\fP>
+Specifies the products for wich you are interested in. will discard all other products found in the pickle files.
+.TP 
+\fB\-s|\-\-span\fR <\fIspan\fP>
+Specifies the time span(in hours) to be used to create the graphic(s).
+.TP 
+\fB\-t|\-\-types\fR <\fI"type1,type2"\fP>
+Specifies the data type(s) wich need to be drawn.
+
+.SH "FILES"
+.BR 
+.TP 
+The following standard python modules are required :
+.TP 
+\fIos, time, sys, fnmatch, optparse\fP 
+.BR 
+.TP 
+The following px modules are required : 
+.TP 
+\fIConfigParser\fP 
+.BR 
+.TP 
+The following stats library modules are required :  
+.TP 
+\fIgeneralStatsLibraryMethods,ClientGraphicProducer, StatsDateLib \fP
+.BR 
+.SH "ENVIRONMENT VARIABLES"
+.BR 
+.TP 
+\fBPXROOT\fP
+Specifies the where metPx was installed.
+
+.SH "EXAMPLES"
+.BR 
+.LP 
+\-\-To get the help on how to run the program :
+.LP 
+	generateGraphics.py \-h|\-\-help
+.BR 
+.LP 
+\-\-To get a 12 hour graph ending now for tx client satnet for errors,
+   bytecount and latencies : 
+.LP 
+	generateGraphics.py \-c satnet 
+.BR 
+.LP 
+\-\-To get the same graphic but that ends at a specific time : 
+.LP 
+	generateGraphics.py \-c satnet \-d '2006\-06\-30 05:15:00'
+.BR 
+.LP 
+\-\-To get the same graphics but over a span of 24 hours : 
+.LP 
+	generateGraphics.py \-c satnet \-d '2006\-06\-30 05:15:00'
+        \-s 24 
+.BR 
+.LP 
+\-\-To get the same graphics but for only the data relative to the
+   MPCN products : 
+.LP 
+	GenerateGraphics.py \-c satnet \-d '2006\-06\-30 05:15:00'\-s 24
+        \-p "MPCN"
+.BR 
+.LP 
+\-\-To get the same graphics but for errors and bytecount only : 
+.LP 
+	generateGraphics.py \-c satnet \-d '2006\-06\-30 05:15:00'\-s 24
+        \-\-types "errors,bytecount"
+.BR 
+.LP 
+\-\-To get the same graphics but for rx source named amdar : 
+.LP 
+	generateGraphics.py \-c amdar \-f rx  \-d '2006\-06\-30 05:15:00'
+        \-s 24 \-\-types "errors,bytecount"
+.SH "AUTHORS"
+.BR 
+Nicholas Lemay <nicholas.lemay@ec.gc.ca>
+.SH "SEE ALSO"
+.BR 
+.../px/stats/doc/
+This folder contains infos for both users and developers.

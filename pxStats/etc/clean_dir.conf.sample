@@ -1,0 +1,45 @@
+######################################################################################################
+# Name: clean_dir.plx
+#
+# Author: Daniel Lemay
+#
+# Date: 2003-08-08
+#
+# Description: With this script, you can clean your directories recursively. In the config.
+# file you enter the directories you want to clean, the pattern (glob) to match, the
+# intervall of time that must be attained by a file for it to be deleted (specified in seconds (s),
+# minutes (m), hours (h) or days (d) and finally if you want the delete to be recursive or not.
+#
+# WARNING: Be extremely cautious when usign this software. Be sure to understand which files will be
+# selected by your pattern because when your files are gone, it's forever! Be aware that it could
+# be extremely dangerous to run this program as root.
+######################################################################################################
+# Config. file
+#
+# time descriptor: s (second)
+#                  m (minute)
+#                  h (hour)
+#                  d (day)
+#
+# Important note: 
+#
+# You cannot put wildcard symbols in the directory. Only in pattern, and this pattern
+# only applies to filenames.
+#
+# If you are unsure how to use this config file you can email me
+# at daniel.lemay@ec.gc.ca
+######################################################################################################
+# Tag                Logfile Path (full path)
+######################################################################################################
+LOGFILE              cleaner.log
+######################################################################################################
+# directory                                             pattern        time        recursive 
+######################################################################################################
+#/apps/toto/tata/                                        *TEST*        1:s             no
+#/apps/toto/tata/bob                                     *XYZ*         6:h             no
+#/apps/toto/cleanMe                                      *ABCD*        15:m            no 
+#/apps/toto/stuff                                        *             1:d            yes   
+#/apps/toto/things                                       *.inc         798:d           no
+#/apps/toto/pearl                                        *.pl          6980:m          no
+#/apps/toto/other                                        *             30:d           yes
+

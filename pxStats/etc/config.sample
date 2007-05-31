@@ -1,0 +1,100 @@
+###########################################################################
+##
+## MetPX Copyright (C) 2004-2006  Environment Canada
+## MetPX comes with ABSOLUTELY NO WARRANTY; For details type see the file
+## named COPYING in the root of the source directory tree.
+##
+##
+## Name   : config
+##
+## Author : Nicholas Lemay
+##
+## Date   : May 4th 2007
+##
+## Goal   : This config file is to be used to set the behaviors of the stats library's
+##          main program. This file MUST be properly filled or else the application
+##          WILL NOT behave as expected. 
+##
+## Usage  : Start of configuration part of this file MUST start with [generalConfig]
+##
+##
+##          The following fields MUST be present :
+##              sourceMachines         = 
+##              picklingMachines       = 
+##              machinesToBackupInDb   = 
+##              graphicsUploadMachines  = 
+##                
+##          If no value is wanted for any of the fields, simply leave them             
+##          there with no value while leaving the '=' character there.
+##
+##          When using multiple fields, fields MUST be seperated with the ','   
+##          character.
+##
+##          Lines starting with the # character will be considered comment lines.
+##          
+##          machinesToBackInDb values must be found in the sourceMachines values. 
+## 
+##
+##          ***Special groups
+##
+##          Special groups are a series clients/sources for wich we are interested  
+##          in the combined data of all the members of the series. 
+##
+##          Usage :           
+##          For the special groups section to work, the following tag must be present    
+##          in the file : [specialgroups]
+##
+##          Lines found in this section MUST have the following form : 
+##           
+##          groupName      machineTag     tx/rx/trx   members             products
+##
+##          All of the presented fields must be present for a group to be considered  
+##          valid. 
+##
+##
+##
+##          Description of each fields :
+##
+##              groupName  : tag name for the group of clients/sources. 
+##                           Helpfull for file Naming and finding the associated
+##                           information on the web pages.
+##
+##              machineTag : tag name of the machine(s) from wich the members of 
+##                           the group come from.
+##
+##              tx/rx/trx  : Whether the group is composed of clients sources or
+##                           sourlients. 
+##              
+##              members    : List of clients or sources that make up the group.
+##                           Note : wildcards can be used here ex: *client*               
+##
+##
+##              products   : List of specific products for wich the group
+##                           is interested in. 
+##                           Note : wilcards can also be used here example : *ABCD* 
+##
+##
+##              Notes on members and products listing : when specifying a lsit of 
+##              attributes, each member of the list MUST be seperated with the ','          
+##              character ONLY.
+##
+######################################################################################
+
+[generalConfig]
+sourceMachinesTags      = tag1,tag2
+picklingMachines        = tagForTag1,tagForTag2
+machinesToBackupInDb    = tag1,tag2
+graphicsUploadMachines  = someColumboMachine,someOtherColumboMachine
+daysOfPicklesToKeep     = 21
+nbDbBackupsToKeep       = 20
+[timeConfig]
+pxStatsFrequency        = 1/hours 
+monitoringFrequency     = 12/hours
+dbBackupsFrequency      = 4/hours 
+pickleCleanerFrequency  = 24/hours
+generalCleanerFrequency = 24/hours
+[specialGroups]
+#groupName             machineTag     tx/rx/trx   members                                  products
+AllXy        =          tag1          tx          xy-*                                         *
+AllTotos     =          tag2          tx          *toto-y*,*toto-w*,*toto-i*,*toto-d*          *
+Allxyz       =          tag1          tx          *xyz*                                     *ABCD*
