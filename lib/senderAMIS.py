@@ -137,7 +137,12 @@ class senderAMIS:
                    continue
              else:
                 # if in cache than it was already sent... nothing to do
-                if self.client.nodups and self.in_cache( data[index], True, self.reader.sortedFiles[index] ) :
+                # priority 0 is retransmission and is never suppressed
+
+                path = self.reader.sortedFiles[index]
+                priority = path.split('/')[5]
+
+                if self.client.nodups and priority != '0' and self.in_cache( data[index], True, path ) :
                    #PS... same bug as in Senders AM & WMO.
                    #self.unlink_file( self.reader.sortedFiles[index] )
                    continue
@@ -314,6 +319,9 @@ class senderAMIS:
        i       =  0
        totSent =  0
 
+       # get path priority
+       priority = path.split('/')[5]
+
        alpha=['A','B','C','D','E','F','G','H','I','J','K','L','M','N','O','P','Q','R','S','T','U','V','W','X','Y','Z']
 
        for part in blocks :
@@ -323,7 +331,7 @@ class senderAMIS:
            rawSegment += self.endOfMessage
            i = i + 1
 
-           if self.client.nodups and self.in_cache( rawSegment, False, None ) :
+           if self.client.nodups and priority != '0' and self.in_cache( rawSegment, False, None ) :
               continue
 
            succes, nbBytesSent = self.write_data(rawSegment)

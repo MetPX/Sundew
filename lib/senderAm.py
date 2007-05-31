@@ -121,7 +121,11 @@ class senderAm(gateway.gateway):
                 else :
 
                    # if in cache than it was already sent... nothing to do
-                   if self.client.nodups and self.in_cache( data[index], True, self.reader.sortedFiles[index] ) :
+                   # priority 0 is retransmission and is never suppressed
+                   path = self.reader.sortedFiles[index] 
+                   priority = path.split('/')[5]
+
+                   if self.client.nodups and priority != '0' and self.in_cache( data[index], True, path ) :
                       # PEter... in_cache already deletes the file, no need for second call.
                       #self.unlink_file( self.reader.sortedFiles[index] )
                       continue
@@ -248,13 +252,16 @@ class senderAm(gateway.gateway):
         i       =  0
         totSent =  0
 
+
+        priority = path.split('/')[5]
+
         alpha=['A','B','C','D','E','F','G','H','I','J','K','L','M','N','O','P','Q','R','S','T','U','V','W','X','Y','Z']
 
         for part in blocks :
             rawSegment  = header + " P" + alpha[i/24] + alpha[i%24] + '\n' + part
             i = i + 1
 
-            if self.client.nodups and self.in_cache( rawSegment, False, None ) :
+            if self.client.nodups and priority != '0' and self.in_cache( rawSegment, False, None ) :
                continue
 
             succes, nbBytesSent = self.write_data(rawSegment)

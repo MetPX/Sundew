@@ -114,7 +114,11 @@ class senderWmo(gateway.gateway):
                 else :
 
                    # if in cache than it was already sent... nothing to do
-                   if self.client.nodups and self.in_cache( data[index], True, self.reader.sortedFiles[index] ) :
+                   # priority 0 are retransmission and no check for duplicate
+                   path     = self.reader.sortedFiles[index]
+                   priority = path.split('/')[5]
+
+                   if self.client.nodups and priority != '0' and self.in_cache( data[index], True, path ) :
                       #PS... same extra unlink as in AM sender call above is true, should it be false?
                       #self.unlink_file( self.reader.sortedFiles[index] )
                       continue
@@ -257,6 +261,8 @@ class senderWmo(gateway.gateway):
         i       =  0
         totSent =  0
 
+        priority = path.split('/')[5]
+
         alpha=['A','B','C','D','E','F','G','H','I','J','K','L','M','N','O','P','Q','R','S','T','U','V','W','X','Y','Z']
 
         for part in blocks :
@@ -264,7 +270,7 @@ class senderWmo(gateway.gateway):
             rawSegment = rawSegment.replace("\r\r\n", "\n" )
             i = i + 1
 
-            if self.client.nodups and self.in_cache( rawSegment, False, None ) :
+            if self.client.nodups and priority != '0' and self.in_cache( rawSegment, False, None ) :
                continue
 
             succes, nbBytesSent = self.write_data(rawSegment)
