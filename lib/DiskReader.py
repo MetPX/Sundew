@@ -145,8 +145,10 @@ class DiskReader:
         If we decide to scan a directory of level 2 (because we haven't attained the "batch" value),
         we will scan it entirely, even if this implies that "batch" value will be exceeded
 
+        Priority 0 is for retransmission
+
         """
-        priorities = ['1', '2', '3', '4', '5']
+        priorities = [ '0','1', '2', '3', '4', '5']
         files = []
         start = 0
 
