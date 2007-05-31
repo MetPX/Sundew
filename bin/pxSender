@@ -29,6 +29,7 @@ from optparse import OptionParser
 from PXManager import PXManager
 from Logger import Logger
 from DiskReader import DiskReader
+from CacheManager import CacheManager
 from Client import Client
 from Source import Source
 from PXIgniter import PXIgniter
@@ -130,6 +131,9 @@ example 2: %prog start       => will start all clients
         igniter.setGateway("DUMMY")
         reader = DiskReader(PXPaths.TXQ + client.name, client.batch, client.validation, False,
                             client.mtime, True, logger, eval(client.sorter), client)
+
+        if client.nodups : cacheManager = CacheManager(maxEntries=120000, timeout=8*3600)
+
         while True:
             if igniter.reloadMode:
                 client.__init__(client.name, client.logger)
@@ -137,11 +141,35 @@ example 2: %prog start       => will start all clients
                                     client.mtime, True, logger, eval(client.sorter), client)
                 logger.info("Sender FTP has been reloaded")
                 igniter.reloadMode = False
+                if client.nodups : cacheManager.clear()
 
             reader.read()
             if len(reader.sortedFiles) >= 1:
                 sortedFiles = reader.sortedFiles[:client.batch]
                 logger.info("%d files will be sent" % len(sortedFiles))
+
+                # suppressing duplicates enable
+                if client.nodups :
+                   files = []
+                   files.extend(sortedFiles)
+                   for file in files :
+
+                       # priority 0 is retransmission and never suppressed
+                       priority = file.split('/')[5]
+                       if priority == '0' : continue
+
+                       # read in data from file...
+                       f = open(file,'r')
+                       data = f.read()
+                       f.close
+
+                       # If data is already in cache, we don't send it
+                       if cacheManager.find(data, 'md5') is not None:
+                          sortedFiles.remove(file)
+                          os.unlink(file)
+                          logger.info("suppressed duplicate send %s", os.path.basename(file))
+                    
+                # send data
                 sender = SenderFTP.SenderFTP(client, logger)
                 sender.send(sortedFiles)
                 sender.close()
