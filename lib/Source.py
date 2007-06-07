@@ -67,6 +67,7 @@ class Source(object):
         self.masks_deprecated = []                # All the masks (imask and emask)
         self.routemask = False                    # use accept and parenthesis in mask to create a key and route with it
         self.routing_version = 0                  # directRouting version setting
+        self.nodups = False                       # Check if the file was already received (md5sum present in the cache)
         self.tmasks = []                          # All the transformation maks (timask, temask)
         self.extension = ':MISSING:MISSING:MISSING:MISSING:'   # Extension to be added to the ingest name
         self.type = None                                       # Must be in ['filter','file','single-file', 'bulletin-file', 'am', 'wmo']
@@ -206,6 +207,7 @@ class Source(object):
                          self.masks.append((words[1], currentDir, currentFileOption,cmask,False))
                     elif words[0] == 'routemask': self.routemask = isTrue(words[1])
                     elif words[0] == 'routing_version': self.routing_version = int(words[1])
+                    elif words[0] == 'noduplicates': self.nodups =  isTrue(words[1])
                     elif words[0] == 'imask': self.masks_deprecated.append((words[1], currentDir, currentFileOption))
                     elif words[0] == 'emask': self.masks_deprecated.append((words[1],))
                     elif words[0] == 'timask': self.tmasks.append((words[1], currentTransformation))
@@ -333,6 +335,7 @@ class Source(object):
         print("Sorter: %s" % source.sorter)
         print("Routing table: %s" % source.routingTable)
         print("Route with Mask: %s" % source.routemask)
+        print("No duplicates: %s" % source.nodups)
         print("FX script: %s" % source.execfile)
         
         print("******************************************")

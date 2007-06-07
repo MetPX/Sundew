@@ -62,6 +62,7 @@ class Ingestor(object):
         self.sourlientNames = self.pxManager.getTRxNames()     # Obtains the list of sourlient's names (the ones to wich we can link files)
         self.allNames = self.clientNames + self.filterNames + self.sourlientNames # Clients + Sourlients names
         self.clients = {}   # All the Client/Filter/Sourlient objects
+        self.fileCache = None                                                    # product processed.
         self.dbDirsCache = CacheManager(maxEntries=200000, timeout=25*3600)      # Directories created in the DB
         self.clientDirsCache = CacheManager(maxEntries=100000, timeout=2*3600)   # Directories created in TXQ
         self.feedNames = []  # source to feed
@@ -312,6 +313,9 @@ class Ingestor(object):
            self.drp = DirectRoutingParser(self.source.routingTable, self.allNames, self.logger, self.source.routing_version)
            self.drp.parse()
 
+        if self.source.nodups :
+           self.fileCache = CacheManager(maxEntries=120000, timeout=8*3600)
+
         reader = DiskReader(self.ingestDir, self.source.batch, self.source.validation, self.source.patternMatching,
                             self.source.mtime, False, self.source.logger, self.source.sorter, self.source)
 
@@ -330,6 +334,9 @@ class Ingestor(object):
                 if self.source.routemask :
                    self.drp = DirectRoutingParser(self.source.routingTable, self.allNames, self.logger)
                    self.drp.parse()
+
+                if self.source.nodups :
+                   self.fileCache.clear()
 
                 reader = DiskReader(self.ingestDir, self.source.batch, self.source.validation, self.source.patternMatching,
                                     self.source.mtime, False, self.source.logger, self.source.sorter, self.source)
@@ -356,6 +363,20 @@ class Ingestor(object):
                 self.ingestFile(file)
     
     def ingestFile(self, file ):
+
+        # check for duplicated if user requieres
+        if self.source.nodups : 
+
+           # read in data from file...
+           f = open(file,'r')
+           data = f.read()
+           f.close
+
+           # If data is already in cache, we don't send it
+           if self.fileCache.find(data, 'md5') is not None:
+              os.unlink(file)
+              self.logger.info("suppressed duplicate file %s", os.path.basename(file))
+              return
 
         # converting the file if necessary
         if self.source.execfile != None :
@@ -444,6 +465,9 @@ class Ingestor(object):
                     self.source.mapEnteteDelai,
                     self.source)
 
+        if self.source.nodups :
+           self.fileCache = CacheManager(maxEntries=120000, timeout=8*3600)
+
         reader = DiskReader(bullManager.pathSource, self.source.batch, self.source.validation, self.source.patternMatching,
                             self.source.mtime, False, self.source.logger, self.source.sorter)
         while True:
@@ -462,6 +486,10 @@ class Ingestor(object):
                                PXPaths.ROUTING_TABLE,
                                self.source.mapEnteteDelai,
                                self.source)
+
+                if self.source.nodups :
+                   self.fileCache.clear()
+
                 reader = DiskReader(bullManager.pathSource, self.source.batch, self.source.validation, self.source.patternMatching,
                                     self.source.mtime, False, self.source.logger, self.source.sorter)
 
@@ -486,12 +514,19 @@ class Ingestor(object):
 
             # Write (and name correctly) the bulletins to disk, erase them after
             for index in range(len(data)):
+
+                # ignore duplicate if requiered
+                duplicate = self.source.nodups and self.fileCache.find(data[index], 'md5') is not None
+
                 #nb_bytes = len(data[index])
                 #self.logger.info("Lecture de %s: %d bytes" % (reader.sortedFiles[index], nb_bytes))
-                bullManager.writeBulletinToDisk(data[index], True, True)
+                if not duplicate : bullManager.writeBulletinToDisk(data[index], True, True)
+
                 try:
-                    os.unlink(reader.sortedFiles[index])
-                    self.logger.debug("%s has been erased", os.path.basename(reader.sortedFiles[index]))
+                    file = reader.sortedFiles[index]
+                    os.unlink(file)
+                    if duplicate : self.logger.info("suppressed duplicate file %s", os.path.basename(file))
+                    self.logger.debug("%s has been erased", os.path.basename(file))
                 except OSError, e:
                     (type, value, tb) = sys.exc_info()
                     self.logger.error("Unable to unlink %s ! Type: %s, Value: %s" % (reader.sortedFiles[index], type, value))
