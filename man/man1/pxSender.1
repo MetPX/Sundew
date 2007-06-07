@@ -17,6 +17,10 @@ When products are present, the sender processes them according to its configurat
 and delivers them to the client defined in its configuration file. The products file are
 finally unlinked from its transmission directory tree.
 
+The priority is either 0,1,2,3,4,5.  A receiver will never create a 0 priority directory. 
+The 0 priority directory is used for retransmission. Any product put under the 0 priority directory
+will be sent to the client (without duplicate checking) if it meets the routing criterias.
+
 The configuration of a sender is a simple ascii file. It must be placed in 
 directory $PXROOT/etc/tx (PXROOT is usually /apps/px). The file's name must be
 the sender_name with the suffix .conf. For example if file $PXROOT/etc/tx/am-bulletins.conf
@@ -191,14 +195,19 @@ It compares this number with its cached md5checksum numbers of delivered product
 If a match is found, the product is not sent.
 
 When a client asks for a product to be retransmited, if this option is enabled,
-the sender must be stopped and restarted to clean its cache.  The product can than
-be retransmited by placing it in the transmission queue.
+the product must be placed under the priority 0 directory of the transmission queue.
 .fi
 
 .SH TYPE SINGLE-FILE SPECIFIC OPTIONS
 .TP
 \fBprotocol name (Default: ftp )\fR
-For the moment only protocol ftp is supported
+The following protocols are supported :  file, ftp and sftp.
+The ftp and sftp protocols are use to send file on a remote host.
+They requiere the use of options host,user, password,directory.
+If there is only one directory the option destination can replace
+the others.  When using sftp the option key_file must be provided.
+
+The file protocol is used to put the files in directories of the same machine.
 
 .TP
 \fBhost remotehost (Default: None )\fR
@@ -211,6 +220,12 @@ the user on the remote host where we are going to use to put the files
 .TP
 \fBpassword pw (Default: None )\fR
 the password for the user  on the remote host
+
+
+.TP
+\fBkey_file path (Default: None )\fR
+When sftp is used, key_file gives the path to the ssh key
+for the username given by the user option.
 
 .TP
 \fBdirectory dir (Default:'.')\fR
