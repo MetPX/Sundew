@@ -255,7 +255,7 @@ class Client(object):
                 elif re.compile('DESTFNSCRIPT=.*').match(spec):
                      old_destfn_script = self.destfn_script
                      old_destFileName  = destFileName
-                     script = PXPaths.SCRIPTS + spec[14:]
+                     script = PXPaths.SCRIPTS + spec[13:]
                      try    :
                               execfile(script)
                               destFileName = self.destfn_script(filename)
