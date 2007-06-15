@@ -144,7 +144,8 @@ are unlinked.
 The \fBinclude\fR option inserts all the configuration options present in 
 \fB$PXROOT/etc/tx/filename\fR as if they were present in the sender's configuration 
 file. This might be usefull when several senders in a cluster use almost exactly the
-same configuration. 
+same configuration. Avoid using the extension .conf to the file. The px program would
+think that this file is a sender by its own.
 .fi
 .TP
 \fBvalidation boolean (default:True )\fR
