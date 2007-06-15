@@ -99,24 +99,17 @@ behave like the PDS.
 .fi
 .SH PRODUCT ROUTING OPTIONS
 .nf
-\fBpatternMatching boolean  (Default: True)\fR
 \fBaccept <regexp pattern>\fR
 \fBreject <regexp pattern>\fR
-\fBemask <filepattern>\fR
 \fBimask <filepattern>\fR
 \fBroutemask boolean (default: False)\fR
 \fBroutingTable filename (default: pxRouting.conf)\fR
 \fBfeed receivername\fR
-\fBclientsPatternMatching boolean  (Default: True)\fR
 
-If the option \fBpatternMatching\fR is set to True, after determining the ingest_name,
-the ingest_name is matched against the \fBaccept\fR and \fBreject\fR regexp patterns of the filter's
-configuration file.  The default is for the file to be accepted.  \fBreject\fR (exclusion) can be
-used to suppress reception of files with a certain pattern. Files suppressed are not
-ingested into the DB.
-
-\fBemask/imask\fR are an older version of \fBaccept/reject\fR and use filepattern instead of regexp pattern
-and will slowly become obsolete.
+After determining the ingest_name, the ingest_name is matched against the \fBaccept\fR and \fBreject\fR
+regexp patterns of the filter's configuration file.  The default is for the file to be accepted.  
+\fBreject\fR (exclusion) can be used to suppress reception of files with a certain pattern. 
+Files suppressed are not ingested into the DB.
 
 The filter can use a routing table (more efficient).
 In that case you must do the following:
@@ -131,10 +124,6 @@ In that case you must do the following:
 
 Some filters may want to feed a receiver. The option \fBfeed\fR must than be used.
 Ex.: feed receiver_name_2
-
-If \fBclientsPatternMatching\fR is set to True, the filter scans the options
-\fBaccept/reject/emask/imask\fR presents in all its client's configuration files 
-to determine if the product is acceptable to the client.
 
 .fi
 .SH FILE RECEPTION OPTIONS
@@ -152,12 +141,32 @@ This option is useful for files received by rcp, ftp, etc.
 .TP
 \fBnoduplicates boolean (default:False )\fR
 .nf
-if set to true, the receiver computes the md5checksum of the incoming product. 
+if set to true, the filter computes the md5checksum of the incoming product. 
 It compares this number with its cached md5checksum numbers of received products. 
 If a match is found, the product is not ingested.
 
 .fi
-.SH DEVELOPPER SPECIFIC OPTIONS
+.SH DEVELOPER SPECIFIC OPTIONS
 .TP
 \fBsorter keyword (Default: MultiKeysStringSorter)\fR
 other keyword could be None, StandardSorter.  Determine which type of sorter will be used. In practice, never used.
+
+.TP
+\fBpatternMatching boolean  (Default: True)\fR
+
+If the option \fBpatternMatching\fR is True by default. But if it is set to False, the products' file name
+will not be matched against the \fBaccept\fR and \fBreject\fR regexp patterns of the sender's configuration file.
+For sender of type single-file, no product is processed. For senders of type am or wmo, all products are processed.
+
+.TP
+\fBemask <filepattern>\fR
+\fBimask <filepattern>\fR
+\fBemask/imask\fR are an older version of \fBaccept/reject\fR and use filepattern instead of regexp pattern.
+They are still working for now  but consider them obsolete.
+
+.TP
+\fBclientsPatternMatching boolean  (Default: True)\fR
+If \fBclientsPatternMatching\fR is set to False, the filter will not 
+scans the options \fBaccept/reject\fR presents in all its client's.
+The product is routed to the client. The client will have to determine
+if it accepts or rejects the product.
