@@ -141,11 +141,12 @@ are unlinked.
 .TP
 \fBinclude <filename>\fR
 .nf
-The \fBinclude\fR option inserts all the configuration options present in 
+The \fBinclude\fR option inserts all the configuration lines present in 
 \fB$PXROOT/etc/tx/filename\fR as if they were present in the sender's configuration 
 file. This might be usefull when several senders in a cluster use almost exactly the
-same configuration. By convention, include file is postfix with .inc. (Avoid .conf,
-px programs would think that this file is a sender by its own)
+same configuration. By convention, include file is postfix with .inc but not requiered.
+(Avoid .conf, px programs would think that this file is a sender by its self and would
+result by logging errors)
 .fi
 .TP
 \fBvalidation boolean (default:True )\fR
@@ -158,20 +159,23 @@ behave like the PDS.
 .fi
 .SH PRODUCT SELECTION OPTIONS
 .nf
-\fBpatternMatching boolean  (Default: True)\fR
-\fBaccept <regexp pattern>\fR
+\fBaccept <regexp pattern> [<keyword>]\fR
 \fBreject <regexp pattern>\fR
-\fBemask <filepattern>\fR
-\fBimask <filepattern>\fR
 
-If the option \fBpatternMatching\fR is set to True, the products' file name is matched against the \fBaccept\fR
-and \fBreject\fR regexp patterns of the sender's configuration file.  \fBreject\fR (exclusion) can be used to
-suppress the delivery of files with a certain pattern. \fBaccept\fR options validate filenames that are
-sent to the client. If the sender is 'single-file' than a product accepted will be placed in the
-nearest directory declared before the matching \fBaccept\fR declaration.
+The products' file name is matched against the \fBaccept\fR and \fBreject\fR regexp patterns of
+the sender's configuration file.  \fBreject\fR (exclusion) can be used to suppress the delivery
+of files with a certain pattern. \fBaccept\fR options validate filenames that are sent to the client.
+If the sender is 'single-file' than a product accepted will be placed in the nearest directory
+declared before the matching \fBaccept\fR declaration. The \fBaccept\fR declaration has an
+optional \fBkeyword\fR. It overwrites the \fBfilename\fR option value for the accepted products only.
+As an example the two following sequence are equivalent.
 
-\fBemask/imask\fR are an older version of \fBaccept/reject\fR and use filepattern instead of regexp pattern
-and will slowly become obsolete.
+         filename WHATFN
+         accept   .*:JPEG:.*
+
+is exactly equivalent to
+
+         accept   .*:JPEG:.*  WHATFN
 
 .fi
 .SH FILE TRANSMISSION OPTIONS
@@ -335,7 +339,7 @@ ${RSS}   replace by reception second
 set the elapse time after which a product sending will be considered timed out.
 A value of 0 means do not check for timeout.
 
-.SH DEVELOPPER SPECIFIC OPTIONS
+.SH DEVELOPER SPECIFIC OPTIONS
 .TP
 \fBsorter keyword (Default: MultiKeysStringSorter)\fR
 other keyword could be None, StandardSorter.  Determine which type of sorter will be used. In practice, never used.
@@ -348,3 +352,16 @@ This option set the unix socket option SO_KEEPALIVE to the value of that option
 \fBmtime integer (default:0 )\fR
 Number of seconds a file must not have been modified before we process it. 
 If set to 0, this is equivalent to not checking the modification time.
+
+.TP
+\fBpatternMatching boolean  (Default: True)\fR
+
+If the option \fBpatternMatching\fR is True by default. But if it is set to False, the products' file name
+will not be matched against the \fBaccept\fR and \fBreject\fR regexp patterns of the sender's configuration file.
+For sender of type single-file, no product is processed. For senders of type am or wmo, all products are processed.
+
+.TP
+\fBemask <filepattern>\fR
+\fBimask <filepattern>\fR
+\fBemask/imask\fR are an older version of \fBaccept/reject\fR and use filepattern instead of regexp pattern.
+They are still working for now  but consider them obsolete.
