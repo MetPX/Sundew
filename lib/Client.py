@@ -90,12 +90,7 @@ class Client(object):
         self.execfile2     = None
 
         # read in the config
-
-        currentDir = '.'                # Current directory
-        currentFileOption = 'WHATFN'    # Under what filename the file will be sent (WHATFN, NONE, etc., See PDS)
-        fileName = self.name + '.conf'
-        #print filePath
-        self.readConfig(fileName,currentDir,currentFileOption)
+        self.readConfig()
 
         if self.execfile != None :
            try    : execfile(PXPaths.SCRIPTS + self.execfile )
@@ -107,7 +102,14 @@ class Client(object):
 
         #self.printInfos(self)
 
-    def readConfig(self,fileName,currentDir,currentFileOption):
+    def readConfig(self):
+        currentDir = '.'                # Current directory
+        currentFileOption = 'WHATFN'    # Under what filename the file will be sent (WHATFN, NONE, etc., See PDS)
+        fileName = self.name + '.conf'
+        #print filePath
+        self.readConfigFile(fileName,currentDir,currentFileOption)
+
+    def readConfigFile(self,fileName,currentDir,currentFileOption):
         
         def isTrue(s):
             if  s == 'True' or s == 'true' or s == 'yes' or s == 'on' or \
@@ -137,8 +139,10 @@ class Client(object):
             if (len(words) >= 2 and not re.compile('^[ \t]*#').search(line)):
                 try:
                     if   words[0] == 'accept':
-                         cmask = re.compile(words[1])
-                         self.masks.append((words[1], currentDir, currentFileOption, cmask, True))
+                         cmask       = re.compile(words[1])
+                         cFileOption = currentFileOption
+                         if len(words) > 2: cFileOption = words[2]
+                         self.masks.append((words[1], currentDir, cFileOption, cmask, True))
                     elif words[0] == 'reject':
                          cmask = re.compile(words[1])
                          self.masks.append((words[1], currentDir, currentFileOption, cmask, False))
@@ -150,7 +154,7 @@ class Client(object):
                     elif words[0] == 'filename': currentFileOption = words[1]
                     elif words[0] == 'include':
                         fileName = words[1]
-                        self.readConfig(fileName,currentDir,currentFileOption)
+                        self.readConfigFile(fileName,currentDir,currentFileOption)
                     elif words[0] == 'destination':
                         self.url = words[1]
                         urlParser = URLParser(words[1])
@@ -321,7 +325,7 @@ class Client(object):
         print("******************************************")
 
         for mask in self.masks_deprecated:
-            print(" deprecated %s =" % mask )
+            print(" deprecated %s =" % mask[0] )
         print("==========================================================================")
 
 if __name__ == '__main__':
