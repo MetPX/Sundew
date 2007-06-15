@@ -139,6 +139,14 @@ are unlinked.
 
 .fi
 .TP
+\fBinclude <filename>\fR
+.nf
+The \fBinclude\fR option inserts all the configuration options present in 
+\fB$PXROOT/etc/tx/filename\fR as if they were present in the sender's configuration 
+file. This might be usefull when several senders in a cluster use almost exactly the
+same configuration. 
+.fi
+.TP
 \fBvalidation boolean (default:True )\fR
 .nf
 Validate if the filename have the following form:
