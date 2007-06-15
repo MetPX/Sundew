@@ -89,7 +89,13 @@ class Client(object):
         self.fx_script     = None           # a script to convert the file for client
         self.execfile2     = None
 
-        self.readConfig()
+        # read in the config
+
+        currentDir = '.'                # Current directory
+        currentFileOption = 'WHATFN'    # Under what filename the file will be sent (WHATFN, NONE, etc., See PDS)
+        fileName = self.name + '.conf'
+        #print filePath
+        self.readConfig(fileName,currentDir,currentFileOption)
 
         if self.execfile != None :
            try    : execfile(PXPaths.SCRIPTS + self.execfile )
@@ -101,7 +107,7 @@ class Client(object):
 
         #self.printInfos(self)
 
-    def readConfig(self):
+    def readConfig(self,fileName,currentDir,currentFileOption):
         
         def isTrue(s):
             if  s == 'True' or s == 'true' or s == 'yes' or s == 'on' or \
@@ -117,11 +123,8 @@ class Client(object):
             else:
                 return int(string[0])*64 + int(string[1])*8 + int(string[2])
 
-        currentDir = '.'                # Current directory
-        currentFileOption = 'WHATFN'    # Under what filename the file will be sent (WHATFN, NONE, etc., See PDS)
+        filePath = PXPaths.TX_CONF +  fileName
 
-        filePath = PXPaths.TX_CONF +  self.name + '.conf'
-        #print filePath
         try:
             config = open(filePath, 'r')
         except:
@@ -145,6 +148,9 @@ class Client(object):
 
                     elif words[0] == 'directory': currentDir = words[1]
                     elif words[0] == 'filename': currentFileOption = words[1]
+                    elif words[0] == 'include':
+                        fileName = words[1]
+                        self.readConfig(fileName,currentDir,currentFileOption)
                     elif words[0] == 'destination':
                         self.url = words[1]
                         urlParser = URLParser(words[1])
