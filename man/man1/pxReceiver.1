@@ -99,7 +99,6 @@ This option defines the type of the receiver... keyword is one of
 .nf
 The extension is a text to be added to the end of a file name to make it suitable for ingest into metpx.
 Five fields separted by four colons.  Some keyword substitutions can be done: 
-.nf
     -CCCC           - will be replaced by the bulletin origin site
     -TT             - will be replaced by the bulletin type (first 2 letters)
     -PRIPRIOTY      - will be replaced by the bulletin priority found in the routing table
@@ -231,7 +230,6 @@ Port to bind for the WMO reception.
 \fBkeepAlive boolean (Default:True)\fR
 This option set the unix socket option SO_KEEPALIVE to the value of that option
 
-.fi
 .SH TYPE COLLECTION SPECIFIC OPTIONS
 .TP
 \fBheader type (Default: None)\fR
@@ -254,7 +252,7 @@ Ex.:
                     collect data at 0,6,12,18
                     primary issue is 12 mins after the collect hour
                     secondaries are issued in cycle of 5 mins
-fi
+.fi
 
 .TP
 \fBhistory hours (Default: 24 )\fR
@@ -344,8 +342,7 @@ will not be matched against the \fBaccept\fR and \fBreject\fR regexp patterns of
 For sender of type single-file, no product is processed. For senders of type am or wmo, all products are processed.
 
 .TP
-\fBemask <filepattern>\fR
-\fBimask <filepattern>\fR
+\fBemask/imask <filepattern>\fR
 \fBemask/imask\fR are an older version of \fBaccept/reject\fR and use filepattern instead of regexp pattern.
 They are still working for now  but consider them obsolete.
 
