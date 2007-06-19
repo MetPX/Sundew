@@ -73,8 +73,7 @@ class bulletinManager:
             extension=':',
             pathFichierCircuit=None,
             mapEnteteDelai=None,
-            source=None,
-            addStationInFilename = False):
+            source=None ):
 
         self.pathTemp = self.__normalizePath(pathTemp)
         self.logger = logger
@@ -84,7 +83,6 @@ class bulletinManager:
         self.extension = extension
         self.mapEnteteDelai = mapEnteteDelai
         self.source = source
-        self.addStationInFilename = addStationInFilename
 
         # FIXME: this should be read from a config file, haven't understood enough yet.
         self.compteur = 0
@@ -331,7 +329,7 @@ class bulletinManager:
               station = bulletin.getStation()
            if station == None       : station = ''
            if not station.isalnum() : station = ''
-           if not isinstance(bulletin, bulletinAm.bulletinAm) or not addStationInFilename:
+           if not isinstance(bulletin, bulletinAm.bulletinAm) :
               if not (bulletin.getHeader())[:6] in ["SRCN40","SXCN40","SRMT60","SXAK50"] : station = ''
            
         # adding a counter to the file name insure its uniqueness
@@ -387,7 +385,7 @@ class bulletinManager:
                 return 'PROBLEM_BULLETIN_' + whatfn + self.getExtension(bulletin,error=True).replace(' ','_')
 
         elif bulletin.getError() != None and not error:
-            self.logger.warning("bulletin corrupt" + bulletin.getError()[0] )
+            self.logger.warning("bulletin corrupt " + bulletin.getError()[0] )
             return 'PROBLEM_BULLETIN_' + whatfn + self.getExtension(bulletin,error=True).replace(' ','_')
         else:
             self.logger.warning("unprintable header" )
@@ -479,52 +477,34 @@ class bulletinManager:
 
            requires a valid self.mapEnteteDelai (arrival mapping structure.)
 
-           Purpose:
+           Purpose: implement arrival time filtering.
+           
+           MG : rewritten 19-06-2007
 
-                implement arrival time filtering.
         """
-        if (self.mapEnteteDelai == None):
-            return
 
-        now = time.strftime("%d%H%M",time.localtime())
+        if self.mapEnteteDelai == None : return
 
         try:
-            bullTime = unBulletin.getHeader().split()[2]
-            header = unBulletin.getHeader()
-
-            minimum,maximum = None,None
-
-            for k in self.mapEnteteDelai.keys():
-            # Fetch appropriate interval from the map.
-                if k == header[:len(k)]:
-                    (minimum,maximum) = self.mapEnteteDelai[k]
-                    break
-
-            if minimum == None:
-            # if there isn't any, then it's OK.
-                return
-
+            type = unBulletin.getHeader()[:2]
+            if not type in self.mapEnteteDelai.keys() : return
+            (future,history) = self.mapEnteteDelai[type]
         except Exception:
             unBulletin.setError('cannot parse header')
             return
 
-        # adjust for crossing end of day...
-        if abs(int(now[:2]) - int(bullTime[:2])) > 10:
-            if now > bullTime:
-            #FIXME: do not grok!
-            # Si le temps présent est plus grand que le temps du bulletin
-            # (donc si le bulletin est généré le mois suivant que présentement),
-            # On ajoute une journée au temps présent pour faire le temps du bulletin
-                bullTime = str(int(now[:2]) + 1) + bullTime[2:]
-            else:
-            # Contraire (...)
-                now = str(int(bullTime[:2]) + 1) + now[2:]
+        # limits in seconds (in future ... delay is negative)
 
-        # Convert to minutes
-        nbMinNow = 60 * 24 * int(now[0:2]) + 60 * int(now[2:4]) + int(now[4:])
-        nbMinBullTime = 60 * 24 * int(bullTime[0:2]) + 60 * int(bullTime[2:4]) + int(bullTime[4:])
+        future  = -60 * future
+        history =  60 * history
 
-        # Calculate valid interval.
-        if not( -1 * abs(minimum) < nbMinNow - nbMinBullTime < maximum ):
-            self.logger.warning("arrival time outside permitted interval: "+unBulletin.getHeader()+', current time '+now)
+        # set bulletin arrival to current time
+
+        now = time.mktime(time.localtime())
+        unBulletin.setArrivalEp(now)
+
+        # Evaluate if bulletin is within interval.
+
+        if unBulletin.delay < future or unBulletin.delay > history :
+            self.logger.warning("arrival time outside permitted interval: "+unBulletin.getHeader()+", delay %d (Secs)"%unBulletin.delay )
             unBulletin.setError('arrival time outside permitted interval')

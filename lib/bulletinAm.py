@@ -99,7 +99,10 @@ class bulletinAm(bulletin.bulletin):
             # build header
             if station != None and uneEnteteDeBulletin != None:
                 if len(unBulletin[0].split()) == 1:
-                    uneEnteteDeBulletin = premierMot + uneEnteteDeBulletin + self.getFormattedSystemTime()
+                    if premierMot == "CA" :
+                       uneEnteteDeBulletin = premierMot + uneEnteteDeBulletin + self.getCaFormattedTime()
+                    else:
+                       uneEnteteDeBulletin = premierMot + uneEnteteDeBulletin + self.getFormattedSystemTime()
                 elif len(unBulletin[0].split()) == 2:
                     uneEnteteDeBulletin = premierMot + uneEnteteDeBulletin + unBulletin[0].split()[1]
                 else:
@@ -144,6 +147,34 @@ class bulletinAm(bulletin.bulletin):
 
 
         bulletin.bulletin.verifyHeader(self)
+
+    def getCaFormattedTime(self):
+        """getFormattedSystemTime() -> heure
+
+           heure:       String
+
+           Return a string with the local system time.
+           ddhhmm : day of month/hour(0-23h)/minutes
+
+           Purpose:
+
+               Generate the time stamp for a bulletin header.
+        """
+
+        try :
+              line = self.bulletin[2]
+              tok  = line.split(',')
+              year = tok[1]
+              tok[2] = '1'
+              jul  = string.zfill( tok[2], 3 )
+              hhmm = tok[3]
+              arrivalStr = year + jul + hhmm
+              timeStruct = time.strptime(arrivalStr, '%Y%j%H%M')
+              ddHHMM = time.strftime("%d%H%M",timeStruct)
+        except :
+              ddHHMM = time.strftime("%d%H%M",time.localtime())
+
+        return ddHHMM
 
     def getFormattedSystemTime(self):
         """getFormattedSystemTime() -> heure

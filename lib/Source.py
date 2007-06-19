@@ -233,6 +233,10 @@ class Source(object):
                     elif words[0] == 'routingTable': self.routingTable = words[1]
                     elif words[0] == 'fx_script': self.execfile = words[1]
 
+                    elif words[0] == 'arrival':
+                         if self.mapEnteteDelai == None : self.mapEnteteDelai = {}
+                         self.mapEnteteDelai[words[1]] = (int(words[2]), int(words[3]))
+
                     # options for pull
                     elif words[0] == 'directory': 
                          currentDir = words[1]
