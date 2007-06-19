@@ -172,6 +172,7 @@ class bulletinAm(bulletin.bulletin):
               timeStruct = time.strptime(arrivalStr, '%Y%j%H%M')
               ddHHMM = time.strftime("%d%H%M",timeStruct)
         except :
+              self.logger.warning("Was not able to get time from bulletin...took current time")
               ddHHMM = time.strftime("%d%H%M",time.localtime())
 
         return ddHHMM
