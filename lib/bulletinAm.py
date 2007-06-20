@@ -165,7 +165,6 @@ class bulletinAm(bulletin.bulletin):
               line = self.bulletin[2]
               tok  = line.split(',')
               year = tok[1]
-              tok[2] = '1'
               jul  = string.zfill( tok[2], 3 )
               hhmm = tok[3]
               arrivalStr = year + jul + hhmm
