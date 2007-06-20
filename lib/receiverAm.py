@@ -45,7 +45,8 @@ class receiverAm(gateway.gateway):
                                     pathFichierStations = self.pathFichierStations,
                                     extension = self.flow.extension, 
                                     mapEnteteDelai = self.flow.mapEnteteDelai,
-                                    source= self.flow)
+                                    source= self.flow,
+                                    addStationInFilename=True)
 
     def shutdown(self):
         __doc__ = gateway.gateway.shutdown.__doc__ + \

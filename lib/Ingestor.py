@@ -463,7 +463,8 @@ class Ingestor(object):
                     self.source.extension,
                     PXPaths.ROUTING_TABLE,
                     self.source.mapEnteteDelai,
-                    self.source)
+                    self.source,
+                    True)
 
         if self.source.nodups :
            self.fileCache = CacheManager(maxEntries=120000, timeout=8*3600)
@@ -485,7 +486,8 @@ class Ingestor(object):
                                self.source.extension,
                                PXPaths.ROUTING_TABLE,
                                self.source.mapEnteteDelai,
-                               self.source)
+                               self.source,
+                               True)
 
                 if self.source.nodups :
                    self.fileCache.clear()
