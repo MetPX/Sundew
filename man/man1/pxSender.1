@@ -149,6 +149,16 @@ same configuration. By convention, include file is postfix with .inc but not req
 result by logging errors)
 .fi
 .TP
+\fBnoduplicates boolean (default:True )\fR
+.nf
+if set to true, the sender computes the md5checksum of the product to send. 
+It compares this number with its cached md5checksum numbers of delivered products. 
+If a match is found, the product is not sent.
+
+When a client asks for a product to be retransmited, if this option is enabled,
+the product must be placed under the priority 0 directory of the transmission queue.
+.fi
+.TP
 \fBvalidation boolean (default:True )\fR
 .nf
 Validate if the filename have the following form:
@@ -200,16 +210,6 @@ the client.
 .TP
 \fBport integer (default:None)\fR
 Port to bind for the transmission.
-.TP
-\fBnoduplicates boolean (default:True )\fR
-.nf
-if set to true, the sender computes the md5checksum of the product to send. 
-It compares this number with its cached md5checksum numbers of delivered products. 
-If a match is found, the product is not sent.
-
-When a client asks for a product to be retransmited, if this option is enabled,
-the product must be placed under the priority 0 directory of the transmission queue.
-.fi
 
 .SH TYPE SINGLE-FILE SPECIFIC OPTIONS
 .TP
