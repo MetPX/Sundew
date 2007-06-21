@@ -162,11 +162,30 @@ class bulletinAm(bulletin.bulletin):
         """
 
         try :
+              year = time.strftime("%Y",time.localtime())
+              jul  = time.strftime("%j",time.localtime())
+              hhmm = 'x'
+
               line = self.bulletin[2]
               tok  = line.split(',')
-              year = tok[1]
-              jul  = string.zfill( tok[2], 3 )
-              hhmm = tok[3]
+
+              # this covers most common cases...
+              # when it doesn't work use current date !
+              # as the default was before
+
+              if len(tok[0]) == 4 :
+                 year = tok[0]
+                 jul  = string.zfill( tok[1], 3 )
+                 hhmm = string.zfill( tok[2], 4 )
+              elif len(tok[1]) == 4 :
+                 year = tok[1]
+                 jul  = string.zfill( tok[2], 3 )
+                 hhmm = string.zfill( tok[3], 4 )
+              else :
+                 jul  = string.zfill( tok[1], 3 )
+                 hhmm = string.zfill( tok[2], 4 )
+
+              #self.logger.warning(" year jul hhmm = %s %s %s " % (year,jul,hhmm) )
               arrivalStr = year + jul + hhmm
               timeStruct = time.strptime(arrivalStr, '%Y%j%H%M')
               ddHHMM = time.strftime("%d%H%M",timeStruct)
