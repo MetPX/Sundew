@@ -102,13 +102,18 @@ example 2: %prog start       => will start all filters
 
     filter = Source(filterName, logger, True, True)
 
-    if filter.type != 'filter' :
+    if filter.type != 'filter' and filter.type != 'filter-bulletin' :
        logger.error("Filter not proper type : %s" % filter.type )
        sys.exit(2) 
 
     igniter.setFlow(filter)
     
     igniter.setGateway('DUMMY')
-    filter.ingestor.ingestSingleFile(igniter)
+
+    if filter.type == 'filter' :
+       filter.ingestor.ingestSingleFile(igniter)
+
+    if filter.type == 'filter-bulletin' :
+       filter.ingestor.ingestBulletinFile(igniter)
 
     gateway.run()
