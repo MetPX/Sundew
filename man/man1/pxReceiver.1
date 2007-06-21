@@ -65,10 +65,11 @@ the directory $PXROOT/rxq/"receiver_name" is scannned endlessly. Any files writt
 the directory $PXROOT/rxq/"receiver_name" is scannned endlessly. Any files written in that directory is considered a new product to process. The file is processed without consideration to its content. The filename is used to route the file to the clients (see imask, emask, accept, reject directives).
 .TP
 \fBpull-bulletin\fR
-the configuration defines a remote host and an account to use. It also defines directories and files to retrieve from that site. New files are retreived and written into the receiver directory $PXROOT/rxq/"receiver_name". The rest of the process is identical to a receiver of type bulletin-file
+the configuration defines a remote host and an account to use. It also defines directories and files to retrieve from that site. New files are retreived and written into the receiver directory $PXROOT/rxq/"receiver_name". The rest of the process is identical to a receiver of type bulletin-file. When the receiver directory holds a file named .sleep, the receiver doesn't get any file. The .sleep file becomes usefull on a clustered implementation of metpx.
 .TP
 \fBpull-file\fR
-the configuration defines a remote host and an account to use. It also defines directories and files to retrieve from that site. New files are retreived and written into the receiver directory $PXROOT/rxq/"receiver_name". The rest of the process is identical to a receiver of type single-file.
+the configuration defines a remote host and an account to use. It also defines directories and files to retrieve from that site. New files are retreived and written into the receiver directory $PXROOT/rxq/"receiver_name". The rest of the process is identical to a receiver of type single-file. When the receiver directory holds a file named .sleep, the recei
+ver doesn't get any file. The .sleep file becomes usefull on a clustered implementation of metpx.
 .SH CONFIGURATION
 .Pp
 As said earlier, the configuration file for a receiver resides in $PXROOT/etc/rx/"\fBReceiverName\fR".conf
