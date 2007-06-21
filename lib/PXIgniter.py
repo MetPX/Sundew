@@ -122,7 +122,7 @@ class PXIgniter(Igniter):
          if self.direction == 'sender':
             self.reloadMode = True
 
-         elif self.direction == 'filter' or self.direction == 'filter-bulletin':
+         elif self.direction == 'filter':
             self.reloadMode = True
 
          elif self.direction == 'receiver':
