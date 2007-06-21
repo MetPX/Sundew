@@ -47,7 +47,7 @@ class Ingestor(object):
 
         if source is not None:
             self.ingestDir = PXPaths.RXQ + self.source.name
-            if self.source.type == 'filter' :
+            if self.source.type == 'filter' or self.source.type == 'filter-bulletin' :
                self.ingestDir = PXPaths.FXQ + self.source.name
             self.logger = source.logger
         elif logger is not None:
@@ -345,10 +345,14 @@ class Ingestor(object):
 
             # pull files in rxq directory if in pull mode
             if self.source.type == 'pull-file' :
-               puller = PullFTP(self.source,self.logger)
-               files  = puller.get()
-               puller.close()
-               self.logger.debug("Number of files pulled = %s" % len(files) )
+               sleeping = os.path.isfile(PXPaths.RXQ + self.source.name + '/.sleep')
+               if not sleeping :
+                  puller = PullFTP(self.source,self.logger)
+                  files  = puller.get()
+                  puller.close()
+                  self.logger.debug("Number of files pulled = %s" % len(files) )
+               else :
+                  self.logger.info("This pull is sleeping")
 
             reader.read()
             if len(reader.sortedFiles) <= 0:
@@ -455,9 +459,9 @@ class Ingestor(object):
         if self.source.type == 'pull-bulletin' : sleep_sec = self.source.pull_sleep
 
         bullManager = bulletinManager.bulletinManager(
-                    PXPaths.RXQ + self.source.name,
+                    self.ingestDir,
                     self.logger,
-                    PXPaths.RXQ + self.source.name,
+                    self.ingestDir,
                     99999,
                     '\n',
                     self.source.extension,
@@ -476,11 +480,15 @@ class Ingestor(object):
             if igniter.reloadMode == True:
                 # We assign the defaults, reread configuration file for the source
                 # and reread all configuration file for the clients (all this in __init__)
-                self.source.__init__(self.source.name, self.source.logger)
+                if self.source.type == 'filter-bulletin' : 
+                       self.source.__init__(self.source.name, self.source.logger, True, True)
+                else :
+                       self.source.__init__(self.source.name, self.source.logger)
+
                 bullManager = bulletinManager.bulletinManager(
-                               PXPaths.RXQ + self.source.name,
+                               self.ingestDir,
                                self.logger,
-                               PXPaths.RXQ + self.source.name,
+                               self.ingestDir,
                                99999,
                                '\n',
                                self.source.extension,
@@ -500,10 +508,14 @@ class Ingestor(object):
 
             # pull files in rxq directory if in pull mode
             if self.source.type == 'pull-bulletin' :
-               puller = PullFTP(self.source,self.logger)
-               files  = puller.get()
-               puller.close()
-               self.logger.debug("Number of files pulled = %s" % len(files) )
+               sleeping = os.path.isfile(PXPaths.RXQ + self.source.name + '/.sleep')
+               if not sleeping :
+                  puller = PullFTP(self.source,self.logger)
+                  files  = puller.get()
+                  puller.close()
+                  self.logger.debug("Number of files pulled = %s" % len(files) )
+               else :
+                  self.logger.info("This pull is sleeping")
 
             reader.read()
             data = reader.getFilesContent(reader.batch)
@@ -522,7 +534,42 @@ class Ingestor(object):
 
                 #nb_bytes = len(data[index])
                 #self.logger.info("Lecture de %s: %d bytes" % (reader.sortedFiles[index], nb_bytes))
-                if not duplicate : bullManager.writeBulletinToDisk(data[index], True, True)
+                if not duplicate : 
+
+                   # converting the file if necessary
+                   if self.source.execfile != None :
+
+                      file   = reader.sortedFiles[index]
+                      fxfile = self.source.run_fx_script(file,self.source.logger)
+
+                      # if fxfile == file than the fx_script accept the file as is...a
+                      # if we are a filter than that file was already routed to clients
+                      # so don't consider it...
+
+                      if self.source.type == 'filter-bulletin' and fxfile == file : fxfile = None
+
+                      # convertion did not work
+                      if fxfile == None :
+                             self.logger.warning("FX script ignored the file : %s"    % os.path.basename(file) )
+                             os.unlink(file)
+                             continue
+
+                      # file already in proper format
+                      elif fxfile == file :
+                             self.logger.warning("FX script kept the file as is : %s" % os.path.basename(file) )
+
+                      # file converted...
+                      else :
+                             self.logger.info("FX script modified %s to %s " % (os.path.basename(file),os.path.basename(fxfile)) )
+                             os.unlink(file)
+                             fp = open(fxfile,'r')
+                             dx = fp.read()
+                             fp.close()
+                             reader.sortedFiles[index] = fxfile
+                             data[index] = dx
+
+                   # writing/ingesting the bulletin
+                   bullManager.writeBulletinToDisk(data[index], True, True)
 
                 try:
                     file = reader.sortedFiles[index]
