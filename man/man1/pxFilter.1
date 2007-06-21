@@ -44,6 +44,15 @@ returns the state of filter (running, locked or stopped). It gets the process id
 .TP
 \fBstop\fR
 stops the filter program. It includes a proper handling of file processing (if any) and it removes the lock file in the $PXROOT/fxq/"filter_name"/.lock.
+.SH RECEIVER TYPES
+The possible type are :
+.TP
+\fBfilter\fR
+the routing of the converted product is done without consideration to its content. The filename is used to route the file to the clients (see imask, emask, accept, reject directives).
+.TP
+\fBfilter-bulletin\fR
+the routing of the converted product considers its content; it must be a meteorological bulletin.
+.TP
 .SH CONFIGURATION
 .Pp
 As said earlier, the configuration file for a filter resides in $PXROOT/etc/fx/"\fBFilterName\fR".conf
