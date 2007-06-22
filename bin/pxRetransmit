@@ -1,0 +1,43 @@
+#!/bin/ksh
+
+#
+# MG 20070622
+#
+# This script retransmits one or more files to a px client
+# The retransmission is done the following way
+#     1- the directory /apps/px/txq/"client" must exist
+#        this is the only check done to ensure the client is good
+#     2- the directory /apps/px/txq/"client"/0/YYYYMMDDHH is created if necessary
+#     3- cp all files into that directory
+#
+
+# usage
+
+  function Usage {
+    echo "Usage : $0 client file1 ... fileN"
+    exit 1
+  }
+
+# must have at least 2 arguments
+
+  N=$#
+  if (( N < 2 )); then  Usage; fi
+
+# argument 1 is sender name
+
+  if [[ ! -d /apps/px/txq/$1 ]]; then
+     echo $1 " invalid client or directory not found"
+  fi
+
+# create if it does not exit the directory where we
+# are going to put the data to retransmit
+
+  RDIR=/apps/px/txq/$1/0/`date +%Y%m%d%H`
+  if [[ ! -d $RDIR ]]; then
+     mkdir -p $RDIR
+  fi
+
+# copy the files into the directory
+
+  shift
+  cp $* $RDIR
