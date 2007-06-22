@@ -176,7 +176,8 @@ class DirectRoutingParser(FileParser):
     def reparse(self):
         routingInfosOld = self.routingInfos.copy()
         keyMaskMapOld = self.keyMaskMap.copy()
-        keyMasksOld = self.keyMasks.copy()
+        keyMasksOld = []
+        keyMasksOld.extend(self.keyMasks)
         subClientsOld = self.subClients.copy()
         #goodClientsOld = self.goodClients.copy()
         #badClientsOld = self.badClients.copy()
