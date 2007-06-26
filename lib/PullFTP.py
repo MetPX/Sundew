@@ -98,9 +98,7 @@ class PullFTP(object):
         try   :
                   # gives 10 seconds to get there
                   timex.alarm(10)
-                  self.logger.warning("self.original directory %s" % self.originalDir )
                   self.ftp.cwd(self.originalDir)
-                  self.logger.warning("relative path %s" % path )
                   self.ftp.cwd(path)
                   timex.cancel()
                   return True
@@ -186,7 +184,8 @@ class PullFTP(object):
         ndestDir = ''
 
         DD = path.split("/")
-        for  ddword in DD :
+        for  ddword in DD[1:] :
+             ndestDir += '/'
              if ddword == "" : continue
 
              nddword = ""
@@ -194,7 +193,7 @@ class PullFTP(object):
              for dwword in DW :
                  nddword += self.matchPattern(dwword,dwword)
 
-             ndestDir += "/" + nddword 
+             ndestDir += nddword
 
         return ndestDir
 
