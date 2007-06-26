@@ -162,30 +162,52 @@ class bulletinAm(bulletin.bulletin):
         """
 
         try :
-              year = time.strftime("%Y",time.localtime())
-              jul  = time.strftime("%j",time.localtime())
-              hhmm = 'x'
+              year  = time.strftime("%Y",time.localtime())
+              jul   = time.strftime("%j",time.localtime())
+              hhmm  = 'x'
 
-              line = self.bulletin[2]
-              tok  = line.split(',')
+              yjul  = int(jul)-1
+              yjul  = "%s"%yjul
+
+              line  = self.bulletin[2]
+              tok   = line.split(',')
 
               # this covers most common cases...
               # when it doesn't work use current date !
               # as the default was before
 
-              if len(tok[0]) == 4 :
-                 year = tok[0]
-                 jul  = string.zfill( tok[1], 3 )
-                 hhmm = string.zfill( tok[2], 4 )
-              elif len(tok[1]) == 4 :
-                 year = tok[1]
-                 jul  = string.zfill( tok[2], 3 )
-                 hhmm = string.zfill( tok[3], 4 )
+              case = 9
+              if    tok[0] == year :
+                                     case = 0
+              elif  tok[1] == year :
+                                     case = 1
+              elif  tok[2] == year :
+                 if tok[3] == jul  : case = 2
+                 if tok[3] == yjul and jul != '1' : case = 2
+
+              if case > 2 and jul == '1' :
+                 yyear  = int(year)-1
+                 yyear  = "%s"%yyear
+                 if    tok[0] == yyear :
+                                        case = 0
+                 elif  tok[1] == yyear :
+                                        case = 1
+                 elif  tok[2] == yyear :
+                    if tok[3] == '365' or tok[3] == '366' : case = 2
+
+              if case <= 2 :
+                 year = tok[case]
+                 jul  = string.zfill( tok[case+1], 3 )
+                 hhmm = string.zfill( tok[case+2], 4 )
+
+              # FIX ME
+              # if year not present, the jul day is "mostly" the second tok in 3rd line
+              # this may not always be the case...
               else :
                  jul  = string.zfill( tok[1], 3 )
                  hhmm = string.zfill( tok[2], 4 )
 
-              #self.logger.warning(" year jul hhmm = %s %s %s " % (year,jul,hhmm) )
+              #self.logger.debug(" year jul hhmm = %s %s %s " % (year,jul,hhmm) )
               arrivalStr = year + jul + hhmm
               timeStruct = time.strptime(arrivalStr, '%Y%j%H%M')
               ddHHMM = time.strftime("%d%H%M",timeStruct)
