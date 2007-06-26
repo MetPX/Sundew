@@ -98,7 +98,9 @@ class PullFTP(object):
         try   :
                   # gives 10 seconds to get there
                   timex.alarm(10)
+                  self.logger.warning("self.original directory %s" % self.originalDir )
                   self.ftp.cwd(self.originalDir)
+                  self.logger.warning("relative path %s" % path )
                   self.ftp.cwd(path)
                   timex.cancel()
                   return True
@@ -284,6 +286,7 @@ class PullFTP(object):
 
             pdir = self.dirPattern(self.destDir)
             if pdir != '' : self.destDir = pdir
+            self.destDir = self.destDir[1:]
 
             # cd to that directory
 
