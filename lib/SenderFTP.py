@@ -38,10 +38,12 @@ PXPaths.normalPaths()              # Access to PX paths
 
 class SenderFTP(object):
 
-    def __init__(self, client, logger=None) :
+    def __init__(self, client, logger=None, cacheManager=None) :
 
         # General Attributes
-        self.client = client                      # Client Object
+        self.client       = client       # Client Object
+        self.cacheManager = cacheManager # cache  Object
+        self.cacheData    = None         # last cache Object tested/added
         if logger is None:
             self.logger = Logger(PXPaths.LOG + 'tx_' + client.name + '.log', 'INFO', 'TX' + name) # Enable logging
             self.logger = self.logger.getLogger()
@@ -305,7 +307,6 @@ class SenderFTP(object):
 
 
     # sending a list of files
-
     def send(self, files):
 
         # process with file sending
@@ -315,6 +316,18 @@ class SenderFTP(object):
         for filex in files:
 
             file = filex
+
+            # priority 0 is retransmission and is never suppressed
+
+            priority = file.split('/')[5]
+
+            # if in cache than it was already sent... nothing to do
+            # caching is always done on original file for early check (before fx)
+
+            if self.client.nodups and priority != '0' and self.in_cache( True, file ) :
+               self.logger.info("suppressed duplicate send %s", os.path.basename(file))
+               os.unlink(file)
+               continue
 
             # applying the fx_script if defined redefine the file list
 
@@ -435,6 +448,10 @@ class SenderFTP(object):
                           else:
                              self.send_umask( file,ldestName )
     
+                          # add data to cache if needed
+                          if self.client.nodups and self.cacheData != None : 
+                             self.cacheManager.find( self.cacheData, 'md5' ) 
+
                           os.unlink(file)
                           self.logger.info("(%i Bytes) File %s delivered to %s://%s@%s%s%s" % \
                                           (nbBytes, file, self.client.protocol, self.client.user, \
@@ -466,6 +483,22 @@ class SenderFTP(object):
                    # FIXME: Faire des cas particuliers selon les exceptions recues
                    # FIXME: Voir le cas ou un fichier aurait les perms 000
                    # FIXME: Reutilisation de ftpConnect
+
+    # check if data in cache... if not it is added automatically
+    def in_cache(self,unlink_it,path) :
+
+        self.cacheData=None
+
+        try   :
+
+                 f=open(path,'r')
+                 self.cacheData=f.read()
+                 f.close()
+        except:
+                 self.logger.error("Suppress duplicate : could not read %s", os.path.basename(path))
+                 return False
+
+        return   self.cacheManager.has(self.cacheData, 'md5') 
 
 if __name__ == '__main__':
     pass
