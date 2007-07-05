@@ -306,6 +306,20 @@ class SenderFTP(object):
            self.ftp.voidcmd('SITE CHMOD ' + str(self.client.chmod) + ' ' + destName)
 
 
+    # sending one file straight No locking method
+    def send_unlock(self, file, destName ):
+
+        if self.sftp != None :
+           self.sftp.put(file,destName)
+
+        if self.ftp != None :
+           fileObject = open(file, 'r')
+           self.ftp.storbinary("STOR " + destName, fileObject)
+           fileObject.close()
+
+        self.perm(destName)
+
+
     # sending a list of files
     def send(self, files):
 
@@ -360,6 +374,12 @@ class SenderFTP(object):
                self.logger.info('No destination name: %s has been erased' % file)
                continue
 
+            # run destfn
+            ldestName = self.client.run_destfn_script(destName)
+            if ldestName != destName :
+               self.logger.info("destfn_script : %s becomes %s "  % (destName,ldestName) )
+            destName = ldestName
+
             # check protocol
             if not self.client.protocol in ['file','ftp','sftp'] :
                self.logger.critical("Unknown protocol: %s" % self.client.protocol)
@@ -384,6 +404,11 @@ class SenderFTP(object):
                       if self.client.dir_mkdir == True and not os.path.isdir(destDirString) : os.makedirs(destDirString)
                       os.rename(file, destDirString + destName)
                       self.logger.info("(%i Bytes) File %s delivered to %s://%s@%s%s%s" % (nbBytes, file, self.client.protocol, self.client.user, self.client.host, destDirString, destName))
+
+                      # add data to cache if needed
+                      if self.client.nodups and self.cacheData != None : 
+                         self.cacheManager.find( self.cacheData, 'md5' ) 
+
                except:
                       (type, value, tb) = sys.exc_info()
                       self.logger.error("Unable to move to: %s, Type: %s, Value:%s" % ((destDirString+destName), type, value))
@@ -430,23 +455,23 @@ class SenderFTP(object):
                                 self.logger.error("Unable to cwd to: %s, Type: %s, Value:%s" % (destDir, type, value))
                                 time.sleep(1)
                                 continue
-    
-                   # run destfn
-                   ldestName = self.client.run_destfn_script(destName)
-    
-                   if ldestName != destName :
-                      self.logger.info("destfn_script : %s becomes %s "  % (destName,ldestName) )
-    
+
                    # try to write the file to the client
                    try :
-    
+
                           # First put method : use a temporary filename = filename + lock extension
                           if self.client.lock[0] == '.':
-                             self.send_lock( file,ldestName )
+                             self.send_lock( file,destName )
     
                           # Second put method : use UMASK to temporary lock the file
-                          else:
-                             self.send_umask( file,ldestName )
+                          elif self.client.lock == 'umask' :
+                             self.send_umask( file,destName )
+
+                          # First put method : use a temporary filename = filename + lock extension
+                          else :
+                             if self.client.lock != 'None' :
+                                self.logger.warning("lock option invalid (%s) no locking used" % self.client.lock)
+                             self.send_unlock( file,destName )
     
                           # add data to cache if needed
                           if self.client.nodups and self.cacheData != None : 
@@ -455,17 +480,17 @@ class SenderFTP(object):
                           os.unlink(file)
                           self.logger.info("(%i Bytes) File %s delivered to %s://%s@%s%s%s" % \
                                           (nbBytes, file, self.client.protocol, self.client.user, \
-                                          self.client.host, destDirString, ldestName))
+                                          self.client.host, destDirString, destName))
 
                    except:
                           (type, value, tb) = sys.exc_info()
                           self.logger.error("Unable to deliver to %s://%s@%s%s%s, Type: %s, Value: %s" % 
                                            (self.client.protocol, self.client.user, self.client.host, \
-                                           destDirString, ldestName, type, value))
+                                           destDirString, destName, type, value))
     
                           # preventive delete when umask 
                           if self.client.lock[0] != '.' :
-                             self.rm(ldestName)
+                             self.rm(destName)
 
                           timex.cancel()
                           return
@@ -476,7 +501,7 @@ class SenderFTP(object):
                    timex.cancel()
                    self.logger.warning("SEND TIMEOUT (%i Bytes) File %s going to %s://%s@%s%s%s" % \
                                       (nbBytes, file, self.client.protocol, self.client.user, \
-                                       self.client.host, destDirString, ldestName))
+                                       self.client.host, destDirString, destName))
 
                    return
                        
