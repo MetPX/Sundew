@@ -472,15 +472,15 @@ class SenderFTP(object):
                              if self.client.lock != 'None' :
                                 self.logger.warning("lock option invalid (%s) no locking used" % self.client.lock)
                              self.send_unlock( file,destName )
-    
-                          # add data to cache if needed
-                          if self.client.nodups and self.cacheData != None : 
-                             self.cacheManager.find( self.cacheData, 'md5' ) 
 
                           os.unlink(file)
                           self.logger.info("(%i Bytes) File %s delivered to %s://%s@%s%s%s" % \
                                           (nbBytes, file, self.client.protocol, self.client.user, \
                                           self.client.host, destDirString, destName))
+    
+                          # add data to cache if needed
+                          if self.client.nodups and self.cacheData != None : 
+                             self.cacheManager.find( self.cacheData, 'md5' ) 
 
                    except:
                           (type, value, tb) = sys.exc_info()
