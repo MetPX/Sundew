@@ -467,7 +467,7 @@ class SenderFTP(object):
                           elif self.client.lock == 'umask' :
                              self.send_umask( file,destName )
 
-                          # First put method : use a temporary filename = filename + lock extension
+                          # third no special locking mechanism (fall back if lock type incorrect)
                           else :
                              if self.client.lock != 'None' :
                                 self.logger.warning("lock option invalid (%s) no locking used" % self.client.lock)
