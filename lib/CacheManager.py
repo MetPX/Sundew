@@ -17,7 +17,7 @@ named COPYING in the root of the source directory tree.
 #############################################################################################
 
 """
-import md5, time
+import md5, time, os
 
 class CacheManager(object):
 
@@ -77,6 +77,28 @@ class CacheManager(object):
         if key in self.cache: return True
 
         return False
+
+    # MG get md5 from file...
+
+    def get_md5_from_file(self, path ):
+
+        m  = md5.new()
+        sz = os.stat(path)[6]
+
+        # one meg or less buffer read
+
+        f=open(path,'r')
+
+        data = f.read(1048576)
+        while len(data) :
+              m.update(data)
+              data = f.read(1048576)
+
+        f.close()
+
+        key = m.hexdigest()
+
+        return key
 
     def clear(self):
         self.cache = {}
