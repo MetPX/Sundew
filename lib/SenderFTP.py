@@ -187,7 +187,13 @@ class SenderFTP(object):
                     ftp.set_pasv(False)
                 else:
                     ftp.set_pasv(True)
-                self.originalDir = ftp.pwd()
+
+                self.originalDir = '.'
+
+                try   : self.originalDir = ftp.pwd()
+                except:
+                        (type, value, tb) = sys.exc_info()
+                        self.logger.warning("Unable to ftp.pwd (Type: %s, Value: %s)" % (type ,value))
 
                 timex.cancel()
 
