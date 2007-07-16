@@ -134,7 +134,7 @@ example 2: %prog start       => will start all clients
 
         cacheManager = None
 
-        if client.nodups : cacheManager = CacheManager(maxEntries=120000, timeout=8*3600)
+        if client.nodups : cacheManager = CacheManager(maxEntries=25000, timeout=2*3600)
 
         while True:
             if igniter.reloadMode:
