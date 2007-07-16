@@ -64,7 +64,7 @@ class Ingestor(object):
         self.clients = {}   # All the Client/Filter/Sourlient objects
         self.fileCache = None                                                    # product processed.
         self.dbDirsCache = CacheManager(maxEntries=200000, timeout=25*3600)      # Directories created in the DB
-        self.clientDirsCache = CacheManager(maxEntries=100000, timeout=2*3600)   # Directories created in TXQ
+        self.clientDirsCache = CacheManager(maxEntries=25000, timeout=2*3600)    # File ingested in RXQ
         self.feedNames = []  # source to feed
         self.feeds = {}
         if source is not None:
@@ -371,13 +371,11 @@ class Ingestor(object):
         # check for duplicated if user requieres
         if self.source.nodups : 
 
-           # read in data from file...
-           f = open(file,'r')
-           data = f.read()
-           f.close
+           # get md5 key from file...
+           md5_key = self.fileCache.get_md5_from_file(file)
 
            # If data is already in cache, we don't send it
-           if self.fileCache.find(data, 'md5') is not None:
+           if self.fileCache.find(md5_key, 'standard') is not None:
               os.unlink(file)
               self.logger.info("suppressed duplicate file %s", os.path.basename(file))
               return
