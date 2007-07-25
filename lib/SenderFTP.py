@@ -62,6 +62,7 @@ class SenderFTP(object):
         if self.client.protocol == 'sftp':
            self.sftp   = self.sftpConnect()
            self.chdir  = self.sftp.chdir
+           self.Ochmod = self.octal_perm(self.client.chmod)
 
     # close connection... 
 
@@ -259,7 +260,7 @@ class SenderFTP(object):
     # some system doesn't support chmod... so pass exception on that
     def perm(self, path):
         try    :
-                 if self.sftp != None : self.sftp.chmod(path,self.client.chmod)
+                 if self.sftp != None : self.sftp.chmod(path,self.Ochmod)
                  if self.ftp  != None : self.ftp.voidcmd('SITE CHMOD ' + str(self.client.chmod) + ' ' + path)
         except :
                  (type, value, tb) = sys.exc_info()
@@ -295,6 +296,13 @@ class SenderFTP(object):
 
         self.perm(destName)
 
+    # octal permission... there must be a better way of doing this...
+    def octal_perm(self, perm ):
+        unit = perm % 10
+        diz  = perm % 100  /  10
+        cent = perm % 1000 /  100
+        oct  = cent * 64 + diz * 8 + unit
+        return oct
 
     # sending one file using umask method
     def send_umask(self, file, destName ):
@@ -302,7 +310,7 @@ class SenderFTP(object):
         if self.sftp != None :
            #    sftp.umask(777) does not exist
            self.sftp.put(file,destName)
-           self.sftp.chmod(destName,self.client.chmod)
+           self.sftp.chmod(destName, self.Ochmod)
 
         if self.ftp != None :
            self.ftp.voidcmd('SITE UMASK 777')
