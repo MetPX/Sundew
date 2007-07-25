@@ -163,7 +163,9 @@ class SenderFTP(object):
                     except:
                             try   :
                                     if self.sftp != None :
-                                       self.sftp.mkdir(d,self.client.chmod)
+                                       self.sftp.mkdir(d,self.Ochmod)
+                                       # previous mkdir did not do the job ... force with perm
+                                       self.perm(d)
                                     if self.ftp != None :
                                        self.ftp.mkd(d)
                                        self.perm(d)
