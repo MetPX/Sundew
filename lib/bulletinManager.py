@@ -482,7 +482,8 @@ class bulletinManager:
            Purpose: implement arrival time filtering.
            
            MG : rewritten 19-06-2007
-
+                FIX       25-07-2007  catch exception when delay is computed
+                                      header may not be good
         """
 
         if self.mapEnteteDelai == None : return
@@ -490,20 +491,23 @@ class bulletinManager:
         try:
             type = unBulletin.getHeader()[:2]
             if not type in self.mapEnteteDelai.keys() : return
+
             (future,history) = self.mapEnteteDelai[type]
+
+            # limits in seconds (in future ... delay is negative)
+
+            future  = -60 * future
+            history =  60 * history
+
+            # set bulletin arrival to current time
+
+            now = time.mktime(time.localtime())
+            unBulletin.setArrivalEp(now)
+
         except Exception:
             unBulletin.setError('cannot parse header')
             return
 
-        # limits in seconds (in future ... delay is negative)
-
-        future  = -60 * future
-        history =  60 * history
-
-        # set bulletin arrival to current time
-
-        now = time.mktime(time.localtime())
-        unBulletin.setArrivalEp(now)
 
         # Evaluate if bulletin is within interval.
 
