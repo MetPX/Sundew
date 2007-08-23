@@ -98,11 +98,10 @@ class bulletinAm(bulletin.bulletin):
 
             # build header
             if station != None and uneEnteteDeBulletin != None:
-                if len(unBulletin[0].split()) == 1:
-                    if premierMot == "CA" :
-                       uneEnteteDeBulletin = premierMot + uneEnteteDeBulletin + self.getCaFormattedTime()
-                    else:
-                       uneEnteteDeBulletin = premierMot + uneEnteteDeBulletin + self.getFormattedSystemTime()
+                if premierMot == "CA" :
+                    uneEnteteDeBulletin = premierMot + uneEnteteDeBulletin + self.getCaFormattedTime()
+                elif len(unBulletin[0].split()) == 1:
+                    uneEnteteDeBulletin = premierMot + uneEnteteDeBulletin + self.getFormattedSystemTime()
                 elif len(unBulletin[0].split()) == 2:
                     uneEnteteDeBulletin = premierMot + uneEnteteDeBulletin + unBulletin[0].split()[1]
                 else:
@@ -148,6 +147,41 @@ class bulletinAm(bulletin.bulletin):
 
         bulletin.bulletin.verifyHeader(self)
 
+    # converting date/time found in CA to our proper header time signature
+    def convertCaTime(self,year,jul,hhmm):
+        if hhmm != '2400' :
+           arrivalStr = year + jul + hhmm
+           timeStruct = time.strptime(arrivalStr, '%Y%j%H%M')
+           ddHHMM     = time.strftime("%d%H%M",timeStruct)
+           return ddHHMM
+
+        # sometime hhmm is 2400 which would create an exception if not treated properly
+        # in this case : set time to 00, increase by 24 hr, return proper ddHHMM
+
+        jul00      = year + jul + '0000'
+        timeStruct = time.strptime(jul00, '%Y%j%H%M')
+        next00     = time.mktime(timeStruct) + 24 * 60 * 60
+        ddHHMM     = time.strftime('%d%H%M',time.localtime(next00))
+        return ddHHMM
+
+    # converting date/time token found for a CA
+    def convertCaToken(self,tok):
+        year  = tok[0]
+        jul   = string.zfill( tok[1], 3 )
+        hhmm  = string.zfill( tok[2], 4 )
+        return  self.convertCaTime(year,jul,hhmm)
+
+    # check if token looks like a year
+    def tokIsYear(self,tok,year):
+        if tok == year : return True
+
+        if len(tok) !=    4              : return False
+        if tok[:2]  != '20'              : return False
+        if not tok[2:2] in string.digits : return False
+        if not tok[3:3] in string.digits : return False
+
+        return True
+
     def getCaFormattedTime(self):
         """getFormattedSystemTime() -> heure
 
@@ -162,58 +196,33 @@ class bulletinAm(bulletin.bulletin):
         """
 
         try :
-              year  = time.strftime("%Y",time.localtime())
-              jul   = time.strftime("%j",time.localtime())
-              hhmm  = 'x'
+                 line  = self.bulletin[2]
+                 parts = line.split(',')
+                 year  = time.strftime("%Y",time.localtime())
 
-              yjul  = int(jul)-1
-              yjul  = "%s"%yjul
+                 # the date in CACN starts at token 1 or 2 and has format YYYY,jjj,hhmm
 
-              line  = self.bulletin[2]
-              tok   = line.split(',')
+                 if self.tokIsYear(parts[1],year) : return self.convertCaToken(parts[1:])
+                 if self.tokIsYear(parts[2],year) : return self.convertCaToken(parts[2:])
 
-              # this covers most common cases...
-              # when it doesn't work use current date !
-              # as the default was before
+                 # check if station name in report line... check date after stn name
 
-              case = 9
-              if    tok[0] == year :
-                                     case = 0
-              elif  tok[1] == year :
-                                     case = 1
-              elif  tok[2] == year :
-                 if tok[3] == jul  : case = 2
-                 if tok[3] == yjul and jul != '1' : case = 2
+                 stn = self.bulletin[1]
 
-              if case > 2 and jul == '1' :
-                 yyear  = int(year)-1
-                 yyear  = "%s"%yyear
-                 if    tok[0] == yyear :
-                                        case = 0
-                 elif  tok[1] == yyear :
-                                        case = 1
-                 elif  tok[2] == yyear :
-                    if tok[3] == '365' or tok[3] == '366' : case = 2
+                 i = -1
+                 try    : i = parts.index(stn)
+                 except : pass
 
-              if case <= 2 :
-                 year = tok[case]
-                 jul  = string.zfill( tok[case+1], 3 )
-                 hhmm = string.zfill( tok[case+2], 4 )
+                 if i != -1 :
+                    if self.tokIsYear(parts[i+1],year) : return self.convertCaToken(parts[i+1:])
+                    if self.tokIsYear(parts[i+2],year) : return self.convertCaToken(parts[i+2:])
+                    if self.tokIsYear(parts[i+3],year) : return self.convertCaToken(parts[i+3:])
 
-              # FIX ME
-              # if year not present, the jul day is "mostly" the second tok in 3rd line
-              # this may not always be the case...
-              else :
-                 jul  = string.zfill( tok[1], 3 )
-                 hhmm = string.zfill( tok[2], 4 )
+        except : pass
 
-              #self.logger.debug(" year jul hhmm = %s %s %s " % (year,jul,hhmm) )
-              arrivalStr = year + jul + hhmm
-              timeStruct = time.strptime(arrivalStr, '%Y%j%H%M')
-              ddHHMM = time.strftime("%d%H%M",timeStruct)
-        except :
-              self.logger.warning("Was not able to get time from bulletin...took current time")
-              ddHHMM = time.strftime("%d%H%M",time.localtime())
+        self.setError("incorrect date-time")
+        self.logger.warning("BULLETIN :\n%s" % self.bulletin)
+        ddHHMM = time.strftime("%d%H%M",time.localtime())
 
         return ddHHMM
 
