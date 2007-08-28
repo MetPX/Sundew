@@ -55,6 +55,9 @@ class SenderFTP(object):
         self.ftp  = None
         self.sftp = None
 
+        self.timeout = self.client.timeout
+        if self.timeout < 30 : self.timeout = 30
+
         if self.client.protocol == 'ftp':
            self.ftp    = self.ftpConnect()
            self.chdir  = self.ftp.cwd
@@ -182,8 +185,8 @@ class SenderFTP(object):
             timex = AlarmFTP('FTP connection timeout')
 
             try:
-                # gives 30 seconds to open the connection
-                timex.alarm(30)
+                # gives "timeout" seconds to open the connection
+                timex.alarm(self.timeout)
 
                 ftp = ftplib.FTP(self.client.host, self.client.user, self.client.passwd)
                 if self.client.ftp_mode == 'active':
@@ -204,7 +207,7 @@ class SenderFTP(object):
 
             except FtpTimeoutException :
                 timex.cancel()
-                self.logger.error("FTP connection timed out after 30 seconds... retrying" )
+                self.logger.error("FTP connection timed out after %d seconds... retrying" % self.timeout )
 
             except:
                 timex.cancel()
@@ -222,9 +225,9 @@ class SenderFTP(object):
 
             timex = AlarmFTP('SFTP connection timeout')
 
-            # gives 30 seconds to open the connection
+            # gives "timeout" seconds to open the connection
             try:
-                timex.alarm(30)
+                timex.alarm(self.timeout)
                 self.t = paramiko.Transport(self.client.host)
                 key=DSSKey.from_private_key_file(self.client.ssh_keyfile,self.client.passwd)
                 self.t.connect(username=self.client.user,pkey=key)
@@ -243,7 +246,7 @@ class SenderFTP(object):
                 except : pass
                 try    : self.t.close()
                 except : pass
-                self.logger.error("SFTP connection timed out after 30 seconds... retrying" )
+                self.logger.error("SFTP connection timed out after %d seconds... retrying" % self.timeout )
 
             except:
                 timex.cancel()
