@@ -218,6 +218,13 @@ class bulletinAm(bulletin.bulletin):
                     if self.tokIsYear(parts[i+2],year) : return self.convertCaToken(parts[i+2:])
                     if self.tokIsYear(parts[i+3],year) : return self.convertCaToken(parts[i+3:])
 
+                 # sometime the year is skipped
+                 jjj = time.strftime("%j",time.localtime())
+                 jul = string.zfill( parts[1], 3 )
+                 if jul == jjj :
+                    hhmm = string.zfill( parts[2], 4 )
+                    return self.convertCaTime(year,jul,hhmm)
+
         except : pass
 
         self.setError("incorrect date-time")
