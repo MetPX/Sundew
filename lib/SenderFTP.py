@@ -21,7 +21,7 @@ named COPYING in the root of the source directory tree.
 #
 #############################################################################################
 """
-import sys, os, os.path, time, stat
+import re,sys, os, os.path, time, stat, string
 import PXPaths, signal, socket
 
 import ftplib
@@ -93,6 +93,35 @@ class SenderFTP(object):
                   self.logger.warning("Could not close connection")
                   self.logger.warning(" Type: %s, Value: %s" % (type ,value))
 
+    def basename_parts(self,basename):
+        """
+        Using regexp, basename parts can become a valid directory pattern replacements
+        """
+
+        # check against the masks
+        for mask in self.client.masks:
+           # no match
+           if not mask[3].match(basename) : continue
+
+           # reject
+           if not mask[4] : return None
+
+           # accept... so key generation
+           parts = re.findall( mask[0], basename )
+           if len(parts) == 2 and parts[1] == '' : parts.pop(1)
+           if len(parts) != 1 : continue
+
+           lst = []
+           if isinstance(parts[0],tuple) :
+              lst = list(parts[0])
+           #else:
+           #  lst.append(parts[0])
+
+           return lst
+
+        # fallback behavior return filename
+        return None
+
     def dirPattern(self,file,basename,destDir,destName) :
         """
         MG 20051101
@@ -103,6 +132,7 @@ class SenderFTP(object):
 
         BN = basename.split(":")
         EN = BN[0].split("_")
+        BP = self.basename_parts(basename)
 
         ndestDir = ""
         DD = destDir.split("/")
@@ -112,14 +142,14 @@ class SenderFTP(object):
              nddword = ""
              DW = ddword.split("$")
              for dwword in DW :
-                 nddword += self.matchPattern(BN,EN,dwword,dwword)
+                 nddword += self.matchPattern(BN,EN,BP,dwword,dwword)
 
              ndestDir += "/" + nddword 
 
         return ndestDir
 
 
-    def matchPattern(self,BN,EN,keywd,defval) :
+    def matchPattern(self,BN,EN,BP,keywd,defval) :
         """
         MG 20051101
         Matching keyword with different patterns
@@ -141,6 +171,15 @@ class SenderFTP(object):
         elif keywd[:5] == "{RHH}"   : return (BN[6])[8:10]  + keywd[5:]
         elif keywd[:5] == "{RMN}"   : return (BN[6])[10:12] + keywd[5:]
         elif keywd[:5] == "{RSS}"   : return (BN[6])[12:14] + keywd[5:]
+
+        # Matching with basename parts if given
+
+        if BP != None :
+           for i,v in enumerate(BP):
+               kw  = '{' + str(i) +'}'
+               lkw = len(kw)
+               self.logger.info(kw)
+               if keywd[:lkw] == kw : return v + keywd[lkw:]
 
         return defval
 
