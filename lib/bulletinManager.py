@@ -486,7 +486,13 @@ class bulletinManager:
                                       header may not be good
         """
 
+        # check delai if asked for ...
+
         if self.mapEnteteDelai == None : return
+
+        # check delai if no error in bulletin
+
+        if unBulletin.getError() != None : return
 
         try:
             type = unBulletin.getHeader()[:2]
