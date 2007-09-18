@@ -114,8 +114,8 @@ class SenderFTP(object):
            lst = []
            if isinstance(parts[0],tuple) :
               lst = list(parts[0])
-           #else:
-           #  lst.append(parts[0])
+           else:
+             lst.append(parts[0])
 
            return lst
 
