@@ -178,7 +178,6 @@ class SenderFTP(object):
            for i,v in enumerate(BP):
                kw  = '{' + str(i) +'}'
                lkw = len(kw)
-               self.logger.info(kw)
                if keywd[:lkw] == kw : return v + keywd[lkw:]
 
         return defval
