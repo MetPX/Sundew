@@ -120,23 +120,43 @@ class bulletin:
 
         """
 
+        # if there is an error with the bulletin do nothing
+
+        if self.errorBulletin != None: return
+
+        # arrival must be set, it is needed to give a date to the emission 
+        # because the emission is often ddMMHH
+
         if self.arrival == None : return
 
-        arrival          = self.arrival
-        header           = self.getHeader().split()
-        YYGGGg           = header[2]
-        self.emission    = arrival[0:6] + YYGGGg + "00"
+        # emission was already provided/computed
 
-        # the date-time we are trying here may not exist... so catch exception
+        if self.emission != None and self.ep_emission != -1 : return
 
+        # double check the day hour minute within the bulletin's header
+
+        YYGGGg = ''
         try :
-                 timeStruct       = time.strptime(self.emission, '%Y%m%d%H%M%S')
-                 self.ep_emission = time.mktime(timeStruct)
-        except : pass
+                  header = self.getHeader().split()
+                  YYGGGg = header[2]
+                  day    = int(YYGGGg[:2])
+                  hr     = int(YYGGGg[2:4])
+                  mn     = int(YYGGGg[4:])
+                  if day <= 0 or day > 31 : return
+                  if hr  <  0 or hr >= 24 : return
+                  if mn  <  0 or mn >= 60 : return
+        except :
+                  return
 
         # if the arrival day is the same as the one in header... we are done
 
-        if YYGGGg[:2] == arrival[6:8] : return
+        if YYGGGg[:2] == self.arrival[6:8] :
+           try :
+                    self.emission    = self.arrival[0:6] + YYGGGg + "00"
+                    timeStruct       = time.strptime(self.emission, '%Y%m%d%H%M%S')
+                    self.ep_emission = time.mktime(timeStruct)
+           except : pass
+           return
 
         # try to go forward 1 day... 
 
@@ -144,24 +164,34 @@ class bulletin:
         day    = time.strftime('%d',time.localtime(ep_day))
 
         if day == YYGGGg[:2] :
-           self.emission    = time.strftime('%Y%m%d',time.localtime(ep_day))
-           self.emission   += YYGGGg[2:] + "00"
-           timeStruct       = time.strptime(self.emission, '%Y%m%d%H%M%S')
-           self.ep_emission = time.mktime(timeStruct)
+           try :
+                    self.emission    = time.strftime('%Y%m%d',time.localtime(ep_day))
+                    self.emission   += YYGGGg[2:] + "00"
+                    timeStruct       = time.strptime(self.emission, '%Y%m%d%H%M%S')
+                    self.ep_emission = time.mktime(timeStruct)
+           except : pass
            return
 
-        # if not go backward in time until the emission day is reached
+        # go backward in time until the emission day is reached
+        # prevent endless loop with a count lower than 31 days
 
+        count  = 0
         day    = arrival[6:8]
         ep_day = self.ep_arrival
-        while day != YYGGGg[:2] :
-              ep_day     = ep_day - 24 * 60 * 60
-              day        = time.strftime('%d',time.localtime(ep_day))
+        while day != YYGGGg[:2] and count <= 31 :
+              ep_day = ep_day - 24 * 60 * 60
+              day    = time.strftime('%d',time.localtime(ep_day))
+              count  = count + 1
 
-        self.emission    = time.strftime('%Y%m%d',time.localtime(ep_day))
-        self.emission   += YYGGGg[2:] + "00"
-        timeStruct       = time.strptime(self.emission, '%Y%m%d%H%M%S')
-        self.ep_emission = time.mktime(timeStruct)
+        if count == 32 : return
+
+        try :
+                 self.emission    = time.strftime('%Y%m%d',time.localtime(ep_day))
+                 self.emission   += YYGGGg[2:] + "00"
+                 timeStruct       = time.strptime(self.emission, '%Y%m%d%H%M%S')
+                 self.ep_emission = time.mktime(timeStruct)
+        except : pass
+
 
     def doSpecificProcessing(self):
         """doSpecificProcessing()

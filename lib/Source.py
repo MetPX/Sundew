@@ -224,7 +224,6 @@ class Source(object):
                     elif words[0] == 'debug' and isTrue(words[1]): self.debug = True
                     elif words[0] == 'mtime': self.mtime = int(words[1])
                     elif words[0] == 'sorter': self.sorter = words[1]
-                    elif words[0] == 'arrival': self.mapEnteteDelai = {words[1]:(int(words[2]), int(words[3]))}
                     elif words[0] == 'header': self.headers.append(words[1])
                     elif words[0] == 'hours': self.issue_hours.append(words[1])
                     elif words[0] == 'primary': self.issue_primary.append(words[1])

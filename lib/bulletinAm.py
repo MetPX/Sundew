@@ -150,8 +150,12 @@ class bulletinAm(bulletin.bulletin):
     # converting date/time found in CA to our proper header time signature
     def convertCaTime(self,year,jul,hhmm):
         if hhmm != '2400' :
-           arrivalStr = year + jul + hhmm
-           timeStruct = time.strptime(arrivalStr, '%Y%j%H%M')
+           emissionStr      = year + jul + hhmm
+           timeStruct       = time.strptime(emissionStr, '%Y%j%H%M')
+
+           self.emission    = time.strftime("%Y%m%d%H%M%S",timeStruct)
+           self.ep_emission = time.mktime(timeStruct)
+
            ddHHMM     = time.strftime("%d%H%M",timeStruct)
            return ddHHMM
 
@@ -160,8 +164,12 @@ class bulletinAm(bulletin.bulletin):
 
         jul00      = year + jul + '0000'
         timeStruct = time.strptime(jul00, '%Y%j%H%M')
-        next00     = time.mktime(timeStruct) + 24 * 60 * 60
-        ddHHMM     = time.strftime('%d%H%M',time.localtime(next00))
+
+        self.ep_emission = time.mktime(timeStruct) + 24 * 60 * 60
+        timeStruct       = time.localtime(self.ep_emission)
+        self.emission    = time.strftime("%Y%m%d%H%M%S",timeStruct)
+
+        ddHHMM     = time.strftime('%d%H%M',timeStruct)
         return ddHHMM
 
     # converting date/time token found for a CA
@@ -198,7 +206,8 @@ class bulletinAm(bulletin.bulletin):
         try :
                  line  = self.bulletin[2]
                  parts = line.split(',')
-                 year  = time.strftime("%Y",time.localtime())
+                 ltime = time.localtime()
+                 year  = time.strftime("%Y",ltime )
 
                  # the date in CACN starts at token 1 or 2 and has format YYYY,jjj,hhmm
 
@@ -219,7 +228,7 @@ class bulletinAm(bulletin.bulletin):
                     if self.tokIsYear(parts[i+3],year) : return self.convertCaToken(parts[i+3:])
 
                  # sometime the year is skipped
-                 jjj = time.strftime("%j",time.localtime())
+                 jjj = time.strftime("%j", ltime )
                  jul = string.zfill( parts[1], 3 )
                  if jul == jjj :
                     hhmm = string.zfill( parts[2], 4 )
