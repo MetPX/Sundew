@@ -45,9 +45,9 @@ def readConfig():
 
 def normalPaths():
 
-    global ROOT, BIN, LIB, LOG, ETC, FXQ, RXQ, TXQ, DB, FX_CONF, RX_CONF, TX_CONF, TRX_CONF, LAT, LAT_RESULTS, LAT_TMP, \
-           COLLECTION_DB, COLLECTION_CONTROL, ROUTING_TABLE, STATION_TABLE, STATS, PICKLES, GRAPHS, SEARCH, \
-           REQUEST_REPLY, SCRIPTS
+    global ROOT, BIN, LIB, LOG, ETC, FXQ, RXQ, TXQ, DB, FX_CONF, RX_CONF, TX_CONF, TRX_CONF, \
+           COLLECTION_DB, COLLECTION_CONTROL, ROUTING_TABLE, STATION_TABLE, SCRIPTS, REQUEST_REPLY, \
+           LAT, LAT_RESULTS, LAT_TMP, STATS, PICKLES, GRAPHS, SEARCH, SHELL_PARSER
 
     try:
         envVar = os.path.normpath(os.environ['PXROOT']) + '/'
@@ -89,10 +89,14 @@ def normalPaths():
     # Paths to the search directory
     SEARCH = LIB + 'search/'
 
+    # pxRetrans
+    SHELL_PARSER = LIB + 'shellParser.py'
+
 def drbdPaths(rootPath):
 
-    global ROOT, BIN, LIB, LOG, ETC, FXQ, RXQ, TXQ, DB, FX_CONF, RX_CONF, TX_CONF, TRX_CONF, LAT, LAT_RESULTS, LAT_TMP, \
-           COLLECTION_DB, COLLECTION_CONTROL
+    global ROOT, BIN, LIB, LOG, ETC, FXQ, RXQ, TXQ, DB, FX_CONF, RX_CONF, TX_CONF, TRX_CONF, \
+           COLLECTION_DB, COLLECTION_CONTROL, LAT, LAT_RESULTS, LAT_TMP 
+           
 
     ROOT = os.path.normpath(rootPath) + '/'
     BIN = ROOT + 'bin/'
