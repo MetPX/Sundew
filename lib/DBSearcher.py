@@ -136,7 +136,7 @@ class DBSearcher:
         words = [word.upper() for word in words]
             
         if len(words) < 2 or len(words) > 6:
-            print "\nBad request"
+            if self.debug: print "\nBad request"
         elif len(words) == 2  and 4 <= len(words[0]) <= 6 and len(words[1]) == 4:
             # ex: SACN31 CWAO
             # ex: FPCN31 CWAO
@@ -162,9 +162,9 @@ class DBSearcher:
                 if self._validateStation(station):
                     self.stations.append(station)
                 else:
-                    print("%s is not a valid station name" % station)
+                    if self.debug: print("%s is not a valid station name" % station)
         else:
-            print "\nBad request even if the word's number is good"
+            if self.debug: print "\nBad request even if the word's number is good"
 
     def _search(self):
         # FIXME: Must select best result from multiple machines
@@ -523,8 +523,8 @@ class DBSearcher:
             if self.debug: print path, dirs, files
         except:
             (type, value, tb) = sys.exc_info()
-            print("In _findFullHeader: Type = %s, Value = %s" % (type, value))
-            print("The request (%s) has been stopped at the date (%s) level" % (self.request, date))
+            if self.debug: print("In _findFullHeader: Type = %s, Value = %s" % (type, value))
+            if self.debug: print("The request (%s) has been stopped at the date (%s) level" % (self.request, date))
             return self.theFile
 
         # We select only the "tt" directory
@@ -540,8 +540,8 @@ class DBSearcher:
             if self.debug: print pathBeforeSource, dirs, files
         except:
             (type, value, tb) = sys.exc_info()
-            print("Type: %s, Value: %s" % (type, value))
-            print("The request (%s) has been stopped at the source(s) level" % (self.request))
+            if self.debug: print("Type: %s, Value: %s" % (type, value))
+            if self.debug: print("The request (%s) has been stopped at the source(s) level" % (self.request))
             return self.theFile
 
         if country=='CA':
@@ -624,30 +624,30 @@ class DBSearcher:
                 handle = open(file, 'r')
             except:
                 (type, value, tb) = sys.exc_info()
-                print("Type: %s, Value: %s" % (type, value))
-                print("Cannot open %s" % file)
+                if self.debug: print("Type: %s, Value: %s" % (type, value))
+                if self.debug: print("Cannot open %s" % file)
                 continue
 
             parts = handle.readline().split()
             if len(parts) < 3:
-                print("Not enough parts (%s)  in the header" % parts)
+                if self.debug: print("Not enough parts (%s)  in the header" % parts)
                 continue
 
             elif len(parts[2]) == 7:
                 if parts[2][:6].isdigit() and parts[2][-1].upper() == 'Z':
                     pass
                 else:
-                   print("(CASE 1)Third part is not a valid time (%s)" % parts)
+                   if self.debug: print("(CASE 1)Third part is not a valid time (%s)" % parts)
                    continue
 
             elif len(parts[2]) == 6:
                 if parts[2][:6].isdigit():
                     pass
                 else:
-                   print("(CASE 2)Third part is not a valid time (%s)" % parts)
+                   if self.debug: print("(CASE 2)Third part is not a valid time (%s)" % parts)
                    continue
             else:
-                print("(CASE 3)Third part is not a valid time (%s)" % parts)
+                if self.debug: print("(CASE 3)Third part is not a valid time (%s)" % parts)
                 continue
 
             ddhhmm = parts[2][:6]
