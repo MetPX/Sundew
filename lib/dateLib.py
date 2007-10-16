@@ -26,6 +26,45 @@ MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 
 
 now = time.mktime
 
+def getTimestamp(format="%Y%m%d%H%M%S"):
+    return time.strftime(format, time.gmtime())
+
+def convertStartDateSpanInDates(startDate, span):
+    """
+    startDate in seconds since Epoch
+    span in minutes
+    """
+    endDate = startDate + span * MINUTE
+    return startDate, endDate
+
+
+def convertEndDateSpanInDates(endDate, span):
+    """
+    endDate in seconds since Epoch
+    span in minutes
+    """
+    startDate = endDate - span * MINUTE
+    return startDate, endDate
+
+
+def convertSpanOffsetInDates(span, offset):
+    """
+    span is in minutes
+    offset is in minutes
+    startDate, endDate in seconds
+    """
+    seconds = time.mktime(time.gmtime())
+
+    if span > offset:
+        offset = 0
+        startDate = seconds - span * MINUTE
+        endDate = seconds
+    else:
+        startDate = seconds - offset * MINUTE
+        endDate = seconds - (offset - span) * MINUTE
+
+    return startDate, endDate
+
 def getYYGGgg():
     return time.strftime("%d%H%M", time.gmtime())
 
