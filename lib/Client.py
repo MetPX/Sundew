@@ -254,11 +254,9 @@ class Client(object):
                     if sender[:6] == 'SENDER' : 
                        destFileName = sender.split('=')[1] 
                 elif spec == 'NONE':
-                    destFileName = filename
                     # PDS behavior no time extension when NONE... remove it
-                    if len(parts[4]) == 1 : destFileName = ':'.join(parts[:6])
-                    else                  : destFileName = ':'.join(parts[:5])
                     # extra trailing : removed if present
+                    destFileName = ':'.join(parts[:-1])
                     if destFileName[-1] == ':' : destFileName = destFileName[:-1]
                 elif re.compile('DESTFN=.*').match(spec):
                     destFileName = spec[7:]
