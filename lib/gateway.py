@@ -39,7 +39,7 @@ class gateway:
 
        Instanciation:
 
-	    Gateway is instantiated with a config file.
+       Gateway is instantiated with a config file.
 
             path            String
                             - path to config file.

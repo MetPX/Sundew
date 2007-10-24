@@ -60,7 +60,7 @@ class bulletin:
                     processing is done.
                   When an error is detected.
                   - errorBulletin[0] is the set to the message. 
-		  - errorBulletin[1:] is open to for use by derived classes.
+                  - errorBulletin[1:] is open to for use by derived classes.
 
             bulletin                list of strings [str]
                   - after call to getBulletin, this contains the entire 
@@ -278,9 +278,9 @@ class bulletin:
     def getError(self):
         """getError() -> (TypeErreur)
 
-	   Return None if no errors were detected in the bulletin.
-           Otherwise return a tuple with a description as the first element.
-	   remaining elements undefined.
+        Return None if no errors were detected in the bulletin.
+        Otherwise return a tuple with a description as the first element.
+        remaining elements undefined.
 
         """
         return self.errorBulletin
@@ -290,7 +290,7 @@ class bulletin:
 
            header       : String
 
-	   Return the header (first line) of bulletin.
+           Return the header (first line) of bulletin.
         """
         return self.bulletin[0]
 
@@ -299,7 +299,7 @@ class bulletin:
 
            longueur     : int
 
-	   return bulletin length (including lineSeparators)
+           return bulletin length (including lineSeparators)
 
         """
         return len(self.getBulletin())
@@ -317,7 +317,7 @@ class bulletin:
 
            origine      : String
 
-	   Return the originating station (2nd field of header) (ie. CWAO)
+           Return the originating station (2nd field of header) (ie. CWAO)
         """
         return self.getHeader().split(' ')[1]
 
@@ -326,7 +326,7 @@ class bulletin:
 
            station      : String
 
-	   Return the station (i.e. CYUL), None if not found.
+           Return the station (i.e. CYUL), None if not found.
         """
 
 
@@ -408,7 +408,7 @@ class bulletin:
 
            type         : String
 
-	   Return TT (bulletin type, first two letters of AHL) ... ie.: SA, FT, 
+           Return TT (bulletin type, first two letters of AHL) ... ie.: SA, FT, 
         """
         return self.getHeader()[:2]
 
