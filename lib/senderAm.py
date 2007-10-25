@@ -248,6 +248,7 @@ class senderAm(gateway.gateway):
         limit   = self.maxLength - 128 - (lheader + 4)
         blocks  = TextSplitter(data[lheader:], limit ).breakMarker()
         self.logger.info("(%i Bytes) Bulletin %s  delivered segmented in %d parts" % (len(data),os.path.basename(path),len(blocks)))
+        self.logger.debug("Bulletin is \n%s" % data)
                     
         i       =  0
         totSent =  0
@@ -271,6 +272,7 @@ class senderAm(gateway.gateway):
             if succes :
                self.tallyBytes(nbBytesSent)
                self.logger.info("(%i Bytes) Bulletin Segment number %d sent (%s)" % (nbBytesSent,i,header + " P" + l1 + l2))
+               self.logger.debug("Bulletin is \n%s" % rawSegment)
             else :
                return (False, totSent)
 
