@@ -19,98 +19,165 @@ class Bufr:
     """
 
     def __init__(self,stringBulletin):
-        self.bulletin = stringBulletin
-
         self.set(stringBulletin)
 
     def set(self,stringBulletin):
-        self.bulletin = stringBulletin
+        self.bulletin  = stringBulletin
 
-        self.begin = -1
-        self.last  = -1
-        self.len   = -1
+        self.array = array.array('B',self.bulletin)
+        self.size  = len(self.bulletin)
         self.valid = True
 
-        self.validate()
+        if self.bulletin == None :
+           self.valid    =  False
+           return
 
-    def len3(self,str):
-        """return the length of the GRIB message when the format is on 3 bytes...
-        """
+        self.section0()
+        self.checkEOB()
+        self.section1()
 
-        a = array.array('B',str)
+        self.observation_date()
 
-        i = 1
-        p = long(a[0])
-        while i<3 : 
-              l = p * 256 + long(a[i])
-              p = l
-              i = i + 1
+        if self.valid == False : return
 
-        return l
+        self.begin = self.s0
+        self.last  = self.s0 + self.length
 
-
-    def end(self):
+    def checkEOB(self):
         """check that the end is ok and return its position
         """
+        if self.valid == False : return
 
-        e = self.begin + self.len;
+        e = self.s0 + self.length;
 
         if self.bulletin[e-4:e] != "7777" :
            self.valid = False
-           return -1
 
-        self.last = e
-
-        return e
-
-    def length(self):
-        """return the length of the BUFR message
+    def integer3bytes(self,i):
+        """return an integer made of the 3 bytes starting at i
         """
+        a = self.array
 
-        if not self.valid :
-           return -1
+        return  ( ( long(a[i]) * 256 ) + long(a[i+1]) * 256 ) + long(a[i+2])
 
-        b = self.begin
-
-        l = self.len3(self.bulletin[b+4:])
-
-        if l > len(self.bulletin[b:]) :
-           self.valid = False
-           return -1
-
-        self.len = l
-
-        return l
-
-    def start(self):
-        """return the position where the BUFR message starts 
+    def observation_date(self):
+        """derive observation date from section 1
         """
+        if self.valid == False : return
 
-        self.begin = self.bulletin.find('BUFR')
+        self.observation    = '%.4d' % (2000+self.s1_century)
+        self.observation   += '%.2d' % self.s1_month
+        self.observation   += '%.2d' % self.s1_day
+        self.observation   += '%.2d' % self.s1_hour
+        self.observation   += '%.2d' % self.s1_min
 
-        if self.begin == -1 : self.valid = False
+        timeStruct          = time.strptime(self.observation, '%Y%m%d%H%M%S')
+        self.ep_observation = time.mktime(timeStruct)
 
-        return self.begin
+    # section 0
+    #             bytes  0 1 2 3    BUFR
+    #             bytes  4 5 6      total length of bufr message
+    #             byte   7          bufr edition number
 
-    def validate(self):
-        """Verifie que tout semble correct avec le BUFR
-        """
+    def section0(self):
 
-        if self.bulletin == None : return False
+        self.valid = False
 
-        self.start()
-        self.length()
-        self.end()
+        if self.size < 8 : return
 
-        return self.valid
+        self.s0 = self.bulletin.find('BUFR')
+        if self.s0 == -1 : return
+
+        b0  = self.s0
+        b4  = self.s0 + 4
+        b7  = self.s0 + 7
+
+        self.length = self.integer3bytes(b4)
+        if self.length > self.size-self.s0 : return
+
+        self.version = long(self.array[b7])
+
+        self.valid = True
+
+        return
+
+    # section 1   DESCRIPTION DE LA VERSION 3
+    #             identical to codecon output (codecon say its version 2)
+    #             bytes  0 1 2      length of section 1
+    #             bytes  3          bufr master table
+    #             byte   4          origination subcenter
+    #             byte   5          origination center
+    #             byte   6          update sequence number
+    #             byte   7          bit 1 = 0/1 means optional section n/y
+    #             byte   8          data category
+    #             byte   9          data subcategory
+    #             byte  10          version no for master table
+    #             byte  11          version no for local  table
+    #             byte  12          year of century
+    #             byte  13          month
+    #             byte  14          day
+    #             byte  15          hour
+    #             byte  16          min
+    #             byte  17          reserved
+
+    def section1(self):
+
+        self.valid = False
+
+        self.s1 = self.s0 + 8
+
+        if self.s1+17 > self.size : return
+
+        b0  = self.s1
+        self.s1_length = self.integer3bytes(b0)
+        if self.s1_length > self.size-self.s1 : return
+
+        # uncomment anything you need
+
+        #self.s1_master_table        = long(self.array[b0+3])
+        #self.s1_subcenter           = long(self.array[b0+4])
+        #self.s1_center              = long(self.array[b0+5])
+        #self.s1_update_sequence     = long(self.array[b0+6])
+        #self.s1_optional_section    = long(self.array[b0+7])
+        #self.s1_data_category       = long(self.array[b0+8])
+        #self.s1_data_subcategory    = long(self.array[b0+9])
+        #self.s1_data_master_version = long(self.array[b0+10])
+        #self.s1_data_local_version  = long(self.array[b0+11])
+
+        self.s1_century             = long(self.array[b0+12])
+        self.s1_month               = long(self.array[b0+13])
+        self.s1_day                 = long(self.array[b0+14])
+        self.s1_hour                = long(self.array[b0+15])
+        self.s1_min                 = long(self.array[b0+16])
+
+        self.valid = True
+
+        return
 
 import sys, os, os.path, time, stat
 
 if __name__=="__main__":
-      pass 
+      fd = open(sys.argv[1], 'rb')
+      str = fd.read()
+      bufr = Bufr(str)
+      print bufr.valid
+      print 'BUFR'
+      print bufr.length
+      print bufr.version
+      #print 'subcenter'
+      #print bufr.s1_subcenter           
+      #print 'center'
+      #print bufr.s1_center              
+      #print 'update'
+      #print bufr.s1_update_sequence     
 
-      #fd = open("bbb", 'rb')
-      #str = fd.read()
-      #bufr = Bufr(str)
-      #print bufr.valid
-      #fd.close()
+      print ' '
+      print bufr.s1_century             
+      print bufr.s1_month               
+      print bufr.s1_day                 
+      print bufr.s1_hour                
+      print bufr.s1_min                 
+      print ' '
+      print bufr.observation
+      print bufr.ep_observation
+      fd.close()
