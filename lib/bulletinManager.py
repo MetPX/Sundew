@@ -371,29 +371,46 @@ class bulletinManager:
         # whatfn
         whatfn = self.createWhatFn(bulletin,compteur)
 
+        # the bulletin is ok
         if bulletin.getError() == None and not error:
             # a correctly formatted bulletin...
             try:
-                return  whatfn + self.getExtension(bulletin,error).replace(' ','_')
+                return  whatfn + self.getExtension(bulletin,self.extension,False).replace(' ','_')
 
+            # extension problem...
             except Exception, e:
-                # umm... sure... leave this one alone...
-                # Une erreur est détectée (probablement dans l'extension) et le nom est généré avec des erreurs
-                # Si le compteur n'a pas été calculé, c'est que le bulletin était correct,
-                # mais si on est ici dans le code, c'est qu'il y a eu une erreur.
+                w = whatfn.split('_')
+                self.logger.warning(" %s not in routing table" % '_'.join(w[:2]) )
+                return 'PROBLEM_BULLETIN_' + whatfn + self.getExtension(bulletin,self.extension,True).replace(' ','_')
 
-                self.logger.warning(e)
-                whatfn = self.createWhatFn(bulletin,compteur)
-                return 'PROBLEM_BULLETIN_' + whatfn + self.getExtension(bulletin,error=True).replace(' ','_')
+        # extract error string if any
+        word0    = None
+        errorStr = bulletin.getError()
+        if errorStr != None :
+           errorStr = errorStr[0]
+           word0    = errorStr.split()[0]
 
-        elif bulletin.getError() != None and not error:
-            self.logger.warning("bulletin corrupt " + bulletin.getError()[0] )
-            return 'PROBLEM_BULLETIN_' + whatfn + self.getExtension(bulletin,error=True).replace(' ','_')
+        # the bulletin had arrival problem
+        if word0 == 'arrival' and self.source.arrival_extension != None and not error:
+            # a correctly formatted bulletin...
+            try:
+                return  whatfn + self.getExtension(bulletin,self.source.arrival_extension,False).replace(' ','_')
+
+            # extension problem... probably routing or station
+            except Exception, e:
+                w = whatfn.split('_')
+                self.logger.warning(" %s not in routing table" % '_'.join(w[:2]) )
+                return 'PROBLEM_BULLETIN_' + whatfn + self.getExtension(bulletin,self.extension,True).replace(' ','_')
+
+
+        if errorStr != None and not error:
+            self.logger.warning("bulletin problem " + bulletin.getError()[0] )
+            return 'PROBLEM_BULLETIN_' + whatfn + self.getExtension(bulletin,self.extension,True).replace(' ','_')
         else:
             self.logger.warning("unprintable header" )
-            return ('PROBLEM_BULLETIN ' + 'UNPRINTABLE HEADER ' + self.getExtension(bulletin,error)).replace(' ','_')
+            return ('PROBLEM_BULLETIN ' + 'UNPRINTABLE HEADER ' + self.getExtension(bulletin,self.extension,True)).replace(' ','_')
 
-    def getExtension(self,bulletin,error=False):
+    def getExtension(self,bulletin,extension,error=False):
         """getExtension(bulletin) -> extension
 
            Returns the extension to suffix to a bulletin header to create a file name.
@@ -413,9 +430,9 @@ class bulletinManager:
 
                 Generate the extention portion of the file name.
         """
-        newExtension = self.extension
+        newExtension = extension
 
-        if not error and bulletin.getError() == None:
+        if not error :
             newExtension = newExtension.replace('-TT',bulletin.getType())\
                                        .replace('-CCCC',bulletin.getOrigin())
 

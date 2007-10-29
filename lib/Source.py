@@ -70,6 +70,8 @@ class Source(object):
         self.nodups = False                       # Check if the file was already received (md5sum present in the cache)
         self.tmasks = []                          # All the transformation maks (timask, temask)
         self.extension = ':MISSING:MISSING:MISSING:MISSING:'   # Extension to be added to the ingest name
+        # Extension to be added to the ingest name when the bulletin is outside its arrival range
+        self.arrival_extension = None
         self.type = None                                       # Must be in ['filter','file','single-file', 'bulletin-file', 'am', 'wmo']
         self.port = None                                       # Port number if type is in ['am', 'wmo']
         self.routingTable = PXPaths.ROUTING_TABLE              # Defaut routing table name
@@ -199,6 +201,12 @@ class Source(object):
                         else:
                             self.extension = ':' + words[1]
                             self.extension = self.extension.replace('-NAME',self.name)
+                    elif words[0] == 'arrival_extension':
+                        if len(words[1].split(':')) != 5:
+                            self.logger.error("arrival_extension (%s) for source %s has wrong number of fields" % (words[1], self.name)) 
+                        else:
+                            self.arrival_extension = ':' + words[1]
+                            self.arrival_extension = self.arrival_extension.replace('-NAME',self.name)
                     elif words[0] == 'accept': 
                          cmask = re.compile(words[1])
                          self.masks.append((words[1], currentDir, currentFileOption,cmask,True))
@@ -329,6 +337,7 @@ class Source(object):
         print("Port: %s" % source.port)
         print("TCP SO_KEEPALIVE: %s" % source.keepAlive)
         print("Extension: %s" % source.extension)
+        print("Arrival_Extension: %s" % source.arrival_extension)
         print("Arrival: %s" % source.mapEnteteDelai)
         print("addSMHeader: %s" % source.addSMHeader)
         print("Validation: %s" % source.validation)

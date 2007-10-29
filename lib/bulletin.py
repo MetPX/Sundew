@@ -561,6 +561,9 @@ class bulletin:
 
                     b = b + [stringBulletin[bufr.begin:bufr.last]] + ['']
 
+                    self.emission    = bufr.observation
+                    self.ep_emission = bufr.ep_observation
+
                     return b
             else:
                 # The bulletin is alphanumeric... 
