@@ -70,7 +70,6 @@ class bulletin:
         self.errorBulletin = None
         self.lineSeparator = lineSeparator
         self.finalLineSeparator = finalLineSeparator
-        self.bulletin = self.splitlinesBulletin(stringBulletin.lstrip(lineSeparator))
         self.dataType = None
 
         # time stuff
@@ -81,6 +80,9 @@ class bulletin:
 
         self.ep_arrival  = -1
         self.ep_emission = -1
+
+        # splitlinesBulletin
+        self.bulletin = self.splitlinesBulletin(stringBulletin.lstrip(lineSeparator))
 
         # Normalization the header (trim spaces before and after) 
         self.setHeader(self.getHeader().strip())
