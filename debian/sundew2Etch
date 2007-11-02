@@ -1,5 +1,9 @@
 #!/bin/ksh
 
+# just run this script and as argument give a branch px version
+# at sourceforge and you will get a file px*.deb which will be
+# the package debian install file
+
 # argument 1 is metpx version... 
 
   if [[ $# != 1 ]]; then
