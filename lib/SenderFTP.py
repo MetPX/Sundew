@@ -266,7 +266,12 @@ class SenderFTP(object):
             # gives "timeout" seconds to open the connection
             try:
                 timex.alarm(self.timeout)
-                self.t = paramiko.Transport(self.client.host)
+                self.t = None
+                if self.client.port == None : 
+                   self.t = paramiko.Transport(self.client.host)
+                else:
+                   t_args = (self.client.host,self.client.port)
+                   self.t = paramiko.Transport(t_args)
                 key=DSSKey.from_private_key_file(self.client.ssh_keyfile,self.client.passwd)
                 self.t.connect(username=self.client.user,pkey=key)
                 self.sftp = paramiko.SFTP.from_transport(self.t)

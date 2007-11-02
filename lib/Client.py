@@ -171,6 +171,7 @@ class Client(object):
                     elif words[0] == 'protocol': self.protocol = words[1]
                     elif words[0] == 'maxLength': self.maxLength = int(words[1])
                     elif words[0] == 'host': self.host = words[1]
+                    elif words[0] == 'port': self.port = int(words[1])
                     elif words[0] == 'user': self.user = words[1]
                     elif words[0] == 'password': self.passwd = words[1]
                     elif words[0] == 'ssh_keyfile': self.ssh_keyfile = words[1]
