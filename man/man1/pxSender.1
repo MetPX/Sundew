@@ -216,7 +216,8 @@ Port to bind for the transmission.
 \fBprotocol name (Default: ftp )\fR
 The following protocols are supported :  file, ftp and sftp.
 The ftp and sftp protocols are use to send file on a remote host.
-They requiere the use of options host,user, password,directory.
+They requiere the use of options host,user, password,directory
+(sftp supports also user defined port through the port option).
 If there is only one directory the option destination can replace
 the others.  When using sftp the option key_file must be provided.
 
@@ -225,6 +226,10 @@ The file protocol is used to put the files in directories of the same machine.
 .TP
 \fBhost remotehost (Default: None )\fR
 the host where we are going to put the files
+
+.TP
+\fBport portnumber (Default: None )\fR
+the port used by the protocol. Currently only sftp supports user defined port.
 
 .TP
 \fBuser username (Default: None )\fR
