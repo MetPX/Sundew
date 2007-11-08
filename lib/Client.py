@@ -237,6 +237,7 @@ class Client(object):
         mask = self._getMatchingMask(filename)
         if mask:
             timeSuffix   = ''
+            satnet       = ''
             parts        = filename.split(':')
             firstPart    = parts[0]
             destFileName = filename
@@ -259,6 +260,8 @@ class Client(object):
                     # extra trailing : removed if present
                     destFileName = ':'.join(parts[:-1])
                     if destFileName[-1] == ':' : destFileName = destFileName[:-1]
+                elif re.compile('SATNET=.*').match(spec):
+                    satnet = ':' + spec
                 elif re.compile('DESTFN=.*').match(spec):
                     destFileName = spec[7:]
                 elif re.compile('DESTFNSCRIPT=.*').match(spec):
@@ -278,7 +281,7 @@ class Client(object):
                 else:
                     self.logger.error("Don't understand this DESTFN parameter: %s" % spec)
                     return (None, None) 
-            return (destFileName + timeSuffix, mask[1])
+            return (destFileName + satnet + timeSuffix, mask[1])
         else:
             return (None, None) 
 
