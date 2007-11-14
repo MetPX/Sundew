@@ -385,12 +385,6 @@ class Ingestor(object):
 
            fxfile = self.source.run_fx_script(file,self.source.logger)
 
-           # if fxfile == file than the fx_script accept the file as is...a
-           # if we are a filter than that file was already routed to clients
-           # so don't consider it...
-
-           if self.source.type == 'filter' and fxfile == file : fxfile = None
-
            # convertion did not work
            if fxfile == None :
                   self.logger.warning("FX script ignored the file : %s"    % os.path.basename(file) )
@@ -539,12 +533,6 @@ class Ingestor(object):
 
                       file   = reader.sortedFiles[index]
                       fxfile = self.source.run_fx_script(file,self.source.logger)
-
-                      # if fxfile == file than the fx_script accept the file as is...a
-                      # if we are a filter than that file was already routed to clients
-                      # so don't consider it...
-
-                      if self.source.type == 'filter-bulletin' and fxfile == file : fxfile = None
 
                       # convertion did not work
                       if fxfile == None :
