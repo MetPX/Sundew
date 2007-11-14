@@ -53,6 +53,13 @@ class Bufr:
         if self.bulletin[e-4:e] != "7777" :
            self.valid = False
 
+    def integer2bytes(self,i):
+        """return an integer made of the 3 bytes starting at i
+        """
+        a = self.array
+
+        return  ( long(a[i]) * 256 ) + long(a[i+1]) 
+
     def integer3bytes(self,i):
         """return an integer made of the 3 bytes starting at i
         """
@@ -65,7 +72,7 @@ class Bufr:
         """
         if self.valid == False : return
 
-        self.observation    = '%.4d' % (2000+self.s1_century)
+        self.observation    = '%.4d' % self.s1_year
         self.observation   += '%.2d' % self.s1_month
         self.observation   += '%.2d' % self.s1_day
         self.observation   += '%.2d' % self.s1_hour
@@ -101,54 +108,104 @@ class Bufr:
 
         return
 
-    # section 1   DESCRIPTION DE LA VERSION 3
-    #             identical to codecon output (codecon say its version 2)
-    #             bytes  0 1 2      length of section 1
-    #             bytes  3          bufr master table
-    #             byte   4          origination subcenter
-    #             byte   5          origination center
-    #             byte   6          update sequence number
-    #             byte   7          bit 1 = 0/1 means optional section n/y
-    #             byte   8          data category
-    #             byte   9          data subcategory
-    #             byte  10          version no for master table
-    #             byte  11          version no for local  table
-    #             byte  12          year of century
-    #             byte  13          month
-    #             byte  14          day
-    #             byte  15          hour
-    #             byte  16          min
-    #             byte  17          reserved
+    # section 1 
 
     def section1(self):
 
         self.valid = False
 
-        self.s1 = self.s0 + 8
+        # section 1   DESCRIPTION DE LA VERSION 2 ET 3
+        #             bytes  0 1 2      length of section 1
+        #             bytes  3          bufr master table
+        #             byte   4          origination subcenter
+        #             byte   5          origination center
+        #             byte   6          update sequence number
+        #             byte   7          bit 1 = 0/1 means optional section n/y
+        #             byte   8          data category
+        #             byte   9          data subcategory
+        #             byte  10          version no for master table
+        #             byte  11          version no for local  table
+        #             byte  12          year of century
+        #             byte  13          month
+        #             byte  14          day
+        #             byte  15          hour
+        #             byte  16          min
+        #             byte  17          reserved
+        if self.version <= 3 :
+           self.s1 = self.s0 + 8
 
-        if self.s1+17 > self.size : return
+           if self.s1+17 > self.size : return
 
-        b0  = self.s1
-        self.s1_length = self.integer3bytes(b0)
-        if self.s1_length > self.size-self.s1 : return
+           b0  = self.s1
+           self.s1_length = self.integer3bytes(b0)
+           if self.s1_length > self.size-self.s1 : return
 
-        # uncomment anything you need
+           # uncomment anything you need
 
-        #self.s1_master_table        = long(self.array[b0+3])
-        #self.s1_subcenter           = long(self.array[b0+4])
-        #self.s1_center              = long(self.array[b0+5])
-        #self.s1_update_sequence     = long(self.array[b0+6])
-        #self.s1_optional_section    = long(self.array[b0+7])
-        #self.s1_data_category       = long(self.array[b0+8])
-        #self.s1_data_subcategory    = long(self.array[b0+9])
-        #self.s1_data_master_version = long(self.array[b0+10])
-        #self.s1_data_local_version  = long(self.array[b0+11])
+           #self.s1_master_table        = long(self.array[b0+3])
+           #self.s1_subcenter           = long(self.array[b0+4])
+           #self.s1_center              = long(self.array[b0+5])
+           #self.s1_update_sequence     = long(self.array[b0+6])
+           #self.s1_optional_section    = long(self.array[b0+7])
+           #self.s1_data_category       = long(self.array[b0+8])
+           #self.s1_data_subcategory    = long(self.array[b0+9])
+           #self.s1_data_master_version = long(self.array[b0+10])
+           #self.s1_data_local_version  = long(self.array[b0+11])
 
-        self.s1_century             = long(self.array[b0+12])
-        self.s1_month               = long(self.array[b0+13])
-        self.s1_day                 = long(self.array[b0+14])
-        self.s1_hour                = long(self.array[b0+15])
-        self.s1_min                 = long(self.array[b0+16])
+           self.s1_century             = long(self.array[b0+12])
+           self.s1_year                = 2000 + self.s1_century
+           self.s1_month               = long(self.array[b0+13])
+           self.s1_day                 = long(self.array[b0+14])
+           self.s1_hour                = long(self.array[b0+15])
+           self.s1_min                 = long(self.array[b0+16])
+
+        # section 1   DESCRIPTION DE LA VERSION 4
+        #             bytes  0 1 2      length of section 1
+        #             bytes  3          bufr master table
+        #             byte   4-5        origination subcenter
+        #             byte   6-7        origination center
+        #             byte   8          update sequence number
+        #             byte   9          bit 1 = 0/1 means optional section n/y
+        #             byte  10          data category
+        #             byte  11          international data subcategory
+        #             byte  12          local data subcategory
+        #             byte  13          version no for master table
+        #             byte  14          version no for local  table
+        #             byte  15-16       year
+        #             byte  17          month
+        #             byte  18          day
+        #             byte  19          hour
+        #             byte  20          min
+        #             byte  21          sec
+        #             byte  22          reserved
+        if self.version == 4 :
+           self.s1 = self.s0 + 8
+
+           if self.s1+22 > self.size : return
+
+           b0  = self.s1
+           self.s1_length = self.integer3bytes(b0)
+           if self.s1_length > self.size-self.s1 : return
+
+           # uncomment anything you need
+
+           #self.s1_master_table           = long(self.array[b0+3])
+           #self.s1_subcenter              = self.integer2bytes(b0+5)
+           #self.s1_center                 = self.integer2bytes(b0+7)
+           #self.s1_update_sequence        = long(self.array[b0+8])
+           #self.s1_optional_section       = long(self.array[b0+9])
+           #self.s1_data_category          = long(self.array[b0+10])
+           #self.s1_data_subcategory       = long(self.array[b0+11])
+           #self.s1_data_local_subcategory = long(self.array[b0+12])
+           #self.s1_data_master_version    = long(self.array[b0+13])
+           #self.s1_data_local_version     = long(self.array[b0+14])
+
+           self.s1_year                   = self.integer2bytes(b0+15)
+           self.s1_month                  = long(self.array[b0+17])
+           self.s1_day                    = long(self.array[b0+18])
+           self.s1_hour                   = long(self.array[b0+19])
+           self.s1_min                    = long(self.array[b0+20])
+           self.s1_sec                    = long(self.array[b0+21])
 
         self.valid = True
 
@@ -172,11 +229,17 @@ if __name__=="__main__":
       #print bufr.s1_update_sequence     
 
       print ' '
-      print bufr.s1_century             
+      if bufr.version <= 3 :
+         print 'century'
+         print bufr.s1_century             
+      else :
+         print 'year'
+         print bufr.s1_year             
       print bufr.s1_month               
       print bufr.s1_day                 
       print bufr.s1_hour                
       print bufr.s1_min                 
+      print bufr.s1_sec                 
       print ' '
       print bufr.observation
       print bufr.ep_observation
