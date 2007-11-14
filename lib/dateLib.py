@@ -29,6 +29,33 @@ now = time.mktime
 def getTimestamp(format="%Y%m%d%H%M%S"):
     return time.strftime(format, time.gmtime())
 
+def getDatesInSeconds(startDate="", endDate="", span="0", offset="0"):
+    if startDate:
+        startDate = getSecondsSinceEpoch(startDate)
+    else:
+        startDate = ""
+
+    if endDate:
+        endDate = getSecondsSinceEpoch(endDate)
+    else:
+        endDate = ""
+
+    if startDate and endDate:
+        if startDate <= endDate:
+            return (startDate, endDate)
+        else:
+            return (startDate, None)
+    elif startDate and span:
+        return convertStartDateSpanInDates(startDate, eval(span))
+    elif endDate and span:
+        return convertEndDateSpanInDates(endDate, eval(span))
+    elif span and offset:
+        return convertSpanOffsetInDates(eval(span), eval(offset))
+    elif span:
+        return convertSpanOffsetInDates(eval(span), 0)
+    else:
+        return None, None
+
 def convertStartDateSpanInDates(startDate, span):
     """
     startDate in seconds since Epoch
@@ -37,7 +64,6 @@ def convertStartDateSpanInDates(startDate, span):
     endDate = startDate + span * MINUTE
     return startDate, endDate
 
-
 def convertEndDateSpanInDates(endDate, span):
     """
     endDate in seconds since Epoch
@@ -45,7 +71,6 @@ def convertEndDateSpanInDates(endDate, span):
     """
     startDate = endDate - span * MINUTE
     return startDate, endDate
-
 
 def convertSpanOffsetInDates(span, offset):
     """
@@ -95,6 +120,9 @@ def getSecondsSinceEpoch(date='2005-08-30 20:06:59', format='%Y-%m-%d %H:%M:%S')
     
 def getYesterdayInSeconds():
     return now(time.gmtime()) - DAY
+
+def getDateInSecondsFormatted(seconds, format="%Y-%m-%d %H:%M:%S"):
+    return time.strftime(format, time.gmtime(seconds))
 
 def getTodayFormatted(format='%Y%m%d'):
     return time.strftime(format, time.gmtime())
