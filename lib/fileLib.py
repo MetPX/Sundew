@@ -63,7 +63,7 @@ def mergeFiles(files, mergeName):
     for file in files:
         fileString += file + " "
     if fileString:
-        commands.getstatusoutput("cat %s | sort > %s" % mergeName)
+        commands.getstatusoutput("cat %s | sort > %s" % (fileString, mergeName))
         return mergeName
     else:
         return ""
