@@ -29,6 +29,9 @@ class Bufr:
         self.size  = len(self.bulletin)
         self.valid = True
 
+        self.begin = 0
+        self.last  = self.size
+
         if self.bulletin == None :
            self.valid    =  False
            return
@@ -41,8 +44,6 @@ class Bufr:
 
         if self.valid == False : return
 
-        self.begin = self.s0
-        self.last  = self.s0 + self.length
 
     def checkEOB(self):
         """check that the end is ok and return its position
@@ -96,6 +97,9 @@ class Bufr:
         self.s0 = self.bulletin.find('BUFR')
         if self.s0 == -1 : return
 
+        self.begin = self.s0
+        self.last  = self.size - self.s0
+
         b0  = self.s0
         b4  = self.s0 + 4
         b7  = self.s0 + 7
@@ -104,6 +108,8 @@ class Bufr:
         if self.length > self.size-self.s0 : return
 
         self.version = long(self.array[b7])
+
+        self.last  = self.s0 + self.length
 
         self.valid = True
 
