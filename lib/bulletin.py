@@ -563,8 +563,12 @@ class bulletin:
 
                     b = b + [stringBulletin[bufr.begin:bufr.last]] + ['']
 
-                    self.emission    = bufr.observation
-                    self.ep_emission = bufr.ep_observation
+                    if bufr.valid :
+                       self.emission    = bufr.observation
+                       self.ep_emission = bufr.ep_observation
+                    else :
+                       self.logger.warning('Bufr without a valid internal date in section 1')
+                       self.logger.warning('Use date from bulletin header')
 
                     return b
             else:
