@@ -22,26 +22,109 @@ named COPYING in the root of the source directory tree.
 
 """
 import os, os.path, sys, commands, re, pickle, time, logging, fnmatch
-import SystemManager, PXPaths
+import SystemManager, PXPaths, fileLib
 from SystemManager import SystemManager
 
 class PXManager(SystemManager):
 
-    def __init__(self, drbdPath=False):
+    def __init__(self, rootPath=""):
 
-        """
-        drbdPath: drbd path or False, drbd path if we use other root than /apps
-        """
-
-        if drbdPath:
-            PXPaths.drbdPaths(drbdPath) 
-        else:
-            PXPaths.normalPaths() 
-
+        PXPaths.normalPaths(rootPath) 
         SystemManager.__init__(self)
         self.LOG = PXPaths.LOG          # Will be used by DirCopier
 
-    def getAllFlowNames(self, tuple=False, drp=None):
+    def getLastFiles(self, type, flows, startDate, endDate, timestamp="", regex=".*", format="%Y-%m-%d %H:%M:%S",
+                     verbose=True, priority=0, basename=False):
+        """
+        Function that can be used to find files to retransmit.
+        Unix commands (awk, grep, cut, etc.) have been used in this
+        function only because I want to practice them.
+        """
+
+        LOGS = self.LOG
+        ALL = 'all'
+        MATCH = 'MATCH'
+        DEBUG = 0
+
+        hostname = os.uname()[1]
+        matchingFiles = []
+    
+        flows = flows.replace(' ', '').strip(',').split(',')
+        flowsCol = ":".join(flows)
+    
+        regex = re.compile(regex)
+        startDateFormatted = time.strftime(format, time.gmtime(startDate))
+        endDateFormatted = time.strftime(format, time.gmtime(endDate))
+        date = timestamp or time.strftime("%Y%m%d%H%M%S", time.gmtime())
+    
+        for flow in flows:
+            filename = "%s/toRetransmit.%s.%s.%s" % (LOGS, flow, hostname, date)
+            files = self.getLogNames(type=type, flowName=flow, date="*", fullPath=True)
+            files = fileLib.sortFilesByTime(files, (type=='rx' and 'Ingested') or (type=='tx' and 'delivered'))
+    
+            for file in files:
+                if type=='rx':
+                    commands.getoutput('grep Ingested %s | cut -d" " -f1,2,10 | \
+                    awk \'{date = $1 " " $2}; date >= "%s" && date <= "%s" {print $1, substr($2, 1, 8), $3, "%s"}\' >> %s.%s' %
+                    (file, startDateFormatted, endDateFormatted, hostname, filename, ALL))
+                elif type=='tx':
+                    commands.getoutput('grep delivered %s | cut -d" " -f1,2,7 | \
+                    awk \'{date = $1 " " $2}; date >= "%s" && date <= "%s" {print $1, substr($2, 1, 8), $3, "%s"}\' >> %s.%s' %
+                    (file, startDateFormatted, endDateFormatted, hostname, filename, ALL))
+
+                if DEBUG: print file
+    
+            if os.path.isfile("%s.%s" % (filename, ALL)):
+                matchingFiles.append("%s.%s" % (filename, MATCH))
+                goodTimes = open("%s.%s" % (filename, ALL), 'r')
+                goodWords = open("%s.%s" % (filename, MATCH), 'w')
+                for line in goodTimes.readlines():
+                    words = line.split()
+                    fields = words[2].split(":")
+                    match = regex.search(os.path.basename(words[2]))
+                    if (match) and fields[4] != "PROBLEM":
+                        goodWords.write(line)
+    
+                goodTimes.close()
+                goodWords.close()
+    
+        matchingFile = "%s/toRetransmit.%s.%s.%s" % (LOGS, flowsCol, hostname, date)
+        fileLib.mergeFiles(matchingFiles, matchingFile)
+    
+        return matchingFile
+
+    def getFlowDict(self, theDict, flows, type, cluster=""):
+        for flow in flows:
+            if cluster:
+                theDict.setdefault(flow, []).append((type, cluster)) 
+            else:
+                theDict.setdefault(flow, []).append((type)) 
+        return theDict 
+
+    def getDBName(self, filename):
+        """
+        This method will be used to extract the DB name from the filename
+        found in a tx log.
+        
+        ex: TVE-cartes_2007111300_317_P45.gif:TVE:CMOI:CARTES:4:GIF:20071113033933
+        should give /apps/px/db/20071113/CARTES/TVE/CMOI/TVE-cartes_2007111300_317_P45.gif:TVE:CMOI:CARTES:4:GIF:20071113033933
+        """
+        words = filename.split(':')
+        if len(words) == 7:
+            return PXPaths.DB + words[6][:8] + '/' + words[3] + '/' + words[1] + '/' + words[2] + '/' + filename
+        else:
+            return ""
+
+    def getLogNames(self, type='rx', flowName='*', date="", fullPath=True):
+        dot = ""
+        if date not in ["", "*"]: dot = '.'
+
+        if fullPath:
+            return [self.LOG + file for file in fnmatch.filter(os.listdir(self.LOG), "%s_%s.log%s%s" % (type, flowName, dot, date))]
+        else:
+            return [file for file in fnmatch.filter(os.listdir(self.LOG), "%s_*.log%s%s" % (type, dot, date))]
+
+    def getFlowNames(self, tuple=False, drp=None):
         clientNames =  self.getTxNames()
         sourlientNames = self.getTRxNames()
         filterNames = self.getFxNames()
@@ -111,7 +194,7 @@ class PXManager(SystemManager):
 
     def afterInit(self):
         if not os.path.isdir(PXPaths.ROOT):
-            self.logger.error("This directory: %s does not exist!" % (PXPaths.ROOT))
+            if self.logger: self.logger.error("This directory: %s does not exist!" % (PXPaths.ROOT))
             sys.exit(15)
 
         self.setFxNames()           
@@ -142,17 +225,32 @@ class PXManager(SystemManager):
 
     def initNames(self):
         if not os.path.isdir(PXPaths.ROOT):
-            self.logger.error("This directory: %s does not exist!" % (PXPaths.ROOT))
+            if self.logger: self.logger.error("This directory: %s does not exist!" % (PXPaths.ROOT))
             sys.exit(15)
+        
+        try:
+            self.setFxNames()           
+        except OSError:
+            pass
 
-        self.setFxNames()           
-        self.setRxNames()           
-        self.setTxNames()
-        self.setTRxNames()
+        try:
+            self.setRxNames()           
+        except OSError:
+            pass
+
+        try:
+            self.setTxNames()
+        except OSError:
+            pass
+
+        try:
+            self.setTRxNames()
+        except OSError:
+            pass
 
     def initShouldRunNames(self):
         if not os.path.isdir(PXPaths.ROOT):
-            self.logger.error("This directory: %s does not exist!" % (PXPaths.ROOT))
+            if self.logger: self.logger.error("This directory: %s does not exist!" % (PXPaths.ROOT))
             sys.exit(15)
 
         self.setShouldRunFxNames()           
@@ -162,7 +260,7 @@ class PXManager(SystemManager):
 
     def initRunningNames(self):
         if not os.path.isdir(PXPaths.ROOT):
-            self.logger.error("This directory: %s does not exist!" % (PXPaths.ROOT))
+            if self.logger: self.logger.error("This directory: %s does not exist!" % (PXPaths.ROOT))
             sys.exit(15)
 
         self.setRunningFxNames()
@@ -493,3 +591,5 @@ if __name__ == '__main__':
     print manager.getNotRunningTRxNames()
     print "**************************************************************"
     print
+    
+    print manager.getDBName("TVE-cartes_2007111300_317_P45.gif:TVE:CMOI:CARTES:4:GIF:20071113033933")
