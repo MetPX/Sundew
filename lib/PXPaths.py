@@ -43,16 +43,20 @@ def readConfig():
     return root
 
 
-def normalPaths():
+def normalPaths(rootPath=""):
 
     global ROOT, BIN, LIB, LOG, ETC, FXQ, RXQ, TXQ, DB, FX_CONF, RX_CONF, TX_CONF, TRX_CONF, \
            COLLECTION_DB, COLLECTION_CONTROL, ROUTING_TABLE, STATION_TABLE, SCRIPTS, REQUEST_REPLY, \
            LAT, LAT_RESULTS, LAT_TMP, STATS, PICKLES, GRAPHS, SEARCH, SHELL_PARSER
-
-    try:
-        envVar = os.path.normpath(os.environ['PXROOT']) + '/'
-    except KeyError:
-        envVar = '/apps/px/'
+    
+    if rootPath:
+        if rootPath[-1] != '/': rootPath += '/'
+        envVar = rootPath
+    else:
+        try:
+            envVar = os.path.normpath(os.environ['PXROOT']) + '/'
+        except KeyError:
+            envVar = '/apps/px/'
 
     ROOT = envVar 
     BIN = ROOT + 'bin/'
