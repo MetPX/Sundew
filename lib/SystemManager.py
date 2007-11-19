@@ -59,6 +59,27 @@ class SystemManager:
         return duplicate.keys()
     identifyDuplicate = staticmethod(identifyDuplicate)
 
+    def mergeTwoDict(dict1, dict2):
+        from SystemManager import SystemManager
+        """
+        dict1 and dict2 must be of the following form:
+        dict1 = {'toto': [item1, item2, ...], 'titi':[item1], ...}
+        dict2 = {'toto': [item3, ...], 'tata':[item4], ...}
+        newDict = {'toto': [item1, item2, item3, ...], 'titi':[item1], 'tata':[item4], ...}
+        """
+        newDict = {}
+        keys1 = dict1.keys(); keys2 = dict2.keys()
+        keys = keys1 + keys2
+        keys = SystemManager.removeDuplicate(keys)
+        keys.sort()
+
+        for key in keys:
+            for dict in [dict1, dict2]:
+                if dict.get(key, None):
+                    newDict.setdefault(key, []).extend(dict.get(key))
+        return newDict
+    mergeTwoDict = staticmethod(mergeTwoDict)
+
     def setLogger(self, logger):
         self.logger = logger
 
