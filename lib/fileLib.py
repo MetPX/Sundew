@@ -59,11 +59,9 @@ def sortFilesByTime(list, searchWord):
     #       etre elimines immediatement (faire une autre fonction pour cette tache)
 
 def mergeFiles(files, mergeName):
-    fileString = ""
-    for file in files:
-        fileString += file + " "
+    fileString = " ".join(files)
     if fileString:
-        commands.getstatusoutput("cat %s | sort > %s" % (fileString, mergeName))
+        commands.getstatusoutput("echo %s | xargs cat | sort > %s" % (fileString, mergeName))
         return mergeName
     else:
         return ""
