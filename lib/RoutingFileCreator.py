@@ -73,14 +73,12 @@ class RoutingFileCreator(FileCreator):
                    self.file.write("key %s %s %s\n" % (header, ','.join(clients), self.drp.getHeaderPriority(header)))
 
     def createKeyAcceptSection(self):
-        keys = self.drp.keyInfos.keys()
-        keys.sort()
 
-        for keyp in keys:
-            clients  = self.drp.keyInfos[keyp]['clients']
-            priority = self.drp.keyInfos[keyp]['priority']
-            clients.sort()
-            self.file.write("key_accept %s %s %s\n" % (keyp, ','.join(clients), priority) )
+        for mask in self.drp.keyMasks:
+            if mask[4] :
+               self.file.write ("key_accept %s %s %s" % (mask[0],','.join(mask[1]),mask[2]) )
+            else :
+               self.file.write ("key_reject %s " % mask[0] )
 
     def _appendToFile(self):
         import math
