@@ -84,7 +84,6 @@ class PXValidator:
         print("3-Stations indexed by header")
         print("4-Stations indexed by collected header")
         print("5-AFTN addresses indexed by header")
-        print("6-Key Accepted")
         print("m-Reprint this menu (to make another choice)")
         print("q-Quit")
         print
@@ -140,11 +139,6 @@ class PXValidator:
                     print("aftn client is not in the table for this header")
                 else:
                     print self.drp.routingInfos[answer]['subclients']['aftn']
-            elif mode == '6':
-                if self.drp.keyInfos.get(answer, None) is None:
-                    print("%s is not in the table" % answer)
-                else:
-                    print self.drp.keyInfos[answer]['clients']
 
     def stationsDiff(self, filename, sp):
         spOld = StationParser(filename)
@@ -170,7 +164,7 @@ class PXValidator:
             for header in added:
                 print("NOTE: key %s has been ADDED" % header)
 
-        deleted, added = findChange(drpOld.keyInfos.keys(), drp.keyInfos.keys())
+        deleted, added = findChange(drpOld.keyMaskMap.keys(), drp.keyMaskMap.keys())
         if deleted:
             for header in deleted:
                 print("NOTE: key_accept %s has been DELETED" % header)
