@@ -233,7 +233,8 @@ class PXValidator:
                 if os.path.dirname(value):
                     PXValidator.routingFilename = value
                 else:
-                    PXValidator.routingFilename = PXPaths.ETC + value
+                    #PXValidator.routingFilename = PXPaths.ETC + value
+                    PXValidator.routingFilename = "/apps/master/routing/etc/" + value
 
             # Stations
             if option in ('-s', '--stations'):
@@ -241,13 +242,16 @@ class PXValidator:
                 if os.path.dirname(value):
                     PXValidator.stationsFilename = value
                 else:
-                    PXValidator.stationsFilename = PXPaths.ETC + value
+                    #PXValidator.stationsFilename = PXPaths.ETC + value
+                    PXValidator.stationsFilename = "/apps/master/routing/etc/" + value
 
         if routingFilename  is False:
-            PXValidator.routingFilename = PXPaths.ROUTING_TABLE
+            #PXValidator.routingFilename = PXPaths.ROUTING_TABLE
+            PXValidator.routingFilename = "/apps/master/routing/etc/pxRouting.conf"
 
         if stationsFilename is False:
-            PXValidator.stationsFilename = PXPaths.STATION_TABLE
+            #PXValidator.stationsFilename = PXPaths.STATION_TABLE
+            PXValidator.stationsFilename = "/apps/master/routing/etc/stations.conf"
 
 
 if __name__ == '__main__':
