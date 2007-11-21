@@ -336,7 +336,7 @@ class Ingestor(object):
                    self.drp.parse()
 
                 if self.source.nodups :
-                   self.fileCache.clear()
+                   self.fileCache.CacheManager(maxEntries=120000, timeout=8*3600)
 
                 reader = DiskReader(self.ingestDir, self.source.batch, self.source.validation, self.source.patternMatching,
                                     self.source.mtime, False, self.source.logger, self.source.sorter, self.source)
@@ -490,7 +490,7 @@ class Ingestor(object):
                                True)
 
                 if self.source.nodups :
-                   self.fileCache.clear()
+                   self.fileCache.CacheManager(maxEntries=120000, timeout=8*3600)
 
                 reader = DiskReader(bullManager.pathSource, self.source.batch, self.source.validation, self.source.patternMatching,
                                     self.source.mtime, False, self.source.logger, self.source.sorter)
