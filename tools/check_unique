@@ -1,0 +1,11 @@
+#!/bin/ksh
+
+for p in `px status | awk '{print $2}'`; do
+
+    NP=`ps -flade | grep ' '$p' ' | grep -v grep | grep -v status | wc -l`;
+
+    if ((NP!=1)); then
+       echo $p ' ' $NP
+    fi
+
+done 
