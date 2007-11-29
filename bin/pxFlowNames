@@ -1,0 +1,24 @@
+#!/usr/bin/env python
+"""
+#############################################################################################
+# Name: pxFlowNames.py
+#
+# Author: Daniel Lemay
+#
+# Date: 2007-11-21
+#
+# Description: Used to obtain flow's name 
+#
+#############################################################################################
+"""
+import sys, os, os.path, time, pwd
+sys.path.insert(1, sys.path[0] + '/../lib')
+sys.path.insert(1,sys.path[0] + '/../lib/importedLibs')
+
+from PXManager import PXManager
+
+pxm = PXManager()
+pxm.initNames()
+flows = pxm.getFlowNames(tuple=True)
+
+print flows
