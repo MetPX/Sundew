@@ -51,37 +51,37 @@ def commandLineParser():
     
     return (parser, options, args)
 
-def createLogger(name,logFileBaseName,maxSize,backupMaxNumber):
-    """
-        Creation d'une instance de 'logging'
-        
-        Avec cette instance, il est possible d'effectuer les actions suivantes:
-                    ACTIONS                                 RESULTAT DANS LE FICHIER LOG
-            logger.debug("debug message")           => date+heure - name - [level] debug message
-            logger.info("info message")             => date+heure - name - [level] info message
-            logger.warn("warn message")             => date+heure - name - [level] warn message
-            logger.error("error message")           => date+heure - name - [level] error message
-            logger.critical("critical message")     => date+heure - name - [level] critical message
-    """
-    
-    #create logger
-    logger = logging.getLogger(name)
-    logger.setLevel(logging.DEBUG)
-    
-    #create Rotating File Handler and set level to debug
-    fh = logging.handlers.RotatingFileHandler(filename=logFileBaseName,maxBytes=maxSize, backupCount=backupMaxNumber)
-    fh.setLevel(logging.DEBUG)
-    
-    #create formatter
-    formatter = logging.Formatter("%(asctime)s - %(name)s - [%(levelname)s] %(message)s")
-    
-    #add formatter to fh
-    fh.setFormatter(formatter)
-    
-    #add fh to logger
-    logger.addHandler(fh)
-    
-    return logger
+# def createLogger(name,logFileBaseName,maxSize,backupMaxNumber):
+#     """
+#         Creation d'une instance de 'logging'
+#         
+#         Avec cette instance, il est possible d'effectuer les actions suivantes:
+#                     ACTIONS                                 RESULTAT DANS LE FICHIER LOG
+#             logger.debug("debug message")           => date+heure - name - [level] debug message
+#             logger.info("info message")             => date+heure - name - [level] info message
+#             logger.warn("warn message")             => date+heure - name - [level] warn message
+#             logger.error("error message")           => date+heure - name - [level] error message
+#             logger.critical("critical message")     => date+heure - name - [level] critical message
+#     """
+#     
+#     #create logger
+#     logger = logging.getLogger(name)
+#     logger.setLevel(logging.DEBUG)
+#     
+#     #create Rotating File Handler and set level to debug
+#     fh = logging.handlers.RotatingFileHandler(filename=logFileBaseName,maxBytes=maxSize, backupCount=backupMaxNumber)
+#     fh.setLevel(logging.DEBUG)
+#     
+#     #create formatter
+#     formatter = logging.Formatter("%(asctime)s - %(name)s - [%(levelname)s] %(message)s")
+#     
+#     #add formatter to fh
+#     fh.setFormatter(formatter)
+#     
+#     #add fh to logger
+#     logger.addHandler(fh)
+#     
+#     return logger
 
 def afficher(st=""):
     """
@@ -100,7 +100,7 @@ def openFile(nomFic,mode):
     except:
         fic = None
         print "Impossible d'ouvrir le fichier:",nomFic
-        logger.critical("Impossible d'ouvrir le fichier: "+nomFic)
+#         logger.critical("Impossible d'ouvrir le fichier: "+nomFic)
         
     return fic
 
@@ -182,7 +182,7 @@ def updateDB(ficLog):
                 dernierProduit = produit
                 if(not nameParsed):
                     if(produit[0:16] != "PROBLEM_BULLETIN" and produit[0:16] != "FILE_FOR_COLUMBO"):
-                        logger.warn("No regex match found with product : " + produit)
+#                         logger.warn("No regex match found with product : " + produit)
                         print "#",produit
                     else:
                         pass
@@ -352,8 +352,6 @@ if __name__ == "__main__":
     
     parser,options,args = commandLineParser()
     
-    logger = createLogger(options.cluster,"/data_local/dataBase/clusterInfo.log",1024*100,4)
-    
     logsFile = openLogsFile()
     
     #Lire la liste de regex se trouvant dans un fichier de configuration
@@ -365,9 +363,6 @@ if __name__ == "__main__":
                 listeRegex.append(re.compile(line[:line.find("\n")]))
         ficRegex.close()       
     
-#     for regex in listeRegex:
-#         print regex
-        
     dataBase = {}
     
     #Parsing des fichiers log
