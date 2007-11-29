@@ -226,7 +226,7 @@ class PXManager(SystemManager):
     def initNames(self):
         if not os.path.isdir(PXPaths.ROOT):
             if self.logger: self.logger.error("This directory: %s does not exist!" % (PXPaths.ROOT))
-            sys.exit(15)
+            return 1
         
         try:
             self.setFxNames()           
