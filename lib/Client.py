@@ -86,8 +86,10 @@ class Client(object):
         self.destfn_script = None           # a script to rename the file for client
         self.execfile      = None
 
+        self.dx_script     = None           # a script to convert the file for client
         self.fx_script     = None           # a script to convert the file for client
         self.execfile2     = None
+        self.execfile3     = None
 
         # read in the config
         self.readConfig()
@@ -99,6 +101,10 @@ class Client(object):
         if self.execfile2 != None :
            try    : execfile(PXPaths.SCRIPTS + self.execfile2 )
            except : self.logger.error("Problem with fx_script %s" % self.execfile2)
+
+        if self.execfile3 != None :
+           try    : execfile(PXPaths.SCRIPTS + self.execfile3 )
+           except : self.logger.error("Problem with dx_script %s" % self.execfile3)
 
         #self.printInfos(self)
 
@@ -186,6 +192,7 @@ class Client(object):
                     elif words[0] == 'dir_mkdir': self.dir_mkdir =  isTrue(words[1])
                     elif words[0] == 'destfn_script': self.execfile = words[1]
                     elif words[0] == 'fx_script': self.execfile2 = words[1]
+                    elif words[0] == 'dx_script': self.execfile3 = words[1]
                 except:
                     self.logger.error("Problem with this line (%s) in configuration file of client %s" % (words, self.name))
 
@@ -199,6 +206,10 @@ class Client(object):
     def run_destfn_script(self, filename): 
         if self.destfn_script == None : return filename
         return self.destfn_script(filename)
+
+    def run_dx_script(self, data, logger): 
+        if self.dx_script == None : return data
+        return self.dx_script(data, logger)
 
     def run_fx_script(self, filename, logger): 
         if self.fx_script == None : return filename
