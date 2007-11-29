@@ -17,7 +17,7 @@ named COPYING in the root of the source directory tree.
 #############################################################################################
 
 """
-import sys, os, re, time, fnmatch
+import sys, os, os.path, re, time, fnmatch
 import PXPaths
 from SystemManager import SystemManager
 from PXManager import PXManager
@@ -44,6 +44,12 @@ class MasterConfigurator(object):
         self.flowCluster = {}             # A mapping from a flow to it's cluster
 
         self.types = ['source', 'client', 'sourlient']  # Possible type of flows
+
+    def printClusterInfos(self, flowCluster):
+        keys = flowCluster.keys()
+        keys.sort()
+        for key in keys:
+            print "%s: %s" % (key, flowCluster[key])
 
     def setMachine(self, machine):
         self.machine = machine
@@ -72,9 +78,15 @@ class MasterConfigurator(object):
         allSourlients = []
         allFlows = []
 
+        if not os.path.isdir(self.rootPath):
+            return 1
+
         for cluster in self.clusters:
             pxm = PXManager(self.rootPath + cluster + '/')
-            pxm.initNames()
+            if pxm.initNames():
+                #print (self.rootPath + cluster + " inexistant!")
+                continue
+
             clients, sourlients, sources, aliases = pxm.getFlowNames(tuple=True)
 
             # Populate flowCluster for current cluster
@@ -93,6 +105,9 @@ class MasterConfigurator(object):
             iprint("sourlients (%s): %s" % (len(sourlients), sourlients))
             #print "aliases:    %s" % aliases
             iprint()
+
+        pxm = PXManager()
+        pxm.initNames()
 
         self.flowCluster = self.createFlowDict()
         self.dupSources = pxm.identifyDuplicate(allSources)
