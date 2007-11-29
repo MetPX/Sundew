@@ -196,16 +196,21 @@ class senderAm(gateway.gateway):
         unBulletinAm = bulletinAm.bulletinAm(data,self.logger,lineSeparator='\r\r\n')
 
         # applying the dx_script to the data
+
         if self.client.execfile3 != None :
-           newBulletinAm = self.client.run_dx_script(unBulletinAm,self.logger)
-           if newBulletinAm == None :
-              self.logger.warning("DX script ignored the data")
-              return succes, nbBytesSent
-           elif newBulletinAm == unBulletinAm :
-              self.logger.warning("DX script kept the data as is")
-           else :
-              self.logger.info("DX script modified data")
-              unBulletinAm = newBulletinAm
+            try : 
+                     newBulletinAm = self.client.run_dx_script(unBulletinAm,self.logger)
+                     if newBulletinAm == None :
+                        self.logger.warning("DX script ignored the data")
+                        return False, 0
+                     elif newBulletinAm == unBulletinAm :
+                        self.logger.warning("DX script kept the data as is")
+                     else :
+                        self.logger.info("DX script modified data")
+                        unBulletinAm = newBulletinAm
+            except : 
+                     self.logger.error("DX script bombed")
+                     return False, 0
 
         # The check to see of the connection must be re-initialized is in the sendBullein routine.
         succes, nbBytesSent = self.unSocketManagerAm.sendBulletin(unBulletinAm)
