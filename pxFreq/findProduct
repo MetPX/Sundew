@@ -1,0 +1,3 @@
+#! /bin/bash
+
+grep "$1.* \[.*\] \[.*\]" $2 | sed "s/\(.*\) \[\(.*\)\] \[\(.*\)\]/\nProduit = \1\nSources = \2\nClients = \3/"
