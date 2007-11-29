@@ -47,7 +47,7 @@ def normalPaths(rootPath=""):
 
     global ROOT, BIN, LIB, LOG, ETC, FXQ, RXQ, TXQ, DB, FX_CONF, RX_CONF, TX_CONF, TRX_CONF, \
            COLLECTION_DB, COLLECTION_CONTROL, ROUTING_TABLE, STATION_TABLE, SCRIPTS, REQUEST_REPLY, \
-           LAT, LAT_RESULTS, LAT_TMP, STATS, PICKLES, GRAPHS, SEARCH, SHELL_PARSER
+           LAT, LAT_RESULTS, LAT_TMP, STATS, PICKLES, GRAPHS, SEARCH, SHELL_PARSER, PX_DATA
     
     if rootPath:
         if rootPath[-1] != '/': rootPath += '/'
@@ -95,6 +95,9 @@ def normalPaths(rootPath=""):
 
     # pxRetrans
     SHELL_PARSER = LIB + 'shellParser.py'
+    PX_DATA = '/apps/px/data/'  # Not ROOT + 'data' because this path is in fact independant of px application 
+                                # and thus could be anything. It is only by chance (not really) that the path
+                                # begins by /apps/px.
 
 def drbdPaths(rootPath):
 
