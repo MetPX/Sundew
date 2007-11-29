@@ -108,6 +108,34 @@ The module must return one of the 2 following :
 
 .fi
 .TP
+\fBdx_script script (default:None)\fR
+For sender of type AM, it is possible to define a script to create derived products.  The script must be in python and reside in $PXROOT/etc/scripts. The dx_script must end with the line :
+.nf
+
+         self.dx_script = module
+
+.fi
+where the module is a valid python module having 2 arguments : data, logger.
+data is the incoming bulletinAm data class to apply the script to.  logger is 
+an internal metpx class that can be used to log messages to the sender's log 
+file.  It supports 3 levels of messages :
+.nf
+
+        logger.debug  ("message1")
+        logger.warning("message2")
+        logger.error  ("message3")
+
+.fi
+The module must return one of the following : 
+.nf
+
+        inBulletinAm  return the incoming BulletinAm data class
+        outBulletinAm return the derived  BulletinAm data class
+        None          return the python   None  keyword
+
+If \fBNone\fR is returned, nothing is sent to the client. If a BulletinAm data class is returned (inBulletinAm or outBulletinAm), that data only is sent to the client. The incoming file is unlinked and the derived data is not retained
+.fi
+.TP
 \fBfx_script script (default:None)\fR
 For sender that do not use sockets, it is possible to define a script to create derived products.
 The script must be in python and reside in $PXROOT/etc/scripts. The fx_script must end with the line :
