@@ -368,7 +368,6 @@ if __name__ == "__main__":
 #     for regex in listeRegex:
 #         print regex
         
-    pathDB = "dataBase/"
     dataBase = {}
     
     #Parsing des fichiers log
@@ -386,11 +385,11 @@ if __name__ == "__main__":
     #dataBase = trouverFrequencesM1(dataBase)
     
     #Lire la DB pour en sortir un fichier texte
-    afficher("Creation du fichier de sortie " + pathDB + options.cluster + ".db ...")
+    afficher("Creation du fichier de sortie " + options.cluster + ".db ...")
     
     #Acceleration des acces a la BD
     sparsify(dataBase)
-    ficSortie = openFile(pathDB+options.cluster+".db","w")
+    ficSortie = openFile(options.cluster+".db","w")
     
     for entree in dataBase:
         
@@ -405,7 +404,7 @@ if __name__ == "__main__":
         
 #     #Sauvegarde de la DB
 #     afficher("save database ...")
-#     ficClusterDB = openFile(pathDB+options.cluster+".db","wb")
+#     ficClusterDB = openFile(options.cluster+".db","wb")
 #     for entree in dataBase:
 #         pickle.dump((entree,dataBase[entree]), ficClusterDB)
 #     ficClusterDB.close()
