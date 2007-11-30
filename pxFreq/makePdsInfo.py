@@ -4,8 +4,8 @@
 ./makePdsInfo.py -t radar -c pds logs/pds1/rx_RAW_urp.log* | grep "#"
 """
 
-
-import re,os,sys,pickle,logging,logging.handlers
+#import logging,logging.handlers
+import re,os,sys
 from optparse import OptionParser
 from sets import *
 from datetime import *
@@ -99,7 +99,7 @@ def openFile(nomFic,mode):
         fic = open(nomFic,mode)
     except:
         fic = None
-        print "Impossible d'ouvrir le fichier:",nomFic
+        afficher("Impossible d'ouvrir le fichier: "+nomFic)
 #         logger.critical("Impossible d'ouvrir le fichier: "+nomFic)
         
     return fic
@@ -112,9 +112,7 @@ def openLogsFile():
     for ficName in args:
         #Ouverture du fichier log
         ficLog = openFile(ficName,"r")
-        if(not ficLog):
-            parser.error("Fichier log '"+ficName+"' introuvable!")
-        else:
+        if(ficLog):
             logsFile.append((ficName,ficLog))
             
     return logsFile
@@ -168,6 +166,7 @@ def updateDB(ficLog):
     
     source = ficLog[0].split("/")
     source = source[len(source)-1].split(".")[0]
+    source = source[3:]
     
     fic = ficLog[1]
     
@@ -183,10 +182,7 @@ def updateDB(ficLog):
                 if(not nameParsed):
                     if(produit[0:16] != "PROBLEM_BULLETIN" and produit[0:16] != "FILE_FOR_COLUMBO"):
 #                         logger.warn("No regex match found with product : " + produit)
-                        print "#",produit
-                    else:
-                        pass
-                        #print "####",produit
+                        afficher("# "+produit)
                         
                     dernierProduit = None
                 else:
@@ -202,7 +198,7 @@ def updateDB(ficLog):
                         # dataBase[produit][1] == clients
                         # dataBase[produit][2] == {sources:([date/heure],frequence)}
                         dataBase[produit] = [Set([source]),Set([]),{source:[[(date,heure)],"NA"]}]
-                        #dataBase[produit] = {"sources":Set([source]),"clients":Set([]),"dateheure":{source:[(date,heure)]},"frequence":{source:"NA"}}
+                        
             elif(data[0] == "clients"):
                 for c in data[1]:
                     if(dernierProduit):
@@ -356,7 +352,7 @@ if __name__ == "__main__":
     
     #Lire la liste de regex se trouvant dans un fichier de configuration
     listeRegex = []
-    ficRegex = openFile("regex.conf","r")
+    ficRegex = openFile("/apps/px/sundew/pxFreq/regex.conf","r")
     if(ficRegex):
         for line in ficRegex:
             if(line[0] != "#" and line[0] != "\n"):
@@ -384,7 +380,7 @@ if __name__ == "__main__":
     
     #Acceleration des acces a la BD
     sparsify(dataBase)
-    ficSortie = openFile(options.cluster+".db","w")
+    ficSortie = openFile("/apps/px/sundew/pxFreq/"+options.cluster+".db","w")
     
     for entree in dataBase:
         
@@ -396,10 +392,3 @@ if __name__ == "__main__":
         clients = str(list(dataBase[entree][1])).replace(" ","").replace("'","")
         
         ficSortie.write(entree + " " + sources + " " + clients + "\n")
-        
-#     #Sauvegarde de la DB
-#     afficher("save database ...")
-#     ficClusterDB = openFile(options.cluster+".db","wb")
-#     for entree in dataBase:
-#         pickle.dump((entree,dataBase[entree]), ficClusterDB)
-#     ficClusterDB.close()
