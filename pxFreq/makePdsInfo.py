@@ -1,10 +1,18 @@
 #!/usr/bin/python
 
 """
-./makePdsInfo.py -t radar -c pds logs/pds1/rx_RAW_urp.log* | grep "#"
+    makePdsInfo.py
+    
+    Ce script lit les fichiers logs d'un cluster pour faire ressortir differentes informations:
+        Les nom des produits
+        Les sources associees a chaque produit
+        Les clients vers qui chaque produit sont envoyees
+        La frequence d'arrivee de chaque produits
+        
+    Auteur : David Nantel
+    date :   04 Dec 2007
 """
 
-#import logging,logging.handlers
 import re,os,sys
 from optparse import OptionParser
 from sets import *
@@ -16,9 +24,9 @@ def commandLineParser():
         Gestion des options lors de l'appel du script
         Retour: (parser, options, args)
     """
-    version = os.path.basename(sys.argv[0])+" 0.1"
-    usage = "dataPattern [options] logFiles"
-    description = "Create or update a dataBase from a log file."
+    version = os.path.basename(sys.argv[0])+" 1.0"
+    usage = "makePdsInfo.py [options] logFiles"
+    description = "Creation d'une base de donnees a partir des logs de differents 'clusters'."
     parser = OptionParser(usage=usage, description=description, add_help_option=False)
     
     parser.add_option("--version",
@@ -51,38 +59,6 @@ def commandLineParser():
     
     return (parser, options, args)
 
-# def createLogger(name,logFileBaseName,maxSize,backupMaxNumber):
-#     """
-#         Creation d'une instance de 'logging'
-#         
-#         Avec cette instance, il est possible d'effectuer les actions suivantes:
-#                     ACTIONS                                 RESULTAT DANS LE FICHIER LOG
-#             logger.debug("debug message")           => date+heure - name - [level] debug message
-#             logger.info("info message")             => date+heure - name - [level] info message
-#             logger.warn("warn message")             => date+heure - name - [level] warn message
-#             logger.error("error message")           => date+heure - name - [level] error message
-#             logger.critical("critical message")     => date+heure - name - [level] critical message
-#     """
-#     
-#     #create logger
-#     logger = logging.getLogger(name)
-#     logger.setLevel(logging.DEBUG)
-#     
-#     #create Rotating File Handler and set level to debug
-#     fh = logging.handlers.RotatingFileHandler(filename=logFileBaseName,maxBytes=maxSize, backupCount=backupMaxNumber)
-#     fh.setLevel(logging.DEBUG)
-#     
-#     #create formatter
-#     formatter = logging.Formatter("%(asctime)s - %(name)s - [%(levelname)s] %(message)s")
-#     
-#     #add formatter to fh
-#     fh.setFormatter(formatter)
-#     
-#     #add fh to logger
-#     logger.addHandler(fh)
-#     
-#     return logger
-
 def afficher(st=""):
     """
         Affichage si dans le mode 'verbose': l'option '-v'.        
@@ -100,7 +76,6 @@ def openFile(nomFic,mode):
     except:
         fic = None
         afficher("Impossible d'ouvrir le fichier: "+nomFic)
-#         logger.critical("Impossible d'ouvrir le fichier: "+nomFic)
         
     return fic
 
@@ -181,7 +156,6 @@ def updateDB(ficLog):
                 dernierProduit = produit
                 if(not nameParsed):
                     if(produit[0:16] != "PROBLEM_BULLETIN" and produit[0:16] != "FILE_FOR_COLUMBO"):
-#                         logger.warn("No regex match found with product : " + produit)
                         afficher("# "+produit)
                         
                     dernierProduit = None
@@ -327,18 +301,14 @@ def trouverFrequencesM2():
                     elif(intmax == 12*60*60): dataBase[entree][2][source][1] = "12:00:00"
                 
 def sparsify(d):
-    """Improve dictionary sparsity.
+    """
+    Improve dictionary sparsity.
 
     The dict.update() method makes space for non-overlapping keys.
     Giving it a dictionary with 100% overlap will build the same
     dictionary in the larger space.  The resulting dictionary will
     be no more that 1/3 full.  As a result, lookups require less
     than 1.5 probes on average.
-
-    Example:
-    >>> import __builtin__
-    >>> sparsify(__builtin__.__dict__)
-
     """
 
     e = d.copy()
@@ -380,8 +350,8 @@ if __name__ == "__main__":
     
     #Acceleration des acces a la BD
     sparsify(dataBase)
-    ficSortie = openFile("/apps/px/sundew/pxFreq/"+options.cluster+".db","w")
     
+    ficSortie = openFile("/apps/px/sundew/pxFreq/"+options.cluster+".db","w")
     for entree in dataBase:
         
         sourceListe = []
