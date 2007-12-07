@@ -251,11 +251,13 @@ def trouverFrequencesM2():
     
     for entree in dataBase:
         for source in dataBase[entree][2]:
+            
             liste = dataBase[entree][2][source][0]
             liste.sort(compare)
             
             if(len(liste) >= 4):
                 pattern = {0:[],5*60:[],10*60:[],15*60:[],30*60:[],60*60:[],6*60*60:[],12*60*60:[]}
+                firstOccurence = {0:None,5*60:None,10*60:None,15*60:None,30*60:None,60*60:None,6*60*60:None,12*60*60:None}
                 listeDelta = []
                 tic = None
                 for tac in liste:
@@ -266,8 +268,10 @@ def trouverFrequencesM2():
                         #ici, tic est le precedent de tac dans la liste
                         annee,mois,jour,heure,minute,seconde,mili = parseDateAndTime(tic)
                         dt1 = datetime(annee,mois,jour,heure,minute,seconde,mili*1000)
+                        occ = (heure,minute,seconde)
                         annee,mois,jour,heure,minute,seconde,mili = parseDateAndTime(tac)
                         dt2 = datetime(annee,mois,jour,heure,minute,seconde,mili*1000)
+                        
                         delta = dt2 - dt1
                         heures = delta.days * 24
                         minutes = delta.seconds / 60
@@ -276,12 +280,14 @@ def trouverFrequencesM2():
                         secondes = delta.seconds % 60
                         delta = secondes + 60*minutes + 60*60*heures
                         
-                        #Ajouter le delta (secondes) dans la bonne intervalle 
-                        pattern[TrouverIntervalle(delta)].append(delta)
+                        #Ajouter le delta (secondes) dans la bonne intervalle
+                        intervalle = TrouverIntervalle(delta)
+                        pattern[intervalle].append(delta)
+                        if(firstOccurence[intervalle] == None): firstOccurence[intervalle] = occ
                         
                         tic = tac
                 
-                #Trouver l'intervalle qui revien le plus souvent
+                #Trouver l'intervalle qui reviens le plus souvent
                 nbmax = 0
                 intmax = None
                 for k in pattern:
@@ -292,13 +298,16 @@ def trouverFrequencesM2():
     
                 #Modifier la frequence dans la database
                 if(intmax):
-                    if(intmax == 5*60):       dataBase[entree][2][source][1] = "00:05:00"
-                    elif(intmax == 10*60):    dataBase[entree][2][source][1] = "00:10:00"
-                    elif(intmax == 15*60):    dataBase[entree][2][source][1] = "00:15:00"
-                    elif(intmax == 30*60):    dataBase[entree][2][source][1] = "00:30:00"
-                    elif(intmax == 60*60):    dataBase[entree][2][source][1] = "01:00:00"
-                    elif(intmax == 6*60*60):  dataBase[entree][2][source][1] = "06:00:00"
-                    elif(intmax == 12*60*60): dataBase[entree][2][source][1] = "12:00:00"
+                    occ = firstOccurence[intmax]
+                    occ = "%02i:%02i:%02i" %(occ[0],occ[1],occ[2])
+                    #                         premiere occurence de la journee, frequence
+                    if(intmax == 5*60):       dataBase[entree][2][source][1] = occ + ", 00:05:00"
+                    elif(intmax == 10*60):    dataBase[entree][2][source][1] = occ + ", 00:10:00"
+                    elif(intmax == 15*60):    dataBase[entree][2][source][1] = occ + ", 00:15:00"
+                    elif(intmax == 30*60):    dataBase[entree][2][source][1] = occ + ", 00:30:00"
+                    elif(intmax == 60*60):    dataBase[entree][2][source][1] = occ + ", 01:00:00"
+                    elif(intmax == 6*60*60):  dataBase[entree][2][source][1] = occ + ", 06:00:00"
+                    elif(intmax == 12*60*60): dataBase[entree][2][source][1] = occ + ", 12:00:00"
                 
 def sparsify(d):
     """
@@ -322,7 +331,10 @@ if __name__ == "__main__":
     
     #Lire la liste de regex se trouvant dans un fichier de configuration
     listeRegex = []
+    
     ficRegex = openFile("/apps/px/sundew/pxFreq/bin/regex.conf","r")
+    #ficRegex = openFile("regex.conf","r")
+    
     if(ficRegex):
         for line in ficRegex:
             if(line[0] != "#" and line[0] != "\n"):
@@ -343,7 +355,6 @@ if __name__ == "__main__":
     #Trouver la frequence des produits
     afficher("Trouver les frequences ...")
     trouverFrequencesM2()
-    #dataBase = trouverFrequencesM1(dataBase)
     
     #Lire la DB pour en sortir un fichier texte
     afficher("Creation du fichier de sortie " + options.cluster + ".db ...")
@@ -352,6 +363,8 @@ if __name__ == "__main__":
     sparsify(dataBase)
     
     ficSortie = openFile("/apps/px/sundew/pxFreq/data/"+options.cluster+".db","w")
+    #ficSortie = openFile(options.cluster+".db","w")
+    
     for entree in dataBase:
         
         sourceListe = []
