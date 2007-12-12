@@ -18,6 +18,10 @@ from optparse import OptionParser
 from sets import *
 from datetime import *
 
+sys.path.append("/apps/px/sundew/lib/")
+
+from Logger import Logger
+
 
 def commandLineParser():
     """
@@ -76,6 +80,7 @@ def openFile(nomFic,mode):
     except:
         fic = None
         afficher("Impossible d'ouvrir le fichier: "+nomFic)
+        logger.warn("Can't open file: "+nomFic)
         
     return fic
 
@@ -155,8 +160,9 @@ def updateDB(ficLog):
                 produit,date,heure,nameParsed = data[1],data[2],data[3],data[4]
                 dernierProduit = produit
                 if(not nameParsed):
-                    if(produit[0:16] != "PROBLEM_BULLETIN" and produit[0:16] != "FILE_FOR_COLUMBO"):
+                    if(produit[0:16] != "PROBLEM_BULLETIN" and produit[0:16] != "FILE_FOR_COLUMBO" and produit[0:5] != "dummy"):
                         afficher("# "+produit)
+                        logger.warn(options.cluster+": Regex not found for : "+produit)
                         
                     dernierProduit = None
                 else:
@@ -301,13 +307,13 @@ def trouverFrequencesM2():
                     occ = firstOccurence[intmax]
                     occ = "%02i:%02i:%02i" %(occ[0],occ[1],occ[2])
                     #                         premiere occurence de la journee, frequence
-                    if(intmax == 5*60):       dataBase[entree][2][source][1] = occ + ", 00:05:00"
-                    elif(intmax == 10*60):    dataBase[entree][2][source][1] = occ + ", 00:10:00"
-                    elif(intmax == 15*60):    dataBase[entree][2][source][1] = occ + ", 00:15:00"
-                    elif(intmax == 30*60):    dataBase[entree][2][source][1] = occ + ", 00:30:00"
-                    elif(intmax == 60*60):    dataBase[entree][2][source][1] = occ + ", 01:00:00"
-                    elif(intmax == 6*60*60):  dataBase[entree][2][source][1] = occ + ", 06:00:00"
-                    elif(intmax == 12*60*60): dataBase[entree][2][source][1] = occ + ", 12:00:00"
+                    if(intmax == 5*60):       dataBase[entree][2][source][1] = occ + "- 00:05:00"
+                    elif(intmax == 10*60):    dataBase[entree][2][source][1] = occ + "- 00:10:00"
+                    elif(intmax == 15*60):    dataBase[entree][2][source][1] = occ + "- 00:15:00"
+                    elif(intmax == 30*60):    dataBase[entree][2][source][1] = occ + "- 00:30:00"
+                    elif(intmax == 60*60):    dataBase[entree][2][source][1] = occ + "- 01:00:00"
+                    elif(intmax == 6*60*60):  dataBase[entree][2][source][1] = occ + "- 06:00:00"
+                    elif(intmax == 12*60*60): dataBase[entree][2][source][1] = occ + "- 12:00:00"
                 
 def sparsify(d):
     """
@@ -326,6 +332,11 @@ def sparsify(d):
 if __name__ == "__main__":
     
     parser,options,args = commandLineParser()
+    
+    logger = Logger('/apps/px/sundew/pxFreq/log/pxFreq.log', 'INFO', "pxFreqLog", bytes=1000000) # Enable logging
+    logger = logger.getLogger()
+    
+    logger.info("Updating data base for "+options.cluster+" cluster ...")
     
     logsFile = openLogsFile()
     
