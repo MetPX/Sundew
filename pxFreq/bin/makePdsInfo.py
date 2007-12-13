@@ -140,7 +140,10 @@ def parseLine(line):
 def updateDB(ficLog):
     """
         Lire ligne par ligne le fichier de logs et ressortir toutes l'informations
-            + produit, Sources, Clients
+            dataBase -> {produit:[sources,clients,infoSurFrequence]}
+            dataBase[produit][0] == sources
+            dataBase[produit][1] == clients
+            dataBase[produit][2] == {sources:([date/heure],frequence)}
     """
     global dataBase
     
@@ -173,10 +176,6 @@ def updateDB(ficLog):
                             dataBase[produit][2][source] = [[(date,heure)],"NA"]
                             dataBase[produit][0].add(source)
                     else:
-                        #dataBase -> {produit:[sources,clients,infoSurFrequence]}
-                        # dataBase[produit][0] == sources
-                        # dataBase[produit][1] == clients
-                        # dataBase[produit][2] == {sources:([date/heure],frequence)}
                         dataBase[produit] = [Set([source]),Set([]),{source:[[(date,heure)],"NA"]}]
                         
             elif(data[0] == "clients"):
@@ -213,43 +212,27 @@ def parseDateAndTime(tic):
 
 def TrouverIntervalle(delta):
     """
-        Pas dans une intervalle     -> 0 seconde
-        intervale 5min  +- 30sec    -> 5*60 secondes
-        intervale 10min +- 1min     -> 10*60 secondes
-        intervale 15min +- 1min     -> 15*60 secondes
-        intervale 30min +- 2min     -> 30*60 secondes
-        intervale 1h    +- 5min     -> 60*60 secondes
-        intervale 6h    +- 10min    -> 6*60*60 secondes
-        intervale 12h   +- 15min    -> 12*60*60 secondes
+        Trouve et retourne la bonne frequence.
+        Si aucune n'est trouvee, retourne la valeur 0
     """
     
-    intervalle = 0
-    
-    if(delta < (5*60)+(30) and delta > (5*60)-(30)):                    # Intervale 5min +- 30sec
-        intervalle = 5*60
-    elif(delta < (10*60)+(60) and delta > (10*60)-(60)):                # Intervale 10min +- 1min
-        intervalle = 10*60
-    elif(delta < (15*60)+(60) and delta > (15*60)-(60)):                # Intervale 15min +- 1min
-        intervalle = 15*60
-    elif(delta < (30*60)+(2*60) and delta > (30*60)-(2*60)):            # Intervale 30min +- 2min
-        intervalle = 30*60
-    elif(delta < (60*60)+(60*5) and delta > (60*60)-(60*5)):            # Intervale 1h +- 5min
-        intervalle = 60*60
-    elif(delta < (6*60*60)+(10*60) and delta > (6*60*60)-(10*60)):      # Intervale 6h +- 10min
-        intervalle = 6*60*60
-    elif(delta < (12*60*60)+(15*60) and delta > (12*60*60)-(15*60)):    # Intervale 12h +- 15min
-        intervalle = 12*60*60
-    
-    return intervalle
+    for intervalle in listeIntervalles:
+        if(delta < (intervalle[0] + intervalle[1]) and delta > (intervalle[0] - intervalle[1])):
+            return intervalle[0]
+    return 0
     
 def compare(x,y):
-    x = x[0]+x[1]
-    y = y[0]+y[1]
-    if(x<y): return -1
-    elif(x==y): return 0
+    """
+        Comparaison de deux date/heure
+        format de x et y : tuple("AAAA-MM-JJ","hh:mm:ss:ll")
+    """
+    x1 = x[0]+x[1]
+    y1 = y[0]+y[1]
+    if(x1<y1): return -1
+    elif(x1==y1): return 0
     else: return 1
     
-def trouverFrequencesM2():
+def trouverFrequences():
     """
         Tente de trouver la frequences de chaque produit.
     """
@@ -262,8 +245,12 @@ def trouverFrequencesM2():
             liste.sort(compare)
             
             if(len(liste) >= 4):
-                pattern = {0:[],5*60:[],10*60:[],15*60:[],30*60:[],60*60:[],6*60*60:[],12*60*60:[]}
-                firstOccurence = {0:None,5*60:None,10*60:None,15*60:None,30*60:None,60*60:None,6*60*60:None,12*60*60:None}
+                pattern = {0:[]}
+                firstOccurence = {0:None}
+                for intervalle in listeIntervalles:
+                    pattern[intervalle[0]] = []
+                    firstOccurence[intervalle[0]] = None
+                
                 listeDelta = []
                 tic = None
                 for tac in liste:
@@ -328,6 +315,58 @@ def sparsify(d):
 
     e = d.copy()
     d.update(e)
+    
+def lireRegex():
+    """
+        Lecture du fichier de configuration des regex
+        
+        Retourne une liste de regex
+    """
+    listeRegex = []
+    
+    ficRegex = openFile("/apps/px/sundew/pxFreq/bin/regex.conf","r")
+    
+    if(ficRegex):
+        for line in ficRegex:
+            if(line[0] != "#" and line[0] != "\n"):
+                listeRegex.append(re.compile(line[:line.find("\n")]))
+        ficRegex.close()
+    else:
+        logger.error("Execution stop because 'regex.conf' was not found.")
+        sys.exit()
+        
+    return listeRegex
+                        
+def lireIntervalles():
+    """
+        Lecture du fichier de configuration des intervalles pour les frequences
+        
+        Retourne une liste d'intervalles dans le format : tuple("hh:mm:ss","hh:mm:ss","hh:mm:ss")
+                                                                   freq       marge     alarme
+    """
+    listeIntervalles = []
+    
+    ficIntervalles = openFile("/apps/px/sundew/pxFreq/bin/intervalles.conf","r")
+    
+    if(ficIntervalles):
+        for line in ficIntervalles:
+            if(line[0] != "#" and line[0] != "\n"):
+                line = line.split()
+                freq,marge,alarme = line[0],line[1],line[2]
+                freq = freq.split(":")
+                freq = int(freq[0])*60*60 + int(freq[1])*60 + int(freq[2])
+                marge = marge.split(":")
+                marge = int(marge[0])*60*60 + int(marge[1])*60 + int(marge[2])
+                alarme = alarme.split(":")
+                alarme = int(alarme[0])*60*60 + int(alarme[1])*60 + int(alarme[2])
+                
+                listeIntervalles.append((freq,marge,alarme))
+        ficIntervalles.close()
+    else:
+        logger.error("Execution stop because 'intervalles.conf' was not found.")
+        sys.exit()
+        
+    return listeIntervalles
                 
 if __name__ == "__main__":
     
@@ -340,20 +379,11 @@ if __name__ == "__main__":
     
     logsFile = openLogsFile()
     
-    #Lire la liste de regex se trouvant dans un fichier de configuration
-    listeRegex = []
-    
-    ficRegex = openFile("/apps/px/sundew/pxFreq/bin/regex.conf","r")
-    #ficRegex = openFile("regex.conf","r")
-    
-    if(ficRegex):
-        for line in ficRegex:
-            if(line[0] != "#" and line[0] != "\n"):
-                listeRegex.append(re.compile(line[:line.find("\n")]))
-        ficRegex.close()       
+    #Lire les fichiers de configuration
+    listeRegex = lireRegex()
+    listeIntervalles = lireIntervalles()
     
     dataBase = {}
-    
     #Parsing des fichiers log
     i = 1
     j = len(logsFile)
@@ -365,7 +395,7 @@ if __name__ == "__main__":
     
     #Trouver la frequence des produits
     afficher("Trouver les frequences ...")
-    trouverFrequencesM2()
+    trouverFrequences()
     
     #Lire la DB pour en sortir un fichier texte
     afficher("Creation du fichier de sortie " + options.cluster + ".db ...")
@@ -386,3 +416,5 @@ if __name__ == "__main__":
         clients = str(list(dataBase[entree][1])).replace(" ","").replace("'","")
         
         ficSortie.write(entree + " " + sources + " " + clients + "\n")
+        
+    logger.info("End of updating data base for "+options.cluster+" cluster")
