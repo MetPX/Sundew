@@ -19,7 +19,6 @@ from sets import *
 from datetime import *
 
 sys.path.append("/apps/px/sundew/lib/")
-
 from Logger import Logger
 
 
@@ -46,8 +45,8 @@ def commandLineParser():
                       help="Mode verbeux.")
                       
     parser.add_option("-c", "--cluster",
-                      action="store", dest="cluster", default=None, choices=["px","pxatx","pds"],
-                      help="Definie le cluster sur lequel travailler. Choix = [ px | pxatx | pds ]")
+                      action="store", dest="cluster", default=None, choices=["px","pxatx","pds","px-stage"],
+                      help="Definie le cluster sur lequel travailler. Choix = [ px | pxatx | pds | px-stage ]")
                       
     (options, args) = parser.parse_args()
     
