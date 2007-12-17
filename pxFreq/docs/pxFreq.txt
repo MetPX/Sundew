@@ -1,0 +1,13 @@
+#
+# pxFreq.txt
+# Documentation du projet pxFreq
+#
+# Auteur : David Nantel
+# Date : 17 Dec 2007
+
+pxFreq est le script qui met en place les executions necessaires pour obtenir des bases de donnees contenant plusieurs informations sur
+l'entree de la plupart des fichers dans l'organisation.
+
+Le programme makePdsInfo.py est necessaire au bon fonctionnement du projet. Celui-ci se trouve dans le repertoire './bin/'. Pour plus d'information sur ce programme, voir la documentation associee : 'pdsInfo.txt'.
+
+Crontab est utilise pour automatiser l'execution a tous les jours. 

@@ -1,0 +1,15 @@
+#
+# pdsGraph.txt
+# Documentation du projet pdsGraph
+#
+# Auteur : David Nantel
+# Date : 17 Dec 2007
+
+pdsGraph utilise les bases de donnees crees par 'makePdsInfo.py' pour tenter de tracer les chemins qu'emprunte l'information dans le reseau de l'entreprise. Pour l'instant, l'affichage ce fait en ligne de commande sous la forme d'arborescence. Une affichage detaillee est aussi possible. 
+
+Usage:
+    ./makePdsGraph.py -p Produit [-td]
+    
+    '-p' : Produits affichees. Ecrites sous la forme de regex.
+    '-t' : Affichage en arborescence.
+    '-d' : Affichage detaillee.

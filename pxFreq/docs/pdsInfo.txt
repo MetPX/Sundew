@@ -1,0 +1,29 @@
+#
+# pdsInfo.txt
+# Documentation du projet pdsInfo
+#
+# Auteur : David Nantel
+# Date : 17 Dec 2007
+
+pdsInfo est un programme qui, a l'aide de fichiers logs, construit une base de donnees contenant plusieurs informations.
+Celles-ci sont:
+    - Nom du produit
+    - Les sources
+    - La premiere heure de reception
+    - La frequence de reception
+    - Les clients
+    
+    Avec les formats suivants:
+        Ligne entiere :         "Produit [source=PremiereReception-FrequenceReception] [clients]"
+        PremiereReception :     "HH:MM:SS"
+        FrequenceReception :    "HH:MM:SS"
+        
+        Il peut y avoir 1 ou plusieurs sources.
+        Il peut y avoir 0 ou plusieurs clients.
+        
+        Si aucune frequence est trouvee, 'PremiereReception-FrequenceReception' sera remplace par l'acronyme 'NA'.
+        
+Usage:
+    ./makePdsInfo -c Cluster  FichiersLogs
+    
+    L'option obligatoire '-c' definie le cluster sur lequel travailler. A ce jours, il y a 4 choix possible: [ px | pds | pxatx | px-stage ]
