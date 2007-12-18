@@ -1,0 +1,358 @@
+#################################################################
+#   doc_pxRoute.txt
+#    
+#   Documentation de pxRoute
+#
+#   Auteur : David Nantel
+#   Mise a jour : 03 Oct. 2007
+#   Version : 1.2
+#################################################################
+
+#################################################################
+#
+#   TABLE DES MATIERES
+#
+# 1 - DESCRIPTION
+#
+# 2 - UTILISATION
+#
+# 3 - LES MODES
+#
+# 4 - LES OPTIONS
+#
+# 5 - POSSIBILITES D'EXECUTION
+# 5.1     pxRoute -m chercher +
+# 5.2     pxRoute -m chercher ?
+# 5.3     pxRoute -m chercher NomClientOuAlias
+# 5.4     pxRoute -m ajouter -b Bulletins NomClient
+# 5.5     pxRoute -m ajouter -b Bulletins NomAlias
+# 5.6     pxRoute -m recreer -b Bulletins NomClient
+# 5.7     pxRoute -m recreer -b Bulletins NomAlias
+# 5.8     pxRoute -m enlever -b Bulletins NomClient
+# 5.9     pxRoute -m enlever -b Bulletins NomAlias
+# 5.10    pxRoute -m enlever NomClient
+# 5.11    pxRoute -m enlever NomAlias
+#
+# 6 - FORMAT DU FICHIER BULLETINS
+#
+# 7 - MULTILINGUISME
+#
+# 8 - VERSIONS
+# 8.1     Version 0.1
+# 8.2     Version 0.3
+# 8.3     Version 1.0
+# 8.4     Version 1.2
+# 8.5     Version 1.4
+#
+#################################################################
+
+
+1 - DESCRIPTION
+
+Mise a jour de la table de routage pour un client ou pour un alias.
+Version actuelle : 1.2
+
+2 - UTILISATION
+                        
+usage: pxRoute.py [options] -m (ajouter|enlever|recreer|chercher) NomClientOuAlias
+
+Mise a jour de la table de routage pour un client ou pour un alias. Pour plus
+d'information, voir la documentation (doc_pxRoute.txt)
+
+options:
+  --version             Affichage de la version.
+  -h, --help            Affichage de cette aide en ligne.
+  -u, --undo            Annule la derniere modification sur le fichier de la
+                        table de routage.
+  -f, --force           Ne demande pas de confirmation a l'ecran.
+  -q, --quiet           Retire l'affichage de l'information d'execution.
+  -i, --invert          Utilisation conjointe avec l'option '-b'. Inverse la
+                        liste de bulletins.
+  -t, --test            Test l'action en cours est affiche le resultat sur la
+                        sortie standard
+
+  Les modes:
+    Specification du mode d'acces au fichier de la table de routage. Cette
+    option est obligatoire. Les particularites de chacun des modes peuvent
+    etre consultees dans la documentation (doc_pxRoute.txt).
+    
+    -mMODE, --mode=MODE
+                        Specification du mode d'acces (ajouter | enlever |
+                        recreer | chercher).
+
+  Les fichiers d'entrees:
+    Specification des fichiers d'entrees pour le fichier de la table de
+    routage et le fichier bulletins
+    
+    -rROUTAGE, --routing=ROUTAGE
+                        Nom du fichier de la table de routage.
+                        [defaut:pxRouting.conf]
+    -bBULLETINS, --bulletins=BULLETINS
+                        Nom du fichier contenant une liste de bulletins.
+                        
+***NOTE AU CONCEPTEUR***
+Pour fin de test:
+Tous les fichiers crees (sauf le fichier de la table de routage) sont places dans le repertoire '.output/'. Si des fichiers sont deja 
+presents (cree lors d'execution ulterieur), ceux-ci seront sauvegarder dans des repertoires representant la date de la journee et 
+l'heure actuel(GMT). L'ancien fichier de la table de routage est sauvegarde dans le meme repertoire et le nouveau est place dans le 
+repertoire courant. Ce mecanisme est mis en place pour garder une historique des modifications effectuees. 
+
+exemple:
+.
+|-- .output
+|   |-- 2007-10-02
+|   |   `-- 18-55-35
+|   |   |   |-- details.txt
+|   |       |-- entreesNonValides.txt
+|   |       `-- entreesValides.txt
+|   |-- 2007-10-03
+|   |   |-- 17-52-29
+|   |   |   |-- details.txt
+|   |   |   |-- entreesNonValides.txt
+|   |   |   `-- entreesValides.txt
+|   |   `-- 18-14-38
+|   |       |-- details.txt
+|   |       |-- entreesNonValides.txt
+|   |       `-- entreesValides.txt
+|   |-- details.txt
+|   |-- entreesNonValides.txt
+|   `-- entreesValides.txt
+|-- pxRoute.py
+|-- pxRouting.conf
+|-- bull.txt
+
+***FIN DE LA NOTE***
+
+3 - LES MODES
+
+3.1     ajouter
+            Ajout d'inscriptions pour le client/alias aux bulletins presents dans le fichier 'bulletins'. Pour specifier le nom 
+            du fichier, il faut utiliser l'option "-b". Pour les indications sur le format valide de ce fichier, voir la section 5.
+
+3.2     enlever
+            Desinscription de bulletins pour le client/alias. Si l'option "-b" n'est pas utilisee, une desinscription complete
+            est effectuee. Dans le cas ou l'option "-b" est utilisee, le client/alias sera desinscrit aux bulletins present dans 
+            le fichier 'bulletins'. Pour les indications sur le format valide de ce fichier, voir la section 5.
+
+3.3     recreer
+            Renouvellement des inscriptions pour le client/alias avec les bulletins present dans le fichier 'bulletins'.
+            Pour specifier le nom du fichier, il faut utiliser l'option "-b". Pour les indications sur le format valide 
+            de ce fichier, voir la section 5.
+            
+3.4     chercher
+            Fait la recherche des inscriptions du client/alias et fait l'affichage du resultat a l'ecran. En remplacant le nom du 
+            client/alias par le caractere '+', la liste complete des bulletins present dans le fichier de la table de routage est 
+            affichee a l'ecran. En remplacant le nom du client/alias par le caractere '?', la liste des alias et des clients sont 
+            affichees a l'ecran.
+
+4 - LES OPTIONS
+
+Voici la liste des options et leurs description:
+    
+    --version       Afichage de la version sur la sortie standard
+    
+    -h --help       Affichage de l'aide en ligne
+    
+    -u --undo       Cette option annule la derniere modification sur le fichier de la table de routage.
+                    L'option '-r' peut etre utilisee pour specifier une autre table de routage que celle par defaut (pxRouting.conf).
+                    La sauvegarde est placee sous le meme nom que le fichier de la table de routage mais avec l'extension '.bak' en plus.
+                    Lors d'une recuperation, le fichier de la table de routage est remplace par le "backup" et le fichier '.bak'
+                    n'exitera plus. 
+    
+    -f --force      Cette option force l'execution du script. Celui-ci ne demandera pas de confirmation a l'ecran lors d'une 
+                    modification du fichier de la table de routage.
+    
+    -q --quiet      Par defaut, le script est en mode 'verbose'. La description de l'action en cours est donc affichee lors de 
+                    l'execution du script. Cette option bloque la sortie de ces messages. Les message important sont tout de meme 
+                    afficher sur la sortie standard.
+    
+    -m --mode       Il existe presentement 4 modes differents. Pour en savoir plus, consulter la section 3 sur les modes.
+    
+    -b --bulletins  Cette option sert a specifier le chemin du fichier 'bulletins'.
+    
+    -r --routing    Cette option sert a specifier le chemin du fichier de la table de routage. Par defaut, le fichier est './pxRouting.conf'
+    
+    -i --invert     Cette option doit etre utilise conjointement avec l'option '-b --bulletins'. Elle sert a inverser la liste des 
+                    bulletins valide present dans le fichier bulletins. La liste de reference est la liste de bulletins present dans 
+                    le fichier de la table de routage.
+                    
+    -t --test       Cette option sert a effectuer un test sur une modification (mode ajouter,recreer ou enlever). Les details du test
+                    sont affiches sur la sortie standard. Ces details sont les entrees valide, les entrees non-valide, le nombre 
+                    d'inscription avant la modification, les inscriptions et les desinscriptions qui seraient effectuees et le nombre
+                    d'inscription apres la modification. AUCUNE MODIFICATION est effectue lors de cette execution. Pour effectuer les
+                    modification, il suffit de retirer l'option '-t'.
+
+5 - POSSIBILITES D'EXECUTION
+
+5.1     pxRoute -m chercher +
+            - Sortie a l'ecran de la liste complete des bulletins contenus dans le fichier de configuration de la table de routage
+
+5.2     pxRoute -m chercher ?
+            - Sortie a l'ecran de la liste des alias et des clients inscrit dans le fichier de configuration de la table de routage
+
+5.3     pxRoute -m chercher NomClientOuAlias
+            - Affichage de la liste des bulletins que le clients ou l'alias est inscrit
+            - Si le client est inscrit dans un ou des groupes, les groupes inscrit sont aussi affiches
+
+5.4     pxRoute -m ajouter -b Bulletins NomClient
+            - Inscription du client aux bulletins presents dans le fichier 'bulletins'
+            - Si le client est inexistant, une demande de creation est affichee
+            - UN AVERTISSEMENT EST EMIT : 
+                *****************************************************
+                * ALIAS : %NomClient
+                * AVANT MODIFICATION: XX BULLETIN(S) INSCRIT
+                * APRES MODIFICATION: XX BULLETIN(S) INSCRIT
+                * INSCRIPTION A XX BULLETIN(S)
+                * CONFIRMATION (Oui/Non)
+            - L'option -f force l'inscription sans demander de confirmation
+            
+5.5     pxRoute -m ajouter -b Bulletins NomAlias
+            - Inscription de l'alias aux bulletins presents dans le fichier 'bulletins'
+            - UN AVERTISSEMENT EST EMIT : 
+                *****************************************************
+                * ALIAS : %NomAlias
+                * AVANT MODIFICATION: XX BULLETIN(S) INSCRIT
+                * APRES MODIFICATION: XX BULLETIN(S) INSCRIT
+                * INSCRIPTION A XX BULLETIN(S)
+                * CONFIRMATION (Oui/Non)
+            - L'option -f force l'inscription sans demander de confirmation
+            
+5.6     pxRoute -m recreer -b Bulletins NomClient
+            - Desinscription du client a tous les bulletins et groupes
+            - Inscription du client aux bulletins presents dans le fichier 'bulletins' 
+            - Si le client est inexistant, une demande de creation est affichee
+            - UN AVERTISSEMENT EST EMIT :  
+                *****************************************************
+                * ALIAS : %NomClient
+                * AVANT MODIFICATION: XX BULLETIN(S) INSCRIT
+                * APRES MODIFICATION: XX BULLETIN(S) INSCRIT
+                * INSCRIPTION A XX BULLETIN(S)
+                * DESINSCRIPTION A XX BULLETIN(S)
+                * DESINSCRIPTION A XX GROUPE(S)
+                * CONFIRMATION (Oui/Non)
+            - L'option -f force l'inscription sans demander de confirmation
+
+5.7     pxRoute -m recreer -b Bulletins NomAlias
+            - Desinscription de l'alias a tous les bulletins et groupes
+            - Inscription de l'alias aux bulletins presents dans la liste 
+            - UN AVERTISSEMENT EST EMIT : 
+                *****************************************************
+                * ALIAS : %NomAlias
+                * AVANT MODIFICATION: XX BULLETIN(S) INSCRIT
+                * APRES MODIFICATION: XX BULLETIN(S) INSCRIT
+                * INSCRIPTION A XX BULLETIN(S)
+                * DESINSCRIPTION A XX BULLETIN(S)
+                * DESINSCRIPTION A XX GROUPE(S)
+                * CONFIRMATION (Oui/Non)
+            - L'option -f force l'inscription sans demander de confirmation
+            
+5.8     pxRoute -m enlever -b Bulletins NomClient
+            - Transfert (voir notes sur le transfert) des inscriptions des groupes du client
+            - Desinscription du client a tous les groupes
+            - Desinscription du client aux bulletins presents dans le fichier 'bulletins'
+            - UN AVERTISSEMENT EST EMIT : 
+                *****************************************************
+                * CLIENT : %NomClient
+                * AVANT MODIFICATION: XX BULLETIN(S) INSCRIT
+                * APRES MODIFICATION: XX BULLETIN(S) INSCRIT
+                * DESINSCRIPTION A XX BULLETIN(S)
+                * DESINSCRIPTION A XX GROUPE(S)
+                * CONFIRMATION (Oui/Non)
+            - L'option -f force la desinscription sans demander de confirmation
+            
+5.9     pxRoute -m enlever -b Bulletins NomAlias
+            - Transfert (voir notes sur le transfert) des inscriptions des groupes de l'alias
+            - Desinscription de l'alias a tous les groupes
+            - Desinscription de l'alias aux bulletins presents dans le fichier 'bulletins'
+            - UN AVERTISSEMENT EST EMIT : 
+                *****************************************************
+                * ALIAS : %NomAlias
+                * AVANT MODIFICATION: XX BULLETIN(S) INSCRIT
+                * APRES MODIFICATION: XX BULLETIN(S) INSCRIT
+                * DESINSCRIPTION A XX BULLETIN(S)
+                * DESINSCRIPTION A XX GROUPE(S)
+                * CONFIRMATION (Oui/Non)
+            - L'option -f force la desinscription sans demander de confirmation
+            
+5.10     pxRoute -m enlever NomClient
+            - Retrait du client de tous les groupes
+            - Desinscription du client a tous les bulletins
+            - UN AVERTISSEMENT EST EMIT :
+                *****************************************************
+                * CLIENT : %NomClient
+                * SUPPRESSION TOTALE DU CLIENT DU FICHIER DE ROUTAGE
+                * CONFIRMATION (Oui/Non)
+            - L'option -f force la supression sans demander de confirmation
+            
+5.11     pxRoute -m enlever NomAlias
+            - Supression de la ligne descriptive de l'alias
+            - Desinscription de l'alias a tous les bulletins
+            - UN AVERTISSEMENT EST EMIT :   
+                *****************************************************
+                * ALIAS : %NomAlias
+                * SUPPRESSION TOTAL DE L'ALIAS DU FICHIER DE ROUTAGE
+                * CONFIRMATION (Oui/Non)
+            - L'option -f force la desinscription sans demander de confirmation
+            
+
+NOTES SUR LE TRANSFERT:
+    Un transfert est l'action d'inscrire de facon individuelle les clients/alias aux bulletins abonne par l'entremise d'un groupe 
+            
+                        
+6 - FORMAT DU FICHIER BULLETINS
+
+Le fichier 'bulletins' est une liste de bulletins.
+Ce fichier est specifie avec l'option '-b'.
+Le script fonctionnera de facon differentes suivant l'appel de cette option. (voir section 4 - POSSIBILLITE D'EXECUTION)
+
+Ce fichier doit etre de format texte avec les particularites suivantes:
+    - Un bulletin par ligne
+    - Un bulletin peut etre ecrit avec des espaces ou avec le caractere '_' (pas les deux)
+        ex: aaaa01 qwer     valide
+            aaaa01_qwer     valide
+            aaaa01   qwer   valide
+            aaaa01_  qwer   non-valide
+            aaaa01___qwer   non-valide
+            
+    - La completion de nom est possible avec le caractere '*'
+        ex: aaaa*
+            *01*
+            *qwer        
+            
+    - Les espaces et les sauts de lignes en surplus sont ignores
+    - Les lignes debutant par le caractere '#' sont considerees comme des commentaires et seront donc ignorees
+
+7 - MULTILINGUISME
+
+Par defaut, la langue utilisee par le programme est le francais. Il est possible de changer cette langue pour rendre tous les echanges
+avec le programme en anglais. Pour ce faire, il faut changer la variable d'environnement 'PXROUTE_LANGUAGE'.
+
+    export PXROUTE_LANGUAGE='en'    (anglais)
+    export PXROUTE_LANGUAGE='fr'    (francais)
+    
+8 - VERSIONS
+
+8.1     Version 0.1 (non-stable)
+            - Lecture des fichiers de config et d'une liste de bulletins.
+            - Verification de la syntaxe et formatage. (Voir section 5 - FORMAT DU FICHIER BULLETINS)
+            - Sortie de fichiers intermediaires. (TableRoutageFormater.txt et ListeBulletinsFormater.txt)
+            - Classification des entrees de la liste de bulletins. (entrees valide et entrees non-valide) 
+            - Sortie du resultat. (entreesValide.txt et entreesNonValide.txt)
+            
+8.2     Version 0.3 (non-stable)
+            - Ajout du systeme d'options.
+            - Le resultat de la version 0.1 est utilise pour ajouter, enlever, recreer ou chercher (voir section 3 - LES MODES).
+            - Mecanisme de sauvegarde des fichiers dans differents repertoire pour garder un historique
+            - Periode de tests
+
+8.3     Version 1.0 (stable)
+            - Les options ('-q', '-f', '-h', 'r', 'b' et 'm') et les modes (chercher, ajouter, enlever et recreer) sont operationnels
+            
+8.4     Version 1.2 (stable)
+            - L'option '-i --invert' a ete ajoutee
+            - L'affichage a l'ecran et dans les fichiers est standardise avec une entree par ligne
+            
+8.5     Version 1.4 (stable)
+            - L'option '-t --test' a ete ajoutee
+            - L'option '-u --undo' a ete ajouter
+            - Le programme est maintenant multilingue (francais,anglais)
