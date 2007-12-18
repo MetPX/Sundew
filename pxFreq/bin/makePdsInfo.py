@@ -179,7 +179,7 @@ def updateDB(ficLog):
                         
             elif(data[0] == "clients"):
                 for c in data[1]:
-                    if(dernierProduit):
+                    if(dernierProduit and c != ""):
                         dataBase[dernierProduit][1].add(c)
                 dernierProduit = None
                 
