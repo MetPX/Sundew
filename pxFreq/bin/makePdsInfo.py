@@ -6,11 +6,12 @@
     Ce script lit les fichiers logs d'un cluster pour faire ressortir differentes informations:
         Les nom des produits
         Les sources associees a chaque produit
-        Les clients vers qui chaque produit sont envoyees
-        La frequence d'arrivee de chaque produits
+        Les clients vers qui le produit sont envoyees
+        La premiere heure et date de reception du produit
+        La frequence d'arrivee du produit
         
     Auteur : David Nantel
-    date :   04 Dec 2007
+    date :   19 Dec 2007
 """
 
 import re,os,sys
@@ -20,7 +21,6 @@ from datetime import *
 
 sys.path.append("/apps/px/sundew/lib/")
 from Logger import Logger
-
 
 def commandLineParser():
     """
@@ -283,13 +283,12 @@ def trouverFrequences():
                 nbmax = 0
                 intmax = None
                 for k in pattern:
-                    if k != 0: 
-                        if(len(pattern[k]) > nbmax):
+                    if(len(pattern[k]) > nbmax):
                             nbmax = len(pattern[k])
                             intmax = k
     
                 #Modifier la frequence dans la database
-                if(intmax):
+                if(intmax and intmax != 0):
                     occ = firstOccurence[intmax]
                     occ = "%02i:%02i:%02i" %(occ[0],occ[1],occ[2])
                     #                         premiere occurence de la journee, frequence
@@ -371,6 +370,9 @@ if __name__ == "__main__":
     
     parser,options,args = commandLineParser()
     
+    #Au moment de l'implementation, le code source du module 'Logger' avait ete modifie sur le serveur utilise afin 
+    #d'enlever la posibilite d'utiliser l'option de rotation des logs par date. J'ai donc du utiliser la rotation
+    #utilisant l'espace fichier (en bytes). 
     logger = Logger('/apps/px/sundew/pxFreq/log/pxFreq.log', 'INFO', "pxFreqLog", bytes=1000000) # Enable logging
     logger = logger.getLogger()
     
@@ -403,7 +405,6 @@ if __name__ == "__main__":
     sparsify(dataBase)
     
     ficSortie = openFile("/apps/px/sundew/pxFreq/data/"+options.cluster+".db","w")
-    #ficSortie = openFile(options.cluster+".db","w")
     
     for entree in dataBase:
         

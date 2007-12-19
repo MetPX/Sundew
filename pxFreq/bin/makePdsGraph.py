@@ -4,9 +4,9 @@
 """
     makePdsGraph.py
     
-    Ce programme trouve le parcour des fichiers dans le reseau. Pour ce faire, j'utilise les trois base de donnees
-    construite avec le programme 'makePdsInfo' (pxFreq). Trois clusters sont donc observes pour trouver les chemins
-    mais la mise en place d'autre cluster pourrait augmenter la richesse de ce programme.
+    Ce programme trouve le parcour des fichiers dans le reseau. Pour ce faire, j'utilise les quatres bases de donnees
+    construitent avec le programme 'makePdsInfo' (pxFreq). Quatre clusters sont donc observes pour trouver les chemins
+    mais la mise en place d'autres clusters pourraient augmenter la richesse de ce programme.
     
     Author : David Nantel
     Date :   10 Dec 2007
@@ -28,7 +28,7 @@ def commandLineParser():
     """
     version = os.path.basename(sys.argv[0])+" 1.0"
     usage = "makePdsGraph.py [options] -p produit"
-    description = "Construction de graph a partir des bases de donnees des clusters."
+    description = "Construction de graph a partir des bases de donnees des clusters. Ceux-ci representent le parcour de l'information dans le reseau de l'entreprise."
     parser = OptionParser(usage=usage, description=description, add_help_option=False)
     
     parser.add_option("--version",
@@ -45,15 +45,7 @@ def commandLineParser():
     
     parser.add_option("-p", "--products",
                       action="store", dest="products", default=None,
-                      help="Demande un nom de produit. L'utilisation du caractere '*' est possible.")
-                      
-    parser.add_option("-d", "--details",
-                      action="store_true", dest="details", default=False,
-                      help="Demande l'affichage en detail du ou des produits.")
-                      
-    parser.add_option("-t", "--tree",
-                      action="store_true", dest="tree", default=False,
-                      help="Demande l'affichage en arboressence du ou des produits.")
+                      help="Demande un nom de produit. Ceci ce fait sous forme de 'regex'.")
                       
     (options, args) = parser.parse_args()
     
@@ -199,19 +191,6 @@ def buildGraphs(Products):
         graphList.append(g)
         
     return graphList
-
-def printDetails(Products):
-    """
-        Affichage detaille des produits demande
-    """
-    for p in Products:
-        print "produit:",p
-        for i in range(len(Products[p])):
-            print "Sources:",Products[p][i][0]
-            print "Cluster:",Products[p][i][1]
-            print "Clients:",Products[p][i][2]
-            print
-        print
         
 def printTrees(graphList):
     """
@@ -239,11 +218,6 @@ if __name__ == "__main__":
     dbPxatx.close()
     dbPxstage.close()
     
-    #Affichage du detail
-    if(options.details):
-        printDetails(Products)
-        
     #Construire le ou les graphs ( graph + noeuds + liens ) et affichage
-    if(options.tree):
-        graphList = buildGraphs(Products)
-        printTrees(graphList)
+    graphList = buildGraphs(Products)
+    printTrees(graphList)
