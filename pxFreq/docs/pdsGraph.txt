@@ -13,3 +13,8 @@ Usage:
     '-p' : Produits affichees. Ecrites sous la forme de regex.
     '-t' : Affichage en arborescence.
     '-d' : Affichage detaillee.
+
+Procedure pour ajouter un cluster dans 'makePdsGraph.py':
+    1- Modifier le code pour ouvrir la nouvelle base de donnees.
+    2- Ajouter a la liste des db pour la fonction 'findProducts()'.
+    3- S'assurer de refermer la nouvelle base de donnees comme les autres.

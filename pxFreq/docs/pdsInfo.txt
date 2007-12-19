@@ -1,9 +1,10 @@
-#
+
 # pdsInfo.txt
 # Documentation du projet pdsInfo
 #
 # Auteur : David Nantel
 # Date : 17 Dec 2007
+
 
 pdsInfo est un programme qui, a l'aide de fichiers logs, construit une base de donnees contenant plusieurs informations.
 Celles-ci sont:
@@ -22,8 +23,46 @@ Celles-ci sont:
         Il peut y avoir 0 ou plusieurs clients.
         
         Si aucune frequence est trouvee, 'PremiereReception-FrequenceReception' sera remplace par l'acronyme 'NA'.
-        
-Usage:
-    ./makePdsInfo -c Cluster  FichiersLogs
-    
-    L'option obligatoire '-c' definie le cluster sur lequel travailler. A ce jours, il y a 4 choix possible: [ px | pds | pxatx | px-stage ]
+
+usage: makePdsInfo.py [options] logFiles
+
+    options:
+      --version             Affiche la version.
+      -h, --help            Affiche cette aide.
+      -v, --verbose         Mode verbeux.
+      -c, --cluster=CLUSTER
+                            Definie le cluster sur lequel travailler. Choix = [ px
+                            | pxatx | pds | px-stage ]
+
+Structure des repertoires:
+  pxFreq/  
+  |-- bin
+  |     # Les fichiers de configurations et
+  |     # les fichiers sources executables.
+  |
+  |-- data
+  |     # Les bases de donnees.
+  |
+  |-- docs
+  |     # Endroit ou se trouve toutes la
+  |     # documentation.
+  |
+  |-- lib
+  |     # Librairie du projet
+  |
+  `-- log
+        # Les fichiers logs
+
+
+Un fichier de logs est present dans le repertoire 'pxFreq/log/'. On peut y voir les erreurs survenues lors d'une execution, les heures et dates de 
+chaque execution ainsi que les noms de produits que les regex n'ont pu identifier.
+
+Crontab est utilise pour automatiser l'execution a tous les jours. Celui-ci appel le script 'pxFreq' situe dans le repertoire racine du projet.
+
+Procedure pour ajouter un cluster dans le projet 'pxFreq':
+    1- Avoir acces aux fichiers logs pour ce cluster.
+    2- Modifier le script 'pxFreq' pour ajouter le cluster.
+    3- Mise en place d'un repertoire qui recevra la base de donnees.
+    4- Modifier le programme 'makePdsInfo.py' dans la fonction 'commandLineParser()' pour ajouter le nouveau cluster aux options.
+    5- Test du bon fonctionnement avec le script 'pxFreq'.
+    6- Ajout de cet appel dans 'crontab' pour automatiser le tout.
