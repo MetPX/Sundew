@@ -69,6 +69,9 @@ class Client(object):
         self.port = None                    # Port number
         self.keepAlive = True               # TCP SO_KEEPALIVE on (True) or off(False)
 
+        # Am destination thread Attributes
+        self.am_dest_thread = None                # assign a destination thread number to a specific bulletin header
+
         # Files Attributes
         self.user = None                    # User name used to connect
         self.passwd = None                  # Password 
@@ -193,6 +196,11 @@ class Client(object):
                     elif words[0] == 'destfn_script': self.execfile = words[1]
                     elif words[0] == 'fx_script': self.execfile2 = words[1]
                     elif words[0] == 'dx_script': self.execfile3 = words[1]
+
+                    elif words[0] == 'am_dest_thread':
+                         if self.am_dest_thread == None : self.am_dest_thread = {}
+                         self.am_dest_thread[words[1]] = int(words[2])
+
                 except:
                     self.logger.error("Problem with this line (%s) in configuration file of client %s" % (words, self.name))
 
@@ -322,6 +330,7 @@ class Client(object):
         print("Validation: %s" % client.validation)
         print("Pattern Matching: %s" % client.patternMatching)
         print("No duplicates: %s" % client.nodups)
+        print("am_dest_thread: %s" % client.am_dest_thread)
 
         print("******************************************")
         print("*       Client Masks                     *")

@@ -60,7 +60,7 @@ class socketManagerAm(socketManager.socketManager):
         else:
             return '',0
 
-    def wrapBulletin(self,bulletin):
+    def wrapBulletin(self,bulletin,thread_number):
         __doc__ = socketManager.socketManager.wrapBulletin.__doc__ + \
         """
            wrapBulletin
@@ -94,7 +94,7 @@ class socketManagerAm(socketManager.socketManager):
 
         #unsigned char threads[4]
         #threads='0'+chr(255)+'0'+'0'
-        threads= chr(0) + chr(255) + chr(0) + chr(0)
+        threads= chr(0) + chr(thread_number) + chr(0) + chr(0)
 
         #unsigned int start, length
         start = 0
@@ -137,7 +137,7 @@ class socketManagerAm(socketManager.socketManager):
         else:
             return 'INCOMPLETE'
 
-    def sendBulletin(self,bulletin):
+    def sendBulletin(self,bulletin,thread_number=255):
         #__doc__ = socketManager.socketManager.sendBulletin.__doc__ + \
         """
         input parameter:
@@ -155,7 +155,7 @@ class socketManagerAm(socketManager.socketManager):
         """
         try:
             #prepare bulletin for send
-            data = self.wrapBulletin(bulletin)
+            data = self.wrapBulletin(bulletin,thread_number)
 
             #print repr(data)
             #print('=====================================================================')

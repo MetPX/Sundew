@@ -212,8 +212,18 @@ class senderAm(gateway.gateway):
                      self.logger.error("DX script bombed")
                      return False, 0
 
+        # determine the destination thread for that bulletin
+        dest_thread = 255
+        if self.client.am_dest_thread != None :
+           if data[:2] in self.client.am_dest_thread :
+              dest_thread = self.client.am_dest_thread[data[:2]]
+              self.logger.debug("%s bulletin assigned thread %d" % (data[:2],dest_thread))
+           elif '*'    in self.client.am_dest_thread :
+              dest_thread = self.client.am_dest_thread['*']
+              self.logger.debug("%s bulletin assigned thread %d" % (data[:2],dest_thread))
+
         # The check to see of the connection must be re-initialized is in the sendBullein routine.
-        succes, nbBytesSent = self.unSocketManagerAm.sendBulletin(unBulletinAm)
+        succes, nbBytesSent = self.unSocketManagerAm.sendBulletin(unBulletinAm,dest_thread)
 
         #if the bulletin was sent successfully, erase the file.
         if succes:
