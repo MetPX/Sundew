@@ -235,22 +235,22 @@ the client.
          WMO's  maxLength default is 500000
 
 .fi
-TP
+.TP
+\fBport integer (default:None)\fR
+Port to bind for the transmission.
+.TP
 \fBam_dest_thread type number\fR
 When type am is used, the default am thread number encoded in the bulletin is 255,
 which means send it to all thread. Specific thread number can be set for specific
 bulletin types using this option. The * can be used to specify all bulletin types.
 A valid usage example could be :
 .nf
+
        am_dest_thread SA 17
        am_dest_thread IS 48
        am_dest_thread * 255
+
 .fi
-
-.TP
-\fBport integer (default:None)\fR
-Port to bind for the transmission.
-
 .SH TYPE SINGLE-FILE SPECIFIC OPTIONS
 .TP
 \fBprotocol name (Default: ftp )\fR
