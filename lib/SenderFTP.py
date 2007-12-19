@@ -58,20 +58,44 @@ class SenderFTP(object):
         self.timeout = self.client.timeout
         if self.timeout < 30 : self.timeout = 30
 
+        # instead of testing through out the code, overwrite functions for ftp
         if self.client.protocol == 'ftp':
-           self.ftp    = self.ftpConnect()
-           self.chdir  = self.ftp.cwd
+           self.ftp         = self.ftpConnect()
+           self.chdir       = self.ftp.cwd
+           self.chmod       = self.ftp_chmod
+           self.delete      = self.ftp.delete
+           self.mkdir       = self.ftp.mkd
+           self.put         = self.ftp_put
+           self.quit        = self.ftp.quit
 
+        # instead of testing through out the code, overwrite functions for sftp
         if self.client.protocol == 'sftp':
-           self.sftp   = self.sftpConnect()
-           self.chdir  = self.sftp.chdir
-           self.Ochmod = self.octal_perm(self.client.chmod)
+           self.sftp        = self.sftpConnect()
+           self.chdir       = self.sftp.chdir
+           self.chmod       = self.sftp_chmod
+           self.delete      = self.sftp.remove
+           self.mkdir       = self.sftp_mkdir
+           self.Ochmod      = self.octal_perm(self.client.chmod)
+           self.put         = self.sftp.put
+           self.quit        = self.sftp_quit
+
+        # First put method : use a temporary filename = filename + lock extension
+        if self.client.lock[0] == '.':
+           self.send_file = self.send_lock
+    
+        # Second put method : use UMASK to temporary lock the file
+        elif self.client.lock == 'umask' :
+           self.send_file = self.send_umask
+
+        # sending one file straight No locking method  (fall back if lock type incorrect)
+        else :
+           if self.client.lock != 'None' :
+              self.logger.warning("lock option invalid (%s) no locking used" % self.client.lock)
+           self.send_file = self.send_unlock
 
     # close connection... 
 
     def close(self):
-
-        if self.ftp == None and self.sftp == None : return
 
         timex = AlarmFTP(self.client.protocol + ' connection timeout')
 
@@ -79,12 +103,7 @@ class SenderFTP(object):
                   # gives 10 seconds to close the connection
                   timex.alarm(10)
 
-                  if self.sftp != None :
-                     self.sftp.close()
-                     self.t.close()
-
-                  if self.ftp != None :
-                     self.ftp.quit()
+                  self.quit()
 
                   timex.cancel()
         except :
@@ -203,14 +222,8 @@ class SenderFTP(object):
                             self.chdir(d)
                     except:
                             try   :
-                                    if self.sftp != None :
-                                       self.sftp.mkdir(d,self.Ochmod)
-                                       # previous mkdir did not do the job ... force with perm
-                                       self.perm(d)
-                                    if self.ftp != None :
-                                       self.ftp.mkd(d)
-                                       self.perm(d)
-
+                                    self.mkdir(d)
+                                    self.perm(d)
                                     self.chdir(d)
                             except:
                                     return False
@@ -308,8 +321,7 @@ class SenderFTP(object):
     # some system doesn't support chmod... so pass exception on that
     def perm(self, path):
         try    :
-                 if self.sftp != None : self.sftp.chmod(path,self.Ochmod)
-                 if self.ftp  != None : self.ftp.voidcmd('SITE CHMOD ' + str(self.client.chmod) + ' ' + path)
+                 self.chmod(self.client.chmod,path)
         except :
                  (type, value, tb) = sys.exc_info()
                  self.logger.debug("Could not chmod  %s" % path )
@@ -318,8 +330,7 @@ class SenderFTP(object):
     # some systems do not permit deletion... so pass exception on that
     def rm(self, path):
         try    :
-                 if self.sftp != None : self.sftp.remove(path)
-                 if self.ftp  != None : self.ftp.delete(path)
+                 self.delete(path)
         except :
                  (type, value, tb) = sys.exc_info()
                  self.logger.warning("Could not delete %s" % path )
@@ -342,7 +353,7 @@ class SenderFTP(object):
            fileObject.close()
            self.ftp.rename(tempName, destName)
 
-        self.perm(destName)
+        #self.perm(destName)
 
     # octal permission... there must be a better way of doing this...
     def octal_perm(self, perm ):
@@ -367,20 +378,10 @@ class SenderFTP(object):
            fileObject.close()
            self.ftp.voidcmd('SITE CHMOD ' + str(self.client.chmod) + ' ' + destName)
 
-
     # sending one file straight No locking method
     def send_unlock(self, file, destName ):
-
-        if self.sftp != None :
-           self.sftp.put(file,destName)
-
-        if self.ftp != None :
-           fileObject = open(file, 'r')
-           self.ftp.storbinary("STOR " + destName, fileObject)
-           fileObject.close()
-
-        self.perm(destName)
-
+        self.put(file,destName)
+        #self.perm(destName)
 
     # sending a list of files
     def send(self, files):
@@ -520,25 +521,22 @@ class SenderFTP(object):
 
                    # try to write the file to the client
                    try :
+                          ep_begin = time.time()
 
-                          # First put method : use a temporary filename = filename + lock extension
-                          if self.client.lock[0] == '.':
-                             self.send_lock( file,destName )
-    
-                          # Second put method : use UMASK to temporary lock the file
-                          elif self.client.lock == 'umask' :
-                             self.send_umask( file,destName )
+                          self.send_file( file, destName )
 
-                          # third no special locking mechanism (fall back if lock type incorrect)
+                          ep_end = time.time()
+                          dif = ep_end - ep_begin
+
+                          if dif > 0 :
+                             bps = nbBytes / dif
+                             self.logger.info("(%i Bytes) File %s delivered in %f Sec (%f Bps)" % (nbBytes, file, dif, bps) )
                           else :
-                             if self.client.lock != 'None' :
-                                self.logger.warning("lock option invalid (%s) no locking used" % self.client.lock)
-                             self.send_unlock( file,destName )
-
+                             self.logger.info("(%i Bytes) File %s delivered in %f Sec " % (nbBytes, file, 0) )
                           os.unlink(file)
-                          self.logger.info("(%i Bytes) File %s delivered to %s://%s@%s%s%s" % \
-                                          (nbBytes, file, self.client.protocol, self.client.user, \
-                                          self.client.host, destDirString, destName))
+                          #self.logger.info("(%i Bytes) File %s delivered to %s://%s@%s%s%s" % \
+                          #                (nbBytes, file, self.client.protocol, self.client.user, \
+                          #                self.client.host, destDirString, destName))
     
                           # add data to cache if needed
                           if self.client.nodups and self.cacheMD5 != None : 
@@ -571,6 +569,7 @@ class SenderFTP(object):
                    # FIXME: Voir le cas ou un fichier aurait les perms 000
                    # FIXME: Reutilisation de ftpConnect
 
+
     # check if data in cache... if not it is added automatically
     def in_cache(self,unlink_it,path) :
 
@@ -581,6 +580,32 @@ class SenderFTP(object):
                  return False
 
         return   self.cacheManager.has(self.cacheMD5, 'standard') 
+
+    # ftp chmod 
+    def ftp_chmod(self,chmod,path):
+        self.ftp.voidcmd('SITE CHMOD ' + str(self.client.chmod) + ' ' + path)
+
+    # ftp put 
+    def ftp_put(self,file,destName):
+        fileObject = open(file, 'r')
+        self.ftp.storbinary("STOR " + destName, fileObject)
+        fileObject.close()
+
+    # sftp chmod 
+    def sftp_chmod(self,chmod,path):
+        Ochmod = self.Ochmod
+        if chmod != self.client.chmod :
+           Ochmod = self.octal_perm(chmod)
+        self.sftp.chmod(path,Ochmod)
+
+    # sftp mkdir 
+    def sftp_mkdir(self,d):
+        self.sftp.mkdir(d,self.Ochmod)
+
+    # sftp quit = close connection... 
+    def sftp_quit(self):
+        self.sftp.close()
+        self.t.close()
 
 if __name__ == '__main__':
     pass
