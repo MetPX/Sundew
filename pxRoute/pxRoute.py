@@ -839,19 +839,19 @@ def modeRemove():
                 #backup(".output/details.txt")
                 
                 #Construction d'un fichier avec toutes les informations detaillees
-                ficInfo = ouvrirFichier(".output/details.txt","w")
-                ficInfo.write(lang.totalSupress + "\n\n")
-                if(typeNom == "alias"):
-                    ficInfo.write("ALIAS : " + nom + "\n")
-                else:
-                    ficInfo.write("CLIENT : " + nom + "\n")
-                ficInfo.write("\n" + lang.cancellationSubscription + ": " + str(len(listeDesinscription)) + " BULLETIN(S)\n")
-                for i in listeDesinscription:
-                    ficInfo.write(i + "\n")
-                ficInfo.write("\n" + lang.cancellationSubscription + ": " + str(len(listeAlias)) + " ALIAS\n")
-                for i in listeAlias:
-                    ficInfo.write(i + "\n")
-                ficInfo.close()
+                #ficInfo = ouvrirFichier(".output/details.txt","w")
+                #ficInfo.write(lang.totalSupress + "\n\n")
+                #if(typeNom == "alias"):
+                #    ficInfo.write("ALIAS : " + nom + "\n")
+                #else:
+                #    ficInfo.write("CLIENT : " + nom + "\n")
+                #ficInfo.write("\n" + lang.cancellationSubscription + ": " + str(len(listeDesinscription)) + " BULLETIN(S)\n")
+                #for i in listeDesinscription:
+                #    ficInfo.write(i + "\n")
+                #ficInfo.write("\n" + lang.cancellationSubscription + ": " + str(len(listeAlias)) + " ALIAS\n")
+                #for i in listeAlias:
+                #    ficInfo.write(i + "\n")
+                #ficInfo.close()
                 #afficher(lang.output + ": output/details.txt")
                 
                 if(options.force):
