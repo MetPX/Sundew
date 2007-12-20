@@ -533,10 +533,11 @@ class SenderFTP(object):
                              self.logger.info("(%i Bytes) File %s delivered in %f Sec (%f Bps)" % (nbBytes, file, dif, bps) )
                           else :
                              self.logger.info("(%i Bytes) File %s delivered in %f Sec " % (nbBytes, file, 0) )
+
                           os.unlink(file)
-                          #self.logger.info("(%i Bytes) File %s delivered to %s://%s@%s%s%s" % \
-                          #                (nbBytes, file, self.client.protocol, self.client.user, \
-                          #                self.client.host, destDirString, destName))
+                          self.logger.info("(%i Bytes) File %s delivered to %s://%s@%s%s%s" % \
+                                          (nbBytes, file, self.client.protocol, self.client.user, \
+                                          self.client.host, destDirString, destName))
     
                           # add data to cache if needed
                           if self.client.nodups and self.cacheMD5 != None : 

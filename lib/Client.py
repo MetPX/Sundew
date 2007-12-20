@@ -94,6 +94,9 @@ class Client(object):
         self.execfile2     = None
         self.execfile3     = None
 
+        self.send_script   = None           # a script to send a list of files
+        self.execfile4     = None
+
         # read in the config
         self.readConfig()
 
@@ -108,6 +111,10 @@ class Client(object):
         if self.execfile3 != None :
            try    : execfile(PXPaths.SCRIPTS + self.execfile3 )
            except : self.logger.error("Problem with dx_script %s" % self.execfile3)
+
+        if self.execfile4 != None :
+           try    : execfile(PXPaths.SCRIPTS + self.execfile4 )
+           except : self.logger.error("Problem with send_script %s" % self.execfile4)
 
         #self.printInfos(self)
 
@@ -196,6 +203,7 @@ class Client(object):
                     elif words[0] == 'destfn_script': self.execfile = words[1]
                     elif words[0] == 'fx_script': self.execfile2 = words[1]
                     elif words[0] == 'dx_script': self.execfile3 = words[1]
+                    elif words[0] == 'send_script': self.execfile4 = words[1]
 
                     elif words[0] == 'am_dest_thread':
                          if self.am_dest_thread == None : self.am_dest_thread = {}
