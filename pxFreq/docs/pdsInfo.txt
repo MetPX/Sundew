@@ -1,12 +1,31 @@
-
+#################################################################
 # pdsInfo.txt
 # Documentation du projet pdsInfo
 #
 # Auteur : David Nantel
 # Date : 17 Dec 2007
+#################################################################
 
+#################################################################
+#
+#   TABLE DES MATIERES
+#
+# 1 - DESCRIPTION
+#
+# 2 - UTILISATION
+#
+# 3 - FORMAT DU FICHIER EN SORTIE
+#
+# 4 - STRUCTURE DES REPERTOIRES
+#
+# 5 - AUTOMATISATION
+#
+# 6 - PROCEDURE D'AJOUT D'UN CLUSTER
+#################################################################
 
-pdsInfo est un programme qui, a l'aide de fichiers logs, construit une base de donnees contenant plusieurs informations.
+1 - DESCRIPTION
+
+'pdsInfo' est un programme qui, a l'aide de fichiers logs, construit une base de donnees contenant plusieurs informations.
 Celles-ci sont:
     - Nom du produit
     - Les sources
@@ -14,38 +33,40 @@ Celles-ci sont:
     - La frequence de reception
     - Les clients
     
-    Avec les formats suivants:
-        Ligne entiere :         "Produit [source=PremiereReception-FrequenceReception] [clients]"
-        PremiereReception :     "HH:MM:SS"
-        FrequenceReception :    "HH:MM:SS"
-        
-        Il peut y avoir 1 ou plusieurs sources.
-        Il peut y avoir 0 ou plusieurs clients.
-        
-        Si aucune frequence est trouvee, 'PremiereReception-FrequenceReception' sera remplace par l'acronyme 'NA'.
+2 - UTILISATION
 
 usage: makePdsInfo.py [options] logFiles
 
-    options:
-      --version             Affiche la version.
-      -h, --help            Affiche cette aide.
-      -v, --verbose         Mode verbeux.
-      -c, --cluster=CLUSTER
-                            Definie le cluster sur lequel travailler. Choix = [ px
-                            | pxatx | pds | px-stage ]
+options:
+    --version               Affiche la version.
+    -h, --help              Affiche cette aide.
+    -v, --verbose           Mode verbeux.
+    -c, --cluster=CLUSTER   Definie le cluster sur lequel travailler. Choix = [ px | pxatx | pds | px-stage ]
 
-Structure des repertoires:
+3 - FORMAT DU FICHIER EN SORTIE
+
+    Ligne entiere :         "Produit [source=PremiereReception-FrequenceReception] [clients]"
+    PremiereReception :     "HH:MM:SS"
+    FrequenceReception :    "HH:MM:SS"
+    
+    Il peut y avoir 1 ou plusieurs sources.
+    Il peut y avoir 0 ou plusieurs clients.
+        
+    Si aucune frequence est trouvee, 'PremiereReception-FrequenceReception' sera remplace par l'acronyme 'NA'.
+
+
+4 - STRUCTURE DES REPERTOIRES
+
   pxFreq/  
   |-- bin
   |     # Les fichiers de configurations et
   |     # les fichiers sources executables.
   |
   |-- data
-  |     # Les bases de donnees.
+  |     # Les bases de donnees creees.
   |
   |-- docs
-  |     # Endroit ou se trouve toutes la
-  |     # documentation.
+  |     # Documentations.
   |
   |-- lib
   |     # Librairie du projet
@@ -53,16 +74,19 @@ Structure des repertoires:
   `-- log
         # Les fichiers logs
 
-
 Un fichier de logs est present dans le repertoire 'pxFreq/log/'. On peut y voir les erreurs survenues lors d'une execution, les heures et dates de 
 chaque execution ainsi que les noms de produits que les regex n'ont pu identifier.
 
-Crontab est utilise pour automatiser l'execution a tous les jours. Celui-ci appel le script 'pxFreq' situe dans le repertoire racine du projet.
+5 - AUTOMATISATION
 
-Procedure pour ajouter un cluster dans le projet 'pxFreq':
-    1- Avoir acces aux fichiers logs pour ce cluster.
-    2- Modifier le script 'pxFreq' pour ajouter le cluster.
-    3- Mise en place d'un repertoire qui recevra la base de donnees.
-    4- Modifier le programme 'makePdsInfo.py' dans la fonction 'commandLineParser()' pour ajouter le nouveau cluster aux options.
-    5- Test du bon fonctionnement avec le script 'pxFreq'.
-    6- Ajout de cet appel dans 'crontab' pour automatiser le tout.
+Crontab est utilise pour automatiser l'execution a tous les jours. Celui-ci appel le script 'pxFreq' situe 
+dans le repertoire racine du projet.
+
+6 - PROCEDURE D'AJOUT D'UN CLUSTER
+
+      I - Avoir acces aux fichiers logs pour ce cluster.
+     II - Modifier le programme 'makePdsInfo.py' dans la fonction 'commandLineParser()' pour ajouter le nouveau cluster aux options.
+    III - Modifier le script 'pxFreq' pour ajouter le cluster.
+     IV - Mise en place d'un repertoire qui recevra la base de donnees.
+      V - Test du bon fonctionnement avec le script 'pxFreq'.
+     VI - Ajout de cet appel dans 'crontab' pour automatiser le tout.

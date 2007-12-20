@@ -1,20 +1,40 @@
-#
+#################################################################
 # pdsGraph.txt
 # Documentation du projet pdsGraph
 #
 # Auteur : David Nantel
 # Date : 17 Dec 2007
+#################################################################
 
-pdsGraph utilise les bases de donnees crees par 'makePdsInfo.py' pour tenter de tracer les chemins qu'emprunte l'information dans le reseau de l'entreprise. Pour l'instant, l'affichage ce fait en ligne de commande sous la forme d'arborescence. Une affichage detaillee est aussi possible. 
+#################################################################
+#
+#   TABLE DES MATIERES
+#
+# 1 - DESCRIPTION
+#
+# 2 - UTILISATION
+#
+# 3 - PROCEDURE D'AJOUT D'UN CLUSTER
+#################################################################
 
-Usage:
-    ./makePdsGraph.py -p Produit [-td]
-    
-    '-p' : Produits affichees. Ecrites sous la forme de regex.
-    '-t' : Affichage en arborescence.
-    '-d' : Affichage detaillee.
 
-Procedure pour ajouter un cluster dans 'makePdsGraph.py':
-    1- Modifier le code pour ouvrir la nouvelle base de donnees.
-    2- Ajouter a la liste des db pour la fonction 'findProducts()'.
-    3- S'assurer de refermer la nouvelle base de donnees comme les autres.
+1 - DESCRIPTION
+
+'pdsGraph' utilise les bases de donnees crees par 'pdsInfo' pour tenter de tracer les chemins qu'emprunte l'information 
+dans le reseau de l'entreprise. Pour l'instant, l'affichage ce fait en ligne de commande sous la forme d'arborescence.
+
+2 - UTILISATION
+
+usage: makePdsGraph.py [options] -p produit
+
+options:
+    --version                 Affiche la version.
+    -h, --help                Affiche cette aide.
+    -v, --verbose             Mode verbeux.
+    -p, --products=PRODUCTS   Demande un nom de produit. Ceci ce fait sous forme de 'regex'.
+
+3 - PROCEDURE D'AJOUT D'UN CLUSTER
+
+      I - Modifier le code pour ouvrir la nouvelle base de donnees.
+     II - Ajouter a la liste des db pour la fonction 'findProducts()'.
+    III - S'assurer de refermer la nouvelle base de donnees comme les autres.
