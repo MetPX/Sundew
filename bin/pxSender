@@ -133,9 +133,10 @@ example 2: %prog start       => will start all clients
                             client.mtime, True, logger, eval(client.sorter), client)
 
         cacheManager  = None
-        sender_script = None
 
         if client.nodups : cacheManager = CacheManager(maxEntries=25000, timeout=2*3600)
+
+        sender_script = SenderScript.SenderScript(client, logger, cacheManager)
 
         while True:
             if igniter.reloadMode:
