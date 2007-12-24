@@ -46,7 +46,7 @@ class SenderScript(object):
 
         if self.client.send_script == None :
            self.logger.error("The send script is not set or incorrect")
-	   sys.exit(1)
+           sys.exit(1)
 
     def basename_parts(self,basename):
         """
@@ -213,7 +213,7 @@ class SenderScript(object):
             # add entry to file list
 
             if filelst == None : filelst = []
-            filelst.append( (file,destdir,destName) )
+            filelst.append( (file,destDir,destName) )
 
         # no file to process
 
@@ -230,7 +230,7 @@ class SenderScript(object):
         # ok using script to send the file list
 
         try :
-                  self.client.send_script( filelst )
+                  self.client.send_script( filelst, self.logger )
 
                   for t in filelst :
                       file,destdir,destName = t
