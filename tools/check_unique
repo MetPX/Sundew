@@ -1,8 +1,17 @@
 #!/bin/ksh
 
-for p in `px status | awk '{print $2}'`; do
+FILE=/tmp/$RANDOM
 
-    NP=`ps -flade | grep ' '$p' ' | grep -v grep | grep -v status | wc -l`;
+ps -flade > $FILE
+
+rx_names=`cd /apps/px/etc/rx;   ls *.conf 2> /dev/null | grep '.conf$' | sed 's/.conf$//'`
+tx_names=`cd /apps/px/etc/tx;   ls *.conf 2> /dev/null | grep '.conf$' | sed 's/.conf$//'`
+fx_names=`cd /apps/px/etc/rx;   ls *.conf 2> /dev/null | grep '.conf$' | sed 's/.conf$//'`
+trx_names=`cd /apps/px/etc/trx; ls *.conf 2> /dev/null | grep '.conf$' | sed 's/.conf$//'`
+
+for p in $rx_names $tx_names $fx_names $trx_names; do
+
+    NP=`cat $FILE | grep ' '$p' ' | grep -v grep | grep -v status | wc -l`;
 
     if ((NP!=1)); then
        echo $p ' ' $NP
