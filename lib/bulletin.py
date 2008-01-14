@@ -267,7 +267,7 @@ class bulletin:
             return self.dataType
 
         for ligne in self.bulletin:
-            if ligne.lstrip()[:4] == 'BUFR' or ligne.lstrip()[:4] == 'GRIB':
+            if ligne.lstrip()[:4] == 'BUFR' or ligne.lstrip()[:4] == 'GRIB' or ligne.lstrip()[:4] == '\211PNG' :
                 # Il faut que le BUFR/GRIB soit au début d'une ligne
                 self.dataType = 'BI'
                 break
@@ -428,7 +428,7 @@ class bulletin:
 
         """
         for i in range(len(self.bulletin)):
-            if self.bulletin[i].lstrip()[:4] != 'GRIB' and self.bulletin[i].lstrip()[:4] != 'BUFR':
+            if self.bulletin[i].lstrip()[:4] != 'GRIB' and self.bulletin[i].lstrip()[:4] != 'BUFR' and self.bulletin[i].lstrip()[:4] != '\211PNG':
                self.bulletin[i] = self.bulletin[i].replace(oldchars,newchars)
 
     def setArrivalEp(self,ep_arrival):
@@ -520,7 +520,7 @@ class bulletin:
             # On détermine si le bulletin est binaire
             # determine if the bulletin is binary.
             for ligne in stringBulletin.splitlines():
-                if ligne.lstrip()[:4] == 'BUFR' or ligne.lstrip()[:4] == 'GRIB':
+                if ligne.lstrip()[:4] == 'BUFR' or ligne.lstrip()[:4] == 'GRIB' or ligne.lstrip()[:4] == '\211PNG' :
                     # Il faut que le BUFR/GRIB soit au début d'une ligne
                     # BUFR/GRIB must be at the beginning of a line.
                     estBinaire = True
@@ -569,6 +569,23 @@ class bulletin:
                     else :
                        self.logger.warning('Bufr without a valid internal date in section 1')
                        self.logger.warning('Use date from bulletin header')
+
+                    return b
+
+                elif stringBulletin.find('\211PNG') != -1:
+                # for a PNG pictural bulletin do nothing...
+
+                    png_begin = stringBulletin.find('\211PNG')
+
+                    b = stringBulletin[:png_begin].split(self.lineSeparator)
+
+                    # Si le dernier token est un '', c'est qu'il y avait
+                    # un \n à la fin, et on enlève puisque entre 2 éléments de la liste,
+                    # on insère un \n
+                    if b[-1] == '':
+                        b.pop(-1)
+
+                    b = b + [stringBulletin[png_begin:]] + ['']
 
                     return b
             else:
