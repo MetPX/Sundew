@@ -466,7 +466,7 @@ class Ingestor(object):
            self.fileCache = CacheManager(maxEntries=120000, timeout=8*3600)
 
         reader = DiskReader(bullManager.pathSource, self.source.batch, self.source.validation, self.source.patternMatching,
-                            self.source.mtime, False, self.source.logger, self.source.sorter)
+                            self.source.mtime, False, self.source.logger, self.source.sorter, self.source)
         while True:
             # If a SIGHUP signal is received ...
             if igniter.reloadMode == True:
@@ -493,7 +493,7 @@ class Ingestor(object):
                    self.fileCache.CacheManager(maxEntries=120000, timeout=8*3600)
 
                 reader = DiskReader(bullManager.pathSource, self.source.batch, self.source.validation, self.source.patternMatching,
-                                    self.source.mtime, False, self.source.logger, self.source.sorter)
+                                    self.source.mtime, False, self.source.logger, self.source.sorter,self.source)
 
                 self.logger.info("Receiver has been reloaded")
                 igniter.reloadMode = False
@@ -583,7 +583,7 @@ class Ingestor(object):
                     self.source)
 
         reader = DiskReader(bullManager.pathSource, self.source.batch, self.source.validation, self.source.patternMatching,
-                            self.source.mtime, False, self.source.logger, self.source.sorter)
+                            self.source.mtime, False, self.source.logger, self.source.sorter,self.source)
 
         collect = CollectionManager.CollectionManager( self, bullManager, reader )
 
@@ -604,7 +604,7 @@ class Ingestor(object):
                                self.source.mapEnteteDelai,
                                self.source)
                 reader = DiskReader(bullManager.pathSource, self.source.batch, self.source.validation, self.source.patternMatching,
-                                    self.source.mtime, False, self.source.logger, self.source.sorter)
+                                    self.source.mtime, False, self.source.logger, self.source.sorter,self.source)
                 collect = CollectionManager.CollectionManager( self, bullManager, reader )
 
                 self.logger.info("Receiver has been reloaded")
