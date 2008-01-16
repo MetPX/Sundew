@@ -172,9 +172,9 @@ class Bufr:
            self.s1_min                 = long(self.array[b0+16])
            self.s1_sec                 = 0
 
-	   now=time.localtime()
-	   yc=int(time.strftime('%y',now))
-	   if self.s1_century < 0 or self.s1_century > yc+1 : return
+           now=time.localtime()
+           yc=int(time.strftime('%y',now))
+           if self.s1_century < 0 or self.s1_century > yc+1 : return
 
            if self.s1_month   < 1 or self.s1_month   > 12 : return
            if self.s1_day     < 1 or self.s1_day     > 31 : return
