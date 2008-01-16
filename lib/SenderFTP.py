@@ -521,20 +521,10 @@ class SenderFTP(object):
 
                    # try to write the file to the client
                    try :
-                          ep_begin = time.time()
 
                           self.send_file( file, destName )
-
-                          ep_end = time.time()
-                          dif = ep_end - ep_begin
-
-                          if dif > 0 :
-                             bps = nbBytes / dif
-                             self.logger.info("(%i Bytes) File %s delivered in %f Sec (%f Bps)" % (nbBytes, file, dif, bps) )
-                          else :
-                             self.logger.info("(%i Bytes) File %s delivered in %f Sec " % (nbBytes, file, 0) )
-
                           os.unlink(file)
+
                           self.logger.info("(%i Bytes) File %s delivered to %s://%s@%s%s%s" % \
                                           (nbBytes, file, self.client.protocol, self.client.user, \
                                           self.client.host, destDirString, destName))
