@@ -353,7 +353,7 @@ class SenderFTP(object):
            fileObject.close()
            self.ftp.rename(tempName, destName)
 
-        #self.perm(destName)
+        self.perm(destName)
 
     # octal permission... there must be a better way of doing this...
     def octal_perm(self, perm ):
@@ -381,7 +381,7 @@ class SenderFTP(object):
     # sending one file straight No locking method
     def send_unlock(self, file, destName ):
         self.put(file,destName)
-        #self.perm(destName)
+        self.perm(destName)
 
     # sending a list of files
     def send(self, files):
