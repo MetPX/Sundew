@@ -12,6 +12,9 @@
 #############################################################################################
 """
 import  sys
+
+sys.path.insert(1,sys.path[0] + '/..')
+
 from MessageAFTN import MessageAFTN
 
 class MessageParser:

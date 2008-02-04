@@ -13,10 +13,8 @@
 """
 import os, sys, commands, re, curses.ascii
 
-sys.path.insert(1,sys.path[0] + '/../lib')
-sys.path.insert(1,sys.path[0] + '/../etc')
-sys.path.insert(1,sys.path[0] + '/../../lib')
-sys.path.insert(1,sys.path[0] + '/../../lib/importedLibs')
+sys.path.insert(1,sys.path[0] + '/..')
+sys.path.insert(1,sys.path[0] + '/../importedLibs')
 
 from DBSearcher import DBSearcher
 from DirectRoutingParser import DirectRoutingParser

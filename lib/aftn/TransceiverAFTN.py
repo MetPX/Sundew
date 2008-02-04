@@ -13,10 +13,8 @@
 """
 import os, sys, time, commands, socket, select, traceback
 
-sys.path.insert(1,sys.path[0] + '/../lib')
-sys.path.insert(1,sys.path[0] + '/../etc')
-sys.path.insert(1,sys.path[0] + '/../../lib')
-sys.path.insert(1,sys.path[0] + '/../../lib/importedLibs')
+sys.path.insert(1,sys.path[0] + '/..')
+sys.path.insert(1,sys.path[0] + '/../importedLibs')
 
 from DiskReader import DiskReader
 from SystemManager import SystemManager

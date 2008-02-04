@@ -13,6 +13,8 @@
 """
 import os, sys, time, commands, re, curses.ascii, re, pickle
 
+sys.path.insert(1,sys.path[0] + '/..')
+
 from MessageAFTN import MessageAFTN
 from bulletinManager import bulletinManager
 from DiskReader import DiskReader
