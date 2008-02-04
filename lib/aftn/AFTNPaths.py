@@ -12,7 +12,7 @@
 """
 import sys, os, os.path
 
-sys.path.insert(1, sys.path[0] + '/../')
+sys.path.insert(1, sys.path[0] + '/..')
 import PXPaths
 
 def normalPaths(name, rootPath=""):

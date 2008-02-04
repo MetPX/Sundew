@@ -42,7 +42,7 @@ class MessageManager:
 
     def __init__(self, logger=None, sourlient=None, reloadMode=False):
         
-        AFTNPaths.normalPaths()
+        AFTNPaths.normalPaths(sourlient.name)
         PXPaths.normalPaths()
 
         self.logger = logger         # Logger object

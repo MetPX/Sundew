@@ -36,7 +36,7 @@ class TransceiverAFTN:
 
         AFTNPaths.normalPaths(sourlient.name)
         PXPaths.normalPaths()
-        self.sysman = SytemManager()                       # General system manager
+        self.sysman = SystemManager()                      # General system manager
         self.sourlient = sourlient                         # Sourlient (Source/Client) object containing configuration infos.
 
         self.logger = sourlient.logger                     # Logger object
@@ -51,19 +51,21 @@ class TransceiverAFTN:
         self.slow = sourlient.slow                         # Sleeps are added when we want to be able to decrypt log entries
         self.igniter = None                                # Igniter object (link to pid)
 
-        self.mm = MessageManager(self.logger, self.sourlient)  # AFTN Protocol is implemented in MessageManager Object
-        self.remoteAddress = None                          # Remote address (where we will connect())
-        self.socket = None                                 # Socket object
-        self.dataFromFiles = []                            # A list of tuples (content, filename) obtained from a DiskReader 
-
         self.writePath = AFTNPaths.RECEIVED                # Where we write messages we receive
         self.archivePath = AFTNPaths.SENT                  # Where we put sent messages
         self.specialOrdersPath = AFTNPaths.SPECIAL_ORDERS  # Where we put special orders
 
         # Paths creation
+        self.sysman.createDir(PXPaths.TXQ + self.sourlient.name)
         self.sysman.createDir(self.writePath)
         self.sysman.createDir(self.archivePath)
         self.sysman.createDir(self.specialOrdersPath)
+
+
+        self.mm = MessageManager(self.logger, self.sourlient)  # AFTN Protocol is implemented in MessageManager Object
+        self.remoteAddress = None                          # Remote address (where we will connect())
+        self.socket = None                                 # Socket object
+        self.dataFromFiles = []                            # A list of tuples (content, filename) obtained from a DiskReader 
 
         self.reader = DiskReader(PXPaths.TXQ + self.sourlient.name, self.sourlient.batch,
                                  self.sourlient.validation, self.sourlient.diskReaderPatternMatching,
