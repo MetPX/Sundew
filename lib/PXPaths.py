@@ -23,31 +23,11 @@ named COPYING in the root of the source directory tree.
 """
 import os, os.path
 
-def readConfig():
-    root = '/apps'
-    try:
-        config = open(filePath, 'r')
-        lines = config.readlines()
-        for line in lines:
-            if line.isspace(): # we skip blank line
-                continue
-            words = line.split()
-            if words[0] == 'root':
-                root = words[1]
-        config.close()
-    except:
-        #(type, value, tb) = sys.exc_info()
-        #print("ROOT/px/etc/px.conf must be present! Type: %s, Value: %s" % (type, value))
-        pass
-    
-    return root
-
-
 def normalPaths(rootPath=""):
 
     global ROOT, BIN, LIB, LOG, ETC, FXQ, RXQ, TXQ, DB, FX_CONF, RX_CONF, TX_CONF, TRX_CONF, \
-           COLLECTION_DB, COLLECTION_CONTROL, ROUTING_TABLE, STATION_TABLE, SCRIPTS, REQUEST_REPLY, \
-           LAT, LAT_RESULTS, LAT_TMP, STATS, PICKLES, GRAPHS, SEARCH, SHELL_PARSER, PX_DATA
+           COLLECTION_DB, COLLECTION_CONTROL, ROUTING_TABLE, STATION_TABLE, SCRIPTS, \
+           LAT, LAT_RESULTS, LAT_TMP, SHELL_PARSER, PX_DATA 
     
     if rootPath:
         if rootPath[-1] != '/': rootPath += '/'
@@ -77,33 +57,18 @@ def normalPaths(rootPath=""):
     STATION_TABLE = ETC + 'stations.conf'
     SCRIPTS = ETC + 'scripts/'
 
-    # Paths for Request-Reply
-    REQUEST_REPLY = ROOT + 'rr/'
-
     # Paths for pxLatencies
     LAT = ROOT + 'latencies/'
     LAT_RESULTS = LAT + 'results/'
     LAT_TMP = LAT + 'tmp/'
 
-    # Paths for "stats" and graphics
-    STATS = ROOT + 'stats/'
-    PICKLES = STATS + 'pickles/'
-    GRAPHS = STATS + 'graphs/'
-
-    # Paths to the search directory
-    SEARCH = LIB + 'search/'
-
     # pxRetrans
     SHELL_PARSER = LIB + 'shellParser.py'
-    PX_DATA = '/apps/px/data/'  # Not ROOT + 'data' because this path is in fact independant of px application 
-                                # and thus could be anything. It is only by chance (not really) that the path
-                                # begins by /apps/px.
+    PX_DATA = ROOT + 'data/'               # this path must be present on the MASTER (where all the config. files are stored)            
 
 def drbdPaths(rootPath):
 
-    global ROOT, BIN, LIB, LOG, ETC, FXQ, RXQ, TXQ, DB, FX_CONF, RX_CONF, TX_CONF, TRX_CONF, \
-           COLLECTION_DB, COLLECTION_CONTROL, LAT, LAT_RESULTS, LAT_TMP 
-           
+    global ROOT, BIN, LIB, LOG, ETC, FXQ, RXQ, TXQ, DB, FX_CONF, RX_CONF, TX_CONF, TRX_CONF
 
     ROOT = os.path.normpath(rootPath) + '/'
     BIN = ROOT + 'bin/'
@@ -118,10 +83,4 @@ def drbdPaths(rootPath):
     RX_CONF = ETC + 'rx/'
     TX_CONF = ETC + 'tx/'
     TRX_CONF = ETC + 'trx/'
-    COLLECTION_DB = ROOT + 'collection'
-    COLLECTION_CONTROL = COLLECTION_DB + 'control/'
 
-    #Paths for pxLatencies
-    LAT = ROOT + 'latencies/'
-    LAT_RESULTS = LAT + 'results/'
-    LAT_TMP = LAT + 'tmp/'
