@@ -220,8 +220,6 @@ class PXManager(SystemManager):
         self.createDir(PXPaths.RXQ)
         self.createDir(PXPaths.TXQ)
         self.createDir(PXPaths.DB)
-        self.createDir(PXPaths.COLLECTION_DB)
-        self.createDir(PXPaths.COLLECTION_CONTROL)
 
     def initNames(self):
         if not os.path.isdir(PXPaths.ROOT):
