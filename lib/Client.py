@@ -97,7 +97,15 @@ class Client(object):
         self.send_script   = None           # a script to send a list of files
         self.execfile4     = None
 
+        # All defaults for a source were set earlier in this class
+        # But some of them may have been overwritten in the px.conf file
+        # Load the px.conf stuff related to the source
+
+        pxconf_Path = PXPaths.ETC + 'px.conf'
+        if os.path.isfile(pxconf_Path) : self.readConfigFile( pxconf_Path, '.', 'WHATFN' )
+
         # read in the config
+
         self.readConfig()
 
         if self.execfile != None :
@@ -121,11 +129,11 @@ class Client(object):
     def readConfig(self):
         currentDir = '.'                # Current directory
         currentFileOption = 'WHATFN'    # Under what filename the file will be sent (WHATFN, NONE, etc., See PDS)
-        fileName = self.name + '.conf'
+        fileName = PXPaths.TX_CONF +  self.name + '.conf'
         #print filePath
         self.readConfigFile(fileName,currentDir,currentFileOption)
 
-    def readConfigFile(self,fileName,currentDir,currentFileOption):
+    def readConfigFile(self,filePath,currentDir,currentFileOption):
         
         def isTrue(s):
             if  s == 'True' or s == 'true' or s == 'yes' or s == 'on' or \
@@ -140,8 +148,6 @@ class Client(object):
                 return 0644
             else:
                 return int(string[0])*64 + int(string[1])*8 + int(string[2])
-
-        filePath = PXPaths.TX_CONF +  fileName
 
         try:
             config = open(filePath, 'r')
