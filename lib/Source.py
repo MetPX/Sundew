@@ -125,9 +125,21 @@ class Source(object):
         self.execfile  = None
 
         #-----------------------------------------------------------------------------------------
+        # All defaults for a source were set earlier in this class
+        # But some of them may have been overwritten in the px.conf file
+        # Load the px.conf stuff related to the source
+        #-----------------------------------------------------------------------------------------
+
+        pxconf_Path = PXPaths.ETC + 'px.conf'
+        if os.path.isfile(pxconf_Path) : self.readConfig( pxconf_Path )
+
+        #-----------------------------------------------------------------------------------------
         # Parse the configuration file
         #-----------------------------------------------------------------------------------------
-        self.readConfig()
+
+        filePath                  = PXPaths.RX_CONF +  self.name + '.conf'
+        if self.filter : filePath = PXPaths.FX_CONF +  self.name + '.conf'
+        self.readConfig( filePath )
 
         #-----------------------------------------------------------------------------------------
         # instantiate the fx script in source class
@@ -162,7 +174,7 @@ class Source(object):
 
         #self.printInfos(self)
 
-    def readConfig(self):
+    def readConfig(self,filePath):
 
         def isTrue(s):
             if  s == 'True' or s == 'true' or s == 'yes' or s == 'on' or \
@@ -171,10 +183,6 @@ class Source(object):
                 return True
             else:
                 return False
-
-        filePath = PXPaths.RX_CONF +  self.name + '.conf'
-        if self.filter :
-           filePath = PXPaths.FX_CONF +  self.name + '.conf'
 
         try:
             config = open(filePath, 'r')
