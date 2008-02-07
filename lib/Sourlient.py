@@ -84,7 +84,17 @@ class Sourlient(object):
         # Socket Attributes
         self.port = None 
 
-        self.readConfig()
+        # All defaults for a source were set earlier in this class
+        # But some of them may have been overwritten in the px.conf file
+        # Load the px.conf stuff related to the source
+
+        pxconf_Path = PXPaths.ETC + 'px.conf'
+        if os.path.isfile(pxconf_Path) : self.readConfig( pxconf_Path )
+
+        # read in sourlient config
+
+        filePath  = PXPaths.TRX_CONF +  self.name + '.conf'
+        self.readConfig(filePath)
         
         if self.ingestion:
             if hasattr(self, 'ingestor'):
@@ -95,7 +105,7 @@ class Sourlient(object):
                 #self.printInfos(self)
             self.ingestor.setClients()
 
-    def readConfig(self):
+    def readConfig(self,filePath):
         
         def isTrue(s):
             if  s == 'True' or s == 'true' or s == 'yes' or s == 'on' or \
@@ -107,8 +117,6 @@ class Sourlient(object):
 
         currentDir = '.'                # Current directory
         currentFileOption = 'WHATFN'    # Under what filename the file will be sent (WHATFN, NONE, etc., See PDS)
-
-        filePath = PXPaths.TRX_CONF +  self.name + '.conf'
 
         try:
             config = open(filePath, 'r')
