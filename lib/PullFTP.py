@@ -49,11 +49,12 @@ PXPaths.normalPaths()              # Access to PX paths
 
 class PullFTP(object):
 
-    def __init__(self, source, logger=None) :
+    def __init__(self, source, logger=None, sleeping=False) :
 
         # General Attributes
 
         self.source      = source 
+        self.sleeping    = sleeping
 
         self.connected   = False 
         self.ftp         = None
@@ -70,6 +71,9 @@ class PullFTP(object):
             self.logger = self.logger.getLogger()
         else:
             self.logger = logger
+
+        if self.source.delete and self.sleeping :
+           return
 
         if self.source.protocol == 'ftp':
             self.ftp = self.ftpConnect()
@@ -262,7 +266,15 @@ class PullFTP(object):
 
     def get(self):
 
-        self.logger.info("pull %s is waking up" % self.source.name )
+        # if pull is sleeping and we delete files... nothing to do
+        # if we don't delete files, we will keep the directory state
+
+        if self.source.delete and self.sleeping : return
+
+        # log that we are waking up
+
+        if not self.sleeping : 
+           self.logger.info("pull %s is waking up" % self.source.name )
 
         # getting our alarm ready
  
@@ -304,6 +316,14 @@ class PullFTP(object):
 
             ok = self.do_ls()
             if not ok : continue
+
+            # if we are sleeping and we are here it is because
+            # this pull is retrieving difference between directory content
+            # so write the directory content without retrieving files
+
+            if self.sleeping :
+               ok = self.write_ls_file(self.lspath)
+               continue
 
             # get the file list from the ls
             
