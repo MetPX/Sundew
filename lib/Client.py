@@ -175,7 +175,7 @@ class Client(object):
                     elif words[0] == 'directory': currentDir = words[1]
                     elif words[0] == 'filename': currentFileOption = words[1]
                     elif words[0] == 'include':
-                        fileName = words[1]
+                        fileName = PXPaths.TX_CONF + words[1]
                         self.readConfigFile(fileName,currentDir,currentFileOption)
                     elif words[0] == 'destination':
                         self.url = words[1]
