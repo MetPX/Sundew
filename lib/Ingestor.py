@@ -346,10 +346,10 @@ class Ingestor(object):
             # pull files in rxq directory if in pull mode
             if self.source.type == 'pull-file' :
                sleeping = os.path.isfile(PXPaths.RXQ + self.source.name + '/.sleep')
+               puller = PullFTP(self.source,self.logger,sleeping)
+               files  = puller.get()
+               puller.close()
                if not sleeping :
-                  puller = PullFTP(self.source,self.logger)
-                  files  = puller.get()
-                  puller.close()
                   self.logger.debug("Number of files pulled = %s" % len(files) )
                else :
                   self.logger.info("This pull is sleeping")
@@ -501,10 +501,10 @@ class Ingestor(object):
             # pull files in rxq directory if in pull mode
             if self.source.type == 'pull-bulletin' :
                sleeping = os.path.isfile(PXPaths.RXQ + self.source.name + '/.sleep')
+               puller = PullFTP(self.source,self.logger,sleeping)
+               files  = puller.get()
+               puller.close()
                if not sleeping :
-                  puller = PullFTP(self.source,self.logger)
-                  files  = puller.get()
-                  puller.close()
                   self.logger.debug("Number of files pulled = %s" % len(files) )
                else :
                   self.logger.info("This pull is sleeping")
