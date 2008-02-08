@@ -12,3 +12,7 @@ Here is the list of changes from branch px-0-4-5 to this version px-0-4-6
    and PXLIB may be used while developping...
    (paplat,px,pxChecker,pxDBCleaner,pxFilter,pxFlowNames,pxReceiver,
     pxRetrans,pxSender,pxTransceiver,pxValidator)
+
+5- Same as (4) but for within the lib
+   (DBSearcher.py, DirectRoutingParser.py, RoutingFileCreator.py, Source.py, Sourlient.py, TAFParser.py)
+
