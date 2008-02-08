@@ -1,0 +1,4 @@
+Here is the list of changes from branch px-0-4-5 to this version px-0-4-6
+
+1- px.conf is parsed by Source.py, Client.py  and  Sourlient.py 
+   it is now possible to set general options through the px.conf file
