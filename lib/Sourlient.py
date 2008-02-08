@@ -20,7 +20,18 @@ named COPYING in the root of the source directory tree.
 
 """
 import sys, os, re, time, fnmatch
-sys.path.insert(1,sys.path[0] + '/../lib/importedLibs')
+
+# default library path
+
+sys.path.insert(1, '/usr/lib/px')
+
+# developpement library path option through PXLIB
+
+try:
+         sys.path.insert(1, os.path.normpath(os.environ['PXLIB']) )
+except :
+         pass
+
 
 import PXPaths
 from Logger import Logger

@@ -119,7 +119,13 @@ class RoutingFileCreator(FileCreator):
 
 if __name__ == '__main__':
     import sys
-    sys.path.insert(1,sys.path[0] + '/../lib/importedLibs')
+
+    sys.path.insert(1, '/usr/lib/px')
+    try:
+             sys.path.insert(1, os.path.normpath(os.environ['PXLIB']) )
+    except :
+             pass
+
     from Logger import Logger 
     from DirectRoutingParser import DirectRoutingParser
 
