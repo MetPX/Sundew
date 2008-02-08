@@ -12,8 +12,21 @@
 #############################################################################################
 """
 import os, os.path, sys, re, time, commands, fnmatch, tempfile, readline, atexit
+
+# default library path
+
+sys.path.insert(1, '/usr/lib/px')
+
+# developpement library path option through PXLIB
+
+try:
+         sys.path.insert(1, os.path.normpath(os.environ['PXLIB']) )
+except :
+         pass
+
+#
+
 from optparse import OptionParser
-sys.path.insert(1, sys.path[0] + '/../lib')
 
 import PXPaths, pxRetransLanguage
 import dateLib, fileLib, dshLib
