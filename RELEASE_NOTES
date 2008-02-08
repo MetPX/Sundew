@@ -3,6 +3,7 @@ Here is the list of changes from branch px-0-4-5 to this version px-0-4-6
 1- Receiver, Filter, Transceiver, Sender now take into account options that
    are generaly set in px.conf (Source.py, Client.py, Sourlient.py)
 
-2- sleeping pull do their directory listing anyway... (PullFTP.py, Ingestor.py)
+2- Receiver of type pull, in sleeping state, will do their directory listing anyway...
+   (PullFTP.py, Ingestor.py)
 
 3- Unused PXPaths variables were removed  (PXPath.py)
