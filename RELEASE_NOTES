@@ -7,3 +7,8 @@ Here is the list of changes from branch px-0-4-5 to this version px-0-4-6
    (PullFTP.py, Ingestor.py)
 
 3- Unused PXPaths variables were removed  (PXPath.py)
+
+4- Use /usr/lib/px as a default for metpx python modules path
+   and PXLIB may be used while developping...
+   (paplat,px,pxChecker,pxDBCleaner,pxFilter,pxFlowNames,pxReceiver,
+    pxRetrans,pxSender,pxTransceiver,pxValidator)
