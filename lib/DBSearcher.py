@@ -683,6 +683,7 @@ class DBSearcher:
 if __name__ == '__main__':
     import sys
 
+    sys.path.insert(1, '/apps/px/lib')
     sys.path.insert(1, '/usr/lib/px')
     try:
          sys.path.insert(1, os.path.normpath(os.environ['PXLIB']) )

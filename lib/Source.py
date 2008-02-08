@@ -27,6 +27,10 @@ import sys, os, os.path, time, string, commands, re, signal, fnmatch
 
 # default library path
 
+# old way
+sys.path.insert(1, '/apps/px/lib')
+
+# debian way
 sys.path.insert(1, '/usr/lib/px')
 
 # developpement library path option through PXLIB
