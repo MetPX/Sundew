@@ -22,6 +22,14 @@ import sys, os, pwd, time
 
 # default library path
 
+# old ways
+
+sys.path.insert(1, '/apps/px/lib')
+sys.path.insert(1, '/apps/px/lib/aftn')
+sys.path.insert(1, '/apps/px/aftn/lib')
+
+# debian way
+
 sys.path.insert(1, '/usr/lib/px')
 sys.path.insert(1, '/usr/lib/px/aftn')
 
