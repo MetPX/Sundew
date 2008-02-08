@@ -178,7 +178,7 @@ class bulletin:
         # prevent endless loop with a count lower than 31 days
 
         count  = 0
-        day    = arrival[6:8]
+        day    = self.arrival[6:8]
         ep_day = self.ep_arrival
         while day != YYGGGg[:2] and count <= 31 :
               ep_day = ep_day - 24 * 60 * 60
