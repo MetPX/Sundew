@@ -6,25 +6,28 @@ pxSender \- Metpx program to manage sender processes
 \fIsender_name\fR [\fIstart|stop|restart|reload|status\fR]...
 .SH DESCRIPTION
 .Pp
-A sender, in the METPX suite, is a program that deliver products to a client. The products it
-processes usually comes from a METPX receiver (or a filter). Once a receiver databased a product and
-determined that a sender should transmit that product, it links the database file in the sender's
-transmission directory tree...  namely under $PXROOT/txq/"sender_name"/priority/YYYYMMDDHH where 
-YYYYMMDDHH is the current date time. The receiver will create the directory if it does not exist.
+A sender, in the METPX suite, is a program that deliver products to a client. 
+The products it processes usually comes from a METPX receiver (or a filter). Once 
+a receiver databased a product and determined that a sender should transmit that 
+product, it links the database file in the sender's transmission directory tree...  
+namely under $PXROOT/txq/"sender_name"/priority/YYYYMMDDHH where YYYYMMDDHH is 
+the current date and time. The receiver will create the directory if it does not exist.
 
-The sender scans endlessly all directories under $PXROOT/txq/"sender_name" in search of products.
-When products are present, the sender processes them according to its configuration, 
-and delivers them to the client defined in its configuration file. The products file are
-finally unlinked from its transmission directory tree.
+The sender scans endlessly all directories under $PXROOT/txq/"sender_name" in 
+search of products.  When products are present, the sender processes them according 
+to its configuration, and delivers them to the client defined in its configuration file.
+The products file are finally unlinked from its transmission directory tree.
 
-The priority is either 0,1,2,3,4,5.  A receiver will never create a 0 priority directory. 
-The 0 priority directory is used for retransmission. Any product put under the 0 priority directory
-will be sent to the client (without duplicate checking) if it meets the routing criterias.
+The priority is either 0,1,2,3,4,5.  A receiver will never create a 0 priority 
+directory.  The 0 priority directory is used for retransmission. Any product put 
+under the 0 priority directory will be sent to the client (without duplicate checking) 
+if it meets the routing criteria.
 
 The configuration of a sender is a simple ascii file. It must be placed in 
 directory $PXROOT/etc/tx (PXROOT is usually /apps/px). The file's name must be
-the sender_name with the suffix .conf. For example if file $PXROOT/etc/tx/am-bulletins.conf
-exists and is syntaxically correct than the following commands are valid :
+the sender_name with the suffix .conf. For example if the 
+file $PXROOT/etc/tx/am-bulletins.conf exists and is syntactically correct, then 
+the following commands are valid :
 .Pp
 .nf
 
@@ -57,20 +60,24 @@ stops the sender program. It includes a proper handling of the socket writing bu
 The possible types are :
 .TP
 \fBam\fR
-open/write a socket using am protocol (Environment Canada specific). The output data are bulletins
+open/write a socket using Alpha Manager (AM) protocol (Environment Canada proprietary). The output data are bulletins
 .TP
 \fBamis\fR
-open/write a socket using amis protocol. The output data are bulletins
+open/write a socket using AES Meteorological Information System (AMIS) protocol (Environment Canada proprietary.) The output data are bulletins.
 .TP
 \fBwmo\fR
-open/write a socket using WMO protocol. The output data are bulletins
+open/write a socket using WMO protocol. The output data are bulletins.
 .TP
 \fBsingle-file\fR
-When products are available, a single-file sender opens a connection to a remote host using the information in its configuration file (protocol, host, user,password, mode... etc ). It sends the files to their proper remote destination, and closes the connection.
+When products are available, a single-file sender opens a connection to a remote 
+host using the information in its configuration file (protocol, host, user,password, 
+mode... etc ). It sends the files to their proper remote destination, and closes 
+the connection.
 .SH CONFIGURATION
 .Pp
-As said earlier, the configuration file for a sender resides in $PXROOT/etc/tx/"\fBSenderName\fR".conf
-The syntax of the file is simple. A comment is a line that begins with \fB#\fR. Empty lines are permitted.
+As said earlier, the configuration file for a sender resides 
+in $PXROOT/etc/tx/"\fBSenderName\fR".conf The syntax of the file is simple. 
+A comment is a line that begins with \fB#\fR. Empty lines are permitted.
 To declare or set an option you simply use one of these form (depending on the option) :
 .nf
 
@@ -83,7 +90,7 @@ To declare or set an option you simply use one of these form (depending on the o
 .TP
 \fBtype keyword (default: none)\fR
 .nf
-This option defines the type of the sender... keyword is one of
+This option defines the sender type... keyword is one of:
     am              - AM   protocol socket
     amis            - AMIS protocol socket
     wmo             - WMO  protocol socket
@@ -91,8 +98,9 @@ This option defines the type of the sender... keyword is one of
 .fi
 .TP
 \fBdestfn_script script (default:None)\fR
-For sender that do not use sockets, it is possible to define a script to modify the remote filename.
-The script must be in python and reside in $PXROOT/etc/scripts.  The destfn_script must end with the line :
+For senders that do not use sockets, one can define a script to modify the remote 
+filename.  The script must be in python and reside in $PXROOT/etc/scripts.  The 
+destfn_script must end with the line :
 .nf
 
          self.destfn_script = module
@@ -109,7 +117,7 @@ The module must return one of the 2 following :
 .fi
 .TP
 \fBdx_script script (default:None)\fR
-For sender of type AM, it is possible to define a script to create derived products.  The script must be in python and reside in $PXROOT/etc/scripts. The dx_script must end with the line :
+For AM type senders, one can define a script to create derived products.  The script must be in python and reside in $PXROOT/etc/scripts. The dx_script must end with the line :
 .nf
 
          self.dx_script = module
@@ -129,15 +137,15 @@ file.  It supports 3 levels of messages :
 The module must return one of the following : 
 .nf
 
-        inBulletinAm  return the incoming BulletinAm data class
-        outBulletinAm return the derived  BulletinAm data class
+        inBulletinAm  return the incoming BulletinAm data class object
+        outBulletinAm return the derived  BulletinAm data class object
         None          return the python   None  keyword
 
-If \fBNone\fR is returned, nothing is sent to the client. If a BulletinAm data class is returned (inBulletinAm or outBulletinAm), that data only is sent to the client. The incoming file is unlinked and the derived data is not retained
+If \fBNone\fR is returned, nothing is sent to the client. If a BulletinAm data class object is returned (inBulletinAm or outBulletinAm), that data only is sent to the client. The incoming file is unlinked and the derived data is not retained.
 .fi
 .TP
 \fBfx_script script (default:None)\fR
-For sender that do not use sockets, it is possible to define a script to create derived products.
+For senders that do not use sockets, it is possible to define a script to create derived products.
 The script must be in python and reside in $PXROOT/etc/scripts. The fx_script must end with the line :
 .nf
 
@@ -145,8 +153,9 @@ The script must be in python and reside in $PXROOT/etc/scripts. The fx_script mu
 
 .fi
 where the module is a valid python module having 2 arguments : ipath, logger.
-ipath is the path of the incoming file to apply the fx on.  logger is an internal metpx class
-that can be used to log messages to the sender's log file.  It supports 3 levels of messages :
+ipath is the path of the incoming file to apply the fx on.  logger is an internal 
+metpx class that can be used to log messages to the sender's log file.  It 
+supports 3 levels of messages :
 .nf
 
         logger.debug  ("message1")
@@ -172,18 +181,18 @@ are unlinked.
 The \fBinclude\fR option inserts all the configuration lines present in 
 \fB$PXROOT/etc/tx/filename\fR as if they were present in the sender's configuration 
 file. This might be usefull when several senders in a cluster use almost exactly the
-same configuration. By convention, include file is postfix with .inc but not requiered.
-(Avoid .conf, px programs would think that this file is a sender by its self and would
-result by logging errors)
+same configuration. By convention, include file is suffixed with .inc but not requiered.
+(Avoid .conf, px programs would think that this file is a sender and would
+result in logging errors)
 .fi
 .TP
 \fBnoduplicates boolean (default:True )\fR
 .nf
-if set to true, the sender computes the md5checksum of the product to send. 
-It compares this number with its cached md5checksum numbers of delivered products. 
+if set to true, the sender computes the MD5 checksum of the product to send. 
+It compares this number with its cached MD5 checksum of products already delivered.
 If a match is found, the product is not sent.
 
-When a client asks for a product to be retransmited, if this option is enabled,
+When a client asks for a product to be retransmitted, if this option is enabled,
 the product must be placed under the priority 0 directory of the transmission queue.
 .fi
 .TP
@@ -219,29 +228,28 @@ is exactly equivalent to
 .SH FILE TRANSMISSION OPTIONS
 .TP
 \fBbatch integer (default:100 )\fR
-The maximum number of files that will be sent/written from disk in one cycle. 
+The maximum number of files to be sent/written in one polling cycle. 
 
 .fi
 .SH TYPE AM/AMIS/WMO SPECIFIC OPTIONS
 .TP
 \fBmaxLength integer\fR
-maximum length in bytes of a bulletin to be sent. If the bulletin's length is greater
-than the limit, it is splitted in valid length parts before being sent to
-the client.
+maximum length in bytes of a bulletin to be sent. If the bulletin's length exceeds
+this limit, it is segmented before being sent.
 .nf
 
-         AM's   maxLength default is 32768
-         AMIS's maxLength default is 14000
-         WMO's  maxLength default is 500000
+         AM's   default maxLength is 32768
+         AMIS's default maxLength is 14000
+         WMO's  default maxLength is 500000
 
 .fi
 .TP
 \fBport integer (default:None)\fR
-Port to bind for the transmission.
+Port to connect to for the transmission.
 .TP
 \fBam_dest_thread type number\fR
-When type am is used, the default am thread number encoded in the bulletin is 255,
-which means send it to all thread. Specific thread number can be set for specific
+When am type is used, the default am thread number encoded in the bulletin is 255,
+which means send it to all thread. A specific thread number can be set for specific
 bulletin types using this option. The * can be used to specify all bulletin types.
 A valid usage example could be :
 .nf
@@ -256,12 +264,12 @@ A valid usage example could be :
 \fBprotocol name (Default: ftp )\fR
 The following protocols are supported :  file, ftp and sftp.
 The ftp and sftp protocols are use to send file on a remote host.
-They requiere the use of options host,user, password,directory
-(sftp supports also user defined port through the port option).
+They require the use of options host, user, password, directory
+(sftp also supports user defined port number through the port option).
 If there is only one directory the option destination can replace
 the others.  When using sftp the option key_file must be provided.
 
-The file protocol is used to put the files in directories of the same machine.
+The file protocol is used to put the files in local directories. 
 
 .TP
 \fBhost remotehost (Default: None )\fR
@@ -269,7 +277,7 @@ the host where we are going to put the files
 
 .TP
 \fBport portnumber (Default: None )\fR
-the port used by the protocol. Currently only sftp supports user defined port.
+the port used by the protocol. Currently, only sftp supports user defined port.
 
 .TP
 \fBuser username (Default: None )\fR
@@ -341,9 +349,9 @@ This option defines the permission given to the file when completely delivered.
 .TP
 \fBlock string (default: .tmp)\fR
 .nf
-This option should be set in agreement with the client. It is used to prevent
-the client to act on the product before we are done with its transfer.
-There is two possible usage to this option.
+This option should be set in agreement with the manager of the remote host to which
+files are being delivered. It is used to prevent the remote system from picking up the 
+product while transfer is in progress.  There are two ways to use this option.
 
 Usualy the \fBlock\fR option defines a suffix given to the file during transfer.
 When the file is completely transfered, the suffix is removed by renaming the file.
@@ -354,7 +362,7 @@ the permission changes to the value given to the option \fBchmod\fR.
 .fi
 .TP
 \fBdir_mkdir boolean (default: False)\fR
-When this option is enable, the directories where the products are delivered
+When this option is enabled, the directories where the products are delivered
 are created if they do not exist. 
 
 .TP
@@ -382,7 +390,7 @@ ${RSS}   replace by reception second
 .fi
 .TP
 \fBtimeout_send seconds (default:0)\fR
-set the elapse time after which a product sending will be considered timed out.
+set the elapsed time after which a product sending will be considered timed out.
 A value of 0 means do not check for timeout.
 
 .SH DEVELOPER SPECIFIC OPTIONS
@@ -409,4 +417,4 @@ For sender of type single-file, no product is processed. For senders of type am 
 .TP
 \fBemask/imask <filepattern>\fR
 \fBemask/imask\fR are an older version of \fBaccept/reject\fR and use filepattern instead of regexp pattern.
-They are still working for now  but consider them obsolete.
+They are still working for now  but are deprecated.

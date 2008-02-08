@@ -7,15 +7,15 @@ pxFilter \- Metpx program to manage filter processes
 .SH DESCRIPTION
 .Pp
 A filter, in the METPX suite, is a program that scans endlessly its queue directory namely
-$PXROOT/fxq/"filter_name" for the reception of products. Once a product is arrived, the filter
+$PXROOT/fxq/"filter_name" for the reception of products. Once a product arrives, the filter
 processes it according to its configuration, puts the derived product into the product database
 (simple file/directory hiearchy) and distributes the product to any METPX filters,senders,tranceivers
 (if any) that are configured to process it.
 
 The configuration of a filter is a simple ascii file. It must be placed in 
 directory $PXROOT/etc/fx (PXROOT is usually /apps/px). The file's name must be
-the filter_name with the suffix .conf. For example if file $PXROOT/etc/fx/from-gif-to-png.conf
-exists and is syntaxically correct than the following commands are valid :
+the filter_name with the suffix .conf. For example, if file $PXROOT/etc/fx/from-gif-to-png.conf
+exists and is syntactically correct, then the following commands are valid :
 .Pp
 .nf
 
