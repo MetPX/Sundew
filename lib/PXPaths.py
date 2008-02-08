@@ -26,7 +26,7 @@ import os, os.path
 def normalPaths(rootPath=""):
 
     global ROOT, BIN, LIB, LOG, ETC, FXQ, RXQ, TXQ, DB, FX_CONF, RX_CONF, TX_CONF, TRX_CONF, \
-           COLLECTION_DB, COLLECTION_CONTROL, ROUTING_TABLE, STATION_TABLE, SCRIPTS, \
+           ROUTING_TABLE, STATION_TABLE, SCRIPTS, \
            LAT, LAT_RESULTS, LAT_TMP, SHELL_PARSER, PX_DATA 
     
     if rootPath:
@@ -51,8 +51,6 @@ def normalPaths(rootPath=""):
     RX_CONF = ETC + 'rx/'
     TX_CONF = ETC + 'tx/'
     TRX_CONF = ETC + 'trx/'
-    COLLECTION_DB = ROOT + 'collection/'
-    COLLECTION_CONTROL = COLLECTION_DB + 'control/'
     ROUTING_TABLE = ETC + 'pxRouting.conf'
     STATION_TABLE = ETC + 'stations.conf'
     SCRIPTS = ETC + 'scripts/'
