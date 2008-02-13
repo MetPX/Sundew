@@ -208,8 +208,7 @@ class PXManager(SystemManager):
         #self.rxPaths = ['/apps/px/toto/', '/apps/px/titi/', '/apps/px/tata/']
 
     def initPXPaths(self):
-        # ROOT, BIN, LIB, LOG, ETC, RXQ, TXQ, DB, RX_CONF, TX_CONF, COLLECTION_DB, COLLECTION_CONTROL
-        self.createDir(PXPaths.BIN)
+        # ROOT, LIB, LOG, ETC, RXQ, TXQ, DB, RX_CONF, TX_CONF, COLLECTION_DB, COLLECTION_CONTROL
         self.createDir(PXPaths.LIB)
         self.createDir(PXPaths.LOG)
         self.createDir(PXPaths.FX_CONF)
