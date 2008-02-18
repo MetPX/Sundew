@@ -24,5 +24,23 @@ def isTrue(value):
     else:
         return False
 
+def isIPAddress(value):
+    min = 0
+    max = 255
+    numbers = value.split('.')
+    if len(numbers) == 4:
+        for number in numbers:
+            try:
+                if int(number) >= 0 and int(number)<= 255: pass
+                else: return False
+            except:
+                return False
+        return True
+    else: return False
+
 if __name__ == '__main__':
-    pass    
+    print "%s: %s" % ("awws", isIPAddress("awws"))    
+    print "%s: %s" % ("awws.awws.awws.awws", isIPAddress("awws.awws.awws.awws"))    
+    print "%s: %s" % ("192.168.1.10", isIPAddress("192.168.1.10"))    
+    print "%s: %s" % ("192.168.1.1.1", isIPAddress("192.168.1.1.1"))    
+    print "%s: %s" % ("192.168.256.1", isIPAddress("192.168.256.1"))    
