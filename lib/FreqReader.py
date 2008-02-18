@@ -26,19 +26,28 @@ class FreqReader(object):
     def __init__(self, name='px.db', cluster='px') :
         self.name = name              # frequency file name
         self.cluster = cluster        # cluster name (px, pds, pxatx)
-        self.sources = {}
-        self.freqs = {}
-        self.sourcesAndFreqs = {}
-        self.clients = {}
+        self.sources = {}             # sources list indexed by product name
+        self.freqs = {}               # frequencies list indexed by product name 
+        self.sourcesAndFreqs = {}     # list of tuples (sources and frequencies) indexed by product name
+        self.clients = {}             # clients indexed by product name
 
         self.read()
 
+    def printProdInfos(self, prod="", type='clients'):
+        infos = {'sources': self.sources, 'clients': self.clients, 'freqs': self.freqs}
+        
+        matches = fnmatch.filter(self.sources.keys(), '*' + prod + '*')
+        matches.sort()      
+
+        for match in matches:
+            print("%s: %s (cluster %s)" % (match, infos[type][match], self.cluster))
+
     def _reformatSourcesAndFreq(self, sourcesAndFreqs):
         """
-        input format: ['source1=01:00:00', 'source2=NA', ...]
+        input format: ['source1=19:23:58-01:00:00', 'source2=NA', ...]
         output sources: ['source1', 'source2', ...]
-        output freqs: ['01:00:00', 'NA', ...]
-        output newSourcesAndFreqs: [('source1', '01:00:00'), ('source2', 'NA'), ...]
+        output freqs: ['19:23:58-01:00:00', 'NA', ...]
+        output newSourcesAndFreqs: [('source1', '19:23:58-01:00:00'), ('source2', 'NA'), ...]
         """
         sources = []
         freqs   = [] 
@@ -74,8 +83,16 @@ class FreqReader(object):
             self.clients[words[0]] = clients
 
 if __name__ == '__main__':
-    fr = FreqReader()
+    fr_px = FreqReader()
+    fr_pxatx = FreqReader('pxatx.db', 'pxatx')
+    fr_pds = FreqReader('pds.db', 'pds')
+
+    print "Reading is done"
+
     #print fr.sources
     #print fr.freqs
     #print fr.sourcesAndFreqs
     #print fr.clients 
+    for fr in [fr_px, fr_pxatx, fr_pds]:
+        #print fr.sources.keys()
+        fr.printProdInfos('SABZ20')
