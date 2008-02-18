@@ -22,20 +22,24 @@ sys.path.insert(1, '/apps/px/lib')
 sys.path.insert(1, '/usr/lib/px')
 
 # developpement library path option through PXLIB
-
 try:
-         sys.path.insert(1, os.path.normpath(os.environ['PXLIB']) )
+    sys.path.insert(1, os.path.normpath(os.environ['PXLIB']) )
 except :
-         pass
+    pass
 
-#
+# developpement library path option through PXROOT
+try:
+    sys.path.insert(1, os.path.normpath(os.environ['PXROOT'] + '/lib'))
+except :
+    pass
 
 from optparse import OptionParser
 
-import PXPaths, pxRetransLanguage
+import PXPaths, pxRetransLanguage, PXRetransCompleter
 import dateLib, fileLib, dshLib
 
 from PXManager import PXManager
+from FreqReader import FreqReader
 
 usage = """%%prog [options]
 span %(isInMinutes)s
@@ -82,6 +86,12 @@ cf                %(getClusterFlowNames)s
 cfs               %(getClusterSourceNames)s
 cfc               %(getClusterClientNames)s
 
+findClient        %(getPotentialClients)s
+
+prodSources       %(getProdSources)s
+prodClients       %(getProdClients)s
+prodFreqs         %(getProdFreqs)s
+
 q                 %(quitMenu)s
 
 -s, --span        %(spanHelp)s
@@ -103,6 +113,8 @@ def save_history(histFile=histFile):
 if os.path.exists(histFile):
     readline.read_history_file(histFile)
 atexit.register(save_history)
+
+readline.parse_and_bind("tab: complete")
 
 class PXRetrans(object):
     def __init__(self):
@@ -142,17 +154,26 @@ class PXRetrans(object):
             (re.compile("cf$"), self.getClusterFlowNames),
             (re.compile("cf(?P<type>s)$"), self.getClusterFlowNames),
             (re.compile("cf(?P<type>c)$"), self.getClusterFlowNames),
-            (re.compile("exit$|ex$|quit$|q$"), self.quit), 
+            (re.compile("prod(?P<type>Sources|Clients|Freqs) (?P<prod>.*)$"), self.printProdInfos),
+            (re.compile("findClient (?P<ipOrHost>.*)$"), self.findClient),
+            (re.compile("exit$|ex$|quit$|q$"), self.quit)
 
         ]
+
         self._destIndexedByOpt = self._mapOptToDest()                        
         self._optsIndexedByDest = self._invertDict(self._destIndexedByOpt)
+        self.clusters = ['px', 'pxatx', 'pds']
         self.frontend = os.environ.get("PX_FRONTEND", None)
         self.hostname = os.uname()[1]
         self.newValues = True
         self.matchingFile = ""
         self.startDate = ""
         self.endDate = ""
+
+        if self.frontend:
+            self.clusterFR = {}
+            for cluster in self.clusters:
+                self.clusterFR[cluster] = FreqReader(cluster + '.db', cluster)
 
         if self.frontend and not self.options.scp:
             self.options.scp = self.hostname
@@ -188,11 +209,37 @@ class PXRetrans(object):
         status, output = commands.getstatusoutput("cat %s | %s" % (file.name, two))
         print output
 
+    def findClient(self, options, ipOrHost=""):
+        if self.frontend:
+            print "We are in findClient with ipOrHost=%s" % (ipOrHost)
+            from MasterConfigurator import MasterConfigurator
+            import generalLib
+            ip = host = ""
+
+            if generalLib.isIPAddress(ipOrHost):
+                ip = ipOrHost
+            else:
+                host = ipOrHost
+
+            mc = MasterConfigurator()
+            mc.findClient(self.clusters, ip, host)
+
+        else:
+            print "This function is only available on frontend"
+
+    def printProdInfos(self, options, type, prod="SACN"):
+        if self.frontend:
+            print "We are in printProdInfos with type=%s and  prod=%s" % (type.lower(), prod)
+            for cluster in self.clusters:
+                self.clusterFR[cluster].printProdInfos(prod, type.lower())
+        else:
+            print "This function is only available on some frontend"
+
     def getFlowNames(self, options, type=None):
         from MasterConfigurator import MasterConfigurator
         
         mc = MasterConfigurator()
-        mc.setClusters(['px', 'pds', 'pxatx'])
+        mc.setClusters(self.clusters)
         if mc.getAllFlows():
             print "%(youAreOn)s" % self.lang % self.hostname
 
@@ -209,9 +256,9 @@ class PXRetrans(object):
         command = 'pxFlowNames'
         if options.group and self.frontend:
             machines = dshLib.getMachines(self.options.group)
+            #print machines
             status, flows = commands.getstatusoutput("ssh -i ~/.ssh/colid_dsa pds@%s %s" % (machines[0], command))
             clientNames, sourlientNames, sourceNames, aliases = eval(flows)
-
         elif self.frontend:
             print "%(mustSetAGroup)s" % self.lang
             return
@@ -221,11 +268,22 @@ class PXRetrans(object):
             clientNames, sourlientNames, sourceNames, aliases = eval(flows)
 
         if type in [None, 's']:
-            print "sources:    %s" % sourceNames
-            if type == 's' and sourlientNames: print "sourlients: %s" % sourlientNames
+            typeCluster = "[('source', '%s')]" % self.options.group
+            for source in sourceNames:
+                print "%s: %s" % (source, typeCluster)
+            typeCluster = "[('sourlient', '%s')]" % self.options.group
+            if type == 's' and sourlientNames: 
+                for sourlient in sourlientNames:
+                    print "%s: %s" % (sourlient, typeCluster)
+
         if type in [None, 'c']:
-            print "clients:    %s" % clientNames
-            if sourlientNames: print "sourlients: %s" % sourlientNames
+            typeCluster = "[('client', '%s')]" % self.options.group
+            for client in clientNames:
+                print "%s: %s" % (client, typeCluster)
+            typeCluster = "[('sourlient', '%s')]" % self.options.group
+            if sourlientNames:
+                for sourlient in sourlientNames:
+                    print "%s: %s" % (sourlient, typeCluster)
 
     def parseIndexes(self, options, indexes):
         if not self.matchingFile:
@@ -294,12 +352,16 @@ class PXRetrans(object):
             print "%(retransmittedWithPrio)s" % self.lang % (self.options.prio) # (-1 == self.options.prio and "originale" or  self.options.prio)
         else:
             for number in numbers:
-                print "%%%is) %%s %%%%(onlyForViewing)s" % numFigures % (number, lines[number-1].strip()) % self.lang
+                print "%%%is) %%s %%%%(onlyForViewing)s" % numFigures % (number, lines[number-1].strip()) % self.lang  # sources with no clients => viewing only
       
         for number in numbers:
             for client in clients:
-                print "%%%is) %%s %%%%(forClient)s %%s" % numFigures % (number, lines[number-1].strip(), client) % self.lang
-                print "ssh pds@%s pxRetrans" 
+                #print "%%%is) %%s %%%%(forClient)s %%s" % numFigures % (number, lines[number-1].strip(), client) % self.lang
+                date, hour, fullPath, machine = lines[number-1].strip().split()
+                filename = os.path.basename(fullPath)
+                command = ".localRetrans %s %s %s" % (filename, client, self.options.prio)
+                output = commands.getoutput("ssh -i /users/dor/aspy/dan/.ssh/colid_dsa pds@%s %s" % (machine, command))
+                print output
 
     def description(self):
         return "%(progDesc)s" % self.lang
@@ -374,7 +436,10 @@ class PXRetrans(object):
     def printPreRetransInfos(self, matchingFile, startDate, endDate, format="%Y-%m-%d %H:%M:%S"):
         #if self.options.verbose and not self.frontend and matchingFile:
         print "matchingFile: %s" % matchingFile
-        if self.options.verbose and matchingFile:
+
+        if not matchingFile: numLines = "0"
+
+        if self.options.verbose and self.matchingFile:
             numLines = commands.getoutput("wc -l %s | awk '{print $1}'" % (matchingFile))
             first = commands.getoutput("head -n1 %s" % (matchingFile)).split()
             last = commands.getoutput("tail -n1 %s" % (matchingFile)).split()
@@ -456,6 +521,8 @@ class PXRetrans(object):
                 self.matchingFile = fileLib.mergeFiles(self.findFiles("/tmp", machines, timestamp),
                                                        self.createMergeName(options.sources or options.clients, timestamp))
                 self.newValues = False
+                #print "self.matchingFile: %s" % self.matchingFile
+
                 self.printPreRetransInfos(self.matchingFile, self.startDate, self.endDate)
 
         else: # When we are on a backend
@@ -477,8 +544,9 @@ class PXRetrans(object):
                 self.newValues = False
 
             if options.scp and not self.frontend:
-                output = commands.getoutput('scp %s aspydan@%s:/tmp/' % (self.matchingFile, options.scp))
-                print output
+                if os.path.isfile(self.matchingFile):
+                    output = commands.getoutput('scp %s aspydan@%s:/tmp/' % (self.matchingFile, options.scp))
+                    print output
             if not options.scp:
                 self.printPreRetransInfos(self.matchingFile, self.startDate, self.endDate)
 
@@ -533,6 +601,19 @@ class PXRetrans(object):
             print "%s:%s " % (key, options.__dict__[key]),
         print
 
+    def validateFlow(self, name):
+        """
+        input: flow name
+        output: flow type and cluster name
+        0: means that the flow doesn't exist
+        2,3,4 ... means there is 2,3,4 flows with the same name
+        """
+        from MasterConfigurator import MasterConfigurator
+        mc = MasterConfigurator()    
+        type = mc.getType(name, self.clusters)
+        cluster = mc.getCluster(name)
+        return type, cluster
+        
     def parseArgs(self, options, newOptions):
         newOptions = eval(commands.getoutput("%s %s" % (PXPaths.SHELL_PARSER, newOptions)))
         print newOptions
@@ -541,8 +622,8 @@ class PXRetrans(object):
         try:
             (opts, args) = parser.parse_args(newOptions)
         except:
-            (type, value, tb) = sys.exc_info()
-            #print ("Type: %s, Value: %s" % (type, value))
+            (err_type, value, tb) = sys.exc_info()
+            #print ("Type: %s, Value: %s" % (err_type, value))
             print value
             print
             return
@@ -557,15 +638,39 @@ class PXRetrans(object):
         for switch in switches:
             try:
                 print "%s => %s" % (switch, self._destIndexedByOpt[switch])
-                self.options.__dict__[self._destIndexedByOpt[switch]] = opts.__dict__[self._destIndexedByOpt[switch]]
+                if switch in ['-c', '--clients']: # TODO: sourlients
+                    if not self.options.sources: # Probably a "client resend" 
+                        flow_type, cluster = self.validateFlow(opts.__dict__[self._destIndexedByOpt[switch]]) # Only one (not 2 or more) client will work
+                        if flow_type == 'client' and type(cluster) != int:
+                            self.options.__dict__['group'] = cluster
+                            self.options.__dict__[self._destIndexedByOpt[switch]] = opts.__dict__[self._destIndexedByOpt[switch]]
+                        else:
+                            print flow_type
+                            print cluster
+                            print "Bad client or more than 1 client"
+                            self.options.__dict__['group'] = ""
+                            self.options.__dict__[self._destIndexedByOpt[switch]] = ""
+
+                elif switch in ['--sources']: # TODO: sourlients
+                    sources = self._destIndexedByOpt[switch].replace(' ', '').strip(',').split(',')
+                    flow_type, cluster = self.validateFlow(sources[0]) # We validate only the first source, we suppose they all came from the same cluster
+                    if flow_type == 'source' and type(cluster) != int:
+                        self.options.__dict__['group'] == cluster
+                        self.options.__dict__[self._destIndexedByOpt[switch]] = opts.__dict__[self._destIndexedByOpt[switch]]
+                    else:
+                        print "Bad source"
+
+                else:
+                    self.options.__dict__[self._destIndexedByOpt[switch]] = opts.__dict__[self._destIndexedByOpt[switch]]
+
                 if switch not in ['-c', '--clients', '-p', '--prio']:
                     self.newValues = True
                 elif switch in ['-c', '--clients'] and not self.options.sources:
                     self.newValues = True
 
             except KeyError:
-                (type, value, tb) = sys.exc_info()
-                print ("Type: %s, Value: %s" % (type, value))
+                (err_type, value, tb) = sys.exc_info()
+                print ("Type: %s, Value: %s" % (err_type, value))
                 newDict = self.lang.copy()
                 newDict['value']= value
                 errors.append("%(problem)s: %(value)s" % newDict)
