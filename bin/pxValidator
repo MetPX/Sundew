@@ -33,6 +33,12 @@ try:
 except :
          pass
 
+# developpement library path option through PXROOT
+try:
+    sys.path.insert(1, os.path.normpath(os.environ['PXROOT'] + '/lib'))
+except :
+    pass
+
 import PXPaths
 from Logger import Logger
 from PXManager import PXManager
