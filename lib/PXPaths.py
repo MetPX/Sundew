@@ -28,38 +28,41 @@ def locateDirs(rootPath=""):
     # debian defaults
 
     ROOT  = None
+    BIN   = '/JeNeSaisPas/'
     ETC   = '/etc/px/'
+    LIB   = '/usr/lib/px/'
     LOG   = '/var/log/px/'
     SPOOL = '/var/spool/px/'
 
     # use of env variable PXROOT for backwork compatibility
 
     if rootPath == "" :
-       try:
-                path = os.path.normpath(os.environ['PXROOT']) + '/'
-		rootPath = path
-       except : pass
+        try:
+            rootPath = os.path.normpath(os.environ['PXROOT']) + '/'
+        except : pass
 
     # overwrite debian defaults if requiered
 
     if rootPath != "" :
        if rootPath[-1] != "/" : rootPath = rootPath + '/'
        ROOT  = rootPath
+       BIN   = rootPath + 'bin/'
        ETC   = rootPath + 'etc/'
+       LIB   = rootPath + 'lib/'
        LOG   = rootPath + 'log/'
        SPOOL = rootPath
 
     # px.conf 
 
     pxconf  = ETC + 'px.conf'
-    try:
-             pxconf = os.path.normpath(os.environ['PXCONF']) + '/'
-    except : pass
 
     # if px.conf  does not exists... try env variable PXCONF
+    try:
+        pxconf = os.path.normpath(os.environ['PXCONF']) + '/'
+    except : pass
 
     if not os.path.isfile(pxconf) :
-       return (ROOT,ETC,LOG,SPOOL)
+       return (ROOT,BIN,ETC,LIB,LOG,SPOOL)
 
     # px.conf exists : read and parse only to resolve directories 
 
@@ -93,23 +96,23 @@ def locateDirs(rootPath=""):
 
     config.close()
 
-    return (ROOT,ETC,LOG,SPOOL)
+    return (ROOT,BIN,ETC,LIB,LOG,SPOOL)
     
 
 def normalPaths(rootPath=""):
 
-    global ROOT, LIB, LOG, ETC, FXQ, RXQ, TRXQ, TXQ, DB, FX_CONF, RX_CONF, TX_CONF, TRX_CONF, \
+    global ROOT, BIN, ETC, LIB, LOG, SPOOL, \
+           FXQ, RXQ, TXQ, DB, FX_CONF, RX_CONF, TX_CONF, TRX_CONF, \
            ROUTING_TABLE, STATION_TABLE, SCRIPTS, \
            LAT, LAT_RESULTS, LAT_TMP, SHELL_PARSER, PX_DATA 
 
-    ROOT,ETC,LOG,SPOOL = locateDirs(rootPath)
+    ROOT,BIN,ETC,LIB,LOG,SPOOL = locateDirs(rootPath)
 
-    LIB = '/usr/lib/px/' # This path was hardcoded in PXCopy.py, see dominik_db or dlema for details
+    # FIXME: LIB PATH is hardcoded in PXCopy.py, see dominik_db or dlema for details
 
     FXQ  = SPOOL + 'fxq/'
     RXQ  = SPOOL + 'rxq/'
     TXQ  = SPOOL + 'txq/'
-    TRXQ = SPOOL + 'trxq/'
     DB   = SPOOL + 'db/'
 
     FX_CONF  = ETC + 'fx/'
@@ -132,12 +135,13 @@ def normalPaths(rootPath=""):
 
 def drbdPaths(rootPath):
 
-    global ROOT, LIB, LOG, ETC, FXQ, RXQ, TRXQ, TXQ, DB, FX_CONF, RX_CONF, TX_CONF, TRX_CONF
+    global ROOT, BIN, ETC, LIB, LOG, FXQ, RXQ, TXQ, DB, FX_CONF, RX_CONF, TX_CONF, TRX_CONF
 
     ROOT = os.path.normpath(rootPath) + '/'
-    LIB = '/usr/lib/px/'
-    LOG = '/apps/px/' + 'log/'
+    BIN = ROOT + 'bin/'
     ETC = ROOT + 'etc/'
+    LIB = ROOT + 'lib/' 
+    LOG = '/apps/px/' + 'log/'
     FXQ = ROOT + 'fxq/'
     RXQ = ROOT + 'rxq/'
     TXQ = ROOT + 'txq/'
@@ -162,7 +166,6 @@ if __name__ == '__main__':
    print("FXQ  %s" % PXPaths.FXQ )
    print("RXQ  %s" % PXPaths.RXQ )
    print("TXQ  %s" % PXPaths.TXQ )
-   print("TRXQ %s" % PXPaths.TRXQ )
    print("DB   %s" % PXPaths.DB )
    
    print("ROUTING_TABLE %s" % PXPaths.ROUTING_TABLE )
