@@ -36,6 +36,7 @@ except :
 # developpement library path option through PXROOT
 try:
     sys.path.insert(1, os.path.normpath(os.environ['PXROOT'] + '/lib'))
+    sys.path.insert(1,sys.path[0] + '/../lib/importedLibs')
 except :
     pass
 
@@ -85,7 +86,7 @@ class PXValidator:
         PXPaths.normalPaths()
         self.manager = PXManager()
         LOG_NAME = self.manager.LOG + 'pxValidator.log'    # Log's name
-        logger = Logger(LOG_NAME, PXValidator.LOG_LEVEL, "Validator")
+        logger = Logger(LOG_NAME, PXValidator.LOG_LEVEL, "Validator", 20*1024*1024)
 
         self.getOptionsParser()
         self.logger = logger.getLogger()

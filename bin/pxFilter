@@ -35,13 +35,14 @@ sys.path.insert(1, '/usr/lib/px')
 # developpement library path option through PXLIB
 
 try:
-         sys.path.insert(1, os.path.normpath(os.environ['PXLIB']) )
+        sys.path.insert(1, os.path.normpath(os.environ['PXLIB']) )
 except :
          pass
 
 # developpement library path option through PXROOT
 try:
     sys.path.insert(1, os.path.normpath(os.environ['PXROOT'] + '/lib'))
+    sys.path.insert(1,sys.path[0] + '/../lib/importedLibs')
 except :
     pass
 

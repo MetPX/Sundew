@@ -31,6 +31,7 @@ except :
 # developpement library path option through PXROOT
 try:
     sys.path.insert(1, os.path.normpath(os.environ['PXROOT'] + '/lib'))
+    sys.path.insert(1,sys.path[0] + '/../lib/importedLibs')
 except :
     pass
 
