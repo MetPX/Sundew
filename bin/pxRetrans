@@ -38,6 +38,7 @@ from optparse import OptionParser
 import PXPaths, pxRetransLanguage, PXRetransCompleter
 import dateLib, fileLib, dshLib
 
+from RetransConfig import RetransConfig
 from PXManager import PXManager
 from FreqReader import FreqReader
 
@@ -45,20 +46,26 @@ usage = """%%prog [options]
 span %(isInMinutes)s
 offset %(isInMinutes)s
 
-%(example)s 1: %%prog --sources ncp1,ncp2 --span 30
-%(example)s 2: %%prog --sources ncp1,ncp2 --span 30 --offset 2*24*60
-%(example)s 3: %%prog --sources ncp1,ncp2 --span 30 --startDate "2007-10-30 20:06:59"
-%(example)s 4: %%prog --sources ncp1,ncp2 --span 30 --endDate "2007-10-30 20:07:59"
-%(example)s 5: %%prog --sources ncp1,ncp2 --startDate "2007-10-30 20:06:59" --endDate "2007-10-30 21:07:59"
+%(example)s 1: %%prog --clients pds_metser --span 30
+%(example)s 2: %%prog --clients pds_metser --span 30 --offset 2*24*60
+%(example)s 3: %%prog --clients pds_metser --span 30 --startDate "2007-10-30 20:06:59"
+%(example)s 4: %%prog --clients pds_metser --span 30 --endDate "2007-10-30 20:07:59"
+%(example)s 5: %%prog --clients pds_metser --startDate "2007-10-30 20:06:59" --endDate "2007-10-30 21:07:59"
 
 %(groupNote)s
 """
 
-usageInter = """%(example)s 1: --sources ncp1,ncp2 --span 30
+"""
 %(example)s 2: --sources ncp1,ncp2 --span 30 --offset 2*24*60
 %(example)s 3: --sources ncp1,ncp2 --span 30 --startDate "2007-10-30 20:06:59"
 %(example)s 4: --sources ncp1,ncp2 --span 30 --endDate "2007-10-30 20:07:59"
 %(example)s 5: --sources ncp1,ncp2 --startDate "2007-10-30 20:06:59" --endDate "2007-10-30 21:07:59"
+"""
+usageInter = """%(example)s 1: --clients pds_metser --span 30
+%(example)s 2: --clients pds_metser --span 30 --offset 2*24*60
+%(example)s 3: --clients pds_metser --span 30 --startDate "2007-10-30 20:06:59"
+%(example)s 4: --clients pds_metser --span 30 --endDate "2007-10-30 20:07:59"
+%(example)s 5: --clients pds_metser --startDate "2007-10-30 20:06:59" --endDate "2007-10-30 21:07:59"
 
 %(groupNote)s
 """
@@ -67,6 +74,8 @@ usageInter = """%(example)s 1: --sources ncp1,ncp2 --span 30
 #-q, --quiet       %(quietHelp)s
 #-t, --timestamp   %(timestampHelp)s
 #-b, --basename    %(basenameHelp)s
+#--sources         %(sourcesHelp)s
+#--scp             %(scpHelp)s
 
 menu = """
 %(80-)s
@@ -98,12 +107,10 @@ q                 %(quitMenu)s
 -o, --offset      %(offsetHelp)s
 --startDate       %(startDateHelp)s
 --endDate         %(endDateHelp)s
---sources         %(sourcesHelp)s
 -c, --clients     %(clientsHelp)s
 -r, --regex       %(regexHelp)s
 -g, --group       %(groupHelp)s
 -p, --prio        %(prioHelp)s
---scp             %(scpHelp)s
 """
 
 histFile = os.path.expanduser("~/.pxRetrans_history")
@@ -120,10 +127,32 @@ class PXRetrans(object):
     def __init__(self):
         PXPaths.normalPaths()
         self.debug = 0
-        self.lang = pxRetransLanguage.english
-        self.lang = pxRetransLanguage.french
-        self.pxm = PXManager()
         self.version = "%prog 0.1"
+        self.hostname = os.uname()[1]
+        self.pxm = PXManager()
+
+        self.config = RetransConfig()
+        self.lang = self.config.lang
+        self.masterConfPath = self.config.masterConfPath
+        self.clusters = self.config.clusters
+        self.frontend = os.environ.get(self.config.feEnvVar, None)
+        self.similiFrontend = os.environ.get(self.config.sfeEnvVar, None)
+
+        # Use to execute command (pxRetrans, .localRetrans) on the backend
+        # via ssh command run on the frontend
+        if self.config.fePrivKey:
+            self.fePrivKeyArg = '-i %s' % self.config.fePrivKey
+        else:
+            self.fePrivKeyArg = ''
+        self.beUser = self.config.beUser   # Use to ssh from the frontend to the backend
+
+        # Use to scp results from the backend to the frontend
+        if self.config.bePrivKey:
+            self.bePrivKeyArg = '-i %s' % self.config.bePrivKey
+        else:
+            self.bePrivKeyArg = ''
+        self.feUser = self.config.feUser         # On the backend, results (listing) will be sent to this frontend user
+        self.feTempDir = self.config.feTempDir   # On the backend, results (listing) will be sent to this directory
 
         self.parser = OptionParser(usage=usage % self.lang, version=self.version, description=self.description())
         self.addOptions(self.parser)
@@ -162,25 +191,26 @@ class PXRetrans(object):
 
         self._destIndexedByOpt = self._mapOptToDest()                        
         self._optsIndexedByDest = self._invertDict(self._destIndexedByOpt)
-        self.clusters = ['px', 'pxatx', 'pds']
-        self.frontend = os.environ.get("PX_FRONTEND", None)
-        self.hostname = os.uname()[1]
         self.newValues = True
         self.matchingFile = ""
         self.startDate = ""
         self.endDate = ""
 
-        if self.frontend:
+        if self.frontend and not self.options.progCalled:
             self.clusterFR = {}
             for cluster in self.clusters:
                 self.clusterFR[cluster] = FreqReader(cluster + '.db', cluster)
 
-        if self.frontend and not self.options.scp:
+        if not self.options.progCalled and not self.options.scp:
             self.options.scp = self.hostname
 
         if self.options.inter:
             self.options.verbose = True
+            if self.options.clients:
+                self.parseArgs(self.options, "-c %s" % self.options.clients)
             self.start()
+        elif self.options.progCalled:
+            self.search(self.options, self.options.progCalled)
         else:
             self.search(self.options)
 
@@ -210,37 +240,48 @@ class PXRetrans(object):
         print output
 
     def findClient(self, options, ipOrHost=""):
+        if self.debug: print "We are in findClient with ipOrHost=%s" % (ipOrHost)
         if self.frontend:
-            print "We are in findClient with ipOrHost=%s" % (ipOrHost)
-            from MasterConfigurator import MasterConfigurator
-            import generalLib
-            ip = host = ""
-
-            if generalLib.isIPAddress(ipOrHost):
-                ip = ipOrHost
-            else:
-                host = ipOrHost
-
-            mc = MasterConfigurator()
-            mc.findClient(self.clusters, ip, host)
-
+            print "%(searchOnClusters)s" % self.lang % self.clusters
+            print 
         else:
-            print "This function is only available on frontend"
+            print "%(searchLocally)s" % self.lang % self.hostname
+            print 
+
+        from MasterConfigurator import MasterConfigurator
+        import generalLib
+        ip = host = ""
+
+        if generalLib.isIPAddress(ipOrHost):
+            ip = ipOrHost
+        else:
+            host = ipOrHost
+
+        mc = MasterConfigurator(self.masterConfPath)
+        cliClust = mc.findClient(self.clusters, ip, host)
+
+        if cliClust:
+            print "%(potentialClients)s" % self.lang
+            for cli in cliClust:
+                print cli
+        else:
+            print "%(noResults)s" % self.lang
 
     def printProdInfos(self, options, type, prod="SACN"):
         if self.frontend:
-            print "We are in printProdInfos with type=%s and  prod=%s" % (type.lower(), prod)
+            if self.debug: print "We are in printProdInfos with type=%s and  prod=%s" % (type.lower(), prod)
             for cluster in self.clusters:
                 self.clusterFR[cluster].printProdInfos(prod, type.lower())
         else:
-            print "This function is only available on some frontend"
+            print "%(onlyAvailableOnFrontend)s" % self.lang
 
     def getFlowNames(self, options, type=None):
         from MasterConfigurator import MasterConfigurator
         
-        mc = MasterConfigurator()
+        mc = MasterConfigurator(self.masterConfPath)
         mc.setClusters(self.clusters)
         if mc.getAllFlows():
+            # You go here if self.masterConfPath doesn't exist
             print "%(youAreOn)s" % self.lang % self.hostname
 
         if type in [None, 's']:
@@ -256,16 +297,24 @@ class PXRetrans(object):
         command = 'pxFlowNames'
         if options.group and self.frontend:
             machines = dshLib.getMachines(self.options.group)
-            #print machines
-            status, flows = commands.getstatusoutput("ssh -i ~/.ssh/colid_dsa pds@%s %s" % (machines[0], command))
-            clientNames, sourlientNames, sourceNames, aliases = eval(flows)
+            if self.debug: print "machines: %s" % machines
+            if machines: # Check only on the first machine in the cluster
+                status, flows = commands.getstatusoutput("ssh %s %s@%s %s" % (self.fePrivKeyArg, self.beUser, machines[0], command))
+                clientNames, sourlientNames, sourceNames, aliases = eval(flows)
+            else:
+                print "%(noMachineInThisGroup)s" % self.lang % self.options.group
+                return
+
         elif self.frontend:
             print "%(mustSetAGroup)s" % self.lang
             return
+
         else:
             #print "We are on a backend"
-            status, flows = commands.getstatusoutput(command)
-            clientNames, sourlientNames, sourceNames, aliases = eval(flows)
+            #status, flows = commands.getstatusoutput(command)
+            #clientNames, sourlientNames, sourceNames, aliases = eval(flows)
+            print "%(commandNotAvailable)s" % self.lang  % ('f' + (type or ""))
+            return
 
         if type in [None, 's']:
             typeCluster = "[('source', '%s')]" % self.options.group
@@ -349,7 +398,7 @@ class PXRetrans(object):
         clientsCol = ":".join(clients)
 
         if clients:
-            print "%(retransmittedWithPrio)s" % self.lang % (self.options.prio) # (-1 == self.options.prio and "originale" or  self.options.prio)
+            print "%(retransmittedWithPrio)s\n" % self.lang % (self.options.prio) # (-1 == self.options.prio and "originale" or  self.options.prio)
         else:
             for number in numbers:
                 print "%%%is) %%s %%%%(onlyForViewing)s" % numFigures % (number, lines[number-1].strip()) % self.lang  # sources with no clients => viewing only
@@ -360,7 +409,7 @@ class PXRetrans(object):
                 date, hour, fullPath, machine = lines[number-1].strip().split()
                 filename = os.path.basename(fullPath)
                 command = ".localRetrans %s %s %s" % (filename, client, self.options.prio)
-                output = commands.getoutput("ssh -i /users/dor/aspy/dan/.ssh/colid_dsa pds@%s %s" % (machine, command))
+                output = commands.getoutput("ssh %s %s@%s %s" % (self.fePrivKeyArg, self.beUser, machine, command))
                 print output
 
     def description(self):
@@ -433,9 +482,10 @@ class PXRetrans(object):
         parser.add_option("-i", "--inter", action="store_true", dest="inter", default=False,
                           help="%(interHelp)s" % self.lang)
 
+        parser.add_option("--progCalled", action="store_true", dest="progCalled", default=False)
+
     def printPreRetransInfos(self, matchingFile, startDate, endDate, format="%Y-%m-%d %H:%M:%S"):
-        #if self.options.verbose and not self.frontend and matchingFile:
-        print "matchingFile: %s" % matchingFile
+        if self.debug: print "matchingFile: %s" % matchingFile
 
         if not matchingFile: numLines = "0"
 
@@ -471,9 +521,10 @@ class PXRetrans(object):
                 flowsCol = ":".join(flows)
                 return "%s/toRetransmit.%s.%s.%s" % (PXPaths.LOG, flowsCol, self.hostname, timestamp)
 
-    def search(self, options):
+    def search(self, options, progCalled=False):
         #print self.parser.values.__dict__
         #print 
+        
         if not (options.sources or options.clients):
             print "%(optionsMustBePresent)s" % self.lang % ("sources", "clients")
             return
@@ -484,48 +535,57 @@ class PXRetrans(object):
                 print "%(noSourceMeanOneClient)s" % self.lang
                 return 
 
-        if self.frontend:
-            if not options.group:
+        if progCalled == False: # Search initiation can occurs on a frontend or a backend
+            if not options.group and self.frontend:
                 print "%(optionMustBePresent)s" % self.lang % "group",
                 print "%(youAreOnAFrontend)s" % self.lang
                 return
+
+            if not self.frontend: # We are on a backend, we will only search locally on this machine
+                machines = [self.hostname]
             else:
-                self.startDate, self.endDate = dateLib.getDatesInSeconds(options.startDate, options.endDate, options.span, options.offset)
-                # startDate and endDate validation
-                if self.startDate and self.endDate == None:
-                    print "%(startDateOlder)s" % self.lang
-                    return
-                elif (self.startDate, self.endDate) == (None, None):
-                    print "%(badOptions)s" % self.lang
-                    return
-
-                command = 'pxRetrans --startDate \\"%s\\" --endDate \\"%s\\"' % (dateLib.getDateInSecondsFormatted(self.startDate), 
-                                                                                 dateLib.getDateInSecondsFormatted(self.endDate))
-                for item in self.parser.values.__dict__.items():
-                    if item[0] in ['regex'] and item[1]:
-                        command += ' %s%s \\"%s\\"' % ("--", item[0], item[1])
-                    elif item[1] and item[1] not in [True, False] and item[0]: 
-                        command += " %s%s %s" % ("--", item[0], item[1])    
-                    elif item[0] in ['timestamp']:
-                        timestamp = item[1] or dateLib.getTimestamp()
-                        command += " %s%s %s" % ("--", item[0], timestamp)
-
                 machines = dshLib.getMachines(options.group)
-                for machine in machines:
-                    print "ssh -i /users/dor/aspy/dan/.ssh/colid_dsa pds@%s %s" % (machine, command)
-                    status, output = commands.getstatusoutput("ssh -i /users/dor/aspy/dan/.ssh/colid_dsa pds@%s %s" % (machine, command))
-                    #print status
-                    if output:
-                        print output
 
-                self.matchingFile = fileLib.mergeFiles(self.findFiles("/tmp", machines, timestamp),
-                                                       self.createMergeName(options.sources or options.clients, timestamp))
-                self.newValues = False
-                #print "self.matchingFile: %s" % self.matchingFile
+            print "%(searchOnXMachines)s" % self.lang % (options.group, len(machines), machines)
+            print
 
-                self.printPreRetransInfos(self.matchingFile, self.startDate, self.endDate)
+            self.startDate, self.endDate = dateLib.getDatesInSeconds(options.startDate, options.endDate, options.span, options.offset)
+            # startDate and endDate validation
+            if self.startDate and self.endDate == None:
+                print "%(startDateOlder)s" % self.lang
+                return
+            elif (self.startDate, self.endDate) == (None, None):
+                print "%(badOptions)s" % self.lang
+                return
 
-        else: # When we are on a backend
+            command = 'pxRetrans --progCalled --startDate \\"%s\\" --endDate \\"%s\\"' % (dateLib.getDateInSecondsFormatted(self.startDate), 
+                                                                             dateLib.getDateInSecondsFormatted(self.endDate))
+            for item in self.parser.values.__dict__.items():
+                if item[0] in ['regex'] and item[1]:
+                    command += ' %s%s \\"%s\\"' % ("--", item[0], item[1])
+                elif item[1] and item[1] not in [True, False] and item[0]: 
+                    command += " %s%s %s" % ("--", item[0], item[1])    
+                elif item[0] in ['timestamp']:
+                    timestamp = item[1] or dateLib.getTimestamp()
+                    command += " %s%s %s" % ("--", item[0], timestamp)
+
+            for machine in machines:
+                if self.debug: print "ssh %s %s@%s %s" % (self.fePrivKeyArg, self.beUser, machine, command)
+                status, output = commands.getstatusoutput("ssh %s %s@%s %s" % (self.fePrivKeyArg, self.beUser, machine, command))
+                #print status
+                if output:
+                    print output
+                if self.debug: print
+            if self.debug: print 
+
+            self.matchingFile = fileLib.mergeFiles(self.findFiles(self.feTempDir, machines, timestamp),
+                                                   self.createMergeName(options.sources or options.clients, timestamp))
+            self.newValues = False
+            #print "self.matchingFile: %s" % self.matchingFile
+
+            self.printPreRetransInfos(self.matchingFile, self.startDate, self.endDate)
+
+        elif progCalled: # When we are on a backend
             self.startDate, self.endDate = dateLib.getDatesInSeconds(options.startDate, options.endDate, options.span, options.offset)
 
             if self.startDate and  self.endDate == None:
@@ -545,7 +605,12 @@ class PXRetrans(object):
 
             if options.scp and not self.frontend:
                 if os.path.isfile(self.matchingFile):
-                    output = commands.getoutput('scp %s aspydan@%s:/tmp/' % (self.matchingFile, options.scp))
+                    if options.scp == self.hostname:
+                        if self.debug: print 'scp %s %s %s@%s:%s' % (self.fePrivKeyArg, self.matchingFile, self.beUser, options.scp, self.feTempDir)
+                        output = commands.getoutput('scp %s %s %s@%s:%s' % (self.fePrivKeyArg, self.matchingFile, self.beUser, options.scp, self.feTempDir))
+                    else:
+                        if self.debug: print 'scp %s %s %s@%s:%s' % (self.bePrivKeyArg, self.matchingFile, self.feUser, options.scp, self.feTempDir)
+                        output = commands.getoutput('scp %s %s %s@%s:%s' % (self.bePrivKeyArg, self.matchingFile, self.feUser, options.scp, self.feTempDir))
                     print output
             if not options.scp:
                 self.printPreRetransInfos(self.matchingFile, self.startDate, self.endDate)
@@ -594,12 +659,14 @@ class PXRetrans(object):
         for key in ['span', 'offset', 'startDate', 'endDate', 'regex', 'prio']:
             print "%s:%s " % (key, options.__dict__[key]),
         print
-        for key in ['sources', 'clients', 'scp', 'group']:
+
+        for key in ['inter', 'scp', 'clients', 'group']: # ['sources', 'clients', 'scp', 'group']:
             print "%s:%s " % (key, options.__dict__[key]),
         print
-        for key in ['verbose', 'timestamp', 'basename', 'inter']:
-            print "%s:%s " % (key, options.__dict__[key]),
-        print
+
+        #for key in ['verbose', 'timestamp', 'basename', 'inter']:
+        #    print "%s:%s " % (key, options.__dict__[key]),
+        #print
 
     def validateFlow(self, name):
         """
@@ -609,14 +676,15 @@ class PXRetrans(object):
         2,3,4 ... means there is 2,3,4 flows with the same name
         """
         from MasterConfigurator import MasterConfigurator
-        mc = MasterConfigurator()    
+        mc = MasterConfigurator(self.masterConfPath)    
         type = mc.getType(name, self.clusters)
         cluster = mc.getCluster(name)
         return type, cluster
         
     def parseArgs(self, options, newOptions):
         newOptions = eval(commands.getoutput("%s %s" % (PXPaths.SHELL_PARSER, newOptions)))
-        print newOptions
+        if self.debug: print newOptions
+
         parser = OptionParser(usage="")
         self.addOptions(parser)
         try:
@@ -637,7 +705,7 @@ class PXRetrans(object):
             
         for switch in switches:
             try:
-                print "%s => %s" % (switch, self._destIndexedByOpt[switch])
+                if self.debug: print "%s => %s" % (switch, self._destIndexedByOpt[switch])
                 if switch in ['-c', '--clients']: # TODO: sourlients
                     if not self.options.sources: # Probably a "client resend" 
                         flow_type, cluster = self.validateFlow(opts.__dict__[self._destIndexedByOpt[switch]]) # Only one (not 2 or more) client will work
@@ -645,9 +713,9 @@ class PXRetrans(object):
                             self.options.__dict__['group'] = cluster
                             self.options.__dict__[self._destIndexedByOpt[switch]] = opts.__dict__[self._destIndexedByOpt[switch]]
                         else:
-                            print flow_type
-                            print cluster
-                            print "Bad client or more than 1 client"
+                            if self.debug: print "%s: %s" % ("flow_type", str(flow_type))
+                            if self.debug: print "%s: %s" % ("cluster", str(cluster))
+                            print "%(badClientName)s" % self.lang
                             self.options.__dict__['group'] = ""
                             self.options.__dict__[self._destIndexedByOpt[switch]] = ""
 
@@ -693,7 +761,11 @@ class PXRetrans(object):
         print
 
     def resetOptions(self, options):
-        (self.options, self.args) = self.parser.parse_args(['-i', 'True'])
+        if self.frontend:
+            (self.options, self.args) = self.parser.parse_args(['-i', 'True', '--scp', self.hostname])
+        else:
+            (self.options, self.args) = self.parser.parse_args(['-i', 'True'])
+            
         self.newValues = True
         self.matchingFile = ""
         self.startDate = ""
@@ -705,4 +777,9 @@ class PXRetrans(object):
         sys.exit(0)
 
 if __name__ == '__main__':
-    pxRetrans = PXRetrans()
+    try:
+        pxRetrans = PXRetrans()
+    except KeyboardInterrupt:
+        # FIXME: a cleanup function should probably be called
+        print
+
