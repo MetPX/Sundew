@@ -1,0 +1,106 @@
+#!/usr/bin/env python
+"""
+MetPX Copyright (C) 2004-2006  Environment Canada
+MetPX comes with ABSOLUTELY NO WARRANTY; For details type see the file
+named COPYING in the root of the source directory tree.
+"""
+
+"""
+#############################################################################################
+# Name: .localRetrans
+#
+# Authors: Daniel Lemay
+#
+# Date: 2008-02-18
+#
+# Description: Used by pxRetrans to do the local retransmission
+#
+#############################################################################################
+"""
+import sys, os, os.path, re, time, fnmatch, commands
+sys.path.insert(1, sys.path[0] + '/../lib')
+sys.path.insert(1,sys.path[0] + '/../lib/importedLibs')
+
+# default library path
+
+# old way
+sys.path.insert(1, '/apps/px/lib')
+
+# debian way
+sys.path.insert(1, '/usr/lib/px')
+
+# developpement library path option through PXLIB
+try:
+    sys.path.insert(1, os.path.normpath(os.environ['PXLIB']) )
+except :
+    pass
+
+# developpement library path option through PXROOT
+try:
+    sys.path.insert(1, os.path.normpath(os.environ['PXROOT'] + '/lib'))
+except :
+    pass
+
+import PXPaths, pxRetransLanguage, generalLib
+
+from PXManager import PXManager
+from RetransConfig import RetransConfig
+
+if __name__ == '__main__':
+    debug = 0
+
+    config = RetransConfig()
+    lang = config.lang
+
+    #time we wait in seconds for obtaining the log line indicating a successful transfert
+    timeout = config.waitTimeForLogEntry
+
+    PXPaths.normalPaths() 
+    pxm = PXManager()
+    pxm.initNames()
+    filename, client, prio = sys.argv[1:]
+    #print filename, client, prio
+
+    flowType, flowNames = pxm.getFlowType(client)
+
+    if flowType == None:
+        print "%(flowTypeNone)s" % lang % (client, os.uname()[1])
+        print filename  + " %(notRetransmitted)s\n" % lang
+        sys.exit()
+
+    dbName = pxm.getDBName(filename)
+    queueName =  pxm.getFlowQueueName(flow=client, drp=None, filename=filename, priority=prio)
+    logName = PXPaths.LOG + flowType.lower() + "_" +  client + ".log"
+
+    if debug:
+        print dbName
+        print queueName
+        print logName
+        print 
+
+    pxm.createDir(os.path.dirname(queueName))
+    # FIXME: try to find the log line or return the number of files in queue 0,1,2,3,4,5
+
+    try:
+        os.link(dbName, queueName)
+        print"%(copyDBNameInQueueName)s" % lang % (os.uname()[1], dbName, queueName)
+    except OSError:
+        (type, value, tb) = sys.exc_info()
+        print"%(cannotCopyDBNameInQueueName)s " % lang + "(Type: %s, Value: %s)" % (type, value)
+        print "%s:%s" % (os.uname()[1], dbName)
+        print "%s:%s" % (os.uname()[1], queueName)
+        print
+        sys.exit()
+
+    if timeout:
+        time.sleep(timeout)
+        if os.path.isfile(queueName):
+            print "%(fileStillInClientQueue)s" % lang % (timeout, os.uname()[1] + ":" + logName) 
+            print
+        else:
+            output = commands.getoutput("grep %s %s | tail -n1" % (os.path.basename(queueName), logName))
+            print output
+            print
+
+    else:
+        print
