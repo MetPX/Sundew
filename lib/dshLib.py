@@ -22,14 +22,18 @@ import fileLib
 DSH_ROOT = "/etc/dsh/"
 DSH_GROUP = DSH_ROOT + "group/"
 
-
 def getMachines(group):
-    machines = fileLib.getLines(DSH_GROUP + group)
-    return machines or ['userver1-new', 'userver2-new']
+    #machines = [machine.strip() for machine in fileLib.getLines(DSH_GROUP + group)]
+    #return machines or ['userver1-new', 'userver2-new']
+    machines = []
+    if group.lower() == 'pxatx':
+        machines = ['pxatx']
+    elif group.lower() in ['px', 'userver', 'userv']:
+        machines = ['userver1-new', 'userver2-new']
+
+    return machines
 
 if __name__ == '__main__':
-    
-
     print getMachines("px")
     print getMachines("pds")
     print getMachines("pxatx")
@@ -38,4 +42,7 @@ if __name__ == '__main__':
     print getMachines("PDS")
     print getMachines("PXATX")
 
+    print getMachines("toto")
+    print getMachines("userv")
+    print getMachines("userver")
 
