@@ -29,9 +29,11 @@ class PXManager(SystemManager):
 
     def __init__(self, rootPath=""):
 
-        PXPaths.normalPaths(rootPath) 
+        self.rootPath = rootPath
+        PXPaths.normalPaths(self.rootPath) 
         SystemManager.__init__(self)
         self.LOG = PXPaths.LOG          # Will be used by DirCopier
+        self.debug = 0
 
     def getLastFiles(self, type, flows, startDate, endDate, timestamp="", regex=".*", format="%Y-%m-%d %H:%M:%S",
                      verbose=True, priority=0, basename=False):
@@ -94,6 +96,13 @@ class PXManager(SystemManager):
         return matchingFile
 
     def getFlowDict(self, theDict, flows, type, cluster=""):
+        """
+        adict = {}
+        sourceNames = ['source1', 'source2', ...]
+        type must be in ['source', 'client', 'sourlient']
+        cluster is a cluster name ('pds', 'px', 'pxatx', ...)
+        ex: getFlowDict(adict, sourceNames, 'source', 'pds')
+        """
         for flow in flows:
             if cluster:
                 theDict.setdefault(flow, []).append((type, cluster)) 
@@ -143,6 +152,10 @@ class PXManager(SystemManager):
     def getFlowQueueName(self, flow, drp=None, filename=None, priority=None):
         types = {'TX': PXPaths.TXQ, 'FX':PXPaths.FXQ, 'RX':PXPaths.RXQ, 'TRX': PXPaths.TXQ}
         type, flowNames = self.getFlowType(flow, drp)
+
+        if self.debug:
+            print type
+            print flowNames
 
         # No type or flow is an alias
         if not type or len(flowNames) != 1: return None
@@ -590,3 +603,6 @@ if __name__ == '__main__':
     print
     
     print manager.getDBName("TVE-cartes_2007111300_317_P45.gif:TVE:CMOI:CARTES:4:GIF:20071113033933")
+
+    print manager.getFlowType("pds_metser")
+    print manager.getFlowQueueName(flow='pds_metser', filename="200801151910~NAV9_ONT_ECHOTOP~ECHOTOP,2.0,100M,AGL,78,N:URP:NAV9_ONT:RADAR:IMV6::20080115191243", priority=2)
