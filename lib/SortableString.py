@@ -36,6 +36,8 @@ class SortableString:
     def _getKeys(self):
         parts = self.basename.split(":")
         self.priority = parts[4].split(".")[0]
+        if self.priority not in ['0', '1', '2', '3', '4', '5']:
+            self.priority = ''
         self.timestamp = parts[6]
         self.concatenatedKeys = self.priority + self.timestamp
 

@@ -17,7 +17,7 @@ named COPYING in the root of the source directory tree.
 #############################################################################################
 
 """
-import os, sys, os.path, re, commands, time, fnmatch
+import os, sys, os.path, re, commands, time, datetime, fnmatch
 import Client, Source, Sourlient
 from MultiKeysStringSorter import MultiKeysStringSorter
 from CacheManager import CacheManager
@@ -109,6 +109,24 @@ class DiskReader:
             #print "Don't match: " + basename
             return False
 
+    def _purgeFile(self, basename):
+        match = self.regex.search(basename)
+        if match:
+            prio, date = match.group(1)[0], match.group(2)
+            #self.logger.info("prio: %s, date: %s" % (prio, date))
+
+            now = datetime.datetime.utcnow()
+            old = datetime.datetime(*(time.strptime(date, '%Y%m%d%H%M%S')[0:6]))
+
+            for inst in self.flow.purgeInst:
+                if int(prio) in inst[1]:
+                    td = datetime.timedelta(seconds=inst[0])
+                    if  (now - old) > td:
+                        return inst
+            return False
+        else:
+            return False
+
     # Method augmented by MG ... proposed by DL
     def _matchPattern(self, basename):
         """
@@ -196,6 +214,22 @@ class DiskReader:
                         if self.logger is not None:
                             self.logger.info("Filename incorrect: " + file + " has been unlinked!")
                         continue
+                    #elif self.purgeInst:
+                        #pass
+
+                # If we use purge instructions
+                try:
+                    if self.flow.purgeInst:        
+                        reason = self._purgeFile(basename)    
+                        if reason:
+                            os.unlink(file)
+                            if self.logger is not None:
+                                self.logger.info("Purged (%s): " % (str(reason)) + file + " has been unlinked!")
+                            continue
+                except:
+                    self.logger.info("We are in except!")
+                    (type, value, tb) = sys.exc_info()
+                    self.logger.info("Type: %s, Value: %s" % (type, value))
 
                 # If we use pattern matching
                 if self.patternMatching:

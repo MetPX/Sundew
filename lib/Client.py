@@ -54,6 +54,15 @@ class Client(object):
         self.maxLength = 0                        # max Length of a message... limit use for segmentation, 0 means unused
 
         self.validation = True                    # Validation of the filename (prio + date)
+
+        self.purge = None                         # Purge instructions (ex: 7H,4+:10H,3)
+        self.purgeAliases = {}                    # Purge Aliases
+        # Purge aliases example (FIXME: purge aliases should be define in px.conf)
+        self.purgeAliases['AMIS'] = '4H,1+'       # Purge all data (prio 1,2,3,4,5) more than 4 hours old
+        self.purgeAliases['TEST'] = '8H,4+:18H,3' # Purge priority 4,5 older than 10 hours and priority 3 older than 18 hours
+
+        self.purgeInst = []                       # Purge instructions parsed 
+
         self.patternMatching = True               # Verification of the accept and reject mask of the client before sending a file
         self.nodups = True                        # Check if the file has already been sent (md5sum present in the cache)
         self.mtime = 0                            # Integer indicating the number of seconds a file must not have
@@ -84,7 +93,6 @@ class Client(object):
         self.timeout_send = 0               # Timeout in sec. to consider a send to hang ( 0 means inactive )
         self.lock = '.tmp'                  # file send with extension .tmp for lock
                                             # if lock == "umask" than use umask 777 to put files
-
 
         self.destfn_script = None           # a script to rename the file for client
         self.execfile      = None
@@ -125,6 +133,26 @@ class Client(object):
            except : self.logger.error("Problem with send_script %s" % self.execfile4)
 
         #self.printInfos(self)
+
+    def parsePurgeInstructions(self, line):
+        # '10H,4+:18H,3'
+        MINUTE = 60
+        HOUR = 60 * MINUTE
+
+        newInst = []
+
+        instructions = line.strip().split(':')
+        for instruction in instructions:
+            hours, pri = instruction.strip().split(',')    
+            hours.strip(), pri.strip()
+            sec = int(hours[:-1]) * HOUR
+            if pri[-1] == '+':
+                pri = range(int(pri[:-1]), 6)
+            elif int(pri) in [1,2,3,4,5]:
+                pri = [int(pri)]
+            newInst.append((sec,pri))
+
+        self.purgeInst = newInst
 
     def readConfig(self):
         currentDir = '.'                # Current directory
@@ -184,6 +212,13 @@ class Client(object):
                         if len(words) > 2:
                             currentFileOption = words[2]
                     elif words[0] == 'validation': self.validation =  isTrue(words[1])
+                    elif words[0] == 'purge':
+                        try:
+                            self.purge = self.purgeAliases[words[1]]
+                            self.parsePurgeInstructions(self.purgeAliases[words[1]])
+                        except:
+                            self.purge = words[1]
+                            self.parsePurgeInstructions(words[1])
                     elif words[0] == 'noduplicates': self.nodups =  isTrue(words[1])
                     elif words[0] == 'patternMatching': self.patternMatching =  isTrue(words[1])
                     elif words[0] == 'keepAlive': self.keepAlive =  isTrue(words[1])
@@ -342,6 +377,8 @@ class Client(object):
         print("DIR Pattern: %s" % client.dir_pattern)
         print("DIR Mkdir  : %s" % client.dir_mkdir)
         print("Validation: %s" % client.validation)
+        print("Purge: %s" % client.purge)
+        print("purgeInst: %s" % client.purgeInst)
         print("Pattern Matching: %s" % client.patternMatching)
         print("No duplicates: %s" % client.nodups)
         print("am_dest_thread: %s" % client.am_dest_thread)
@@ -366,9 +403,10 @@ class Client(object):
 
 if __name__ == '__main__':
 
+    """
     client =  Client('wxo-b1')
-    #client.readConfig()
-    #client.printInfos(client)
+    client.readConfig()
+    client.printInfos(client)
     print client.getDestInfos('AWCNALO:TUTU:TITI:TOTO:MIMI:Directi')
     print client.getDestInfos('FPCN_DAN_MAN_lkdslfk:TUTU:TITI:TOTO:MIMI:Directi')
     print client.getDestInfos('WLCN_MAN_lkdslfk:TUTU:TITI:TOTO:MIMI:Direct')
@@ -377,6 +415,7 @@ if __name__ == '__main__':
 
     """
     for filename in os.listdir(PXPaths.TX_CONF):
+        print filename
         if filename[-5:] != '.conf': 
             continue
         else:
@@ -384,4 +423,3 @@ if __name__ == '__main__':
             client.readConfig()
             client.printInfos(client)
 
-    """

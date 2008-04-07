@@ -40,11 +40,16 @@ if __name__ == "__main__":
 
     (status, output) = commands.getstatusoutput("date")
     print output
-    files = os.listdir("/apps/pds/tools/ColumboNCCS/testfiles1/")
+    #files = os.listdir("/apps/pds/tools/ColumboNCCS/testfiles1/")
+    files = os.listdir("/users/dor/aspy/dan/metpx/sundew/test/")
+    #for f in files:
+    #    print f
     (status, output) = commands.getstatusoutput("date")
     print output
     sortedFiles = MultiKeysStringSorter(files).sort()
     (status, output) = commands.getstatusoutput("date")
     print output
     #print sortedFiles
+    for f in sortedFiles:
+        print f
     # regarder si lstat rallonge beaucoup
