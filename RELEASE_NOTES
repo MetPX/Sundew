@@ -1,3 +1,7 @@
+2008-04-07: Purge option added to senders. 
+Add possibility to unlink old files of a given
+priority
+
 2008-03-17: pxRetrans command is now functional.
 This command can be used to retransmit some files already sent
 to a client.
