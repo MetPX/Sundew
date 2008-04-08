@@ -204,6 +204,29 @@ The priority field and the timestamp field are checked for validity.
 In practice, never used for sources. But turned off if you want to
 behave like the PDS.
 .fi
+.TP
+\fBpurgeAlias alias purgeInstructions (no default)\fR
+.nf
+Used to define purge alias (illimited number of them)
+
+ex: purgeAlias OLD_AND_OLDER 10H,4+:16H,3 
+The existence of alias OLD_AND_OLDER will permit to use the following
+directive:
+
+purge OLD_AND_OLDER
+.fi
+.TP
+\fBpurge <purgeInstructions | alias>  (default:None)\fR
+.nf
+Used to delete old files of a given priority
+
+ex: purge 5H,3:10H,3+ (delete files 5 hours old (and more) of priority 3 and also,
+delete files 10 hours old (and more) of priority 3,4,5
+ex: purge OLD_AND_OLDER (purge instructions defined by OLD_AND_OLDER will be used)
+
+Note: if you want to delete old (5 hours and more in the following example) files no matter what the priority is, use 1+
+ex: purge 5H,1+
+.fi
 .SH PRODUCT SELECTION OPTIONS
 .nf
 \fBaccept <regexp pattern> [<keyword>]\fR
