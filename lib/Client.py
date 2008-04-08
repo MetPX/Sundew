@@ -57,9 +57,7 @@ class Client(object):
 
         self.purge = None                         # Purge instructions (ex: 7H,4+:10H,3)
         self.purgeAliases = {}                    # Purge Aliases
-        # Purge aliases example (FIXME: purge aliases should be define in px.conf)
-        self.purgeAliases['AMIS'] = '4H,1+'       # Purge all data (prio 1,2,3,4,5) more than 4 hours old
-        self.purgeAliases['TEST'] = '8H,4+:18H,3' # Purge priority 4,5 older than 10 hours and priority 3 older than 18 hours
+        #self.purgeAliases['TEST'] = '8H,4+:18H,3' # Purge priority 4,5 older than 10 hours and priority 3 older than 18 hours
 
         self.purgeInst = []                       # Purge instructions parsed 
 
@@ -212,6 +210,8 @@ class Client(object):
                         if len(words) > 2:
                             currentFileOption = words[2]
                     elif words[0] == 'validation': self.validation =  isTrue(words[1])
+                    elif words[0] == 'purgeAlias':
+                        self.purgeAliases[words[1]] = words[2]
                     elif words[0] == 'purge':
                         try:
                             self.purge = self.purgeAliases[words[1]]
@@ -219,6 +219,7 @@ class Client(object):
                         except:
                             self.purge = words[1]
                             self.parsePurgeInstructions(words[1])
+
                     elif words[0] == 'noduplicates': self.nodups =  isTrue(words[1])
                     elif words[0] == 'patternMatching': self.patternMatching =  isTrue(words[1])
                     elif words[0] == 'keepAlive': self.keepAlive =  isTrue(words[1])
@@ -377,6 +378,7 @@ class Client(object):
         print("DIR Pattern: %s" % client.dir_pattern)
         print("DIR Mkdir  : %s" % client.dir_mkdir)
         print("Validation: %s" % client.validation)
+        print("Purge Aliases: %s" % client.purgeAliases)
         print("Purge: %s" % client.purge)
         print("purgeInst: %s" % client.purgeInst)
         print("Pattern Matching: %s" % client.patternMatching)
