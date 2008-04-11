@@ -28,7 +28,7 @@ def locateDirs(rootPath=""):
     # debian defaults
 
     ROOT  = None
-    BIN   = '/JeNeSaisPas/'
+    BIN   = '/usr/bin/'
     ETC   = '/etc/px/'
     LIB   = '/usr/lib/px/'
     LOG   = '/var/log/px/'
