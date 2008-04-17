@@ -1,3 +1,8 @@
+
+-----------  Below are changes made in version px-0-4-7
+
+2008-04-11: Changed default debian BIN location to /usr/bin 
+
 2008-04-07: Purge option added to senders. 
 Add possibility to unlink old files of a given
 priority
@@ -6,7 +11,7 @@ priority
 This command can be used to retransmit some files already sent
 to a client.
 
-Here is the list of changes from branch px-0-4-5 to this version px-0-4-6
+------------- Below are changes made in version px-0-4-6 
 
 1- Receiver, Filter, Transceiver, Sender now take into account options that
    are generaly set in px.conf (Source.py, Client.py, Sourlient.py)
