@@ -380,7 +380,7 @@ class CollectionManager(object):
         #                      we did not process enough files check the source.batch value
 
         if period == 0 :
-           self.logger.warning("Reject %s : primary already done" % (index,path) )
+           self.logger.warning("Reject %d %s : primary already done" % (index,path) )
            self.unlink(path)
            return
 
