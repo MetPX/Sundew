@@ -18,7 +18,7 @@ named COPYING in the root of the source directory tree.
 #############################################################################################
 
 """
-import sys, os, commands, signal
+import sys, os, time, commands, signal
 from Igniter import Igniter
 
 class PXIgniter(Igniter):
@@ -112,9 +112,24 @@ class PXIgniter(Igniter):
          # waiting for a connection, the easiest way to reread the configuration file of 
          # the sources/clients AND the value of the variables in the configuration file of this
          # particular source/client is by restarting it!
+
+         #self.logger.info("ppid=%s, pid=%s, pgid=%s, sid=%s, cterm=%s" % (os.getppid(), os.getpid(), os.getpgrp(), os.getsid(os.getpid()), os.ctermid()))
+         #output = commands.getoutput('ls -alrt /proc/%s/fd' % os.getpid())
+         #self.logger.info(output)
+
          if os.fork() == 0:
-            self.restart()
-            self.logger.info("%s has been reloaded by restarting it" % self.direction.capitalize())
+            for fd in range(3,10):
+                try:
+                    os.close(fd)
+                except OSError:
+                    pass
+            
+            import PXPaths
+            PXPaths.normalPaths()
+
+            appName = 'px' + self.direction.capitalize()
+
+            os.execl(PXPaths.BIN + appName, appName, self.flowName, 'restart')
          else:
             pass
       else:

@@ -40,7 +40,8 @@ named COPYING in the root of the source directory tree.
 #############################################################################################
 
 """
-import sys, os, os.path, commands, signal
+import sys, os, os.path, time, commands, signal
+import daemon 
 
 class Igniter:
    
@@ -104,12 +105,10 @@ class Igniter:
             self.printComment('Locked but not running')
             os.unlink(self.lock)
       
-      if os.fork() == 0:
-         # Not locked or locked but not running
-         # we create the lock 
-         self.makeLock()
-      else:
-         sys.exit()
+      # Not locked or locked but not running
+      # we create the lock 
+      daemon.daemonize()
+      self.makeLock()
 
    def stop(self):
       # If it is locked ...
