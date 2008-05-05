@@ -206,8 +206,8 @@ class PXManager(SystemManager):
         return  flowType, flowNames
 
     def afterInit(self):
-        if not os.path.isdir(PXPaths.ROOT):
-            if self.logger: self.logger.error("This directory: %s does not exist!" % (PXPaths.ROOT))
+        if not os.path.isdir(PXPaths.ETC):
+            if self.logger: self.logger.error("This directory: %s does not exist!" % (PXPaths.ETC))
             sys.exit(15)
 
         self.setFxNames()           
@@ -234,8 +234,8 @@ class PXManager(SystemManager):
         self.createDir(PXPaths.DB)
 
     def initNames(self):
-        if not os.path.isdir(PXPaths.ROOT):
-            if self.logger: self.logger.error("This directory: %s does not exist!" % (PXPaths.ROOT))
+        if not os.path.isdir(PXPaths.ETC):
+            if self.logger: self.logger.error("This directory: %s does not exist!" % (PXPaths.ETC))
             return 1
         
         try:
@@ -259,8 +259,8 @@ class PXManager(SystemManager):
             pass
 
     def initShouldRunNames(self):
-        if not os.path.isdir(PXPaths.ROOT):
-            if self.logger: self.logger.error("This directory: %s does not exist!" % (PXPaths.ROOT))
+        if not os.path.isdir(PXPaths.ETC):
+            if self.logger: self.logger.error("This directory: %s does not exist!" % (PXPaths.ETC))
             sys.exit(15)
 
         self.setShouldRunFxNames()           
@@ -269,8 +269,8 @@ class PXManager(SystemManager):
         self.setShouldRunTRxNames()
 
     def initRunningNames(self):
-        if not os.path.isdir(PXPaths.ROOT):
-            if self.logger: self.logger.error("This directory: %s does not exist!" % (PXPaths.ROOT))
+        if not os.path.isdir(PXPaths.ETC):
+            if self.logger: self.logger.error("This directory: %s does not exist!" % (PXPaths.ETC))
             sys.exit(15)
 
         self.setRunningFxNames()
