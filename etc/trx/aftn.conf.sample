@@ -1,0 +1,21 @@
+# DESCRIPTION:  Sends and receives bulletins on an AFTN type circuit
+#
+type aftn
+subscriber False
+host 123.456.78.9
+portR 30000
+portS 25333
+stationID ABC
+otherStationID BAC
+address CYYYBBBB
+otherAddress CJJJUUUU
+digits 4
+batch 120
+timeout 10
+extension aftn:-CCCC:-TT:-CIRCUIT:aftn-data
+slow False
+#
+# Do not return on AFTN link what was received on AFTN
+emask *:aftn:*:*:*:*
+#
+imask *:*:*:*:*:Direct:*
