@@ -24,26 +24,27 @@ import sys, os, pwd, time
 
 # old ways
 
-sys.path.insert(1, '/apps/px/lib')
-sys.path.insert(1, '/apps/px/lib/aftn')
 sys.path.insert(1, '/apps/px/aftn/lib')
+sys.path.insert(1, '/apps/px/lib/aftn')
+sys.path.insert(1, '/apps/px/lib')
 
 # debian way
 
-sys.path.insert(1, '/usr/lib/px')
 sys.path.insert(1, '/usr/lib/px/aftn')
+sys.path.insert(1, '/usr/lib/px')
 
 # developpement library path option through PXLIB
 
 try:
-         pxlib = os.path.normpath(os.environ['PXLIB'])
-         sys.path.insert(1, pxlib )
-         sys.path.insert(1, pxlib + '/aftn' )
+     pxlib = os.path.normpath(os.environ['PXLIB'])
+     sys.path.insert(1, pxlib + '/aftn' )
+     sys.path.insert(1, pxlib )
 except :
          pass
 
 # developpement library path option through PXROOT
 try:
+    sys.path.insert(1, os.path.normpath(os.environ['PXROOT'] + '/lib/aftn'))
     sys.path.insert(1, os.path.normpath(os.environ['PXROOT'] + '/lib'))
     sys.path.insert(1,sys.path[0] + '/../lib/importedLibs')
 except :
