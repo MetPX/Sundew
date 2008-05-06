@@ -1,4 +1,7 @@
+
 2008-05-05:  (AMB) Modifier mr-clean pour faire appel a python au lieu de python2
+
+2008-05-05:  (AMB) Ajouter un repertoire etc/trx et un fichier aftn.conf.sample dans ce repertoire
 
 -----------  Below are changes made in version px-0-4-7
 
