@@ -1,3 +1,9 @@
+2008-05-06:  (DL)  Add a line in pxTransceiver to be sure that lib/aftn is accessible
+
+2008-05-05:  (DL)  Bug correction when a receiver is in listen mode and a reload occur
+
+2008-05-05:  (DL)  All process are now start via daemon.daemonize() to be sure that standard attributes
+                   of a daemon are implemented (no controlling terminal, cwd to '/', umask 0, etc)
 
 2008-05-05:  (AMB) Modifier mr-clean pour faire appel a python au lieu de python2
 
