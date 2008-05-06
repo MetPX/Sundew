@@ -24,7 +24,7 @@ named COPYING in the root of the source directory tree.
 #############################################################################################
 """
 
-import os, time, pwd, sys, time, getopt, commands
+import os, time, pwd, sys, re, getopt, commands
 
 # default library path
 
@@ -55,6 +55,7 @@ from PXManager import PXManager
 
 def usage():
     print "\nUsage: pxDBCleaner (-d|--days) n, where n is the number of days we want to be left in the database\n"
+    print "Note: if -d is not used, default is to keep 30 days (can be overriden in etc/px.conf with keyword daysToKeepInDB)\n" 
 
 class PXDBCleaner:
     LOG_LEVEL = "INFO"      # Logging level
@@ -124,9 +125,20 @@ class PXDBCleaner:
 
         # We must give the number of days we want to leave on the disk
         if nbDaysLeft  is False:
-            usage()
-            sys.exit()
+            #usage()
+            #sys.exit()
+            PXDBCleaner.NB_DAYS_LEFT = 30  # Safe default (a month)
 
+            pxconf = PXPaths.ETC + 'px.conf' 
+            if os.path.isfile(pxconf):
+                config = open(pxconf, 'r')
+                for line in config.readlines():
+                    words = line.split()
+                    if (len(words) >= 2 and not re.compile('^[ \t]*#').search(line)):
+                        if words[0] == 'daysToKeepInDB':
+                            PXDBCleaner.NB_DAYS_LEFT = int(words[1])
+                            return
+                            
 
 if __name__ == '__main__':
 
