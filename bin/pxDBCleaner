@@ -55,7 +55,7 @@ from PXManager import PXManager
 
 def usage():
     print "\nUsage: pxDBCleaner (-d|--days) n, where n is the number of days we want to be left in the database\n"
-    print "Note: if -d is not used, default is to keep 30 days (can be overriden in etc/px.conf with keyword daysToKeepInDB)\n" 
+    print "Note: if -d is not used, default is to keep 30 days (can be overriden in px.conf with keyword daysToKeepInDB)\n" 
 
 class PXDBCleaner:
     LOG_LEVEL = "INFO"      # Logging level
