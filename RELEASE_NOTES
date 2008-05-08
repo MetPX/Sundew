@@ -1,5 +1,7 @@
 ---------------- Below are changes made in version px-0-4-8 ------------------------------------------
 
+2008-05-08   (AMB) Removed French accents in lib/AlarmFTP.py
+
 2008-05-06:  (DL)  Add a line in pxTransceiver to be sure that lib/aftn is accessible
              (DL)  Bug correction when a receiver is in listen mode and a reload occur
              (DL)  pxDBCleaner can now read the number of DB to keep in px.conf
