@@ -18,7 +18,7 @@ import  signal,socket
 
 
 class FtpTimeoutException(Exception):
-    """Classe d'exception spécialisés au ftp timeout"""
+    """Classe d'exception specialises au ftp timeout"""
     pass
 
 class AlarmFTP:
