@@ -1,3 +1,5 @@
+---------------- Below are changes made in version px-0-4-8 ------------------------------------------
+
 2008-05-06:  (DL)  Add a line in pxTransceiver to be sure that lib/aftn is accessible
              (DL)  Bug correction when a receiver is in listen mode and a reload occur
              (DL)  pxDBCleaner can now read the number of DB to keep in px.conf
@@ -5,11 +7,11 @@
 2008-05-05:  (DL)  All process are now start via daemon.daemonize() to be sure that standard attributes
                    of a daemon are implemented (no controlling terminal, cwd to '/', umask 0, etc)
 
-2008-05-05:  (AMB) Modifier mr-clean pour faire appel a python au lieu de python2
+2008-05-05:  (AMB) Modified bin/mr-clean to ensure it calls python instead of python2
 
-2008-05-05:  (AMB) Ajouter un repertoire etc/trx et un fichier aftn.conf.sample dans ce repertoire
+2008-05-05:  (AMB) Added etc/trx directory and file aftn.conf.sample in this directory
 
------------  Below are changes made in version px-0-4-7
+-----------  Below are changes made in version px-0-4-7 ----------------------------------------------
 
 2008-04-11: Changed default debian BIN location to /usr/bin 
 
@@ -21,7 +23,7 @@ priority
 This command can be used to retransmit some files already sent
 to a client.
 
-------------- Below are changes made in version px-0-4-6 
+------------- Below are changes made in version px-0-4-6 ---------------------------------------------
 
 1- Receiver, Filter, Transceiver, Sender now take into account options that
    are generaly set in px.conf (Source.py, Client.py, Sourlient.py)
