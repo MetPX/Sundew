@@ -14,7 +14,7 @@ named COPYING in the root of the source directory tree.
 #
 #############################################################################################
 """
-import sys, time
+import sys, time, re
 from FileParser import FileParser
 
 class StationParser(FileParser):
@@ -38,40 +38,41 @@ class StationParser(FileParser):
         duplicateHeaders = {}
 
         for line in file:
-            line = line.strip()
-            words = line.split(':')
-            header = words[0]
-            coll = words[1]
-            stations = words[2].split()
-
-            # Find duplicate station for a given header
-            uniqueStations = self.removeDuplicate(stations)
-            duplicateForHeader = self.identifyDuplicate(stations)
-            
-            # Sort the stations
-            uniqueStations.sort()
-
-            # Populate stations dictionary
-            self.stations[header] = uniqueStations
-
-            # Populate stationsColl dictionary
-            if coll:
-                self.stationsColl[header] = uniqueStations
-
-            # Find duplicate headers
-            if uniqueHeaders.has_key(header):
-                duplicateHeaders[header] = 1
-            else:
-                uniqueHeaders[header] = 1
-                # Populate headers dictionary
-                for station in uniqueStations:
-                    self.headers.setdefault(station, []).append(header)
-
-            if duplicateForHeader and self.printErrors:
-                print("%s has duplicate(s): %s" % (header, duplicateForHeader))
-
-            if duplicateForHeader and self.logErrors and self.logger:
-                self.logger.warning("%s has duplicate(s): %s" % (header, duplicateForHeader))
+            if not re.compile('^[ \t]*#').search(line):
+                line = line.strip()
+                words = line.split(':')
+                header = words[0]
+                coll = words[1]
+                stations = words[2].split()
+    
+                # Find duplicate station for a given header
+                uniqueStations = self.removeDuplicate(stations)
+                duplicateForHeader = self.identifyDuplicate(stations)
+                
+                # Sort the stations
+                uniqueStations.sort()
+    
+                # Populate stations dictionary
+                self.stations[header] = uniqueStations
+    
+                # Populate stationsColl dictionary
+                if coll:
+                    self.stationsColl[header] = uniqueStations
+    
+                # Find duplicate headers
+                if uniqueHeaders.has_key(header):
+                    duplicateHeaders[header] = 1
+                else:
+                    uniqueHeaders[header] = 1
+                    # Populate headers dictionary
+                    for station in uniqueStations:
+                        self.headers.setdefault(station, []).append(header)
+    
+                if duplicateForHeader and self.printErrors:
+                    print("%s has duplicate(s): %s" % (header, duplicateForHeader))
+    
+                if duplicateForHeader and self.logErrors and self.logger:
+                    self.logger.warning("%s has duplicate(s): %s" % (header, duplicateForHeader))
 
         if self.printErrors:
             if len(duplicateHeaders):
