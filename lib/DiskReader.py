@@ -227,9 +227,10 @@ class DiskReader:
                                 self.logger.info("Purged (%s): " % (str(reason)) + file + " has been unlinked!")
                             continue
                 except:
-                    self.logger.info("We are in except!")
-                    (type, value, tb) = sys.exc_info()
-                    self.logger.info("Type: %s, Value: %s" % (type, value))
+                    pass
+                    #self.logger.info("We are in except!")
+                    #(type, value, tb) = sys.exc_info()
+                    #self.logger.info("Type: %s, Value: %s" % (type, value))
 
                 # If we use pattern matching
                 if self.patternMatching:
