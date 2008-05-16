@@ -1,0 +1,13 @@
+#
+# Regular cron jobs for the metpx-sundew package
+#
+
+#  Clean-up of empty hourly queue files...
+5 * * * * px  /usr/bin/mr-clean
+
+# Added by DL (2005-07-12): Will check if px processes are running and if not will restart them
+* * * * * px if test -x /usr/bin/pxChecker; then /usr/bin/pxChecker > /dev/null 2>&1;fi
+
+# Remove all DB directories older than x days ago  (set by "--days x" in command line or by parameter "daysToKeepInDB x" in /etc/px/px.conf;  Default is 40 days)
+35 21 * * * px if test -x /usr/bin/pxDBCleaner; then /usr/bin/pxDBCleaner  > /dev/null 2>&1;fi
+

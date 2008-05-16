@@ -1,0 +1,9 @@
+# 2006-11-22 DL Create /etc/px/stations_FD.conf
+* * * * * px if test -x /usr/lib/px/FDParser.py; then /usr/lib/px/FDParser.py > /dev/null 2>&1;fi
+
+# 2006-11-22 DL Create /etc/px/stations_TAF.conf
+18 * * * * px if test -x /usr/lib/px/TAFParser.py; then /usr/lib/px/TAFParser.py > /dev/null 2>&1;fi
+
+# 2006-11-22 DL Create /etc/px/stations_SA.conf
+40 1,13 * * * px if test -x /usr/lib/px/SAParser.py; then /usr/lib/px/SAParser.py > /dev/null 2>&1;fi
+
