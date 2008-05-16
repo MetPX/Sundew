@@ -1,3 +1,12 @@
+---------------- Below are changes made in version px-0-4-9 -----------------------------------------
+
+2008-05-16   (AMB) Added files destined for /etc/cron.d in directory cronfiles
+
+2008-05-15   (DL)  Removed debug statements in DiskReader.py
+
+2008-05-15   (DL)  Modified StationParser.py to accept comment lines in etc/stations.conf
+
+
 ---------------- Below are changes made in version px-0-4-8 ------------------------------------------
 
 2008-05-08   (AMB) Removed French accents in lib/AlarmFTP.py
