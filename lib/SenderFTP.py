@@ -97,6 +97,8 @@ class SenderFTP(object):
 
     def close(self):
 
+        if self.client.protocol == 'file': return
+
         timex = AlarmFTP(self.client.protocol + ' connection timeout')
 
         try    :
