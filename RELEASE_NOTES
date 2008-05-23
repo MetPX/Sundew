@@ -1,3 +1,8 @@
+---------------- Below are changes made in version px-0-5-0------------------------------------------
+
+2008-05-22   (MG) Fixed a bug in SenderFTP.py which generated error messages when sending with file:// option
+
+
 ---------------- Below are changes made in version px-0-4-9 -----------------------------------------
 
 2008-05-16   (AMB) Added files destined for /etc/cron.d in directory cronfiles
