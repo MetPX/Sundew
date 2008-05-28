@@ -160,18 +160,20 @@ class FDParser(FileParser):
 
 if __name__ == '__main__':
     """
-    A cron call this to create /apps/px/etc/stations_FD.conf
+    A cron call this to create etc/stations_FD.conf
     """
 
     import os, sys
-    import dateLib
+    import PXPaths, dateLib
     from StationFileCreator import StationFileCreator
 
     #root1 = '/apps/px/db/20060522/FD/'
     #root2 = '/apps/px/db/20060523/FD/'
 
-    root1 = '/apps/px/db/%s/FD/' % dateLib.getYesterdayFormatted()
-    root2 = '/apps/px/db/%s/FD/' % dateLib.getTodayFormatted()
+    PXPaths.normalPaths()
+
+    root1 = PXPaths.DB + '%s/FD/' % dateLib.getYesterdayFormatted()
+    root2 = PXPaths.DB + '%s/FD/' % dateLib.getTodayFormatted()
 
     try:
         receivers1 = os.listdir(root1)
@@ -226,4 +228,4 @@ if __name__ == '__main__':
     print headers
     """
 
-    sfc = StationFileCreator('/apps/px/etc/stations_FD.conf', stations=sp.stations)
+    sfc = StationFileCreator(PXPaths.ETC + 'stations_FD.conf', stations=sp.stations)

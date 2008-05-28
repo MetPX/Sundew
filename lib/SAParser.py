@@ -63,8 +63,11 @@ class SAParser(FileParser):
             header = firstLineParts[0] + ' ' + firstLineParts[1]
             time = firstLineParts[2]
 
-            while (lines[1] == '\n'):
-                del lines[1]
+            try: # lines[1] doesn't exist
+                while (lines[1] == '\n'):
+                    del lines[1]
+            except:
+                return results
 
             secondLineParts = lines[1].split()
 
@@ -113,8 +116,11 @@ class SAParser(FileParser):
             header = firstLineParts[0] + ' ' + firstLineParts[1]
             time = firstLineParts[2]
             
-            while (lines[1] == '\n'):
-                del lines[1]
+            try:
+                while (lines[1] == '\n'):
+                    del lines[1]
+            except:
+                return
 
             secondLineParts = lines[1].split()
 
@@ -246,16 +252,19 @@ if __name__ == '__main__':
     A cron call this to create /apps/px/etc/stations_SA.conf
     """
     import os, sys
-    import dateLib
+    import PXPaths, dateLib
     from StationFileCreator import StationFileCreator
 
     excludedSources = ['collecteur']
     
+
     #root1 = '/apps/px/db/20060522/SA/'
     #root2 = '/apps/px/db/20060523/SA/'
 
-    root1 = '/apps/px/db/%s/SA/' % dateLib.getYesterdayFormatted()
-    root2 = '/apps/px/db/%s/SA/' % dateLib.getTodayFormatted()
+    PXPaths.normalPaths()
+
+    root1 = PXPaths.DB + '%s/SA/' % dateLib.getYesterdayFormatted()
+    root2 = PXPaths.DB + '%s/SA/' % dateLib.getTodayFormatted()
 
     try:
         receivers1 = os.listdir(root1)
@@ -317,4 +326,4 @@ if __name__ == '__main__':
     print canadianMetars
     """
 
-    sfc = StationFileCreator('/apps/px/etc/stations_SA.conf', stations=sp.stations)
+    sfc = StationFileCreator(PXPaths.ETC + 'stations_SA.conf', stations=sp.stations)

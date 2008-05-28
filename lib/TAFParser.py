@@ -193,11 +193,11 @@ class TAFParser(FileParser):
 
 if __name__ == '__main__':
     """
-    A cron call this to create /apps/px/etc/stations_TAF.conf
+    A cron call this to create etc/stations_TAF.conf
     """
 
     import os, sys
-    import dateLib
+    import PXPaths, dateLib
     from StationFileCreator import StationFileCreator
 
     #root1 = '/apps/px/db/20060522/FC/'
@@ -205,10 +205,12 @@ if __name__ == '__main__':
     #root3 = '/apps/px/db/20060523/FC/'
     #root4 = '/apps/px/db/20060523/FT/'
 
-    root1 = '/apps/px/db/%s/FC/' % dateLib.getYesterdayFormatted() 
-    root2 = '/apps/px/db/%s/FT/' % dateLib.getYesterdayFormatted()
-    root3 = '/apps/px/db/%s/FC/' % dateLib.getTodayFormatted()
-    root4 = '/apps/px/db/%s/FT/' % dateLib.getTodayFormatted()
+    PXPaths.normalPaths()
+
+    root1 = PXPaths.DB + '%s/FC/' % dateLib.getYesterdayFormatted() 
+    root2 = PXPaths.DB + '%s/FT/' % dateLib.getYesterdayFormatted()
+    root3 = PXPaths.DB + '%s/FC/' % dateLib.getTodayFormatted()
+    root4 = PXPaths.DB + '%s/FT/' % dateLib.getTodayFormatted()
 
     try:
         receivers1 = os.listdir(root1)
@@ -279,8 +281,8 @@ if __name__ == '__main__':
     print headers
     """
 
-    sfc = StationFileCreator('/apps/px/etc/stations_TAF.conf', stations=sp.stations)
+    sfc = StationFileCreator(PXPaths.ETC + 'stations_TAF.conf', stations=sp.stations)
     logger.info("Number of files: %d" % nbFiles)
     logger.info("Number of headers: %d" % len(sp.stations))
     logger.info("Number of stations: %d" % nbStations)
-    logger.info("/apps/px/etc/stations_TAF.conf has been created")
+    logger.info(PXPaths.ETC + "stations_TAF.conf has been created")
