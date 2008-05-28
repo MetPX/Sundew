@@ -1,3 +1,9 @@
+2008-05-29   (DL)  Bug fix DBSearcher.py: if filesToParse is None, replaced it by []
+             (DL)  In SAParser.py, FParser.py and TAFParser.py
+                   1) Changed /apps/px/db/ for PXPaths.DB
+                      Changed /apps/px/etc/ for PXPaths.ETC
+
+                   2) In SAParser, take into accout the case where a SA bulletin contains only 1 line
 ---------------- Below are changes made in version px-0-5-0------------------------------------------
 
 2008-05-22   (MG) Fixed a bug in SenderFTP.py which generated error messages when sending with file:// option
