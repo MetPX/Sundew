@@ -465,7 +465,7 @@ class DBSearcher:
 
         filesToParse = self._findFullHeader(DBDate, False, ttaaii, center, 'INT', DBSearcher.EXCLUDED_SOURCES)
 
-        theLine, bestHeaderTime, theFile, bestFileTime = self._findMoreRecentStation(SAParser(''), filesToParse, station)
+        theLine, bestHeaderTime, theFile, bestFileTime = self._findMoreRecentStation(SAParser(''), filesToParse or [], station)
 
         if theLine:
             theLine += '='
