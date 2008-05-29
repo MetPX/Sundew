@@ -313,6 +313,16 @@ class CollectionManager(object):
 
             bulltin.compute_Age(self.now)
 
+            # check if bulletin and all its date are ok
+
+            if bulltin.errorBulletin != None or \
+               bulltin.arrival       == None or bulltin.emission      == None or \
+               bulltin.delay         == None or bulltin.age           == None or \
+               bulltin.ep_arrival    ==   -1 or bulltin.ep_emission   ==   -1  :
+               self.logger.warning("File %s had a problem...(most probably date)" % self.files[index] )
+               self.unlink(self.files[index])
+               continue
+
             # put info in bulletinCollection entry
 
             self.entry.path      = self.files[index]
