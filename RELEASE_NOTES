@@ -4,6 +4,11 @@
                       Changed /apps/px/etc/ for PXPaths.ETC
 
                    2) In SAParser, take into accout the case where a SA bulletin contains only 1 line
+
+             (MG)  Bug fix CollectionManager.py ... when observation date was incorrect, or undetermined
+                   the usage of the bulletin entry emission was causing the collector to crash. Now the
+                   condition is checked and we log a warning with the filepath.
+
 ---------------- Below are changes made in version px-0-5-0------------------------------------------
 
 2008-05-22   (MG) Fixed a bug in SenderFTP.py which generated error messages when sending with file:// option
