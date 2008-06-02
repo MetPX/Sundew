@@ -1,3 +1,7 @@
+2008-06-02   (MG)  Bug fix SFTP was working only with an ssh_keyfile.
+                   Now user/passwd without ssh_keyfile works too.
+		   TODO: an option for the keyfile decrypt password too...
+
 2008-05-29   (DL)  Bug fix DBSearcher.py: if filesToParse is None, replaced it by []
              (DL)  In SAParser.py, FParser.py and TAFParser.py
                    1) Changed /apps/px/db/ for PXPaths.DB
@@ -5,7 +9,7 @@
 
                    2) In SAParser, take into accout the case where a SA bulletin contains only 1 line
 
-             (MG)  Bug fix CollectionManager.py ... when observation date was incorrect, or undetermined
+2008-05-30   (MG)  Bug fix CollectionManager.py ... when observation date was incorrect, or undetermined
                    the usage of the bulletin entry emission was causing the collector to crash. Now the
                    condition is checked and we log a warning with the filepath.
 
