@@ -287,8 +287,14 @@ class SenderFTP(object):
                 else:
                    t_args = (self.client.host,self.client.port)
                    self.t = paramiko.Transport(t_args)
-                key=DSSKey.from_private_key_file(self.client.ssh_keyfile,self.client.passwd)
-                self.t.connect(username=self.client.user,pkey=key)
+
+		if self.client.ssh_keyfile != None :
+                   #TODO, implement password to use to decrypt the key file, if it's encrypted
+                   key=DSSKey.from_private_key_file(self.client.ssh_keyfile,password=None)
+                   self.t.connect(username=self.client.user,pkey=key)
+                else:
+                   self.t.connect(username=self.client.user,password=self.client.passwd)
+
                 self.sftp = paramiko.SFTP.from_transport(self.t)
                 # WORKAROUND without going to '.' originalDir was None
                 self.sftp.chdir('.')
