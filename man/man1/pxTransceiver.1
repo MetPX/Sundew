@@ -1,0 +1,211 @@
+.TH PXTransceiver "1" "Jun 2008" "px 1.0.0" "Metpx suite"
+.SH NAME
+pxTransceiver \- Metpx program to manage transceiver processes
+.SH SYNOPSIS
+.B pxTranceiver
+\fItransceiver_name\fR [\fIstart|stop|restart|reload|status\fR]...
+.SH DESCRIPTION
+.Pp
+A transceiver, in the METPX suite, is a program that is a receiver and a sender
+at the same time. 
+
+receiver part (man pxReceiver): Waits (socket reading) for the reception of products. When a product
+arrives, the receiver processes it according to its configuration, puts the product into the product database  (simple  file/directory  hiearchy)
+and queues the product up for any METPX filters,senders,tranceivers (if any) configured to process it.
+
+sender part(man pxSender): Deliver products to a client.
+The products it processes usually comes from a METPX receiver (or a filter). Once
+a receiver databased a product and determined that a transceiver should transmit that
+product, it links the database file in the transceiver's transmission directory tree...
+namely under $PXROOT/txq/"transceiver_name"/priority/YYYYMMDDHH where YYYYMMDDHH is
+the current date and time. The receiver will create the directory if it does not exist.
+The transceiver scans endlessly all directories under $PXROOT/txq/"transceiver_name" in
+search of products.  When products are present, the transceiver processes them according
+to its configuration, and delivers them to the client defined in its configuration file.
+The products file are finally unlinked from its transmission directory tree.
+The priority is either 0,1,2,3,4,5.  A receiver will never create a 0 priority
+directory.  The 0 priority directory is used for retransmission. Any product put
+under the 0 priority directory will be sent to the client (without duplicate checking)
+if it meets the routing criteria.
+
+The configuration of a transceiver is a simple ascii file. It must be placed in 
+directory $PXROOT/etc/trx (PXROOT is usually /apps/px). The file's name must be
+the transceiver_name with the suffix .conf. For example if the 
+file $PXROOT/etc/trx/aftn.conf exists and is syntactically correct, then 
+the following commands are valid :
+.Pp
+.nf
+
+.B pxTransceiver aftn start
+.B pxTransceiver aftn restart
+.B pxTransceiver aftn reload
+.B pxTransceiver aftn status
+.B pxTransceiver aftn stop
+
+.fi
+.Pp
+The action arguments do simply what they mean. 
+.TP
+\fBreload\fR
+reloads the transceiver configuration. After reloading, the program resumes to its normal state.
+.TP
+\fBrestart\fR
+restarts the transceiver. It is equivalent to a stop followed by a start.
+.TP
+\fBstart\fR
+starts the transceiver program. It includes : saving the process id in the lock file $PXROOT/rxq/"transceiver_name"/.lock,
+loading its configuration, and starting the process with options defined in it's config. file.
+.TP
+\fBstatus\fR
+returns the state of transceiver (running, locked or stopped). It gets the process id in the lock file $PXROOT/rxq/"transceiver_name"/.lock (if not found the transceiver is assumed to be stopped), than check to see if the pid is a running process... If the pid is found but the process is not, the transceiver is assumed to be locked
+.TP
+\fBstop\fR
+stops the transceiver program. It includes a proper handling of the socket writing buffer (if any), the termination of file processing (if any) and it removes the lock file $PXROOT/rxq/"transceiver_name"/.lock.
+.SH TRANSCEIVER TYPES
+The possible types are :
+.TP
+\fBaftn\fR
+listen for a Message Handling System (MHS) to connect or connect to a MSH via socket using 
+Aeronautical Fixed Telecommunication Network (AFTN) protocol. The output data are bulletins
+.TP
+.SH CONFIGURATION
+.Pp
+As said earlier, the configuration file for a transceiver resides 
+in $PXROOT/etc/tx/"\fBTransceiverName\fR".conf The syntax of the file is simple. 
+A comment is a line that begins with \fB#\fR. Empty lines are permitted.
+To declare or set an option you simply use one of these form (depending on the option) :
+.nf
+
+\fBoption <value>\fR
+\fBoption <value1,value2,...>\fR
+\fBoption <value1 value2 ...>\fR
+
+.fi
+.SH GENERAL CONFIGURATION OPTIONS
+.TP
+\fBtype keyword (default: none)\fR
+.nf
+This option defines the sender type... keyword is one of:
+    aftn             - AFTN   protocol socket
+.fi
+.TP
+\fBextension string (default:  MISSING:MISSING:MISSING:MISSING:)\fR
+.nf
+The extension is a text to be added to the end of a file name to make it suitable for ingest into metpx.
+Five fields separated by four colons.  keyword substitutions are supported:
+    -CCCC           - replaced by the bulletin origin site
+    -TT             - replaced by the bulletin type (first 2 letters)
+    -PRIPRIOTY      - replaced by the bulletin priority found in the routing table
+    -NAME           - replaced by the receiver's name
+
+For bulletins, the convention is: extension -NAME:-CCCC:-TT:-CIRCUIT:Direct
+
+In general, we choose the extension's fields to be: originSystem:originSite:dataType:priority:dataFormat
+This extension is suffixed with a timestamp (20051116212028) will be added to the ingested file or bulletin.
+.fi
+
+.TP
+\fBnoduplicates boolean (default:True )\fR
+.nf
+if set to true, the transceiver computes the MD5 checksum of the product to send. 
+It compares this number with its cached MD5 checksum of products already delivered.
+If a match is found, the product is not sent.
+
+When a client asks for a product to be retransmitted, if this option is enabled,
+the product must be placed under the priority 0 directory of the transmission queue.
+.fi
+.TP
+\fBvalidation boolean (default:False )\fR
+.nf
+Validate if the filename have the following form:
+SACN43_CWAO_012000_CYOJ_41613:ncp1:CWAO:SA:3.A.I.E::20050201200339
+The priority field and the timestamp field are checked for validity.
+.fi
+.TP
+\fBtimeout integer (default:10 )\fR
+.nf
+Time between each tentative to establish a connexion
+.fi
+
+.SH PRODUCT ROUTING OPTIONS
+.nf
+\fBroutingTable filename (default: pxRouting.conf)\fR
+
+When the transceiver receive bulletins, the routing table is always used (man pxRouting, man pxRouting.conf)
+At the reception, the processing is exactly the same that is done by a pxReceiver (man pxReceiver) process
+except that no directives like accept, reject, imask and emask can be applied on the incoming bulletins.
+
+.SH PRODUCT SELECTION OPTIONS (only for transmission, not reception)
+.nf
+\fBaccept <regexp pattern> [<keyword>]\fR
+\fBreject <regexp pattern>\fR
+
+The products' file name is matched against the \fBaccept\fR and \fBreject\fR regexp patterns of
+the transceiver's configuration file.  \fBreject\fR (exclusion) can be used to suppress the delivery
+of files with a certain pattern. \fBaccept\fR options validate filenames that are sent to the client.
+.fi
+
+.TP
+\fBemask/imask <filepattern>\fR
+\fBemask/imask\fR are an older version of \fBaccept/reject\fR and use filepattern instead of regexp pattern.
+They are still working for now  but are deprecated.
+
+.SH FILE TRANSMISSION OPTIONS
+.TP
+\fBbatch integer (default:100 )\fR
+The maximum number of files to be sent/written in one polling cycle. 
+
+.fi
+.SH TYPE AFTN SPECIFIC OPTIONS
+.TP
+\fBsubscriber Boolean (default: True)\fR
+in practice, we are always a subscriber. when we do some testing,
+we need a provider (MHS), so we configure a transceiver with 
+subscriber False
+
+.TP
+\fBhost remoteHostOrIP (mandatory)\fR
+the hostname or IP with which we will establish a connexion 
+
+.TP
+\fBportR integer (mandatory)\fR
+port that will be used to receive data
+
+.TP
+\fBportS integer (mandatory)\fR
+port that will be used to send data
+
+.TP
+\fBstationID id (mandatory)\fR
+Three capital letters defining the local id
+ex: stationID DOA
+
+.TP
+\fBotherStationID id (mandatory)\fR
+Three capital letters defining the "remote" id
+ex: otherStationID ODA
+
+.TP
+\fBaddress 8_CAP_LETTERS (mandatory)\fR
+Local AFTN address composed of 8 capital letters.
+ex: address CWAOABCD
+
+.TP
+\fBotherAddress 8_CAP_LETTERS (mandatory)\fR
+"Remote" AFTN address composed of 8 capital letters.
+ex: address CWAOEFGH
+
+.TP
+\fBdigits integer (default: 4)\fR
+Number of digit use for the channel sequence number (CSN)
+Use what your provider told you.
+
+.SH DEVELOPER SPECIFIC OPTIONS
+.TP
+\fBsorter keyword (Default: MultiKeysStringSorter)\fR
+other keyword could be None, StandardSorter.  Determine which type of sorter will be used. In practice, never used.
+
+.TP
+\fBmtime integer (default:0 )\fR
+Number of seconds a file must not have been modified before we process it. 
+If set to 0, this is equivalent to not checking the modification time.
