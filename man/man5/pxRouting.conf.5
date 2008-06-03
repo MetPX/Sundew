@@ -36,13 +36,62 @@ its syntax is :
 
 \fBkey_accept <regexpKeyPattern> <client1,alias1,...,aliasX,clientN> <productPriority>\fR
 
-#-------------------------------------------------------
 
-AFTN STUFF DAN PLEASE HELP !
+\fBsubclient <client>  <subclient1, subclient2,...,subclientN>\fR
 
-Two more line types are permitted in the routing table. They were added solely for
-the use of a transceiver called aftn. Then lines'syntax are :
+This directive is used to define the subclients to which a given client can refers.
+The following clients can be used in "key" and "clientAlias" directives:
 
-\fBsubclient   <transceiver>  <adress> \fR
+.nf
+<client.subclient1>
+<client.subclient2>
+...
+<client.subclientN>
+.ni
 
-\fBaftnMap     <address>     <header1,header2,...,headerN>\fR
+On reception, the bulletin will be linked in the tx queue of <client>. 
+On transmission, the <client> must know how to use the <subclient?> part
+to do appropriate delivery.
+
+At this moment, the subclient directive is only used for a transceiver of type aftn.
+
+ex: We will use a "client" with the name "toto" that is a transceiver of type aftn
+
+.nf
+subclient toto AAAAAAAA,BBBBBBBB,CCCCCCCC
+clientAlias ab toto.AAAAAAAA toto.BBBBBBBB
+clientAlias abc AB,toto.CCCCCCCC
+key AACN01_ANIK ab,client1,client2
+key AACN02_ANIK client3,abc
+.ni
+
+When a px receiver receive an AACN01_ANIK bulletin, it will be linked in the tx queue of the 
+transceiver named toto.
+
+The transceiver named toto will delivers the AACN01_ANIK bulletin to the following address:
+AAAAAAAA and BBBBBBBB (because the transceiver toto know how to use these subclient (in our 
+example, these are AFTN addresses))
+
+
+.B Special directive for transceiver of type aftn:
+.PP
+\fBaftnMap     <address|DEFAULT>     <prefix_header>\fR
+This directive is only used on reception of message by a transceiver of type aftn.
+If the text part of the message has no WMO Header, one will be created (thanks to the
+aftnMap entries) for each destination address in the message.
+
+If a destination address present in the message has no associated aftnMap directive, the prefix_header defined
+by aftnMap DEFAULT will be used.
+
+ex:
+aftnMap DEFAULT AACN30
+aftnMap AAAAAAAA AACN30
+aftnMap BBBBBBBB UANT30
+
+A transceiver (type aftn) receive a message with no WMO header and the destinaton addresses are: AAAAAAAA, BBBBBBBBB, CCCCCCCC
+Bulletins with following header will be created, ingested in the DB and linked to appropriate (following key directives) clients:
+
+AACN30 AAAA  (AAAA is the last 4 characters of AAAAAAAA)
+UANT30 BBBB  (BBBB is the last 4 characters of BBBBBBBB)
+AACN30 CCCC  (CCCC is the last 4 characters of CCCCCCCC) 
+
