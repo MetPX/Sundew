@@ -1,4 +1,4 @@
-#!/usr/bin/make -f
+#!/usr/bin/make -f 
 # Uncomment this to turn on verbose mode.
 
 export DH_VERBOSE=1
@@ -21,114 +21,117 @@ install: build
 	dh_clean -k
 	dh_installdirs
 
-	ls -1 $(CURDIR)/bin/ > $(CURDIR)/debian/metpx-sundew/var/log/px/.bin_dir_metpx_sundew
-        # Peter removed tools when he saw the state of stuff in there... mr-clean is the only needed thing...
-	#ls -1 $(CURDIR)/tools/ > $(CURDIR)/debian/metpx-sundew/var/log/px/.tools_dir_metpx_sundew
-	ls -1 $(CURDIR)/tools/toolLib/ > $(CURDIR)/debian/metpx-sundew/var/log/px/.tools_lib_dir_metpx_sundew
-	
-	# install the binary files in /usr/sbin
-	for file in `find $(CURDIR)/bin/ -type f -maxdepth 1`; \
-		do install -m 755 $$file   $(CURDIR)/debian/metpx-sundew/usr/sbin/; \
+
+
+	# install the binary files in /usr/bin
+	for f in `find bin/ \( ! -regex '.*/\..*' \)`; \
+	     do if [ -f $$f ]; then \
+	            install -m 755 $$f debian/metpx-sundew/usr/bin; \
+	        fi; \
+	done
+
+	# install the tools in /usr/bin
+	for f in `find tools/ \( ! -regex '.*/\..*' \)`; \
+	     do if [ -f $$f ]; then \
+	            install -m 755 $$f debian/metpx-sundew/usr/bin; \
+	        fi; \
 	done
 
 
-	# install the tools in /usr/sbin
-	#for file in `find $(CURDIR)/tools/ -type f -maxdepth 1`; \
-        #	do install -m 755 $$file   $(CURDIR)/debian/metpx-sundew/usr/sbin/; \
-	#done
+	# install the tools/tooLib in /usr/lib/px
+	for f in `find tools/toolLib \( ! -regex '.*/\..*' \)`; \
+	     do if [ -f $$f ]; then \
+		    install -m 755 $$f debian/metpx-sundew/usr/lib/px; \
+		fi; \
+	 done
 
-	# install the documentation in /usr/share/doc/px
-	for file in `find $(CURDIR)/doc/ -type f -maxdepth 2`; \
-		do install -m 644 $$file $(CURDIR)/debian/metpx-sundew/usr/share/doc/px/; \
-	done
-
-	# the documentation subdirectory /usr/share/doc/px/fet
-	for file in `find $(CURDIR)/doc/fet/ -type f -maxdepth 1`; \
-		do install -m 644 $$file $(CURDIR)/debian/metpx-sundew/usr/share/doc/px/fet/; \
-	done
-
-	# the documentation subdirectory /usr/share/doc/px/versions1
-	for file in `find $(CURDIR)/doc/fet/ -type f -maxdepth 1`; \
-		do install -m 644 $$file $(CURDIR)/debian/metpx-sundew/usr/share/doc/px/version1/; \
-	done
 
 	# install the config files in /etc/px
-	for file in `find $(CURDIR)/etc/ -type f -maxdepth 1`; \
-		do install -m 644 $$file $(CURDIR)/debian/metpx-sundew/etc/px/; \
+	for f in `find etc/ \( ! -regex '.*/\..*' \)`; \
+	     do if [ -d $$f ]; then \
+	            directory_debian=$$(echo $$f | sed -e "s/etc/etc\/px/"); \
+		    install -d debian/metpx-sundew/$$directory_debian; \
+		elif [ -f $$f ]; then \
+		      directory_debian=$$(echo $$f | sed -e "s/etc/etc\/px/"); \
+		      install -m 644 $$f debian/metpx-sundew/$$directory_debian; \
+		fi; \
 	done
 
-	# the config subdirectory /etc/px/rx
-	for file in `find $(CURDIR)/etc/rx/ -type f -maxdepth 1`; \
-		do install -m 644 $$file $(CURDIR)/debian/metpx-sundew/etc/px/rx/; \
-	done
+	 # install the cronjob in /etc/cron.d
+	 for f in `find cronfiles/ \( ! -regex '.*/\..*' \)`; \
+	      do if [ -f $$f ]; then \
+	             install -m 644 $$f debian/metpx-sundew/etc/cron.d; \
+	         fi; \
+	 done
 
-	# the config subdirectory /etc/px/tx
-	for file in `find $(CURDIR)/etc/tx/ -type f -maxdepth 1`; \
-		do install -m 644 $$file $(CURDIR)/debian/metpx-sundew/etc/px/tx/; \
-	done
 
 	# install the library files in /usr/lib/px
-	for file in `find $(CURDIR)/lib/ -type f -maxdepth 1`; \
-		do install -m 644 $$file $(CURDIR)/debian/metpx-sundew/usr/lib/px/; \
+	for f in `find lib/ \( ! -regex '.*/\..*' \)`; \
+	     do if [ -d $$f ]; then \
+	            directory_debian=$$(echo $$f | sed -e "s/lib/usr\/lib\/px/"); \
+		    install -d debian/metpx-sundew/$$directory_debian; \
+	        elif [ -f $$f ]; then \
+		    directory_debian=$$(echo $$f | sed -e "s/lib/usr\/lib\/px/"); \
+		    install -m 755 $$f debian/metpx-sundew/$$directory_debian; \
+	        fi; \
+	done
+
+	# for etch, uncomment the next line
+	rm -rf debian/metpx-sundew/usr/lib/px/importedLibs
+	
+	# Create the directories pxRoute and pxFreq under lib/px ??? 
+	install -d debian/metpx-sundew/usr/lib/px/pxFreq
+	install -d debian/metpx-sundew/usr/lib/px/pxRoute
+
+	for f in `find pxRoute/ \( ! -regex '.*/\..*' \)`; \
+             do if [ -d $$f ]; \
+		    directory_debian=$$(echo $$f | sed -e "s/pxRoute/usr\/lib\/px\/pxRoute/"); \
+                    then install -d debian/metpx-sundew/$$directory_debian; \
+	        elif [ -f $$f ]; then \
+                    directory_debian=$$(echo $$f | sed -e "s/pxRoute/usr\/lib\/px\/pxRoute/"); \
+		    install -m 755 $$f debian/metpx-sundew/$$directory_debian; \
+		fi; \
+	done
+
+	for f in `find pxFreq/ \( ! -regex '.*/\..*' \)`; \
+	     do if [ -d $$f ]; \
+	            directory_debian=$$(echo $$f | sed -e "s/pxFreq/usr\/lib\/px\/pxFreq/"); \
+		    then install -d debian/metpx-sundew/$$directory_debian; \
+		elif [ -f $$f ]; then \
+		      directory_debian=$$(echo $$f | sed -e "s/pxFreq/usr\/lib\/px\/pxFreq/"); \
+		      install -m 755 $$f debian/metpx-sundew/$$directory_debian; \
+		fi; \
 	done
 	
-	# the libary files in the subdirectory /usr/lib/px/importedLibs
-	for file in `find $(CURDIR)/lib/ -type f -maxdepth 1`; \
-		do install -m 644 $$file $(CURDIR)/debian/metpx-sundew/usr/lib/px/importedLibs/; \
-	done
+	
+	# Create the directory log
+	install -d debian/metpx-sundew/var/log/px
 
-	# the library files in the subdirectory /usr/lib/px/importedLibs/logging
-	for file in `find $(CURDIR)/lib/ -type f -maxdepth 1`; \
-		do install -m 644 $$file $(CURDIR)/debian/metpx-sundew/usr/lib/px/importedLibs/logging/; \
-	done
-
-	# the libary files in the subdirectory /usr/lib/px/search
-	for file in `find $(CURDIR)/lib/search -type f -maxdepth 1`; \
-		do install -m 644 $$file $(CURDIR)/debian/metpx-sundew/usr/lib/px/search/; \
-	done
-
-	# the libary files in the subdirectory /usr/lib/px/search/filelogs
-	for file in `find $(CURDIR)/lib/search -type f -maxdepth 1`; \
-		do install -m 644 $$file $(CURDIR)/debian/metpx-sundew/usr/lib/px/search/filelogs/; \
-	done
-
-	# the libary files in the subdirectory /usr/lib/px/stats
-	for file in `find $(CURDIR)/lib/stats -type f -maxdepth 1`; \
-		do install -m 644 $$file $(CURDIR)/debian/metpx-sundew/usr/lib/px/stats/; \
-	done
-
-	# the libary files in the subdirectory /usr/lib/px/stats/files
-	for file in `find $(CURDIR)/lib/stats/files -type f -maxdepth 1`; \
-		do install -m 644 $$file $(CURDIR)/debian/metpx-sundew/usr/lib/px/stats/files/; \
-	done
-
-	 # install the library files located in tools/toolLib in /usr/lib/px
-	for file in `find $(CURDIR)/tools/toolLib/ -type f -maxdepth 1`; \
-		do install -m 644 $$file $(CURDIR)/debian/metpx-sundew/usr/lib/px/; \
-	done
-
-	echo CURDIR=$CURDIR >> .metpx-sundew_env
-	echo export CURDIR >> .metpx-sundew_env
+	# Create the spool directory
+	install -d debian/metpx-sundew/var/spool/px
+	
+	
 
 # Build architecture-independent files here.
 binary-indep: build install
 
 # Build architecture-dependent files here.
 binary-arch: build install
-	dh_testdir -a
-	dh_testroot -a
-	dh_installdebconf -a
-	dh_installdocs -a 
-	dh_installchangelogs -a
-	dh_strip -a
-	dh_compress -a 
-	dh_fixperms -a
-	dh_python -a
-	dh_installdeb -a 
-	dh_shlibdeps -a
-	dh_gencontrol -a
-	dh_md5sums -a
-	dh_builddeb -a
+	dh_testdir 
+	dh_testroot 
+	dh_installdocs 
+	dh_installchangelogs 
+	#dh_installcron
+	dh_strip 
+	dh_compress 
+	dh_fixperms
+	dh_python 
+	dh_installman
+	dh_installdeb 
+	dh_shlibdeps 
+	dh_gencontrol 
+	dh_md5sums 
+	dh_builddeb 
 
 binary: binary-indep binary-arch
 .PHONY: build clean binary-indep binary-arch binary
