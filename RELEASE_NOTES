@@ -1,3 +1,5 @@
+2008-06-25   (MG)  Buf fix SenderFTP throw an exception when ftp mkdir does not work
+
 2008-06-02   (MG)  Bug fix SFTP was working only with an ssh_keyfile.
                    Now user/passwd without ssh_keyfile works too.
 		   TODO: an option for the keyfile decrypt password too...
