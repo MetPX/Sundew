@@ -206,9 +206,10 @@ class SenderFTP(object):
 
     def dirMkdir(self,destDir) :
         """
-        MG 20051101
-        No error check intentional... if we were not succesful then
-        the error will be detected when we STOR
+        MG 20080625 
+        Now throw exception while creating directory
+        this fix a bug that when the directory was not
+        created the file could be written in the parent dir.
         """
 
         self.chdir(self.originalDir)
@@ -223,13 +224,9 @@ class SenderFTP(object):
                     try   :
                             self.chdir(d)
                     except:
-                            try   :
-                                    self.mkdir(d)
-                                    self.perm(d)
-                                    self.chdir(d)
-                            except:
-                                    return False
-        return True
+                            self.mkdir(d)
+                            self.perm(d)
+                            self.chdir(d)
 
     def ftpConnect(self, maxCount=200):
         count = 0
@@ -288,7 +285,7 @@ class SenderFTP(object):
                    t_args = (self.client.host,self.client.port)
                    self.t = paramiko.Transport(t_args)
 
-		if self.client.ssh_keyfile != None :
+                if self.client.ssh_keyfile != None :
                    #TODO, implement password to use to decrypt the key file, if it's encrypted
                    key=DSSKey.from_private_key_file(self.client.ssh_keyfile,password=None)
                    self.t.connect(username=self.client.user,pkey=key)
@@ -505,8 +502,8 @@ class SenderFTP(object):
                       # create and cd to the directory
                       if self.client.dir_mkdir:
                          try:
-                                 if self.dirMkdir(destDir):
-                                    currentFTPDir = destDir
+                                 self.dirMkdir(destDir)
+                                 currentFTPDir = destDir
                          except:
                                  timex.cancel()
                                  (type, value, tb) = sys.exc_info()
