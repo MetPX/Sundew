@@ -1,3 +1,10 @@
+2008-06-26   (MG)  SenderFTP Behavior fix... when file delivery goes wrong,
+                   do a preventive delete on the file. (get rid of .tmp, 
+		   permission 000 file... file already there... etc)
+
+             (MG)  Source.py and Ingestor.py   lx_script option added
+                   man/man1/pxFilter.1  contains the explanation for that option
+
 2008-06-25   (MG)  Buf fix SenderFTP throw an exception when ftp mkdir does not work
 
 2008-06-02   (MG)  Bug fix SFTP was working only with an ssh_keyfile.
