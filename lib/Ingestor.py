@@ -361,6 +361,14 @@ class Ingestor(object):
 
             sortedFiles = reader.sortedFiles[:self.source.batch]
 
+            # processing the list if necessary... 
+
+            if self.source.lx_execfile != None :
+               sfiles = []
+               sfiles.extend(sortedFiles)
+               self.logger.info("%d files process with lx_script" % len(sfiles))
+               sortedFiles = self.source.run_lx_script(sfiles,self.source.logger)
+
             self.logger.info("%d files will be ingested" % len(sortedFiles))
 
             for file in sortedFiles:
@@ -381,7 +389,7 @@ class Ingestor(object):
               return
 
         # converting the file if necessary
-        if self.source.execfile != None :
+        if self.source.fx_execfile != None :
 
            fxfile = self.source.run_fx_script(file,self.source.logger)
 
@@ -510,6 +518,17 @@ class Ingestor(object):
                   self.logger.info("This pull is sleeping")
 
             reader.read()
+
+            # processing the list if necessary... 
+
+            if self.source.lx_execfile != None and len(reader.sortedFiles) > 0:
+               sfiles = []
+               sfiles.extend(reader.sortedFiles)
+               self.logger.info("%d files process with lx_script" % len(sfiles))
+               sortedFiles = self.source.run_lx_script(sfiles,self.source.logger)
+               reader.sortedFiles = sortedFiles
+
+            # continue normally
             data = reader.getFilesContent(reader.batch)
 
             if len(data) == 0:
@@ -529,7 +548,7 @@ class Ingestor(object):
                 if not duplicate : 
 
                    # converting the file if necessary
-                   if self.source.execfile != None :
+                   if self.source.fx_execfile != None :
 
                       file   = reader.sortedFiles[index]
                       fxfile = self.source.run_fx_script(file,self.source.logger)

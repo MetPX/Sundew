@@ -134,8 +134,11 @@ class Source(object):
         # Setting file transformations/conversions... etc...
         #-----------------------------------------------------------------------------------------
 
-        self.fx_script = None           # a script to convert/modify received files for clients
-        self.execfile  = None
+        self.fx_script   = None   # a script to convert/modify each received files
+        self.fx_execfile = None
+
+        self.lx_script   = None   # a script to convert/modify a list of received files
+        self.lx_execfile = None
 
         #-----------------------------------------------------------------------------------------
         # All defaults for a source were set earlier in this class
@@ -158,9 +161,13 @@ class Source(object):
         # instantiate the fx script in source class
         #-----------------------------------------------------------------------------------------
 
-        if self.execfile != None :
-           try    : execfile(PXPaths.SCRIPTS + self.execfile )
-           except : self.logger.error("Problem with fx_script %s" % self.execfile)
+        if self.fx_execfile != None :
+           try    : execfile(PXPaths.SCRIPTS + self.fx_execfile )
+           except : self.logger.error("Problem with fx_script %s" % self.fx_execfile)
+
+        if self.lx_execfile != None :
+           try    : execfile(PXPaths.SCRIPTS + self.lx_execfile )
+           except : self.logger.error("Problem with lx_script %s" % self.lx_execfile)
 
         #-----------------------------------------------------------------------------------------
         # Make sure the collection params are valid
@@ -259,7 +266,9 @@ class Source(object):
                     elif words[0] == 'cycle': self.issue_cycle.append(words[1])
                     elif words[0] == 'feed': self.feeds.append(words[1])
                     elif words[0] == 'routingTable': self.routingTable = words[1]
-                    elif words[0] == 'fx_script': self.execfile = words[1]
+                    elif words[0] == 'fx_script': self.fx_execfile = words[1]
+
+                    elif words[0] == 'lx_script': self.lx_execfile = words[1]
 
                     elif words[0] == 'arrival':
                          if self.mapEnteteDelai == None : self.mapEnteteDelai = {}
@@ -320,6 +329,10 @@ class Source(object):
         if self.fx_script == None : return filename
         return self.fx_script(filename, logger)
 
+    def run_lx_script(self, filelist, logger):
+        if self.lx_script == None : return filelist
+        return self.lx_script(filelist, logger)
+
     def getTransformation(self, filename):
         for mask in self.tmasks:
             if fnmatch.fnmatch(filename, mask[0]):
@@ -369,7 +382,8 @@ class Source(object):
         print("Routing table: %s" % source.routingTable)
         print("Route with Mask: %s" % source.routemask)
         print("No duplicates: %s" % source.nodups)
-        print("FX script: %s" % source.execfile)
+        print("FX script: %s" % source.fx_execfile)
+        print("LX script: %s" % source.lx_execfile)
         
         print("******************************************")
         print("*       Source Masks                     *")
