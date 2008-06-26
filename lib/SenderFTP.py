@@ -334,12 +334,8 @@ class SenderFTP(object):
 
     # some systems do not permit deletion... so pass exception on that
     def rm(self, path):
-        try    :
-                 self.delete(path)
-        except :
-                 (type, value, tb) = sys.exc_info()
-                 self.logger.warning("Could not delete %s" % path )
-                 self.logger.warning(" Type: %s, Value: %s" % (type ,value))
+        try    : self.delete(path)
+        except : pass
 
     # sending one file using lock extension method
     def send_lock(self, file, destName ):
@@ -544,9 +540,11 @@ class SenderFTP(object):
                                            (self.client.protocol, self.client.user, self.client.host, \
                                            destDirString, destName, type, value))
     
-                          # preventive delete when umask 
-                          if self.client.lock[0] != '.' :
-                             self.rm(destName)
+                          # preventive delete when problem 
+                          self.logger.warning("Going through preventive delete")
+                          self.rm(destName)
+                          if self.client.lock[0] == '.' :
+                             self.rm(destName + self.client.lock)
 
                           timex.cancel()
                           return
