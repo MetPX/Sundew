@@ -98,6 +98,19 @@ The module must return one of the 3 following :
 
 .fi
 .TP
+\fBlx_script script (default:None)\fR
+Filter configuration may define a script that will act on all the files 
+found in the filter's queue. For example, a filter that serves as a bulletin collector would use an lx_script. The script must be in python and reside in $PXROOT/etc/scripts. The lx_script must end with the line :
+.nf
+
+         self.lx_script = module
+
+.fi
+where the module is a valid python module having 2 arguments : filelist, logger.
+\fBfilelist\fR is a python list containing all the filepaths currently in queue.
+The \fBlogger\fR can be used to log messages to the filter's log file.  It supports the same 3 levels of messages as the fx_script.
+The script must return a python list (that can be empty) containing the files that should be ingested (can be newly created files by the script). The lx script is responsible to get rid of the files that will not be used/ingested by the filter.
+.TP
 \fBvalidation boolean (default:True )\fR
 .nf
 Validate if the filename have the following form:
