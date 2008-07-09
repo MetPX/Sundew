@@ -1,4 +1,5 @@
 2008-07-09   (MG)  Source,PullFTP now support for SFTP pulls.
+                   SenderFTP sleeps 1 sec when a problem occurs on file delivery
 
 2008-06-26   (MG)  SenderFTP Behavior fix... when file delivery goes wrong,
                    do a preventive delete on the file. (get rid of .tmp, 
