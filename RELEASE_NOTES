@@ -1,3 +1,5 @@
+2008-07-09   (MG)  Source,PullFTP now support for SFTP pulls.
+
 2008-06-26   (MG)  SenderFTP Behavior fix... when file delivery goes wrong,
                    do a preventive delete on the file. (get rid of .tmp, 
 		   permission 000 file... file already there... etc)
