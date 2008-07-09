@@ -29,24 +29,30 @@ import os, time, pwd, sys, re, getopt, commands
 # default library path
 
 # old way
+sys.path.insert(1, '/apps/px/lib/importedLibs')
 sys.path.insert(1, '/apps/px/lib')
 
 # debian way
+sys.path.insert(1, '/usr/lib/px/importedLibs')
 sys.path.insert(1, '/usr/lib/px')
 
 # developpement library path option through PXLIB
 
 try:
-         sys.path.insert(1, os.path.normpath(os.environ['PXLIB']) )
+    pxlib = os.path.normpath(os.environ['PXLIB'])
+    sys.path.insert(1, pxlib + '/importedLibs')
+    sys.path.insert(1, pxlib )
 except :
          pass
 
 # developpement library path option through PXROOT
 try:
-    sys.path.insert(1, os.path.normpath(os.environ['PXROOT'] + '/lib'))
-    sys.path.insert(1,sys.path[0] + '/../lib/importedLibs')
+    pxroot = os.path.normpath(os.environ['PXROOT'])
+    sys.path.insert(1, pxroot + '/lib/importedLibs')
+    sys.path.insert(1, pxroot + '/lib')
 except :
     pass
+
 #
 
 import PXPaths
