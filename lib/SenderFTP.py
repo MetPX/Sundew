@@ -547,6 +547,7 @@ class SenderFTP(object):
                              self.rm(destName + self.client.lock)
 
                           timex.cancel()
+                          time.sleep(1)
                           return
 
                    timex.cancel()
