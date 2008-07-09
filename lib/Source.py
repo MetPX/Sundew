@@ -109,6 +109,7 @@ class Source(object):
         self.url = None
         self.user = None                    # User name used to connect
         self.passwd = None                  # Password 
+        self.ssh_keyfile = None             # ssh private key file for sftp protocol
         self.ftp_mode = 'passive'           # Default is 'passive', can be set to 'active'
 
         self.timeout_get = 0                # Timeout in sec. to consider a get to hang ( 0 means inactive )
@@ -293,6 +294,7 @@ class Source(object):
                     elif words[0] == 'host': self.host = words[1]
                     elif words[0] == 'user': self.user = words[1]
                     elif words[0] == 'password': self.passwd = words[1]
+                    elif words[0] == 'ssh_keyfile': self.ssh_keyfile = words[1]
                     elif words[0] == 'timeout_get': self.timeout_get = int(words[1])
                     elif words[0] == 'ftp_mode': self.ftp_mode = words[1]
                     elif words[0] == 'pull_sleep': self.pull_sleep = int(words[1])
@@ -428,6 +430,7 @@ class Source(object):
            print "host              %s" % self.host
            print "user              %s" % self.user
            print "passwd            %s" % self.passwd
+           print "ssh_keyfile       %s" % self.ssh_keyfile
            print "ftp_mode          %s" % self.ftp_mode
            print ""
            print "delete            %s" % self.delete
