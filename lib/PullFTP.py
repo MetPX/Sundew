@@ -10,22 +10,24 @@ named COPYING in the root of the source directory tree.
 #
 # Authors: Michel Grenier 
 #
-# Description: Pull capabilities ... the source defines the protocol/host/user/password/port
-#              followed by the directories and file pattern to pull... The process flow is roughly
-#              1- open connection
-#              2- get the files :
-#                               for each directory get the ls -al in RXQ/name/.ls_"directory_name".new
-#                               if retreived files are not deleted 
-#                                  files we may retreive are the diff with last ls : .ls_"directory_name"
-#                               if retreived files are deleted 
-#                                  consider all files in ls
-#                               try matching files from ls and the regex defined in source with get option
-#                               try a diff with another ls see if some of the files are currently modified
-#                                   if some are modified put them in the "not retrieve list"
-#                               retrieve the resulting file matches if any... file with problems are put
-#                                   in the "not retrieve list"
-#                               files in the "not retrieve list" are removed from the kept ls...
-#              3- close connection
+# Description: 
+#
+#   Pull capabilities ... the source defines the protocol/host/user/password/port
+#   followed by the directories and file pattern to pull... The process flow is roughly
+#     1- open connection
+#     2- get the files :
+#            for each directory get the ls -al in RXQ/name/.ls_"directory_name".new
+#            if retreived files are not deleted 
+#               files we may retreive are the diff with last ls : .ls_"directory_name"
+#            if retreived files are deleted 
+#               consider all files in ls
+#            try matching files from ls and the regex defined in source with get option
+#            try a diff with another ls see if some of the files are currently modified
+#                if some are modified put them in the "not retrieve list"
+#            retrieve the resulting file matches if any... file with problems are put
+#                in the "not retrieve list"
+#            files in the "not retrieve list" are removed from the kept ls...
+#     3- close connection
 #
 # Note: PullFTP is inserted in the Ingestor.py code as part of single-file and bulletin-file procession.
 #       The only difference is that the source type is checked for pull-file or pull-bulletin to activate
@@ -33,6 +35,8 @@ named COPYING in the root of the source directory tree.
 #
 # Note: self.source.pull contains a list : the DIRECTORY, followed by the get patterns...
 #       ex.:   self.source.pull = [ '/data/dir1/toto', 'titi*.gif', 'toto*.jpg' ] 
+#
+# Note: MG  2008-07-04  now supports sftp
 #
 #############################################################################################
 
@@ -43,7 +47,11 @@ from AlarmFTP  import AlarmFTP
 from AlarmFTP  import FtpTimeoutException
 from URLParser import URLParser
 from Logger import Logger
+
 import ftplib
+#
+import paramiko
+from   paramiko import *
 
 PXPaths.normalPaths()              # Access to PX paths
 
@@ -58,6 +66,7 @@ class PullFTP(object):
 
         self.connected   = False 
         self.ftp         = None
+        self.sftp        = None
         self.file        = None
         self.ls          = {}
         self.lsold       = {}
@@ -76,7 +85,20 @@ class PullFTP(object):
            return
 
         if self.source.protocol == 'ftp':
-            self.ftp = self.ftpConnect()
+            self.ftp    = self.ftpConnect()
+            self.chdir  = self.ftp.cwd
+            self.delete = self.ftp.delete
+            self.fget   = self.ftp_get
+            self.lsdir  = self.ftp_do_ls
+            self.quit   = self.ftp.quit
+
+        if self.source.protocol == 'sftp':
+            self.sftp   = self.sftpConnect()
+            self.chdir  = self.sftp.chdir
+            self.delete = self.sftp.remove
+            self.fget   = self.sftp.get
+            self.lsdir  = self.sftp_do_ls
+            self.quit   = self.sftp_quit
 
 
     # callback to strip and save the output from ls of directory
@@ -102,8 +124,8 @@ class PullFTP(object):
         try   :
                   # gives 10 seconds to get there
                   timex.alarm(10)
-                  self.ftp.cwd(self.originalDir)
-                  self.ftp.cwd(path)
+                  self.chdir(self.originalDir)
+                  self.chdir(path)
                   timex.cancel()
                   return True
         except :
@@ -115,21 +137,23 @@ class PullFTP(object):
         return False
 
 
-    # close connection... 
+    # close connection...
 
     def close(self):
 
         self.connected = False
 
-        if self.ftp == None : return
+        # connection did not work
 
-        timex = AlarmFTP('FTP connection close timeout')
+        if self.ftp == None and self.sftp == None : return
+
+        timex = AlarmFTP(self.source.protocol + ' connection timeout')
 
         try    :
                   # gives 10 seconds to close the connection
                   timex.alarm(10)
 
-                  self.ftp.quit()
+                  self.quit()
 
                   timex.cancel()
         except :
@@ -201,35 +225,7 @@ class PullFTP(object):
 
         return ndestDir
 
-
-    # do an ls in the current directory, write in file path
-
-    def do_ls(self):
-
-        self.ls = {}
-
-        timex = AlarmFTP('FTP retrieving list')
-        timex.alarm(self.source.timeout_get)
-
-        try : 
-                 ls=self.ftp.retrlines('LIST',self.callback_line )
-                 timex.cancel()
-                 return True
-
-        except FtpTimeoutException :
-                 timex.cancel()
-                 self.logger.warning("FTP doing ls timed out after %s seconds..." % self.source.timeout_get )
-
-        except :
-                 timex.cancel()
-                 (type, value, tb) = sys.exc_info()
-                 self.logger.error("Unable to list directory %s on %s (user:%s). Type: %s, Value: %s" % \
-                                  (self.destDir,self.source.host, self.source.user, type ,value))
-
-        return False
-
-
-    # open connection... 
+    # open connection... ftp
 
     def ftpConnect(self):
 
@@ -261,6 +257,40 @@ class PullFTP(object):
             (type, value, tb) = sys.exc_info()
             self.logger.error("Unable to connect to %s (user:%s). Type: %s, Value: %s" % (self.source.host, self.source.user, type ,value))
 
+    # ftp do an ls in the current directory, write in file path
+
+    def ftp_do_ls(self):
+
+        self.ls = {}
+
+        timex = AlarmFTP('FTP retrieving list')
+        timex.alarm(self.source.timeout_get)
+
+        try : 
+                 ls=self.ftp.retrlines('LIST',self.callback_line )
+                 timex.cancel()
+                 return True
+
+        except FtpTimeoutException :
+                 timex.cancel()
+                 self.logger.warning("FTP doing ls timed out after %s seconds..." % self.source.timeout_get )
+
+        except :
+                 timex.cancel()
+                 (type, value, tb) = sys.exc_info()
+                 self.logger.error("Unable to list directory %s on %s (user:%s). Type: %s, Value: %s" % \
+                                  (self.destDir,self.source.host, self.source.user, type ,value))
+
+        return False
+
+    # ftp retrieve a file
+
+    def ftp_get(self, remote_file, local_file):
+
+        file=open(local_file,'wb')
+        self.ftp.retrbinary('RETR ' + remote_file, file.write )
+        file.close()
+
 
     # pulling files and returning the list
 
@@ -286,7 +316,7 @@ class PullFTP(object):
 
         # connection did not work
 
-        if self.ftp == None : return files_pulled
+        if self.ftp == None and self.sftp == None : return files_pulled
 
         # loop on all directories where there are pulls to do
 
@@ -314,7 +344,7 @@ class PullFTP(object):
 
             # ls that directory
 
-            ok = self.do_ls()
+            ok = self.lsdir()
             if not ok : continue
 
             # if we are sleeping and we are here it is because
@@ -503,9 +533,7 @@ class PullFTP(object):
     def retrieve(self, remote_file, local_file):
 
         try    :
-                 file=open(local_file,'wb')
-                 self.ftp.retrbinary('RETR ' + remote_file, file.write )
-                 file.close()
+                 self.fget( remote_file, local_file) 
                  return True
 
         except :
@@ -520,12 +548,103 @@ class PullFTP(object):
 
     def rm(self, path):
         try    :
-                 self.ftp.delete(path)
+                 self.delete(path)
         except :
                  (type, value, tb) = sys.exc_info()
                  self.logger.warning("Could not delete %s" % path )
                  self.logger.warning("Type: %s, Value: %s" % (type ,value))
 
+    # open connection... sftp
+
+    def sftpConnect(self, maxCount=200):
+        count = 0
+        while count < maxCount:
+
+            timex = AlarmFTP('SFTP connection timeout')
+
+            # gives 30 seconds to open the connection
+            try:
+                timex.alarm(30)
+                self.t = None
+                if self.source.port == None : 
+                   self.t = paramiko.Transport(self.source.host)
+                else:
+                   t_args = (self.source.host,self.source.port)
+                   self.t = paramiko.Transport(t_args)
+
+                if self.source.ssh_keyfile != None :
+                   #TODO, implement password to use to decrypt the key file, if it's encrypted
+                   key=DSSKey.from_private_key_file(self.source.ssh_keyfile,password=None)
+                   self.t.connect(username=self.source.user,pkey=key)
+                else:
+                   self.t.connect(username=self.source.user,password=self.source.passwd)
+
+                self.sftp = paramiko.SFTP.from_transport(self.t)
+                # WORKAROUND without going to '.' originalDir was None
+                self.sftp.chdir('.')
+                self.originalDir = self.sftp.getcwd()
+
+                timex.cancel()
+
+                return self.sftp
+
+            except FtpTimeoutException :
+                timex.cancel()
+                try    : self.sftp.close()
+                except : pass
+                try    : self.t.close()
+                except : pass
+                self.logger.error("SFTP connection timed out after %d seconds... retrying" % self.timeout )
+
+            except:
+                timex.cancel()
+                (type, value, tb) = sys.exc_info()
+                self.logger.error("Unable to connect to %s (user:%s). Type: %s, Value: %s" % (self.source.host, self.source.user, type ,value))
+                try    : self.sftp.close()
+                except : pass
+                try    : self.t.close()
+                except : pass
+                count +=  1
+                time.sleep(5)   
+
+        self.logger.critical("We exit SenderSFTP after %i unsuccessful try" % maxCount)
+        sys.exit(2) 
+
+    # do an ls in the current directory, write in file path
+
+    def sftp_do_ls(self):
+
+        self.ls = {}
+
+        timex = AlarmFTP('SFTP retrieving list')
+        timex.alarm(self.source.timeout_get)
+
+        try : 
+                 dir_attr = self.sftp.listdir_attr()
+                 for index in range(len(dir_attr)):
+                     attr = dir_attr[index]
+                     line = attr.__str__()
+                     self.callback_line(line)
+                 timex.cancel()
+                 return True
+
+        except FtpTimeoutException :
+                 timex.cancel()
+                 self.logger.warning("SFTP doing ls timed out after %s seconds..." % self.source.timeout_get )
+
+        except :
+                 timex.cancel()
+                 (type, value, tb) = sys.exc_info()
+                 self.logger.error("Unable to list directory %s on %s (user:%s). Type: %s, Value: %s" % \
+                                  (self.destDir,self.source.host, self.source.user, type ,value))
+
+        return False
+
+    # sftp quit = close connection...
+
+    def sftp_quit(self):
+        self.sftp.close()
+        self.t.close()
 
     # write ls file
 
