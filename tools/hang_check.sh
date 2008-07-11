@@ -2,7 +2,14 @@
 
 # defining important variable
 
-   export PXROOT=/apps/px
+   export LOG=/var/log/px
+   export TXQ=/var/spool/txq
+
+   if [[ ! -z `echo $PXROOT` ]]; then
+      export LOG=${PXROOT}/log
+      export TXQ=${PXROOT}/txq
+   fi
+
    export PATH=/apps/px/bin:$PATH
 
 # awk instruction for the latest valid log line
@@ -19,15 +26,15 @@ EOF
 
 #      get most recent file in queue
 
-       file=`ls -alrtR /apps/px/txq/$sender/[12345]* | grep "^-" | grep -v lock | awk '{print $9}' | tail -1`
+       file=`ls -alrtR ${TXQ}/$sender/[12345]* | grep "^-" | grep -v lock | awk '{print $9}' | tail -1`
        if [[ -z "$file" ]]; then
            continue;
        fi
-       file=`find /apps/px/txq/$sender -type f | grep $file`
+       file=`find ${TXQ}/$sender -type f | grep $file`
 
 #      get most recent valid log line
 
-       line=`cat /apps/px/log/tx_$sender.log | awk -f /tmp/awk_instructions`
+       line=`cat ${LOG}/tx_$sender.log | awk -f /tmp/awk_instructions`
        if [[ -z "$line" ]]; then
            continue;
        fi
@@ -74,7 +81,7 @@ EOF
 #      if some files have been waiting in queue for at least
 #      5 minutes restart the sender
 
-       echo `date +'%Y-%m-%d %H:%M:%S'` $sender "hung for " $shtime "seconds ...restarted" >> /apps/px/log/hang_check.log
+       echo `date +'%Y-%m-%d %H:%M:%S'` $sender "hung for " $shtime "seconds ...restarted" >> ${LOG}/hang_check.log
        pxSender $sender stop
        pxSender $sender start
 

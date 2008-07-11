@@ -23,7 +23,12 @@ import time
 import commands
 import sys
 
-TXQ = '/apps/px/txq'
+try    : pxroot = os.path.normpath(os.environ['PXROOT'])
+except : pxroot = '/var/spool'
+	
+TXQ = pxroot + '/txq'
+
+print TXQ
 # RXQ = '/apps/px/rxq' # Maybe eventually for FTP receivers
 
 currentTime = time.strftime('%Y%m%d%H')
