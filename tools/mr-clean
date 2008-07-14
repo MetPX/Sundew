@@ -24,7 +24,7 @@ import commands
 import sys
 
 try    : pxroot = os.path.normpath(os.environ['PXROOT'])
-except : pxroot = '/var/spool'
+except : pxroot = '/var/spool/px'
 	
 TXQ = pxroot + '/txq'
 

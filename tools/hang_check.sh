@@ -3,7 +3,7 @@
 # defining important variable
 
    export LOG=/var/log/px
-   export TXQ=/var/spool/txq
+   export TXQ=/var/spool/px/txq
 
    if [[ ! -z `echo $PXROOT` ]]; then
       export LOG=${PXROOT}/log
