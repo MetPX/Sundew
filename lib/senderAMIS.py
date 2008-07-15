@@ -140,7 +140,7 @@ class senderAMIS:
                 # priority 0 is retransmission and is never suppressed
 
                 path = self.reader.sortedFiles[index]
-                priority = path.split('/')[5]
+                priority = path.split('/')[-3]
 
                 if self.client.nodups and priority != '0' and self.in_cache( data[index], True, path ) :
                    #PS... same bug as in Senders AM & WMO.
@@ -320,7 +320,7 @@ class senderAMIS:
        totSent =  0
 
        # get path priority
-       priority = path.split('/')[5]
+       priority = path.split('/')[-3]
 
        alpha=['A','B','C','D','E','F','G','H','I','J','K','L','M','N','O','P','Q','R','S','T','U','V','W','X','Y','Z']
 

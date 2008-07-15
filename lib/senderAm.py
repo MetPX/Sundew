@@ -123,7 +123,7 @@ class senderAm(gateway.gateway):
                    # if in cache than it was already sent... nothing to do
                    # priority 0 is retransmission and is never suppressed
                    path = self.reader.sortedFiles[index] 
-                   priority = path.split('/')[5]
+                   priority = path.split('/')[-3]
 
                    if self.client.nodups and priority != '0' and self.in_cache( data[index], True, path ) :
                       # PEter... in_cache already deletes the file, no need for second call.
@@ -281,7 +281,7 @@ class senderAm(gateway.gateway):
         totSent =  0
 
 
-        priority = path.split('/')[5]
+        priority = path.split('/')[-3]
 
         alpha=['A','B','C','D','E','F','G','H','I','J','K','L','M','N','O','P','Q','R','S','T','U','V','W','X','Y','Z']
 

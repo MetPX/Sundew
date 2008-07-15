@@ -150,7 +150,7 @@ class SenderScript(object):
 
             # priority 0 is retransmission and is never suppressed
 
-            priority = file.split('/')[5]
+            priority = file.split('/')[-3]
 
             # if in cache than it was already sent... nothing to do
             # caching is always done on original file for early check (before fx)
