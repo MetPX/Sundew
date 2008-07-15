@@ -24,7 +24,6 @@ sys.path.insert(1, '/usr/lib/px/importedLibs')
 sys.path.insert(1, '/usr/lib/px')
 
 # developpement library path option through PXLIB
-
 try:
     pxlib = os.path.normpath(os.environ['PXLIB'])
     sys.path.insert(1, pxlib + '/importedLibs')
@@ -39,8 +38,6 @@ try:
     sys.path.insert(1, pxroot + '/lib')
 except :
     pass
-
-#
 
 from optparse import OptionParser
 
@@ -572,7 +569,7 @@ class PXRetrans(object):
             for item in self.parser.values.__dict__.items():
                 if item[0] in ['regex'] and item[1]:
                     command += ' %s%s \\"%s\\"' % ("--", item[0], item[1])
-                elif item[1] and item[1] not in [True, False] and item[0]: 
+                elif item[1] and item[1] not in [True, False] and item[0] and item[0] not in ['startDate', 'endDate']: 
                     command += " %s%s %s" % ("--", item[0], item[1])    
                 elif item[0] in ['timestamp']:
                     timestamp = item[1] or dateLib.getTimestamp()
