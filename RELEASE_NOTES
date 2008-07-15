@@ -1,3 +1,9 @@
+2008-07-15   (MG)  Before we had /apps/px/txq/client/prio/date/file
+                   so prio was fixed at position 5  now with varying
+		   spool directory depth prio is taken from position -3
+		   /var/spool/px/txq/client/prio/date/file
+
+
 2008-07-09   (MG)  Source,PullFTP now support for SFTP pulls.
                    SenderFTP sleeps 1 sec when a problem occurs on file delivery
 
