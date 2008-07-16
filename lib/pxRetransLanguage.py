@@ -100,6 +100,8 @@ You will have to check in the client's log (%s)",
 'badClientName': "Bad client name or more than 1 client",
 'noMachineInThisGroup': "There is no machine in this group (%s)",
 'commandNotAvailable': "This command is not available on a backend (use %s instead)",
+'possibleProblemWithFilename': "Unable to construct DB path from: %s\n\
+Probably a problem with filename's syntax.",
 }
 
 
@@ -192,4 +194,6 @@ Vous allez devoir verifier dans le log du client (%s)",
 'badClientName': "Mauvais nom de client ou plus d'un client",
 'noMachineInThisGroup': "Il n'y a pas de machines dans ce groupe (%s)",
 'commandNotAvailable': "Cette commande n'est pas disponible sur un backend (utilisez %s a la place)",
+'possibleProblemWithFilename': 'Incapable de construire le chemin a la base de donnees a partir de: %s\n\
+Probablement un probleme avec la syntaxe du nom de fichier.',
 }

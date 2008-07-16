@@ -78,6 +78,10 @@ if __name__ == '__main__':
         sys.exit()
 
     dbName = pxm.getDBName(filename)
+    if not dbName:
+    	print "%(possibleProblemWithFilename)s" % lang % (filename)
+	sys.exit()
+
     queueName =  pxm.getFlowQueueName(flow=client, drp=None, filename=filename, priority=prio)
     logName = PXPaths.LOG + flowType.lower() + "_" +  client + ".log"
 
