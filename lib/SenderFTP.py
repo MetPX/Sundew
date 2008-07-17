@@ -368,8 +368,12 @@ class SenderFTP(object):
     def send_umask(self, file, destName ):
 
         if self.sftp != None :
-           #    sftp.umask(777) does not exist
-           self.sftp.put(file,destName)
+           newfile = self.sftp.open( destName, mode='w' )
+           self.sftp.chmod(destName, 0 )
+           fileObject = open(file, 'r' )
+	   newfile.write(fileObject.read())
+           fileObject.close()
+	   newfile.close()
            self.sftp.chmod(destName, self.Ochmod)
 
         if self.ftp != None :
