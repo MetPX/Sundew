@@ -10,7 +10,7 @@
 #
 #############################################################################################
 """
-import os, sys, os.path, re, time
+import os, sys, os.path, re, time, pwd
 import pxRetransLanguage
 import PXPaths
 
@@ -25,20 +25,39 @@ class RetransConfig(object):
         self.debug = 0
         self.lang = pxRetransLanguage.french
 
-        self.masterConfPath = ""  # Master Configuration root path
-        self.clusters = ['px', 'pxatx', 'pds']
+        # masterConfPath is a directory where configuration files for all clusters can be found.
+        # With 2 cluster named cluster1 and cluster2, the config. files will be under:
+        # "masterConfPath"/cluster1/etc/
+        # "masterConfPath"/cluster2/etc/
+
+        # When we have in fact no cluster (a single machine), the cluster name will be "." and we
+        # we thus have "masterConfPath"/./etc/
+
+        # This "scheme" works well when px is installled under a root directory (ex: /apps/px/)
+        # It works less well under a Debian installation (where the all the config. files are under
+        # /etc/px (not /etc/px/etc).
+       
+        # When installed with a debian package, a symbolic link will be created:
+        # ln -s /etc/px $HOME/etc   ($HOME of the px user)
+        try:
+            self.masterConfPath = pwd.getpwnam('px')[5] # Master Configuration root path (1 machine, debian way)
+        except:
+            self.masterConfPath = '/apps/px'
+
+        self.clusters = ['.']             # 1 machine only (no "real" clusters)
+        #self.clusters = ['px', 'pxatx', 'pds']
 
         self.feEnvVar = 'PX_FRONTEND'
         self.sfeEnvVar = 'PX_SIMILI_FRONTEND'
 
         # Use to execute command (pxRetrans, .localRetrans) on the backend
         # via ssh command run on the frontend
-        self.fePrivKey = '' # Use to connect as beUser from fe to be
-        self.beUser = ''    # Use to ssh from the frontend to the backend
+        self.fePrivKey = ''   # Use to connect as beUser from fe to be
+        self.beUser = 'px'    # Use to ssh from the frontend to the backend
 
         # Use to scp results from the backend to the frontend
         self.bePrivKey = ''
-        self.feUser = ''          # On the backend, results (listing) will be sent to this frontend user
+        self.feUser = 'px'        # On the backend, results (listing) will be sent to this frontend user
         self.feTempDir = '/tmp'   # On the backend, results (listing) will be sent to this directory
 
         self.waitTimeForLogEntry = 2 # Time we wait in seconds for obtaining the log line indicating a successful transfert
