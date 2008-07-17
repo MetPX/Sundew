@@ -594,7 +594,7 @@ class PullFTP(object):
                 except : pass
                 try    : self.t.close()
                 except : pass
-                self.logger.error("SFTP connection timed out after %d seconds... retrying" % self.timeout )
+                self.logger.error("SFTP connection timed out after %d seconds... retrying" % 30 )
 
             except:
                 timex.cancel()
