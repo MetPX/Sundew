@@ -270,8 +270,8 @@ Specified in minutes.  Maximum limit to consider valid a report dated in the fut
 .SH TYPE PULL SPECIFIC OPTIONS (pull-bulletin,pull-file)
 .TP
 
-\fBprotocol ftp (Default: ftp )\fR
-For the moment only protocol ftp is supported by the pulls
+\fBprotocol (Default: ftp )\fR
+For the moment only protocol ftp and sftp are supported by the pulls
 
 .TP
 \fBhost remotehost (Default: None )\fR
@@ -284,6 +284,11 @@ the user on the remote host where we are going to use to pull the files
 .TP
 \fBpassword pw (Default: None )\fR
 the password for the user  on the remote host
+
+.TP
+\fBkey_file path (Default: None )\fR
+When sftp is used, key_file gives the path to the ssh key
+for the username given by the user option.
 
 .TP
 \fBftp_mode mode (Default: passive )\fR

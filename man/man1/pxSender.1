@@ -310,7 +310,6 @@ the user on the remote host where we are going to use to put the files
 \fBpassword pw (Default: None )\fR
 the password for the user  on the remote host
 
-
 .TP
 \fBkey_file path (Default: None )\fR
 When sftp is used, key_file gives the path to the ssh key
@@ -382,6 +381,14 @@ When the file is completely transfered, the suffix is removed by renaming the fi
 The second usage is to use the string \fBumask\fR to set it. Ex.: \fBlock umask\fR
 In this case the file has permission 000 during transfer. When the transfer is done,
 the permission changes to the value given to the option \fBchmod\fR.
+
+Note that the umask is not a supported command under SFTP. To implement that
+functionality, the sender opens the file in write mode, and than sets its
+permission to 000. The two successive calls to the remote server cause the
+file to be created and empty without the 000 permission for a short period.
+The remote server could, at this precise moment decide, based on its default 
+permission, that it can process the file... The file hence processed would be
+empty. The sender would get an error and resend the file.
 .fi
 .TP
 \fBdir_mkdir boolean (default: False)\fR
