@@ -382,7 +382,7 @@ The second usage is to use the string \fBumask\fR to set it. Ex.: \fBlock umask\
 In this case the file has permission 000 during transfer. When the transfer is done,
 the permission changes to the value given to the option \fBchmod\fR.
 
-Note that the umask is not a supported command under SFTP. To implement that
+Note that umask is not a supported command under SFTP. To implement that
 functionality, the sender opens the file in write mode, and than sets its
 permission to 000. The two successive calls to the remote server cause the
 file to be created and empty without the 000 permission for a short period.
