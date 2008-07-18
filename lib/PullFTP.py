@@ -278,8 +278,8 @@ class PullFTP(object):
         except :
                  timex.cancel()
                  (type, value, tb) = sys.exc_info()
-                 self.logger.error("Unable to list directory %s on %s (user:%s). Type: %s, Value: %s" % \
-                                  (self.destDir,self.source.host, self.source.user, type ,value))
+                 self.logger.warning("Could not ls directory %s" % self.destDir)
+                 self.logger.warning(" Type: %s, Value: %s" % (type ,value))
 
         return False
 
@@ -398,8 +398,8 @@ class PullFTP(object):
                        timex.cancel()
                        files_notretrieved.append(remote_file)
                        (type, value, tb) = sys.exc_info()
-                       self.logger.error("Unable write remote file %s in local file %s. Type: %s, Value: %s" % \
-                                        (remote_file,local_file,type,value))
+                       self.logger.error("Unable write remote file %s in local file %s" % (remote_file,local_file))
+                       self.logger.error(" Type: %s, Value: %s" % (type ,value))
 
             # files not retrieved are removed from the file list
             # this allow pull to recover from error on next pass
@@ -635,8 +635,8 @@ class PullFTP(object):
         except :
                  timex.cancel()
                  (type, value, tb) = sys.exc_info()
-                 self.logger.error("Unable to list directory %s on %s (user:%s). Type: %s, Value: %s" % \
-                                  (self.destDir,self.source.host, self.source.user, type ,value))
+                 self.logger.warning("Could not ls directory %s" % self.destDir)
+                 self.logger.warning(" Type: %s, Value: %s" % (type ,value))
 
         return False
 

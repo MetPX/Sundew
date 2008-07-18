@@ -371,9 +371,9 @@ class SenderFTP(object):
            newfile = self.sftp.open( destName, mode='w' )
            self.sftp.chmod(destName, 0 )
            fileObject = open(file, 'r' )
-	   newfile.write(fileObject.read())
+           newfile.write(fileObject.read())
            fileObject.close()
-	   newfile.close()
+           newfile.close()
            self.sftp.chmod(destName, self.Ochmod)
 
         if self.ftp != None :
