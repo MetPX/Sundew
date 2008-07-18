@@ -24,7 +24,7 @@ install: build
 
 
 	# install the binary files in /usr/bin
-	for f in `find bin/ \( ! -regex '.*/\..*' \)`; \
+	for f in `find bin/ \( ! -regex '.*/\..*' \)` bin/.localRetrans; \
 	     do if [ -f $$f ]; then \
 	            install -m 755 $$f debian/metpx-sundew/usr/bin; \
 	        fi; \
@@ -77,7 +77,7 @@ install: build
 	done
 
 	# for etch, uncomment the next line
-	rm -rf debian/metpx-sundew/usr/lib/px/importedLibs
+	# rm -rf debian/metpx-sundew/usr/lib/px/importedLibs
 	
 	# Create the directories pxRoute and pxFreq under lib/px ??? 
 	install -d debian/metpx-sundew/usr/lib/px/pxFreq
