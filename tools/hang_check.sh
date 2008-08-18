@@ -4,6 +4,7 @@
 
    export LOG=/var/log/px
    export TXQ=/var/spool/px/txq
+   export TX=/etc/px/tx
 
    if [[ ! -z `echo $PXROOT` ]]; then
       export LOG=${PXROOT}/log
@@ -22,7 +23,13 @@ EOF
 
 # check for hanging senders : loop on all running senders
 
-   for sender in `px status | grep Sender | grep "is running" | awk '{print $2}'`; do
+   for sender in `ls $TX | grep '\.conf$' | sed 's/\.conf$//'`; do
+
+#      check if the sender is running
+
+       if [[ ! -f ${TXQ}/$sender/.lock ]] then
+          continue
+       fi
 
 #      get most recent file in queue
 
