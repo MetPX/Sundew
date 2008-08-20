@@ -326,6 +326,14 @@ class Client(object):
                        destFileName = sender.split('=')[1] 
                 elif spec == 'NONE':
                     # PDS behavior no time extension when NONE... remove it
+                    # extra trailing : removed if present SENDER too
+                    last = -1
+                    maybe = parts[-2]
+                    if maybe[:6] == 'SENDER' : last = -2
+                    destFileName = ':'.join(parts[:last])
+                    if destFileName[-1] == ':' : destFileName = destFileName[:-1]
+                elif spec == 'NONESENDER':
+                    # PDS behavior no time extension when NONE... remove it
                     # extra trailing : removed if present
                     destFileName = ':'.join(parts[:-1])
                     if destFileName[-1] == ':' : destFileName = destFileName[:-1]
