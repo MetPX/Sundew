@@ -44,6 +44,7 @@ class SenderFTP(object):
         self.client       = client       # Client Object
         self.cacheManager = cacheManager # cache  Object
         self.cacheMD5     = None         # last cache Object tested/added
+        self.partialfile  = None         # last cache Object tested/added
         if logger is None:
             self.logger = Logger(PXPaths.LOG + 'tx_' + client.name + '.log', 'INFO', 'TX' + name) # Enable logging
             self.logger = self.logger.getLogger()
@@ -334,8 +335,12 @@ class SenderFTP(object):
 
     # some systems do not permit deletion... so pass exception on that
     def rm(self, path):
-        try    : self.delete(path)
-        except : pass
+        try    :
+                 self.delete(path)
+        except : 
+                 (type, value, tb) = sys.exc_info()
+                 self.logger.debug("Could not delete %s" % path )
+                 self.logger.debug(" Type: %s, Value: %s" % (type ,value))
 
     # sending one file using lock extension method
     def send_lock(self, file, destName ):
@@ -349,10 +354,12 @@ class SenderFTP(object):
            self.sftp.put(file,destName)
 
         if self.ftp != None :
+           self.partialfile = tempName
            fileObject = open(file, 'r')
            self.ftp.storbinary("STOR " + tempName, fileObject)
            fileObject.close()
            self.ftp.rename(tempName, destName)
+           self.partialfile = destName
 
         self.perm(destName)
 
@@ -398,6 +405,8 @@ class SenderFTP(object):
         for filex in files:
 
             file = filex
+
+            self.partialfile = None
 
             # priority 0 is retransmission and is never suppressed
 
@@ -527,7 +536,9 @@ class SenderFTP(object):
                    # try to write the file to the client
                    try :
 
+                          self.partialfile = destName
                           self.send_file( file, destName )
+                          self.partialfile = None
                           os.unlink(file)
 
                           self.logger.info("(%i Bytes) File %s delivered to %s://%s@%s%s%s" % \
@@ -546,16 +557,15 @@ class SenderFTP(object):
                                            destDirString, destName, type, value))
     
                           # preventive delete when problem 
-                          timex.alarm(5)
-                          try     :
-                                    self.logger.warning("Trying preventive delete")
-                                    self.rm(destName)
-                                    if self.client.lock[0] == '.' :
-                                       self.rm(destName + self.client.lock)
-                          except : 
-                                    self.logger.warning("Preventive delete timed out")
+                          if self.partialfile != None :
+                             timex.alarm(5)
+                             try     :
+                                       self.logger.debug("Trying preventive delete")
+                                       self.rm(self.partialfile)
+                             except : 
+                                       self.logger.debug("Preventive delete timed out")
+                             timex.cancel()
 
-                          timex.cancel()
                           time.sleep(1)
                           return
 
