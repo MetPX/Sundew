@@ -539,16 +539,21 @@ class SenderFTP(object):
                              self.cacheManager.find( self.cacheMD5, 'standard' ) 
 
                    except:
+                          timex.cancel()
                           (type, value, tb) = sys.exc_info()
                           self.logger.error("Unable to deliver to %s://%s@%s%s%s, Type: %s, Value: %s" % 
                                            (self.client.protocol, self.client.user, self.client.host, \
                                            destDirString, destName, type, value))
     
                           # preventive delete when problem 
-                          self.logger.warning("Going through preventive delete")
-                          self.rm(destName)
-                          if self.client.lock[0] == '.' :
-                             self.rm(destName + self.client.lock)
+                          timex.alarm(5)
+                          try     :
+                                    self.logger.warning("Trying preventive delete")
+                                    self.rm(destName)
+                                    if self.client.lock[0] == '.' :
+                                       self.rm(destName + self.client.lock)
+                          except : 
+                                    self.logger.warning("Preventive delete timed out")
 
                           timex.cancel()
                           time.sleep(1)
