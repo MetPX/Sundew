@@ -85,9 +85,9 @@ EOF
           continue
        fi
 
-#      after 3 sec : check if file is sent
+#      after 10 sec : check if file is sent
 
-       sleep 3
+       sleep 10
        if [[ ! -f $file ]]; then
           continue
        fi
