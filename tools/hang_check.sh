@@ -9,6 +9,7 @@
    if [[ ! -z `echo $PXROOT` ]]; then
       export LOG=${PXROOT}/log
       export TXQ=${PXROOT}/txq
+      export TX=${PXROOT}/etc/tx
    fi
 
    export PATH=/apps/px/bin:$PATH
@@ -24,6 +25,12 @@ EOF
 # check for hanging senders : loop on all running senders
 
    for sender in `ls $TX | grep '\.conf$' | sed 's/\.conf$//'`; do
+
+#      RD suggested we don't do metser...
+
+       if [[ $sender == metser ]]; then
+          continue
+       fi
 
 #      check if the sender is running
 
