@@ -11,7 +11,7 @@ trx_names=`cd /apps/px/etc/trx; ls *.conf 2> /dev/null | grep '.conf$' | sed 's/
 
 for p in $rx_names $tx_names $fx_names $trx_names; do
 
-    NP=`cat $FILE | grep ' '$p' ' | grep -v grep | grep -v status | wc -l`;
+    NP=`cat $FILE | grep ' '$p' ' | grep -v grep | grep -v status | grep -v ftpd | wc -l`;
 
     if ((NP!=1)); then
        echo $p ' ' $NP
