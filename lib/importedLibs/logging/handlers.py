@@ -1,4 +1,4 @@
-# Copyright 2001-2004 by Vinay Sajip. All Rights Reserved.
+# Copyright 2001-2005 by Vinay Sajip. All Rights Reserved.
 #
 # Permission to use, copy, modify, and distribute this software and its
 # documentation for any purpose and without fee is hereby granted,
@@ -29,6 +29,11 @@ To use, simply 'import logging' and log away!
 
 import sys, logging, socket, types, os, string, cPickle, struct, time, glob
 
+try:
+    import codecs
+except ImportError:
+    codecs = None
+
 #
 # Some constants...
 #
@@ -39,17 +44,23 @@ DEFAULT_HTTP_LOGGING_PORT   = 9022
 DEFAULT_SOAP_LOGGING_PORT   = 9023
 SYSLOG_UDP_PORT             = 514
 
+_MIDNIGHT = 24 * 60 * 60  # number of seconds in a day
+
 class BaseRotatingHandler(logging.FileHandler):
     """
     Base class for handlers that rotate log files at a certain point.
     Not meant to be instantiated directly.  Instead, use RotatingFileHandler
     or TimedRotatingFileHandler.
     """
-    def __init__(self, filename, mode):
+    def __init__(self, filename, mode, encoding=None):
         """
         Use the specified filename for streamed logging
         """
-        logging.FileHandler.__init__(self, filename, mode)
+        if codecs is None:
+            encoding = None
+        logging.FileHandler.__init__(self, filename, mode, encoding)
+        self.mode = mode
+        self.encoding = encoding
 
     def emit(self, record):
         """
@@ -62,6 +73,8 @@ class BaseRotatingHandler(logging.FileHandler):
             if self.shouldRollover(record):
                 self.doRollover()
             logging.FileHandler.emit(self, record)
+        except (KeyboardInterrupt, SystemExit):
+            raise
         except:
             self.handleError(record)
 
@@ -70,7 +83,7 @@ class RotatingFileHandler(BaseRotatingHandler):
     Handler for logging to a set of files, which switches from one file
     to the next when the current file reaches a certain size.
     """
-    def __init__(self, filename, mode="a", maxBytes=0, backupCount=0):
+    def __init__(self, filename, mode='a', maxBytes=0, backupCount=0, encoding=None):
         """
         Open the specified file and use it as the stream for logging.
 
@@ -91,10 +104,9 @@ class RotatingFileHandler(BaseRotatingHandler):
 
         If maxBytes is zero, rollover never occurs.
         """
-        self.mode = mode
         if maxBytes > 0:
-            self.mode = "a" # doesn't make sense otherwise!
-        BaseRotatingHandler.__init__(self, filename, self.mode)
+            mode = 'a' # doesn't make sense otherwise!
+        BaseRotatingHandler.__init__(self, filename, mode, encoding)
         self.maxBytes = maxBytes
         self.backupCount = backupCount
 
@@ -118,7 +130,10 @@ class RotatingFileHandler(BaseRotatingHandler):
                 os.remove(dfn)
             os.rename(self.baseFilename, dfn)
             #print "%s -> %s" % (self.baseFilename, dfn)
-        self.stream = open(self.baseFilename, "w")
+        if self.encoding:
+            self.stream = codecs.open(self.baseFilename, 'w', self.encoding)
+        else:
+            self.stream = open(self.baseFilename, 'w')
 
     def shouldRollover(self, record):
         """
@@ -142,8 +157,8 @@ class TimedRotatingFileHandler(BaseRotatingHandler):
     If backupCount is > 0, when rollover is done, no more than backupCount
     files are kept - the oldest ones are deleted.
     """
-    def __init__(self, filename, when='h', interval=1, backupCount=0):
-        BaseRotatingHandler.__init__(self, filename, 'a')
+    def __init__(self, filename, when='h', interval=1, backupCount=0, encoding=None):
+        BaseRotatingHandler.__init__(self, filename, 'a', encoding)
         self.when = string.upper(when)
         self.backupCount = backupCount
         # Calculate the real rollover interval, which is just the number of
@@ -182,7 +197,7 @@ class TimedRotatingFileHandler(BaseRotatingHandler):
         else:
             raise ValueError("Invalid rollover interval specified: %s" % self.when)
 
-        self.interval *= interval # multiply by units requested
+        self.interval = self.interval * interval # multiply by units requested
         self.rolloverAt = currentTime + self.interval
 
         # If we are rolling over at midnight or weekly, then the interval is already known.
@@ -199,9 +214,8 @@ class TimedRotatingFileHandler(BaseRotatingHandler):
             currentMinute = t[4]
             currentSecond = t[5]
             # r is the number of seconds left between now and midnight
-            r = (24 - currentHour) * 60 * 60 # number of hours in seconds
-            r += (59 - currentMinute) * 60 # plus the number of minutes (in secs)
-            r += (59 - currentSecond) # plus the number of seconds
+            r = _MIDNIGHT - ((currentHour * 60 + currentMinute) * 60 +
+                    currentSecond)
             self.rolloverAt = currentTime + r
             # If we are rolling over on a certain day, add in the number of days until
             # the next rollover, but offset by 1 since we just calculated the time
@@ -219,10 +233,10 @@ class TimedRotatingFileHandler(BaseRotatingHandler):
                 day = t[6] # 0 is Monday
                 if day > self.dayOfWeek:
                     daysToWait = (day - self.dayOfWeek) - 1
-                    self.rolloverAt += (daysToWait * (60 * 60 * 24))
+                    self.rolloverAt = self.rolloverAt + (daysToWait * (60 * 60 * 24))
                 if day < self.dayOfWeek:
                     daysToWait = (6 - self.dayOfWeek) + day
-                    self.rolloverAt += (daysToWait * (60 * 60 * 24))
+                    self.rolloverAt = self.rolloverAt + (daysToWait * (60 * 60 * 24))
 
         #print "Will rollover at %d, %d seconds from now" % (self.rolloverAt, self.rolloverAt - currentTime)
 
@@ -262,8 +276,11 @@ class TimedRotatingFileHandler(BaseRotatingHandler):
                 s.sort()
                 os.remove(s[0])
         #print "%s -> %s" % (self.baseFilename, dfn)
-        self.stream = open(self.baseFilename, "w")
-        self.rolloverAt = int(time.time()) + self.interval
+        if self.encoding:
+            self.stream = codecs.open(self.baseFilename, 'w', self.encoding)
+        else:
+            self.stream = open(self.baseFilename, 'w')
+        self.rolloverAt = self.rolloverAt + self.interval
 
 class SocketHandler(logging.Handler):
     """
@@ -404,6 +421,8 @@ class SocketHandler(logging.Handler):
         try:
             s = self.makePickle(record)
             self.send(s)
+        except (KeyboardInterrupt, SystemExit):
+            raise
         except:
             self.handleError(record)
 
@@ -543,6 +562,18 @@ class SysLogHandler(logging.Handler):
         "local7":   LOG_LOCAL7,
         }
 
+    #The map below appears to be trivially lowercasing the key. However,
+    #there's more to it than meets the eye - in some locales, lowercasing
+    #gives unexpected results. See SF #1524081: in the Turkish locale,
+    #"INFO".lower() != "info"
+    priority_map = {
+        "DEBUG" : "debug",
+        "INFO" : "info",
+        "WARNING" : "warning",
+        "ERROR" : "error",
+        "CRITICAL" : "critical"
+    }
+
     def __init__(self, address=('localhost', SYSLOG_UDP_PORT), facility=LOG_USER):
         """
         Initialize a handler.
@@ -555,14 +586,7 @@ class SysLogHandler(logging.Handler):
         self.address = address
         self.facility = facility
         if type(address) == types.StringType:
-            self.socket = socket.socket(socket.AF_UNIX, socket.SOCK_DGRAM)
-            # syslog may require either DGRAM or STREAM sockets
-            try:
-                self.socket.connect(address)
-            except socket.error:
-                self.socket.close()
-                self.socket = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
-            self.socket.connect(address)
+            self._connect_unixsocket(address)
             self.unixsocket = 1
         else:
             self.socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -570,13 +594,23 @@ class SysLogHandler(logging.Handler):
 
         self.formatter = None
 
+    def _connect_unixsocket(self, address):
+        self.socket = socket.socket(socket.AF_UNIX, socket.SOCK_DGRAM)
+        # syslog may require either DGRAM or STREAM sockets
+        try:
+            self.socket.connect(address)
+        except socket.error:
+            self.socket.close()
+            self.socket = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+            self.socket.connect(address)
+
     # curious: when talking to the unix-domain '/dev/log' socket, a
     #   zero-terminator seems to be required.  this string is placed
     #   into a class variable so that it can be overridden if
     #   necessary.
     log_format_string = '<%d>%s\000'
 
-    def encodePriority (self, facility, priority):
+    def encodePriority(self, facility, priority):
         """
         Encode the facility and priority. You can pass in strings or
         integers - if strings are passed, the facility_names and
@@ -597,6 +631,16 @@ class SysLogHandler(logging.Handler):
             self.socket.close()
         logging.Handler.close(self)
 
+    def mapPriority(self, levelName):
+        """
+        Map a logging level name to a key in the priority_names map.
+        This is useful in two scenarios: when custom levels are being
+        used, and in the case where you can't do a straightforward
+        mapping by lowercasing the logging level name because of locale-
+        specific issues (see SF #1524081).
+        """
+        return self.priority_map.get(levelName, "warning")
+
     def emit(self, record):
         """
         Emit a record.
@@ -611,13 +655,19 @@ class SysLogHandler(logging.Handler):
         """
         msg = self.log_format_string % (
             self.encodePriority(self.facility,
-                                string.lower(record.levelname)),
-            msg)
+                                self.mapPriority(record.levelname)),
+                                msg)
         try:
             if self.unixsocket:
-                self.socket.send(msg)
+                try:
+                    self.socket.send(msg)
+                except socket.error:
+                    self._connect_unixsocket(self.address)
+                    self.socket.send(msg)
             else:
                 self.socket.sendto(msg, self.address)
+        except (KeyboardInterrupt, SystemExit):
+            raise
         except:
             self.handleError(record)
 
@@ -698,6 +748,8 @@ class SMTPHandler(logging.Handler):
                             formatdate(), msg)
             smtp.sendmail(self.fromaddr, self.toaddrs, msg)
             smtp.quit()
+        except (KeyboardInterrupt, SystemExit):
+            raise
         except:
             self.handleError(record)
 
@@ -783,6 +835,8 @@ class NTEventLogHandler(logging.Handler):
                 type = self.getEventType(record)
                 msg = self.format(record)
                 self._welu.ReportEvent(self.appname, id, cat, type, [msg])
+            except (KeyboardInterrupt, SystemExit):
+                raise
             except:
                 self.handleError(record)
 
@@ -833,7 +887,8 @@ class HTTPHandler(logging.Handler):
         """
         try:
             import httplib, urllib
-            h = httplib.HTTP(self.host)
+            host = self.host
+            h = httplib.HTTP(host)
             url = self.url
             data = urllib.urlencode(self.mapLogRecord(record))
             if self.method == "GET":
@@ -843,12 +898,22 @@ class HTTPHandler(logging.Handler):
                     sep = '?'
                 url = url + "%c%s" % (sep, data)
             h.putrequest(self.method, url)
+            # support multiple hosts on one IP address...
+            # need to strip optional :port from host, if present
+            i = string.find(host, ":")
+            if i >= 0:
+                host = host[:i]
+            h.putheader("Host", host)
             if self.method == "POST":
+                h.putheader("Content-type",
+                            "application/x-www-form-urlencoded")
                 h.putheader("Content-length", str(len(data)))
             h.endheaders()
             if self.method == "POST":
                 h.send(data)
             h.getreply()    #can't do anything with the result
+        except (KeyboardInterrupt, SystemExit):
+            raise
         except:
             self.handleError(record)
 
