@@ -325,18 +325,22 @@ class Client(object):
                     if sender[:6] == 'SENDER' : 
                        destFileName = sender.split('=')[1] 
                 elif spec == 'NONE':
-                    # PDS behavior no time extension when NONE... remove it
-                    # extra trailing : removed if present SENDER too
-                    last = -1
-                    maybe = parts[-2]
-                    if maybe[:6] == 'SENDER' : last = -2
-                    destFileName = ':'.join(parts[:last])
+                    # PX default behavior : keep 6 first fields
+                    destFileName = ':'.join(parts[:6])
+                    #  PDS default behavior  keep 5 first fields
+                    if len(parts[4]) != 1 : destFileName = ':'.join(parts[:5])
+                    # extra trailing : removed if present
                     if destFileName[-1] == ':' : destFileName = destFileName[:-1]
                 elif spec == 'NONESENDER':
-                    # PDS behavior no time extension when NONE... remove it
-                    # extra trailing : removed if present
-                    destFileName = ':'.join(parts[:-1])
+                    # same as NONE
+                    destFileName = ':'.join(parts[:6])
+                    if len(parts[4]) != 1 : destFileName = ':'.join(parts[:5])
                     if destFileName[-1] == ':' : destFileName = destFileName[:-1]
+                    # add SENDER if present
+                    sender = parts[6]
+                    if len(parts[4]) != 1 : sender = parts[5]
+                    if len(sender) > 6 and sender[:6] == 'SENDER' : 
+                       destFileName = destFileName + ':' + sender
                 elif re.compile('SATNET=.*').match(spec):
                     satnet = ':' + spec
                 elif re.compile('DESTFN=.*').match(spec):
