@@ -1,16 +1,48 @@
+
+---------------- Below are changes made up to version px-0-5-2 --------------------------------------
+
+2008-08 29   (MG)  several changes within the week of the operational implementations
+
+                   hang_check.sh avoid metser client (returned)
+                                  sleeping 10 secs before checking if file is sent is more causious
+                                  update paths used when PXROOT used
+                                  avoid using 'px status'
+                   check_unique   typo for fx path for configs
+                                  screen out ftpd processes
+
+                   Client.py      add sorting when validation is false
+                                  dont take for granted that there are 7 fields in filename
+
+                   Ingestor.py    filenaming standards enforced by truncating filename to 6 fields
+                                  bug fix when empty fields were filled in by its extension counterpart
+
+                   TAFParser.py   importedLibs and more in sys.path for several ways of implementing metpx
+
+                   SenderFTP.py   when there is a problem delivering a file... and we were not done with it
+                                  we try to delete the file on the remote site... this may hang so a timeout
+				  was put there.  Instead of trying to delete both the file and its .tmp for
+                                  example, a partialfile variable was defined and set to the filename 
+                                  currently processed... if something goes wrong... its the one to delete
+
+                   pxSender.1     revised
+
+		   postinst       added theses lines  chown px.px  /usr/lib/px
+		                                      chmod -R 755 /usr/lib/px
+
+
 2008-08-20   (MG)  Client, filename NONE fixed (dont keep SENDER part if provided)
                            filename NONESENDER like NONE except keep SENDER if provided
 
 2008-07-18   (MG)  debian/postins : when the package is installed, 
                    if PXHOME/etc doesn't exists a link is done to create
-		   it with /etc/px (requiered by DL)
+                   it with /etc/px (requiered by DL)
 
-		   PullFTP  when lsdir goes wrong simply warn instead of error
-		   for both ftp and sftp
+                   PullFTP  when lsdir goes wrong simply warn instead of error
+                   for both ftp and sftp
 
-		   Documentation revised
+                   Documentation revised
 
-		   debian/rules revised to keep file .localRetrans in bin
+                   debian/rules revised to keep file .localRetrans in bin
 
 2008-07-17   (MG)  SenderFTP :  SFTP protocol supports umask...
                    The trick being the file is opened in w mode,
