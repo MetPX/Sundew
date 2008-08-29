@@ -108,13 +108,7 @@ destfn_script must end with the line :
 .fi
 where the module is a valid python module having 1 argument : ipath.
 ipath is the path of the incoming file to rename at destination.
-The module must return one of the 2 following : 
-.nf
-
-        opath         return the destination filename
-        None          keep the filename as is
-
-.fi
+The module must return a valid none empty string.
 .TP
 \fBdx_script script (default:None)\fR
 For AM type senders, one can define a script to create derived products.  The script must be in python and reside in $PXROOT/etc/scripts. The dx_script must end with the line :
