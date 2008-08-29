@@ -254,8 +254,8 @@ class Client(object):
                 except:
                     self.logger.error("Problem with this line (%s) in configuration file of client %s" % (words, self.name))
 
-        if not self.validation:
-            self.sorter = 'None'    # Must be a string because eval will be subsequently applied to this
+        #if not self.validation:
+        #    self.sorter = 'None'    # Must be a string because eval will be subsequently applied to this
 
         config.close()
     
