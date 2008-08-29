@@ -2,8 +2,12 @@
 
 set -e
 
+PXETC=/etc/px
+PXLIB=/usr/lib/px
 PXLOG=/var/log/px
 PXSPOOL=/var/spool/px
+
+PXHOME=`cat /etc/passwd | grep '^px:' | cut -d: -f6`
 
 if [ -d $PXLOG ]; then
     chown px:px $PXLOG
@@ -11,6 +15,24 @@ fi
 
 if [ -d $PXSPOOL ]; then
     chown px:px $PXSPOOL
+fi
+
+if [ -d $PXETC ]; then
+    chown px:px $PXETC
+
+    # Daniel requiered this...
+    if [ ! -d $PXHOME/etc -a ! -L $PXHOME/etc ]; then
+        ln -s $PXETC $PXHOME/etc
+        chown px:px $PXHOME/etc
+    fi
+fi
+
+# without this : serious performance issue
+# perhaps we should generate the .pyc .pyo instead...
+
+if [ -d $PXLIB ]; then
+    chown -R px:px $PXLIB
+    chmod -R 755   $PXLIB
 fi
 
 case "$1" in
