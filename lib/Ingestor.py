@@ -118,9 +118,15 @@ class Ingestor(object):
         receptionNameParts = receptionName.split(':')
         extensionParts = self.source.extension.split(':')
 
+        if len(receptionNameParts) > 6 :
+           receptionNameParts = receptionNameParts[:6]
+           self.logger.warning("File %s truncated to %s" % (receptionName,':'.join(receptionNameParts) ) )
+
         for i in range(1,6):
-            if len(receptionNameParts) == i or receptionNameParts[i] == '':
-                receptionNameParts = receptionNameParts + [extensionParts[i]]
+            if len(receptionNameParts) == i :
+                 receptionNameParts = receptionNameParts + [extensionParts[i]]
+            elif receptionNameParts[i] == '':
+                 receptionNameParts[i] = extensionParts[i]
         receptionNameParts = receptionNameParts + [time.strftime("%Y%m%d%H%M%S", time.gmtime())]
         return string.join(receptionNameParts,':')
 
