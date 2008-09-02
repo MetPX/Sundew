@@ -770,7 +770,8 @@ class PXRetrans(object):
         if self.frontend:
             (self.options, self.args) = self.parser.parse_args(['-i', 'True', '--scp', self.hostname])
         else:
-            (self.options, self.args) = self.parser.parse_args(['-i', 'True'])
+            (self.options, self.args) = self.parser.parse_args(['-i', 'True', '--scp', self.hostname])
+            #(self.options, self.args) = self.parser.parse_args(['-i', 'True'])
             
         self.newValues = True
         self.matchingFile = ""
