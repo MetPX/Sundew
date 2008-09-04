@@ -16,22 +16,37 @@ named COPYING in the root of the source directory tree.
 #
 #############################################################################################
 """
-import sys
+import sys, commands
 import fileLib
 
 DSH_ROOT = "/etc/dsh/"
 DSH_GROUP = DSH_ROOT + "group/"
 
 def getMachines(group):
-    #machines = [machine.strip() for machine in fileLib.getLines(DSH_GROUP + group)]
+    if group == 'pxatx':
+        try:
+            command = 'ssh pds@pxatx hostname'
+            hostname = commands.getoutput(command)
+        except:
+            hostname = None
+
+        if hostname: machines = [hostname]
+        else: machines = []
+
+    else:
+        try:
+            machines = [machine.strip() for machine in fileLib.getLines(DSH_GROUP + group)]
+        except:
+            machines = []
+    return machines
+    """
     #return machines or ['userver1-new', 'userver2-new']
     machines = []
     if group.lower() == 'pxatx':
         machines = ['pxatx']
     elif group.lower() in ['px', 'userver', 'userv']:
         machines = ['userver1-new', 'userver2-new']
-
-    return machines
+    """
 
 if __name__ == '__main__':
     print getMachines("px")
