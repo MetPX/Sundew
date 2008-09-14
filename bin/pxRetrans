@@ -395,6 +395,15 @@ class PXRetrans(object):
         self.retrans(numbers)
 
     def retrans(self, numbers):
+        
+        if len(numbers) >= 10: # FIXME: This number should be configurable (px.conf)
+            question = "%(rtxBigNumberOfFiles)s" %  self.lang % len(numbers)
+            answer = raw_input(question)
+            if answer in ['y', 'Y', 'yes', 'YES', 'o', 'O', 'oui', 'OUI']:
+                pass
+            else:
+                return
+
         #print numbers
         numLines = fileLib.getNumLines(self.matchingFile)
         numFigures = len(str(numLines))

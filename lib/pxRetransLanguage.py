@@ -88,6 +88,7 @@ english = {
 'noResults':'No results',
 'searchOnXMachines':'Search on cluster %s (%i machine(s)): %s',
 'onlyAvailableOnFrontend':"This function is only available on frontends",
+'rtxBigNumberOfFiles':"Are you sure you want to retransmit %s files (y/n)? ",
 
 # Errors
 'flowTypeNone': 'Flow type is None: probably means that no configuration\n\
@@ -102,6 +103,7 @@ You will have to check in the client's log (%s)",
 'commandNotAvailable': "This command is not available on a backend (use %s instead)",
 'possibleProblemWithFilename': "Unable to construct DB path from: %s\n\
 Probably a problem with filename's syntax.",
+'cannotRunShellCommand': "You cannot run a shell command!",
 }
 
 
@@ -182,6 +184,7 @@ french = {
 'noResults':'Aucun resultat',
 'searchOnXMachines':'Recherche sur la grappe %s (%i machine(s)): %s',
 'onlyAvailableOnFrontend':"Cette fonction n'est disponible que sur les 'frontends'",
+'rtxBigNumberOfFiles':"Etes-vous sur de vouloir retransmettre %s fichiers (o/n)? ",
 
 # Errors
 'flowTypeNone': "Le type du flot est None: signifie probablement qu'il n'existe pas\n\
@@ -196,4 +199,5 @@ Vous allez devoir verifier dans le log du client (%s)",
 'commandNotAvailable': "Cette commande n'est pas disponible sur un backend (utilisez %s a la place)",
 'possibleProblemWithFilename': 'Incapable de construire le chemin a la base de donnees a partir de: %s\n\
 Probablement un probleme avec la syntaxe du nom de fichier.',
+'cannotRunShellCommand': "Vous ne pouvez pas executer une commande shell",
 }
