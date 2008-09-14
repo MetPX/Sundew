@@ -222,6 +222,10 @@ class PXRetrans(object):
 
     def runShellCommand(self, options, command):
         #print "We are in runShellCommand"
+        if os.environ['HOME'] == '/home/operator':
+            print "%(cannotRunShellCommand)s" % self.lang
+            return
+
         status, output = commands.getstatusoutput(command)
         print output
 
@@ -662,11 +666,16 @@ class PXRetrans(object):
         keys = options.__dict__.keys()
         keys.sort()
         #print keys
-        for key in ['span', 'offset', 'startDate', 'endDate', 'regex', 'prio']:
+        for key in ['span', 'offset', 'startDate', 'endDate']:
             print "%s:%s " % (key, options.__dict__[key]),
         print
 
-        for key in ['inter', 'scp', 'clients', 'group']: # ['sources', 'clients', 'scp', 'group']:
+        if self.debug:
+            keys = ['clients', 'group', 'regex', 'prio', 'scp', 'inter']
+        else:
+            keys = ['clients', 'group', 'regex', 'prio']
+
+        for key in keys:
             print "%s:%s " % (key, options.__dict__[key]),
         print
 
