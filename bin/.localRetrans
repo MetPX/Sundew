@@ -67,19 +67,19 @@ if __name__ == '__main__':
     PXPaths.normalPaths() 
     pxm = PXManager()
     pxm.initNames()
-    filename, client, prio = sys.argv[1:]
+    filename, client, prio, number = sys.argv[1:]
     #print filename, client, prio
 
     flowType, flowNames = pxm.getFlowType(client)
 
     if flowType == None:
         print "%(flowTypeNone)s" % lang % (client, os.uname()[1])
-        print filename  + " %(notRetransmitted)s\n" % lang
+        print "%s) " % number + filename  + " %(notRetransmitted)s\n" % lang
         sys.exit()
 
     dbName = pxm.getDBName(filename)
     if not dbName:
-    	print "%(possibleProblemWithFilename)s" % lang % (filename)
+    	print "%s) " % number + "%(possibleProblemWithFilename)s" % lang % (filename)
 	sys.exit()
 
     queueName =  pxm.getFlowQueueName(flow=client, drp=None, filename=filename, priority=prio)
@@ -96,10 +96,10 @@ if __name__ == '__main__':
 
     try:
         os.link(dbName, queueName)
-        print"%(copyDBNameInQueueName)s" % lang % (os.uname()[1], dbName, queueName)
+        print "%s) " % number + "%(copyDBNameInQueueName)s" % lang % (os.uname()[1], dbName, queueName)
     except OSError:
         (type, value, tb) = sys.exc_info()
-        print"%(cannotCopyDBNameInQueueName)s " % lang + "(Type: %s, Value: %s)" % (type, value)
+        print"%s) " % number + "%(cannotCopyDBNameInQueueName)s " % lang + "(Type: %s, Value: %s)" % (type, value)
         print "%s:%s" % (os.uname()[1], dbName)
         print "%s:%s" % (os.uname()[1], queueName)
         print
@@ -109,10 +109,12 @@ if __name__ == '__main__':
         time.sleep(timeout)
         if os.path.isfile(queueName):
             print "%(fileStillInClientQueue)s" % lang % (timeout, os.uname()[1] + ":" + logName) 
+            #print "%s) " % number + "%(fileStillInClientQueue)s" % lang % (timeout, os.uname()[1] + ":" + logName) 
             print
         else:
             output = commands.getoutput("grep %s %s | tail -n1" % (os.path.basename(queueName), logName))
             print output
+            #print "%s) " % number + output
             print
 
     else:

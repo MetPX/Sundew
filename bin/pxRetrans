@@ -418,7 +418,7 @@ class PXRetrans(object):
                 #print "%%%is) %%s %%%%(forClient)s %%s" % numFigures % (number, lines[number-1].strip(), client) % self.lang
                 date, hour, fullPath, machine = lines[number-1].strip().split()
                 filename = os.path.basename(fullPath)
-                command = ".localRetrans %s %s %s" % (filename, client, self.options.prio)
+                command = ".localRetrans %s %s %s %s" % (filename, client, self.options.prio, number)
                 output = commands.getoutput("ssh %s %s@%s %s" % (self.fePrivKeyArg, self.beUser, machine, command))
                 print output
 
