@@ -36,14 +36,17 @@ class Bufr:
            self.valid    =  False
            return
 
-        self.section0()
-        self.checkEOB()
-        self.section1()
+        try    :
+                 self.section0()
+                 if self.valid == False : return
+                 self.checkEOB()
+                 if self.valid == False : return
+                 self.section1()
+                 if self.valid == False : return
+                 self.observation_date()
 
-        self.observation_date()
-
-        if self.valid == False : return
-
+        except :
+                 self.valid = False
 
     def checkEOB(self):
         """check that the end is ok and return its position
