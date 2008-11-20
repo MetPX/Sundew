@@ -77,7 +77,9 @@ class senderAMQP:
 
       while True:
          try:
-              self.connection = amqp.Connection(self.client.host, userid=self.client.user, password=self.client.passwd, ssl=self.ssl)
+              host = self.client.host
+	      if self.client.port != None : host = host + ':' + self.client.port
+              self.connection = amqp.Connection(host, userid=self.client.user, password=self.client.passwd, ssl=self.ssl)
               self.channel    = self.connection.channel()
 
               self.logger.info("AMQP Sender is now connected to: %s" % str(self.client.host))
