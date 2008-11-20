@@ -17,7 +17,7 @@ named COPYING in the root of the source directory tree.
 #############################################################################################
 
 """
-import urlparse
+import urlparse,string
 
 
 class URLParser:
@@ -28,8 +28,10 @@ class URLParser:
         # Sample socket url: am://pxatx-priv.cmc.ec.gc.ca:24901
         # Sample socket url: amis://pxatx-priv.cmc.ec.gc.ca:24901
         # Sample file url  : file://localhost/apps/px/operator
-        self.url = url
+	self.url = url
+	if self.url[:4] == 'amqp' : url = url.replace('amqp','ftp')
         self.protocol, self.netloc, self.path, self.param, self.query, self.frag = urlparse.urlparse(url)
+        if self.url[:4] == 'amqp' : self.protocol = 'amqp'
         self.user = None
         self.passwd = None
         self.host = None
@@ -38,6 +40,11 @@ class URLParser:
     def parse(self):
         if self.protocol == 'ftp':
             # Sample ftp netloc: user:passwd@px-op.cmc.ec.gc.ca
+            (self.user, rest) = self.netloc.split(':')
+            (self.passwd, self.host) = rest.split('@')
+        elif self.protocol == 'amqp':
+            # Sample ftp netloc: user:passwd@px-op.cmc.ec.gc.ca
+            print self.netloc
             (self.user, rest) = self.netloc.split(':')
             (self.passwd, self.host) = rest.split('@')
         elif self.protocol in ['am', 'wmo', 'amis']:
@@ -52,6 +59,8 @@ class URLParser:
             
     def join(protocol, path, user, passwd, host, port):
         if protocol == 'ftp':
+            url = '%s://%s:%s@%s%s' % (protocol, user, passwd, host, path)
+        elif protocol == 'amqp':
             url = '%s://%s:%s@%s%s' % (protocol, user, passwd, host, path)
         elif protocol == 'file':
             url = '%s://%s%s' % (protocol, host, path)
@@ -80,6 +89,7 @@ if __name__ == '__main__':
     #parser = URLParser('am://pxatx-priv.cmc.ec.gc.ca:24901')
     #parser = URLParser('amis://pxatx-priv.cmc.ec.gc.ca:24901')
     #parser = URLParser('file://localhost//apps/px/operator')
+    parser = URLParser('amqp://guest:guest@grogne.cmc.ec.gc.ca//data')
 
     print parser.parse()
     print 
