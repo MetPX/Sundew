@@ -1,4 +1,11 @@
 
+2008-11 20   (MG)  senderAMQP.py   added to the package
+
+2008-11 ??   (MG)  Grib.py         added a try/except around some grib
+                                   decoding that were causing "traceback"
+                                   messages in the logs without stopping the
+                                   application
+
 ---------------- Below are changes made up to version px-0-5-2 --------------------------------------
 
 2008-08 29   (MG)  several changes within the week of the operational implementations
