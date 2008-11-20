@@ -65,6 +65,9 @@ open/write a socket using Alpha Manager (AM) protocol (Environment Canada propri
 \fBamis\fR
 open/write a socket using AES Meteorological Information System (AMIS) protocol (Environment Canada proprietary.) The output data are bulletins.
 .TP
+\fBamqp\fR
+open/write a socket using Advanced Message Queing Protocol. For the moment, its supports exclusively bulletins but there is no constraint on the message's content and other file types could be supported in the future.
+.TP
 \fBwmo\fR
 open/write a socket using WMO protocol. The output data are bulletins.
 .TP
@@ -93,6 +96,7 @@ To declare or set an option you simply use one of these form (depending on the o
 This option defines the sender type... keyword is one of:
     am              - AM   protocol socket
     amis            - AMIS protocol socket
+    amqp            - AMQP protocol socket
     wmo             - WMO  protocol socket
     single-file     - user defined the protocol to use for delevery (Ex.FTP)
 .fi
@@ -248,16 +252,17 @@ is exactly equivalent to
 The maximum number of files to be sent/written in one polling cycle. 
 
 .fi
-.SH TYPE AM/AMIS/WMO SPECIFIC OPTIONS
+.SH TYPE AM/AMIS/AMQP/WMO SPECIFIC OPTIONS
 .TP
 \fBmaxLength integer\fR
 maximum length in bytes of a bulletin to be sent. If the bulletin's length exceeds
-this limit, it is segmented before being sent.
+this limit, it is segmented before being sent. (does not apply to AMQP)
 .nf
 
          AM's   default maxLength is 32768
          AMIS's default maxLength is 14000
          WMO's  default maxLength is 500000
+         AMQP   unknown
 
 .fi
 .TP
@@ -276,13 +281,23 @@ A valid usage example could be :
        am_dest_thread * 255
 
 .fi
-.SH TYPE SINGLE-FILE SPECIFIC OPTIONS
+.SH TYPE SINGLE-FILE SPECIFIC OPTIONS (see note)
+.nf
+
+.fi
+.TP
+\fB*** Nota Bene: amqp protocol \fR
+When using a sender of type amqp, a subset of the single-file options are used.
+Options that relate to the authentication (protocol,host,user,password,port) are
+used. The directory option defines the realm (URL declaration of the directory
+can set them all... see the directory option)
+
 .TP
 \fBprotocol name (Default: ftp )\fR
-The following protocols are supported :  file, ftp and sftp.
+The following protocols are supported :  file, ftp, and sftp.
 The ftp and sftp protocols are use to send file on a remote host.
 They require the use of options host, user, password, directory
-(sftp also supports user defined port number through the port option).
+(sftp and amqp also support user defined port number through the port option).
 If there is only one directory the option destination can replace
 the others.  When using sftp the option key_file must be provided.
 
@@ -312,6 +327,7 @@ for the username given by the user option.
 .TP
 \fBdirectory dir (Default:'.')\fR
 defines the directory where the files are going to be sent
+When amqp is used the directory corresponds to the realm.
 .nf
       directory //absolute/directory
       directory /relative/directory
@@ -320,7 +336,8 @@ defines the directory where the files are going to be sent
 .TP
 \fBfilename keyword (default: WHATFN)\fR
 A filename in Metpx is a five fields strings separted by four colons.
-The option filename defines the remote host's filename.
+The option filename defines the remote host's filename. (This option 
+is not used when protocol is amqp).
 The following keywords are valid
 .nf
       WHATFN      the first part of the metpx filename (string before first :)
@@ -356,6 +373,10 @@ Ex. :
 
 .fi
 .TP
+\fBThe remainig of the file options is irrelevant to the amqp protocol\fR
+-------------------------------------------------------------------
+
+.TP
 \fBftp_mode mode (Default: passive )\fR
 the ftp mode is either \fBactive\fR or \fBpassive\fR.
 
@@ -367,8 +388,9 @@ This option defines the permission given to the file when completely delivered.
 \fBlock string (default: .tmp)\fR
 .nf
 This option should be set in agreement with the manager of the remote host to which
-files are being delivered. It is used to prevent the remote system from picking up the 
-product while transfer is in progress.  There are two ways to use this option.
+files are being delivered (irrelevant for amqp). It is used to prevent the remote
+system from picking up the product while transfer is in progress.  There are two 
+ways to use this option.
 
 Usualy the \fBlock\fR option defines a suffix given to the file during transfer.
 When the file is completely transfered, the suffix is removed by renaming the file.
