@@ -290,6 +290,9 @@ class Source(object):
                         (self.protocol, currentDir, self.user, self.passwd, self.host, self.port) =  urlParser.parse()
                         if len(words) > 2:
                             currentFileOption = words[2]
+                        currentLST = []
+                        currentLST.append( currentDir )
+                        self.pulls.append( currentLST )
                     elif words[0] == 'protocol': self.protocol = words[1]
                     elif words[0] == 'host': self.host = words[1]
                     elif words[0] == 'user': self.user = words[1]

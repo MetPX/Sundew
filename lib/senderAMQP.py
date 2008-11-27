@@ -78,7 +78,7 @@ class senderAMQP:
       while True:
          try:
               host = self.client.host
-	      if self.client.port != None : host = host + ':' + self.client.port
+              if self.client.port != None : host = host + ':' + self.client.port
               self.connection = amqp.Connection(host, userid=self.client.user, password=self.client.passwd, ssl=self.ssl)
               self.channel    = self.connection.channel()
 
@@ -139,8 +139,8 @@ class senderAMQP:
                 self.logger.info('No destination name: %s has been erased' % path)
                 continue
 
-	     self.realm = destDir
-	     if destDir[:2] == '//': self.realm = destDir[1:]
+             self.realm = destDir
+             if destDir[:2] == '//': self.realm = destDir[1:]
 
              try :
                     self.channel.access_request(self.realm, active=True, write=True)

@@ -28,8 +28,8 @@ class URLParser:
         # Sample socket url: am://pxatx-priv.cmc.ec.gc.ca:24901
         # Sample socket url: amis://pxatx-priv.cmc.ec.gc.ca:24901
         # Sample file url  : file://localhost/apps/px/operator
-	self.url = url
-	if self.url[:4] == 'amqp' : url = url.replace('amqp','ftp')
+        self.url = url
+        if self.url[:4] == 'amqp' : url = url.replace('amqp','ftp')
         self.protocol, self.netloc, self.path, self.param, self.query, self.frag = urlparse.urlparse(url)
         if self.url[:4] == 'amqp' : self.protocol = 'amqp'
         self.user = None
