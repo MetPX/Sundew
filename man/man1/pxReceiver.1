@@ -52,6 +52,10 @@ The possible type are :
 \fBam\fR
 open/read a socket using the Alpha Manager (AM) protocol (Environment Canada proprietary). The incoming data are bulletins.
 .TP
+\fBamqp\fR
+open/read a socket using the Advanced Messaging Queue Protocol (AMQP). The incoming data are bulletins.
+.TP
+.TP
 \fBwmo\fR
 open/read a socket using WMO protocol. The incoming data are bulletins.
 .TP
@@ -87,6 +91,7 @@ To declare or set an option you simply use one of these form (depending on the o
 .nf
 This option defines the type of the receiver... keyword is one of
     am              - receive and ingest bulletins using AM  protocol through a socket
+    amqp            - receive and ingest bulletins using AMQP protocol 
     wmo             - receive and ingest bulletins using WMO protocol through a socket
     bulletin-file   - receive and ingest files that contain bulletin
     collector       - receive files that contain bulletin, create and ingest collections
@@ -224,6 +229,17 @@ The header is of the form: "AAXX jjhh4\\n".
 .TP
 \fBkeepAlive boolean (Default:True)\fR
 This option set the unix socket option SO_KEEPALIVE to the value of that option
+
+.SH TYPE AMQP SPECIFIC OPTIONS
+.TP
+\fBdestination url (Default: None )\fR
+\fBurl\fR stands for Uniform Resource Locator and can be used to designate where
+the amqp receiver should connect to.
+.nf
+The url syntax is   ampq://user:password@remotehost//realm
+Ex. :
+       destination amqp://guest:totospw@rabbitmqhost//data
+.fi
 
 .SH TYPE WMO SPECIFIC OPTIONS
 .TP
