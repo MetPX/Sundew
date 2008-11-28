@@ -78,11 +78,16 @@ if __name__ == '__main__':
     # to start px as root
     if os.getuid() == 0:
         try:
-            pdsUID = pwd.getpwnam("pds")[2]
-            os.setuid(pdsUID)
+            pxUID = pwd.getpwnam("pds")[2]
+            os.setuid(pxUID)
         except:
-            print "No pds user on this machine. Don't start as root!"
+          try:
+            pxUID = pwd.getpwnam("px")[2]
+            os.setuid(pxUID)
+          except:
+            print "No pds or px user on this machine. Don't start as root!"
             sys.exit(2)
+
     
     usage =  """%prog [client] (start|stop|restart|reload|status)\n
 example 1: %prog cmc start   => will start cmc client

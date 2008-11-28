@@ -67,19 +67,23 @@ PXPaths.normalPaths()
 if __name__ == '__main__':
     # We want this program to run under pds user
     #if not os.getuid() ==  pwd.getpwnam('pds')[2]:
-    #    pdsUID = pwd.getpwnam("pds")[2]
-    #    os.setuid(pdsUID)
+    #    pxUID = pwd.getpwnam("pds")[2]
+    #    os.setuid(pxUID)
     
     # Only if run as root, we will try to change the user
     # id to pds user. It's because at reboot time init try 
     # to start px as root
     if os.getuid() == 0:
         try: 
-            pdsUID = pwd.getpwnam("pds")[2]
-            os.setuid(pdsUID)
+            pxUID = pwd.getpwnam("pds")[2]
+            os.setuid(pxUID)
         except:
-            print "No pds user on this machine. Don't start as root!"
-            sys.exit(2)
+            try:
+               pxUID = pwd.getpwnam("px")[2]
+               os.setuid(pxUID)
+            except:
+               print "No pds or px user on this machine. Don't start as root!"
+               sys.exit(2)
     
     usage =  """%prog [filter] (start|stop|restart|reload|status)\n
 example 1: %prog cmc start   => will start cmc filter

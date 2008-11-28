@@ -88,7 +88,7 @@ if os.getuid() == 0:
            pdsUID = pwd.getpwnam("pds")[2]
            os.setuid(pdsUID)
        except:
-           print "No pds user on this machine. Don't start as root!"
+           print "No pds or px user on this machine. Don't start as root!"
            sys.exit(2)
 
 # Two arguments must be supplied (source and command)
