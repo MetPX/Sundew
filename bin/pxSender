@@ -154,6 +154,10 @@ example 2: %prog start       => will start all clients
         import senderAMIS
         gateway = senderAMIS.senderAMIS(client, logger)
         gateway.setIgniter(igniter)
+    elif client.type == 'amqp':
+        import senderAMQP
+        gateway = senderAMQP.senderAMQP(client, logger)
+        gateway.setIgniter(igniter)
         igniter.setGateway(gateway)
     elif client.type == 'script':
         from MultiKeysStringSorter import MultiKeysStringSorter
