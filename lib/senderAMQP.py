@@ -152,7 +152,8 @@ class senderAMQP:
 
                     hdr = {'T1T2A1A2ii': pts[0], 'CCCC': pts[1]}
                     msg = amqp.Message(msg_body, content_type='text/plain', application_headers=hdr)
-                    self.channel.basic_publish(msg, 'myfan')
+                    routing_key = pts[0] + '_' + pts[1]
+                    self.channel.basic_publish(msg, 'myfan', routing_key )
 
                     self.logger.info("(%i Bytes) Bulletin %s  delivered" % (nbBytesSent, basename))
                     self.unlink_file( path )
