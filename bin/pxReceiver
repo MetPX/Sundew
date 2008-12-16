@@ -137,7 +137,7 @@ example 2: %prog start       => will start all sources
         import receiverAm
         gateway = receiverAm.receiverAm('/dev/null', source, logger)
         igniter.setGateway(gateway)
-    if source.type == 'amqp':
+    elif source.type == 'amqp':
         import receiverAmqp
         gateway = receiverAmqp.receiverAmqp('/dev/null', source, logger)
         igniter.setGateway(gateway)
