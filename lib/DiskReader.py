@@ -45,7 +45,9 @@ class _DirIterator(object):
             if self.deep and os.path.isdir(r):
                 self._files += [join(d,n) for n in os.listdir(r)]
         elif self._files is None:
-            self._files = [join(self._root,n) for n in os.listdir(self._root)]
+            r = self._root
+            try    : self._files = [join(r,n) for n in os.listdir(r)]
+            except : self._files = []
         if self._files:
             return self._files[-1]
         else:
