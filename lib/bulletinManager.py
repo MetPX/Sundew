@@ -12,7 +12,7 @@ import math, re, string, os, bulletinPlain, traceback, sys, time
 import PXPaths
 
 from DirectRoutingParser import DirectRoutingParser
-import wmoid
+from wmoid import wmoid
 import bulletinAm
 import bulletinWmo
 
@@ -88,8 +88,10 @@ class bulletinManager:
         self.source = source
         self.addStationInFilename = addStationInFilename
 
-        self.wmo_id = wmoid(self.logger).parse()
-
+        self.wmo_id = []
+        wmo = wmoid(self.logger)
+        self.wmo_id = wmo.parse()
+        self.logger.warning("wmo id = %s"%self.wmo_id)
 
         # FIXME: this should be read from a config file, haven't understood enough yet.
         self.compteur = 0
