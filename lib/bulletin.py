@@ -30,7 +30,7 @@ class bulletin:
 
     """
 
-    def __init__(self,stringBulletin,logger,lineSeparator='\n',finalLineSeparator='\n'):
+    def __init__(self,stringBulletin,logger,lineSeparator='\n',finalLineSeparator='\n',wmo_id=[]):
         """The AHL of a bulletin is checked during instantiation.  To skip the check,
         override verifyHeader in a derived class.
 
@@ -71,6 +71,7 @@ class bulletin:
         self.lineSeparator = lineSeparator
         self.finalLineSeparator = finalLineSeparator
         self.dataType = None
+        self.wmo_id = wmo_id
 
         # time stuff
         self.arrival     = None
@@ -368,7 +369,8 @@ class bulletin:
                    else :
                       station = None
 
-            elif bulletin[0][0:6] in ["SRCN40","SXCN40","SRMT60","SXAK50", "SRND20", "SRND30"]:
+            #elif bulletin[0][0:6] in ["SRCN40","SXCN40","SRMT60","SXAK50", "SRND20", "SRND30"]:
+            elif bulletin[0][0:6] in self.wmo_id:
                 station = premiereLignePleine.split()[0]
 
             elif bulletin[0][0:2] in ["FC","FT"]:
