@@ -16,7 +16,7 @@ import os, os.path, sys
 
 import PXPaths
 
-class wmoid():
+class wmoid:
 
     def __init__(self, logger ):
         self.logger = logger
