@@ -21,8 +21,8 @@ class bulletinWmo(bulletin.bulletin):
 
     """
 
-    def __init__(self,stringBulletin,logger,lineSeparator='\n',finalLineSeparator='\n'):
-        bulletin.bulletin.__init__(self,stringBulletin,logger,lineSeparator,finalLineSeparator)
+    def __init__(self,stringBulletin,logger,lineSeparator='\n',finalLineSeparator='\n',wmo_id=[]):
+        bulletin.bulletin.__init__(self,stringBulletin,logger,lineSeparator,finalLineSeparator,wmo_id)
 
     def doSpecificProcessing(self):
         """doSpecificProcessing()
