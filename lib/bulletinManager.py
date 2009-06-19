@@ -12,6 +12,7 @@ import math, re, string, os, bulletinPlain, traceback, sys, time
 import PXPaths
 
 from DirectRoutingParser import DirectRoutingParser
+import wmoid
 import bulletinAm
 import bulletinWmo
 
@@ -81,10 +82,14 @@ class bulletinManager:
         self.pathSource = self.__normalizePath(pathSource)
         self.maxCompteur = maxCompteur
         self.lineSeparator = lineSeparator
+        self.finalLineSeparator = '\n'
         self.extension = extension
         self.mapEnteteDelai = mapEnteteDelai
         self.source = source
         self.addStationInFilename = addStationInFilename
+
+        self.wmo_id = wmoid(self.logger).parse()
+
 
         # FIXME: this should be read from a config file, haven't understood enough yet.
         self.compteur = 0
@@ -98,7 +103,6 @@ class bulletinManager:
         self.drp = DirectRoutingParser(pathFichierCircuit, self.source.ingestor.allNames, logger)
         self.drp.parse()
         #self.drp.logInfos()
-
 
     def effacerFichier(self,nomFichier):
         try:
@@ -332,7 +336,7 @@ class bulletinManager:
            if station == None       : station = ''
            if not station.isalnum() : station = ''
            if not self.addStationInFilename:
-              if not (bulletin.getHeader())[:6] in ["SRCN40","SXCN40","SRMT60","SXAK50", "SRND20", "SRND30"] : station = ''
+              if not (bulletin.getHeader())[:6] in self.wmo_id : station = ''
            
         # adding a counter to the file name insure its uniqueness
 
