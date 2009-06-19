@@ -240,7 +240,11 @@ class PullFTP(object):
                 ftp.set_pasv(False)
             else:
                 ftp.set_pasv(True)
-            self.originalDir = ftp.pwd()
+
+            try   : self.originalDir = ftp.pwd()
+            except:
+                    (type, value, tb) = sys.exc_info()
+                    self.logger.warning("Unable to ftp.pwd (Type: %s, Value: %s)" % (type ,value))
 
             timex.cancel()
 
@@ -374,7 +378,7 @@ class PullFTP(object):
 
             files_notretrieved = []
 
-            for remote_file in filelst :
+            for idx,remote_file in enumerate(filelst) :
 
                 timex.alarm(self.source.timeout_get)
                 local_file = self.local_filename(remote_file,desclst)
@@ -384,22 +388,25 @@ class PullFTP(object):
                                if self.source.delete : self.rm(remote_file)
                                files_pulled.append(local_file)
                        else  :
-                               files_notretrieved.append(remote_file)
+                               files_notretrieved.extend(filelst[idx:])
                                self.logger.warning("problem when retrieving %s " % remote_file )
+                               break
                                
                        timex.cancel()
 
                 except FtpTimeoutException :
                        timex.cancel()
-                       files_notretrieved.append(remote_file)
+                       files_notretrieved.extend(filelst[idx:])
                        self.logger.warning("FTP timed out retrieving %s " % remote_file )
+                       break
 
                 except :
                        timex.cancel()
-                       files_notretrieved.append(remote_file)
+                       files_notretrieved.extend(filelst[idx:])
                        (type, value, tb) = sys.exc_info()
                        self.logger.error("Unable write remote file %s in local file %s" % (remote_file,local_file))
                        self.logger.error(" Type: %s, Value: %s" % (type ,value))
+                       break
 
             # files not retrieved are removed from the file list
             # this allow pull to recover from error on next pass
@@ -409,6 +416,11 @@ class PullFTP(object):
 
             # save ls file
             ok = self.write_ls_file(self.lspath)
+
+            # if we had a problem break here
+            if len(files_notretrieved) > 0 :
+               self.logger.warning("break retrieving... because of error")
+               break
 
         return files_pulled
 
