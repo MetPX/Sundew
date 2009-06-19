@@ -86,19 +86,21 @@ class PullFTP(object):
 
         if self.source.protocol == 'ftp':
             self.ftp    = self.ftpConnect()
-            self.chdir  = self.ftp.cwd
-            self.delete = self.ftp.delete
-            self.fget   = self.ftp_get
-            self.lsdir  = self.ftp_do_ls
-            self.quit   = self.ftp.quit
+            if self.ftp != None :
+               self.chdir  = self.ftp.cwd
+               self.delete = self.ftp.delete
+               self.fget   = self.ftp_get
+               self.lsdir  = self.ftp_do_ls
+               self.quit   = self.ftp.quit
 
         if self.source.protocol == 'sftp':
             self.sftp   = self.sftpConnect()
-            self.chdir  = self.sftp.chdir
-            self.delete = self.sftp.remove
-            self.fget   = self.sftp.get
-            self.lsdir  = self.sftp_do_ls
-            self.quit   = self.sftp_quit
+            if self.sftp != None :
+               self.chdir  = self.sftp.chdir
+               self.delete = self.sftp.remove
+               self.fget   = self.sftp.get
+               self.lsdir  = self.sftp_do_ls
+               self.quit   = self.sftp_quit
 
 
     # callback to strip and save the output from ls of directory
