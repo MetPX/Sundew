@@ -23,4 +23,4 @@ class bulletinManagerWmo(bulletinManager.bulletinManager):
         __doc__ = bulletinManager.bulletinManager._bulletinManager__generateBulletin.__doc__ + \
         """ Overriding here to pass correct parameter types.
         """
-        return bulletinWmo.bulletinWmo(rawBulletin,self.logger,self.lineSeparator)
+        return bulletinWmo.bulletinWmo(rawBulletin,self.logger,self.lineSeparator,self.finalLineSeparator,self.wmo_id)
