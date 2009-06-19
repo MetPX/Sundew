@@ -51,5 +51,4 @@ class wmoid():
       
 if __name__ == '__main__':
 
-    wmoid = wmoid(None)
-    print wmoid.parse()
+    print wmoid(None).parse()
