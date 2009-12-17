@@ -21,7 +21,7 @@ class wmoid:
     def __init__(self, logger ):
         self.logger = logger
         self.wmo_ids = []
-	PXPaths.normalPaths()
+        PXPaths.normalPaths()
         self.path = PXPaths.ETC + 'wmo_id.conf'
 
     def parse(self):

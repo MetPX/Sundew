@@ -393,6 +393,12 @@ class PullFTP(object):
                                files_notretrieved.extend(filelst[idx:])
                                self.logger.warning("problem when retrieving %s " % remote_file )
                                break
+
+                       # if batch is reached stop there
+
+                       if len(files_pulled) == self.source.batch :
+                          if idx != len(filelst)-1 : files_notretrieved.extend(filelst[idx+1:])
+                          break
                                
                        timex.cancel()
 
@@ -421,7 +427,7 @@ class PullFTP(object):
 
             # if we had a problem break here
             if len(files_notretrieved) > 0 :
-               self.logger.warning("break retrieving... because of error")
+               self.logger.warning("break retrieving... because of error or batch reached")
                break
 
         return files_pulled
