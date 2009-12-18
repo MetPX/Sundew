@@ -576,59 +576,54 @@ class PullFTP(object):
 
     # open connection... sftp
 
-    def sftpConnect(self, maxCount=200):
-        count = 0
-        while count < maxCount:
+    def sftpConnect(self):
 
-            timex = AlarmFTP('SFTP connection timeout')
+        timex = AlarmFTP('SFTP connection timeout')
 
-            # gives 30 seconds to open the connection
-            try:
-                timex.alarm(30)
-                self.t = None
-                if self.source.port == None : 
-                   self.t = paramiko.Transport(self.source.host)
-                else:
-                   t_args = (self.source.host,self.source.port)
-                   self.t = paramiko.Transport(t_args)
+        # gives 30 seconds to open the connection
+        try:
+            timex.alarm(30)
+            self.t = None
+            if self.source.port == None : 
+               self.t = paramiko.Transport(self.source.host)
+            else:
+               t_args = (self.source.host,self.source.port)
+               self.t = paramiko.Transport(t_args)
 
-                if self.source.ssh_keyfile != None :
-                   #TODO, implement password to use to decrypt the key file, if it's encrypted
-                   key=DSSKey.from_private_key_file(self.source.ssh_keyfile,password=None)
-                   self.t.connect(username=self.source.user,pkey=key)
-                else:
-                   self.t.connect(username=self.source.user,password=self.source.passwd)
+            if self.source.ssh_keyfile != None :
+               #TODO, implement password to use to decrypt the key file, if it's encrypted
+               key=DSSKey.from_private_key_file(self.source.ssh_keyfile,password=None)
+               self.t.connect(username=self.source.user,pkey=key)
+            else:
+               self.t.connect(username=self.source.user,password=self.source.passwd)
 
-                self.sftp = paramiko.SFTP.from_transport(self.t)
-                # WORKAROUND without going to '.' originalDir was None
-                self.sftp.chdir('.')
-                self.originalDir = self.sftp.getcwd()
+            self.sftp = paramiko.SFTP.from_transport(self.t)
+            # WORKAROUND without going to '.' originalDir was None
+            self.sftp.chdir('.')
+            self.originalDir = self.sftp.getcwd()
 
-                timex.cancel()
+            timex.cancel()
 
-                return self.sftp
+            self.connected = True
 
-            except FtpTimeoutException :
-                timex.cancel()
-                try    : self.sftp.close()
-                except : pass
-                try    : self.t.close()
-                except : pass
-                self.logger.error("SFTP connection timed out after %d seconds... retrying" % 30 )
+            return self.sftp
 
-            except:
-                timex.cancel()
-                (type, value, tb) = sys.exc_info()
-                self.logger.error("Unable to connect to %s (user:%s). Type: %s, Value: %s" % (self.source.host, self.source.user, type ,value))
-                try    : self.sftp.close()
-                except : pass
-                try    : self.t.close()
-                except : pass
-                count +=  1
-                time.sleep(5)   
+        except FtpTimeoutException :
+            timex.cancel()
+            try    : self.sftp.close()
+            except : pass
+            try    : self.t.close()
+            except : pass
+            self.logger.error("SFTP connection timed out after %d seconds... retrying" % 30 )
 
-        self.logger.critical("We exit SenderSFTP after %i unsuccessful try" % maxCount)
-        sys.exit(2) 
+        except:
+            timex.cancel()
+            (type, value, tb) = sys.exc_info()
+            self.logger.error("Unable to connect to %s (user:%s). Type: %s, Value: %s" % (self.source.host, self.source.user, type ,value))
+            try    : self.sftp.close()
+            except : pass
+            try    : self.t.close()
+            except : pass
 
     # do an ls in the current directory, write in file path
 
