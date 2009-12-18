@@ -45,11 +45,10 @@ class SenderFTP(object):
         self.cacheManager = cacheManager # cache  Object
         self.cacheMD5     = None         # last cache Object tested/added
         self.partialfile  = None         # last cache Object tested/added
+        self.logger       = logger
         if logger is None:
             self.logger = Logger(PXPaths.LOG + 'tx_' + client.name + '.log', 'INFO', 'TX' + name) # Enable logging
             self.logger = self.logger.getLogger()
-        else:
-            self.logger = logger
 
         self.originalDir = ''
 
@@ -186,7 +185,7 @@ class SenderFTP(object):
         elif keywd[:4] == "{YY}"    : return (EN[2])[0:2]   + keywd[4:]
         elif keywd[:4] == "{GG}"    : return (EN[2])[2:4]   + keywd[4:]
         elif keywd[:4] == "{Gg}"    : return (EN[2])[4:6]   + keywd[4:]
-        elif keywd[:5] == "{BBB}"   : return (EN[3])[6:9]   + keywd[5:]
+        elif keywd[:5] == "{BBB}"   : return (EN[3])[0:3]   + keywd[5:]
         elif keywd[:7] == "{RYYYY}" : return (BN[6])[0:4]   + keywd[7:]
         elif keywd[:5] == "{RMM}"   : return (BN[6])[4:6]   + keywd[5:]
         elif keywd[:5] == "{RDD}"   : return (BN[6])[6:8]   + keywd[5:]
