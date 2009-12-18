@@ -183,10 +183,10 @@ class bulletinAm(bulletin.bulletin):
     def tokIsYear(self,tok,year):
         if tok == year : return True
 
-        if len(tok) !=    4              : return False
-        if tok[:2]  != '20'              : return False
-        if not tok[2:2] in string.digits : return False
-        if not tok[3:3] in string.digits : return False
+        if len(tok) !=    4            : return False
+        if tok[:2]  != '20'            : return False
+        if not tok[2] in string.digits : return False
+        if not tok[3] in string.digits : return False
 
         return True
 
