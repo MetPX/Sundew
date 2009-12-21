@@ -94,7 +94,7 @@ class DiskReader:
         if self.prioTree: # If we want to use predefine priority directories tree
             self.files = self._getFilesList()                          # List of filenames under the priorities
         else:
-            self.files = self. _getFilesListForOneBranch(self.path, self.batch)  # List of filenames under the path
+            self.files = self._getFilesListForOneBranch(self.path, self.batch)  # List of filenames under the path
 
         self.sort()
         
@@ -296,6 +296,11 @@ class DiskReader:
         if self.sorterClass is not None:
             sorter = self.sorterClass(self.files)
             self.sortedFiles = sorter.sort()
+        elif isinstance(self.flow, Source.Source):
+            self.logger.debug("Instance of source")
+            templist = [ (os.stat(file)[ST_MTIME],file) for file in self.files]
+            templist.sort()
+            self.sortedFiles = [ file for mtime,file in templist ]
         else:
             self.sortedFiles = self.files
 
