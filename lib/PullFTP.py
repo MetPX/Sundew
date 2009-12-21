@@ -367,9 +367,6 @@ class PullFTP(object):
             filelst = self.ls.keys()
             desclst = self.ls
 
-            # improve... time sort with desclst
-            filelst.sort()
-
             # if we dont delete, get file list from difference in ls
 
             if not self.source.delete :
@@ -379,8 +376,10 @@ class PullFTP(object):
                ok = self.write_ls_file(self.lspath)
                continue
 
-            # retrieve the files
+            # MG to improve : time sort with desclst
+            filelst.sort()
 
+            # retrieve the files
             files_notretrieved = []
 
             for idx,remote_file in enumerate(filelst) :
