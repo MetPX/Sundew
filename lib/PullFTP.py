@@ -391,6 +391,12 @@ class PullFTP(object):
                        if ok :
                                if self.source.delete : self.rm(remote_file)
                                files_pulled.append(local_file)
+
+                               # setting access,modify time to remote time
+                               ftime = self.remote_file_time(remote_file,desclst)
+                               ftime = time.mktime(ftime)
+                               os.utime(local_file,(ftime,ftime) )
+
                        else  :
                                files_notretrieved.extend(filelst[idx:])
                                self.logger.warning("problem when retrieving %s " % remote_file )
@@ -474,18 +480,8 @@ class PullFTP(object):
         # create local filename with date/time on host... YYYYMMDDHHMM_filename
 
         if self.source.pull_prefix == 'HDATETIME' :
-           line = desc[filename]
-           line  = line.strip()
-           parts = line.split()
 
-           datestr=' '.join(parts[-4:-1])
-           if len(parts[-2]) == 5 and parts[-2][2] == ':' :
-              Y = time.strftime("%Y",time.gmtime())
-              datestr = Y + ' ' + datestr
-              ftime = time.strptime(datestr,"%Y %b %d %H:%M")
-           else :
-              ftime = time.strptime(datestr,"%b %d %Y")
-
+           ftime       = self.remote_file_time(filename,desc)
            datetimestr = time.strftime("%Y%m%d%H%M",ftime)
 
            local_file = PXPaths.RXQ + self.source.name + '/' + datetimestr + '_' + filename
@@ -554,6 +550,30 @@ class PullFTP(object):
                                            return   time.strftime("%Y%m%d", time.localtime(epoch) ) + keywd[13:]
 
         return defval
+
+
+    # get remote file time
+
+    def remote_file_time(self,filename,desc):
+
+        ftime = time.localtime()
+
+        try :
+              line = desc[filename]
+              line  = line.strip()
+              parts = line.split()
+
+              datestr=' '.join(parts[-4:-1])
+              if len(parts[-2]) == 5 and parts[-2][2] == ':' :
+                 Y = time.strftime("%Y",time.gmtime())
+                 datestr = Y + ' ' + datestr
+                 ftime = time.strptime(datestr,"%Y %b %d %H:%M")
+              else :
+                 ftime = time.strptime(datestr,"%b %d %Y")
+
+        except : pass
+
+        return ftime
 
     # retrieve a file
 

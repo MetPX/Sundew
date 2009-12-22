@@ -89,6 +89,7 @@ class Source(object):
         self.port = None                                       # Port number if type is in ['am', 'wmo']
         self.routingTable = PXPaths.ROUTING_TABLE              # Defaut routing table name
         self.mapEnteteDelai = None                             #
+        self.addStationInFilename = True                       #
         self.addSMHeader = False                               #
         self.validation = False                                # Validate the filename (ex: prio an timestamp)
         self.patternMatching = True                            # No pattern matching
@@ -98,6 +99,7 @@ class Source(object):
         self.keepAlive = True                                  # TCP SO_KEEPALIVE on (True) or off(False)
         self.mtime = 0                                         # Integer indicating the number of seconds a file must not have 
                                                                # been touched before being picked
+
 
         #-----------------------------------------------------------------------------------------
         # Setting up pulls configuration values
@@ -254,6 +256,7 @@ class Source(object):
                     elif words[0] == 'type': self.type = words[1]
                     elif words[0] == 'port': self.port = int(words[1])
                     elif words[0] == 'AddSMHeader' and isTrue(words[1]): self.addSMHeader = True
+                    elif words[0] == 'addStationInFilename' : self.addStationInFilename = isTrue(words[1])
                     elif words[0] == 'patternMatching': self.patternMatching =  isTrue(words[1])
                     elif words[0] == 'clientsPatternMatching': self.clientsPatternMatching =  isTrue(words[1])
                     elif words[0] == 'validation' and isTrue(words[1]): self.validation = True
@@ -379,6 +382,7 @@ class Source(object):
         print("Arrival_Extension: %s" % source.arrival_extension)
         print("Arrival: %s" % source.mapEnteteDelai)
         print("addSMHeader: %s" % source.addSMHeader)
+        print("addStationInFilename: %s" % source.addStationInFilename)
         print("Validation: %s" % source.validation)
         print("Source Pattern Matching: %s" % source.patternMatching)
         print("Clients Pattern Matching: %s" % source.clientsPatternMatching)
