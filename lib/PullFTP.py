@@ -438,7 +438,7 @@ class PullFTP(object):
                break
 
             # if we had a problem break here
-            if len(files_notretrieved) > 0 or len(files_pulled) == self.source.batch :
+            if len(files_notretrieved) > 0 :
                self.logger.warning("break retrieving... because of error")
                break
 
