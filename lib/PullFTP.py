@@ -376,8 +376,8 @@ class PullFTP(object):
                ok = self.write_ls_file(self.lspath)
                continue
 
-            # MG to improve : time sort with desclst
-            filelst.sort()
+            # get remote file time for all files
+            timelst,filelst,desclst = self.remote_time_sort(filelst,desclst)
 
             # retrieve the files
             files_notretrieved = []
@@ -385,7 +385,7 @@ class PullFTP(object):
             for idx,remote_file in enumerate(filelst) :
 
                 timex.alarm(self.source.timeout_get)
-                local_file = self.local_filename(remote_file,desclst)
+                local_file = self.local_filename(remote_file,desclst,timelst)
                 try :
                        ok = self.retrieve(remote_file, local_file)
                        if ok :
@@ -393,8 +393,7 @@ class PullFTP(object):
                                files_pulled.append(local_file)
 
                                # setting access,modify time to remote time
-                               ftime = self.remote_file_time(remote_file,desclst)
-                               ftime = time.mktime(ftime)
+                               ftime = time.mktime(timelst[remote_file])
                                os.utime(local_file,(ftime,ftime) )
 
                        else  :
@@ -475,13 +474,13 @@ class PullFTP(object):
 
     # create local filename
 
-    def local_filename(self,filename,desc):
+    def local_filename(self,filename,desclst,timelst):
 
         # create local filename with date/time on host... YYYYMMDDHHMM_filename
 
         if self.source.pull_prefix == 'HDATETIME' :
 
-           ftime       = self.remote_file_time(filename,desc)
+           ftime       = timelst[filename]
            datetimestr = time.strftime("%Y%m%d%H%M",ftime)
 
            local_file = PXPaths.RXQ + self.source.name + '/' + datetimestr + '_' + filename
@@ -574,6 +573,27 @@ class PullFTP(object):
         except : pass
 
         return ftime
+
+    # remote time sort of file to pull
+
+    def remote_time_sort(self,ifilelst,idesclst):
+
+        timelst = [ self.remote_file_time(rfile,idesclst) for idx,rfile in enumerate(ifilelst) ]
+
+        templst = [ (time.mktime(timelst[idx]),timelst[idx],rfile,idesclst[rfile]) for idx,rfile in enumerate(ifilelst) ]
+        templst.sort()
+
+        filelst = []
+        desclst = {}
+        timelst = {}
+
+        for tup in templst :
+            epoch, rtime, rfile, rdesc = tup
+            filelst.append(rfile)
+            desclst[rfile] = rdesc
+            timelst[rfile] = rtime
+
+        return timelst,filelst,desclst
 
     # retrieve a file
 
