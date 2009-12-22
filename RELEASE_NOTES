@@ -2,6 +2,15 @@
 2009-12-21   (MG)  PullFTP.py      added to usage of source.batch 
                                    Correct a problem with matchPattern
                                    Local file pulled has remote file time
+                                   Put overload of module for ftp/sftp under a try/except
+                                   Only one trial for sftp connect(instead of a loop)
+
+                   DiskReader.py   add sorting on modified time for ingestors
+
+		   Source.py       added option addStationInFilename (default true)
+
+                   Ingestor.py     use source option addStationInFilename in bulletinManager
+		                   for type bulletin-file and pull-bulletin
 
                    SenderFTP.py    Correct a problem with BBB in matchPattern
 
@@ -10,7 +19,8 @@
                    DiskReader.py   Source/Filter file list ingested sorted
                                    using each file's mtime
 
-                   wmoid.py        read file $PXROOT/etc/wmo_id.conf
+                   wmoid.py        added to the package
+                                   read file $PXROOT/etc/wmo_id.conf
 		                   defines wmo bulletins that needs station name 
 				   in filename in a list called wmo_id, it impacted :
 
@@ -19,9 +29,15 @@
 		                   bulletinManagerWmo.py
 		                   bulletinWmo.py
 
-2008-11 20   (MG)  senderAMQP.py   added to the package
+2008-11 20   (MG)  AMQP            senderAMQP.py   added to the package
+                                   receiverAmqp.py added to the package
+                                   pxReceiver      modified to add amqp
+                                   pxSender        modified to add amqp
+                                   Ingestor.py     modified to add amqp receiver type
+                                   urlParser.py    modified to add amqp url type
+                                   gateway.py      modified to add amqp receiver type
 
-2008-11 ??   (MG)  Grib.py         added a try/except around some grib
+2008-11 ??   (MG)  Grib.py/Bufr.py added a try/except around some grib/bufr
                                    decoding that were causing "traceback"
                                    messages in the logs without stopping the
                                    application
