@@ -1,4 +1,24 @@
 
+2009-12-21   (MG)  PullFTP.py      added to usage of source.batch 
+                                   Correct a problem with matchPattern
+                                   Local file pulled has remote file time
+
+                   SenderFTP.py    Correct a problem with BBB in matchPattern
+
+                   bulletinAm.py   Correct token check for digit or year
+
+                   DiskReader.py   Source/Filter file list ingested sorted
+                                   using each file's mtime
+
+                   wmoid.py        read file $PXROOT/etc/wmo_id.conf
+		                   defines wmo bulletins that needs station name 
+				   in filename in a list called wmo_id, it impacted :
+
+		                   bulletin.py         
+		                   bulletinManager.py
+		                   bulletinManagerWmo.py
+		                   bulletinWmo.py
+
 2008-11 20   (MG)  senderAMQP.py   added to the package
 
 2008-11 ??   (MG)  Grib.py         added a try/except around some grib
