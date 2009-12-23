@@ -557,17 +557,27 @@ class PullFTP(object):
         ftime = time.localtime()
 
         try :
-              line = desc[filename]
+              line  = desc[filename]
               line  = line.strip()
               parts = line.split()
 
               datestr=' '.join(parts[-4:-1])
-              if len(parts[-2]) == 5 and parts[-2][2] == ':' :
+
+	      fmt4 = "%b"
+	      fmt3 = "%d"
+	      fmt2 = "%Y"
+
+              if len(parts[-2]) == 5 :
+                 fmt2 = "%H:%M %Y"
                  Y = time.strftime("%Y",time.gmtime())
-                 datestr = Y + ' ' + datestr
-                 ftime = time.strptime(datestr,"%Y %b %d %H:%M")
-              else :
-                 ftime = time.strptime(datestr,"%b %d %Y")
+                 datestr = datestr + ' ' + Y
+
+              if parts[-3][0].isalpha() : fmt3 = "%b"
+
+              if parts[-4][0].isdigit() : fmt4 = "%d"
+
+              format = fmt4 + " " + fmt3 + " " + fmt2
+              ftime = time.strptime(datestr,format)
 
         except : pass
 
