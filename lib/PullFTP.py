@@ -563,9 +563,9 @@ class PullFTP(object):
 
               datestr=' '.join(parts[-4:-1])
 
-	      fmt4 = "%b"
-	      fmt3 = "%d"
-	      fmt2 = "%Y"
+              fmt4 = "%b"
+              fmt3 = "%d"
+              fmt2 = "%Y"
 
               if len(parts[-2]) == 5 :
                  fmt2 = "%H:%M %Y"
