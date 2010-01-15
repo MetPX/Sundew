@@ -70,7 +70,7 @@ class Bufr:
         """
         a = self.array
 
-        return  ( ( long(a[i]) * 256 ) + long(a[i+1]) * 256 ) + long(a[i+2])
+        return  ( long(a[i]) * 256 + long(a[i+1]) ) * 256 + long(a[i+2])
 
     def observation_date(self):
         """derive observation date from section 1
