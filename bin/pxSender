@@ -168,7 +168,7 @@ example 2: %prog start       => will start all clients
 
         cacheManager  = None
 
-        if client.nodups : cacheManager = CacheManager(maxEntries=25000, timeout=2*3600)
+        if client.nodups : cacheManager = CacheManager(maxEntries=client.cache_size, timeout=2*3600)
 
         sender_script = SenderScript.SenderScript(client, logger, cacheManager)
 
@@ -197,7 +197,7 @@ example 2: %prog start       => will start all clients
 
         cacheManager = None
 
-        if client.nodups : cacheManager = CacheManager(maxEntries=25000, timeout=2*3600)
+        if client.nodups : cacheManager = CacheManager(maxEntries=client.cache_size, timeout=2*3600)
 
         while True:
             if igniter.reloadMode:
