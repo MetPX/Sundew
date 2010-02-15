@@ -459,6 +459,7 @@ class Ingestor(object):
     def ingestBulletinFile(self, igniter):
         from DiskReader import DiskReader
         import bulletinManager
+        import bulletinManagerAm
         from PullFTP import PullFTP
 
         sleep_sec = 1
@@ -610,7 +611,10 @@ class Ingestor(object):
                              data[index] = dx
 
                    # writing/ingesting the bulletin
-                   bullManager.writeBulletinToDisk(data[index], True, True)
+                   if isinstance(bullManager,bulletinManagerAm.bulletinManagerAm):
+                      bullManager.writeBulletinToDisk(data[index], True)
+                   else :
+                      bullManager.writeBulletinToDisk(data[index], True, True)
 
                 try:
                     file = reader.sortedFiles[index]
