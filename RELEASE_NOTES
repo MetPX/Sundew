@@ -1,6 +1,30 @@
 
+---------------- Below are changes made up to version px-0-5-6 --------------------------------------
+
+2010-02-15   (MG)  receiver of type bulletin-file and pull-bulletin may now
+                   process the received files as they are for an AM feed
+		   option bulletin-type added (None, am  supported)
+		   option addSMHeader supported if bulletin-type is am
+		   The files modified are :
+                   Source.py
+                   Ingestor.py
+
+2010-02-11   (MG)  cache_size option added for all types of flow and used
+                   whenever a CacheManager is instanciated ...
+		   The files modified are :
+		   Client.py  
+                   CollectionManager.py
+                   DiskReader.py
+                   Ingestor.py
+                   Source.py
+                   Sourlient.py
+                   senderAMIS.py
+                   senderAMQP.py
+                   senderAm.py
+                   senderWmo.py
+
 ---------------- Below are changes made up to version px-0-5-5 --------------------------------------
-2010-10-??   (MG)  Bufr.py         correct computation of bufr's length
+2010-01-??   (MG)  Bufr.py         correct computation of bufr's length
 
 2009-12-21   (MG)  PullFTP.py      added to usage of source.batch 
                                    Correct a problem with matchPattern
