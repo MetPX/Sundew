@@ -476,6 +476,21 @@ class Ingestor(object):
                     self.source,
                     self.source.addStationInFilename)
 
+        if self.source.bulletin_type == 'am' :
+           bullManager = bulletinManagerAm.bulletinManagerAm(
+                    self.ingestDir,
+                    self.logger,
+                    self.ingestDir,
+                    99999,
+                    '\n',
+                    self.source.extension,
+                    PXPaths.ROUTING_TABLE,
+                    self.source.addSMHeader,
+                    PXPaths.STATION_TABLE,
+                    self.source.mapEnteteDelai,
+                    self.source,
+                    self.source.addStationInFilename)
+
         if self.source.nodups :
            self.fileCache = CacheManager(maxEntries=self.source.cache_size, timeout=8*3600)
 
@@ -499,6 +514,21 @@ class Ingestor(object):
                                '\n',
                                self.source.extension,
                                PXPaths.ROUTING_TABLE,
+                               self.source.mapEnteteDelai,
+                               self.source,
+                               self.source.addStationInFilename)
+
+                if self.source.bulletin_type == 'am' :
+                   bullManager = bulletinManagerAm.bulletinManagerAm(
+                               self.ingestDir,
+                               self.logger,
+                               self.ingestDir,
+                               99999,
+                               '\n',
+                               self.source.extension,
+                               PXPaths.ROUTING_TABLE,
+                               self.source.addSMHeader,
+                               PXPaths.STATION_TABLE,
                                self.source.mapEnteteDelai,
                                self.source,
                                self.source.addStationInFilename)

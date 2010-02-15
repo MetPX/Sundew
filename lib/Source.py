@@ -77,6 +77,7 @@ class Source(object):
         self.debug = False                        # If we want sections with debug code to be executed
         self.batch = 100                          # Number of files that will be read in each pass
         self.cache_size = 25000                   # Maximum Number of md5sum from files kept in cache manager
+        self.bulletin_type = None                 # type of bulletin ingested (None, am, wmo)
         self.masks = []                           # All the masks (accept and reject)
         self.masks_deprecated = []                # All the masks (imask and emask)
         self.routemask = False                    # use accept and parenthesis in mask to create a key and route with it
@@ -255,6 +256,7 @@ class Source(object):
                     elif words[0] == 'transformation': currentTransformation = words[1]
                     elif words[0] == 'batch': self.batch = int(words[1])
                     elif words[0] == 'cache_size': self.cache_size = int(words[1])
+                    elif words[0] == 'bulletin_type': self.bulletin_type = words[1]
                     elif words[0] == 'type': self.type = words[1]
                     elif words[0] == 'port': self.port = int(words[1])
                     elif words[0] == 'AddSMHeader' and isTrue(words[1]): self.addSMHeader = True
@@ -379,6 +381,7 @@ class Source(object):
         print("Type: %s" % source.type)
         print("Batch: %s" %  source.batch)
         print("Cache_size: %s" %  source.cache_size)
+        print("Bulletin_type: %s" %  source.bulletin_type)
         print("Port: %s" % source.port)
         print("TCP SO_KEEPALIVE: %s" % source.keepAlive)
         print("Extension: %s" % source.extension)
