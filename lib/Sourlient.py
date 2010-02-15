@@ -77,6 +77,7 @@ class Sourlient(object):
         self.maxAckTime = 60                      # Number of second we wait for an ack before trying to reconnect
 
         self.batch = 100                          # Number of files that will be read in each pass
+        self.cache_size = 25000                   # Maximum Number of md5sum from files kept in cache manager
         self.timeout = 10                         # Time we wait between each tentative to connect
         self.maxLength = 0                        # Max. length of a message... limit use for segmentation, 0 means unused
         self.extension = ':MISSING:MISSING:MISSING:MISSING:'  # Extension to be added to the ingest name
@@ -182,6 +183,7 @@ class Sourlient(object):
                     elif words[0] == 'maxAckTime': self.maxAckTime = int(words[1])
                     
                     elif words[0] == 'batch': self.batch = int(words[1])
+                    elif words[0] == 'cache_size': self.cache_size = int(words[1])
                     elif words[0] == 'debug' and isTrue(words[1]): self.debug = True
                     elif words[0] == 'timeout': self.timeout = int(words[1])
                     elif words[0] == 'timeout_send': self.timeout_send = int(words[1])
@@ -228,6 +230,7 @@ class Sourlient(object):
         print("Extension: %s" % client.extension)
         print("Slow: %s" % client.slow)
         print("Batch: %s" %  client.batch)
+        print("Cache_size: %s" %  client.cache_size)
         print("Max length: %i" % client.maxLength)
         print("Mtime: %i" % client.mtime)
         print("Timeout: %s" % client.timeout)

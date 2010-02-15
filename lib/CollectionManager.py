@@ -58,7 +58,7 @@ class CollectionManager(object):
 
         # a cacheManager to make sure we process a file only once
 
-        self.cacheManager  = CacheManager(maxEntries=250000, timeout=int(self.source.history)*3600)
+        self.cacheManager  = CacheManager(maxEntries=self.source.cache_size, timeout=int(self.source.history)*3600)
 
         # reading the collection station config file...
 

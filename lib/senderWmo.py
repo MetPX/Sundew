@@ -50,7 +50,7 @@ class senderWmo(gateway.gateway):
                                  self.client)
 
         # Mechanism to eliminate multiple copies of a bulletin
-        self.cacheManager = CacheManager(maxEntries=120000, timeout=8*3600)
+        self.cacheManager = CacheManager(maxEntries=self.client.cache_size, timeout=8*3600)
 
         # WMO's maximum bulletin size is 500 000 bytes
         self.set_maxLength( self.client.maxLength )

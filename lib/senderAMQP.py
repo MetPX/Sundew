@@ -42,7 +42,7 @@ class senderAMQP:
 
       self.debugFile    = False
 
-      self.cacheManager = CacheManager(maxEntries=120000, timeout=8*3600)
+      self.cacheManager = CacheManager(maxEntries=self.client.cache_size, timeout=8*3600)
 
       # AMQP  is there a max for bulletin size
       # self.set_maxLength(self.client.maxLength)

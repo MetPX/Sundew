@@ -46,7 +46,7 @@ class senderAMIS:
       self.endOfMessage = self.endOfLineSep + chr(curses.ascii.ETX) + "\r\n\n" + chr(curses.ascii.EOT)
       self.debugFile    = False
 
-      self.cacheManager = CacheManager(maxEntries=120000, timeout=8*3600)
+      self.cacheManager = CacheManager(maxEntries=self.client.cache_size, timeout=8*3600)
 
       # AMIS's maximum bulletin size is 14000
 

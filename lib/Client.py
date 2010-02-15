@@ -50,6 +50,7 @@ class Client(object):
         self.type = 'single-file'                 # Must be in ['single-file', 'bulletin-file', 'file', 'am', 'wmo', 'amis']
         self.protocol = None                      # First thing in the url: ftp, file, am, wmo, amis
         self.batch = 100                          # Number of files that will be read in each pass
+        self.cache_size = 25000                   # Maximum Number of md5sum from files kept in cache manager
         self.timeout = 10                         # Time we wait between each tentative to connect
         self.maxLength = 0                        # max Length of a message... limit use for segmentation, 0 means unused
 
@@ -234,6 +235,7 @@ class Client(object):
                     elif words[0] == 'password': self.passwd = words[1]
                     elif words[0] == 'ssh_keyfile': self.ssh_keyfile = words[1]
                     elif words[0] == 'batch': self.batch = int(words[1])
+                    elif words[0] == 'cache_size': self.cache_size = int(words[1])
                     elif words[0] == 'debug' and isTrue(words[1]): self.debug = True
                     elif words[0] == 'timeout': self.timeout = int(words[1])
                     elif words[0] == 'chmod': self.chmod = int(words[1])
@@ -373,6 +375,7 @@ class Client(object):
         print("Type: %s" % client.type)
         print("Protocol: %s" % client.protocol)
         print("Batch: %s" %  client.batch)
+        print("Cache size: %s" %  client.cache_size)
         print("Max length: %i" % client.maxLength)
         print("Mtime: %i" % client.mtime)
         print("Timeout: %s" % client.timeout)

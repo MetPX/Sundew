@@ -51,7 +51,7 @@ class senderAm(gateway.gateway):
 
         # Mechanism to eliminate multiple copies of a bulletin
 
-        self.cacheManager = CacheManager(maxEntries=120000, timeout=8*3600)
+        self.cacheManager = CacheManager(maxEntries=self.client.cache_size, timeout=8*3600)
 
         # AM's maximum bulletin size is 32K
         self.set_maxLength( self.client.maxLength )
