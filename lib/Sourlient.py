@@ -77,7 +77,7 @@ class Sourlient(object):
         self.maxAckTime = 60                      # Number of second we wait for an ack before trying to reconnect
 
         self.batch = 100                          # Number of files that will be read in each pass
-        self.cache_size = 25000                   # Maximum Number of md5sum from files kept in cache manager
+        self.cache_size = 125000                  # Maximum Number of md5sum from files kept in cache manager
         self.timeout = 10                         # Time we wait between each tentative to connect
         self.maxLength = 0                        # Max. length of a message... limit use for segmentation, 0 means unused
         self.extension = ':MISSING:MISSING:MISSING:MISSING:'  # Extension to be added to the ingest name

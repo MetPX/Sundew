@@ -76,7 +76,7 @@ class Source(object):
         self.ingestion = ingestion                # do we want to start the ingestion...
         self.debug = False                        # If we want sections with debug code to be executed
         self.batch = 100                          # Number of files that will be read in each pass
-        self.cache_size = 25000                   # Maximum Number of md5sum from files kept in cache manager
+        self.cache_size = 125000                  # Maximum Number of md5sum from files kept in cache manager
         self.bulletin_type = None                 # type of bulletin ingested (None, am, wmo)
         self.masks = []                           # All the masks (accept and reject)
         self.masks_deprecated = []                # All the masks (imask and emask)

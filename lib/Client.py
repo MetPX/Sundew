@@ -50,7 +50,7 @@ class Client(object):
         self.type = 'single-file'                 # Must be in ['single-file', 'bulletin-file', 'file', 'am', 'wmo', 'amis']
         self.protocol = None                      # First thing in the url: ftp, file, am, wmo, amis
         self.batch = 100                          # Number of files that will be read in each pass
-        self.cache_size = 25000                   # Maximum Number of md5sum from files kept in cache manager
+        self.cache_size = 125000                  # Maximum Number of md5sum from files kept in cache manager
         self.timeout = 10                         # Time we wait between each tentative to connect
         self.maxLength = 0                        # max Length of a message... limit use for segmentation, 0 means unused
 
