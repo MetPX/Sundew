@@ -33,20 +33,29 @@ class CacheManager(object):
         #print "Was new"
         if len(self.cache) < self.maxEntries:
             self.cache[key] = [time.time(), 1]
-        else:
-            #print "Was full, try timeoutClear"
-            self.timeoutClear()
-            if len(self.cache) < self.maxEntries:
-                #print "timeoutClear was sufficient"
-                self.cache[key] = [time.time(), 1]
-            else:
-                # Remove the least recently used (LRU) item
-                #print "timeoutClear was insufficient, we delete LRU"
-                temp = [(item[1][0], item[0]) for item in self.cache.items()]
-                temp.sort()            
-                del self.cache[temp[0][1]]
-                # Add the new key
-                self.cache[key] = [time.time(), 1]
+	    return
+
+        #print "Was full, try timeoutClear"
+        self.timeoutClear( self.timeout )
+        if len(self.cache) < self.maxEntries:
+            self.cache[key] = [time.time(), 1]
+	    return
+
+        # at this point Daniel was sorting in time all entries
+        # deleting the oldest and adding the new one...
+        # BUT when maxEntries was reached and timeout was not
+        # until some entries timed out this was a lot of processing
+        # and was slowing down very busy senders...
+        # MG (I decided to flush half of the cache when it happens)
+
+        #print "still full, clean half or more of cache"
+        temp = [(item[1][0], item[0]) for item in self.cache.items()]
+        temp.sort()            
+	half_timeout = time.time() - temp[self.maxEntries/2][0]
+        self.timeoutClear( half_timeout )
+        #print "add new"
+        #print len(self.cache)
+        self.cache[key] = [time.time(), 1]
 
     def find(self, object, keyType='standard'):
         #Create the key according to key type:
@@ -103,10 +112,10 @@ class CacheManager(object):
     def clear(self):
         self.cache = {}
 
-    def timeoutClear(self):
+    def timeoutClear(self, timeout ):
         # Remove all the elements that are older than oldest acceptable time
         #print self.getStats()
-        oldestAcceptableTime = time.time() - self.timeout
+        oldestAcceptableTime = time.time() - timeout
         for item  in self.cache.items():
             if item[1][0] < oldestAcceptableTime:
                 del self.cache[item[0]]
@@ -145,7 +154,7 @@ if __name__ == '__main__':
     if not manager.has('titi') : print(" NO  titi")
     manager.find('titi')
     manager.find('toto')
-    #print manager.cache
+    print manager.cache
     manager.find('mimi')
-    #print manager.cache
+    print manager.cache
     print manager.getStats()
