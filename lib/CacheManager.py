@@ -33,13 +33,13 @@ class CacheManager(object):
         #print "Was new"
         if len(self.cache) < self.maxEntries:
             self.cache[key] = [time.time(), 1]
-	    return
+            return
 
         #print "Was full, try timeoutClear"
         self.timeoutClear( self.timeout )
         if len(self.cache) < self.maxEntries:
             self.cache[key] = [time.time(), 1]
-	    return
+            return
 
         # at this point Daniel was sorting in time all entries
         # deleting the oldest and adding the new one...
@@ -51,7 +51,7 @@ class CacheManager(object):
         #print "still full, clean half or more of cache"
         temp = [(item[1][0], item[0]) for item in self.cache.items()]
         temp.sort()            
-	half_timeout = time.time() - temp[self.maxEntries/2][0]
+        half_timeout = time.time() - temp[self.maxEntries/2][0]
         self.timeoutClear( half_timeout )
         #print "add new"
         #print len(self.cache)
