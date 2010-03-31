@@ -84,7 +84,9 @@ class DiskReader:
         self.prioTree = prioTree                  # Boolean that determine if the "priorities" structure is enforced
         self.sorterClass = sorterClass            # Sorting algorithm that will be used by sort()
         self.flow = flow                          # Flow (Client, Source, Sourlient) object, only used when patternMatching is True
-        self.cacheManager = CacheManager(maxEntries=self.flow.cache_size, timeout=12*3600) # Used to cache read entries
+        maxEntries = 125000                         # Flow (Client, Source, Sourlient) object, only used when patternMatching is True
+        if self.flow != None : maxEntries = self.flow.cache_size
+        self.cacheManager = CacheManager(maxEntries, timeout=12*3600) # Used to cache read entries
 
         #self.read()
 
