@@ -65,8 +65,10 @@ class SenderFTP(object):
            self.chmod       = self.ftp_chmod
            self.delete      = self.ftp.delete
            self.mkdir       = self.ftp.mkd
-           self.put         = self.ftp_put
+           self.put         = self.ftp_put_binary
            self.quit        = self.ftp.quit
+	   if self.client.binary == False :
+                   self.put = self.ftp_put_ascii
 
         # instead of testing through out the code, overwrite functions for sftp
         if self.client.protocol == 'sftp':
@@ -354,9 +356,7 @@ class SenderFTP(object):
 
         if self.ftp != None :
            self.partialfile = tempName
-           fileObject = open(file, 'r')
-           self.ftp.storbinary("STOR " + tempName, fileObject)
-           fileObject.close()
+           self.put(file,tempName)
            self.ftp.rename(tempName, destName)
            self.partialfile = destName
 
@@ -384,9 +384,7 @@ class SenderFTP(object):
 
         if self.ftp != None :
            self.ftp.voidcmd('SITE UMASK 777')
-           fileObject = open(file, 'r' )
-           self.ftp.storbinary('STOR ' + destName, fileObject)
-           fileObject.close()
+           self.put(file,destName)
            self.ftp.voidcmd('SITE CHMOD ' + str(self.client.chmod) + ' ' + destName)
 
     # sending one file straight No locking method
@@ -598,9 +596,15 @@ class SenderFTP(object):
     def ftp_chmod(self,chmod,path):
         self.ftp.voidcmd('SITE CHMOD ' + str(self.client.chmod) + ' ' + path)
 
-    # ftp put 
-    def ftp_put(self,file,destName):
-        fileObject = open(file, 'r')
+    # ftp put ascii
+    def ftp_put_ascii(self,file,destName):
+        fileObject = open(file)
+        self.ftp.storlines("STOR " + destName, fileObject)
+        fileObject.close()
+
+    # ftp put binary
+    def ftp_put_binary(self,file,destName):
+        fileObject = open(file, 'rb')
         self.ftp.storbinary("STOR " + destName, fileObject)
         fileObject.close()
 
