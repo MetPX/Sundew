@@ -87,6 +87,7 @@ class Client(object):
         self.ftp_mode = 'passive'           # Default is 'passive', can be set to 'active'
         self.dir_mkdir = False              # Verification and creation of directory inside ftp...
         self.dir_pattern = False            # Verification of patterns in destination directory
+        self.binary = True                  # FTP uses binary mode 
 
         self.chmod = 666                    # when the file is delevered chmod it to this value
         self.timeout_send = 0               # Timeout in sec. to consider a send to hang ( 0 means inactive )
@@ -243,6 +244,7 @@ class Client(object):
                     elif words[0] == 'lock': self.lock = words[1]
                     elif words[0] == 'ftp_mode': self.ftp_mode = words[1]
                     elif words[0] == 'dir_pattern': self.dir_pattern =  isTrue(words[1])
+                    elif words[0] == 'binary': self.binary =  isTrue(words[1])
                     elif words[0] == 'dir_mkdir': self.dir_mkdir =  isTrue(words[1])
                     elif words[0] == 'destfn_script': self.execfile = words[1]
                     elif words[0] == 'fx_script': self.execfile2 = words[1]
@@ -391,6 +393,7 @@ class Client(object):
         print("Lock: %s" % client.lock)
         print("FTP Mode: %s" % client.ftp_mode)
         print("DIR Pattern: %s" % client.dir_pattern)
+        print("binary : %s" % client.binary)
         print("DIR Mkdir  : %s" % client.dir_mkdir)
         print("Validation: %s" % client.validation)
         print("Purge Aliases: %s" % client.purgeAliases)
