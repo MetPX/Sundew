@@ -67,7 +67,7 @@ class SenderFTP(object):
            self.mkdir       = self.ftp.mkd
            self.put         = self.ftp_put_binary
            self.quit        = self.ftp.quit
-	   if self.client.binary == False :
+           if self.client.binary == False :
                    self.put = self.ftp_put_ascii
 
         # instead of testing through out the code, overwrite functions for sftp
