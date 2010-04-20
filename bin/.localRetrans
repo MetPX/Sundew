@@ -61,14 +61,18 @@ if __name__ == '__main__':
     config = RetransConfig()
     lang = config.lang
 
-    #time we wait in seconds for obtaining the log line indicating a successful transfert
-    timeout = config.waitTimeForLogEntry
-
     PXPaths.normalPaths() 
     pxm = PXManager()
     pxm.initNames()
-    filename, client, prio, number = sys.argv[1:]
+    filename, client, prio, waitTimeForLogEntry, number = sys.argv[1:]
     #print filename, client, prio
+
+    #time we wait in seconds for obtaining the log line indicating a successful transfert
+    waitTimeForLogEntry = int(waitTimeForLogEntry)
+    if waitTimeForLogEntry >= 0:
+        timeout = waitTimeForLogEntry
+    else:
+        timeout = config.waitTimeForLogEntry
 
     flowType, flowNames = pxm.getFlowType(client)
 
