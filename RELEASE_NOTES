@@ -1,4 +1,17 @@
 
+---------------- Below are changes made up to version px-0-5-7 --------------------------------------
+
+2010-03-31   (MG) DiskReader.py
+                  CacheManager instanciation with a MaxEntries not related to a flow
+
+2010-04-20   (DL) bin/.localRetrans   new release.
+
+2010-04-09   (MG) Client.py
+                  option binary (default=True) for ftp when the file is uploaded
+
+                  SenderFTP.py
+                  option binary (default=True) target one of the 2 sending types
+
 ---------------- Below are changes made up to version px-0-5-6 --------------------------------------
 
 2010-02-15   (MG)  receiver of type bulletin-file and pull-bulletin may now
