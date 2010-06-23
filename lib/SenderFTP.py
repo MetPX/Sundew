@@ -54,6 +54,8 @@ class SenderFTP(object):
 
         self.ftp  = None
         self.sftp = None
+        self.bytes_ps = self.client.kbytes_ps * 1024.0
+
 
         self.timeout = self.client.timeout
         if self.timeout < 30 : self.timeout = 30
@@ -65,10 +67,16 @@ class SenderFTP(object):
            self.chmod       = self.ftp_chmod
            self.delete      = self.ftp.delete
            self.mkdir       = self.ftp.mkd
-           self.put         = self.ftp_put_binary
            self.quit        = self.ftp.quit
+
+           self.put = self.ftp_put_binary
            if self.client.binary == False :
-                   self.put = self.ftp_put_ascii
+              self.put = self.ftp_put_ascii
+
+           if self.client.kbytes_ps > 0.0 :
+              self.put = self.ftp_put_binary_trottle
+              if self.client.binary == False :
+                 self.put = self.ftp_put_ascii_trottle
 
         # instead of testing through out the code, overwrite functions for sftp
         if self.client.protocol == 'sftp':
@@ -433,6 +441,7 @@ class SenderFTP(object):
                   file = fxfile
 
             # get files ize
+            nbBytes = 0
             try:
                 nbBytes = os.stat(file)[stat.ST_SIZE] 
             except:
@@ -533,14 +542,25 @@ class SenderFTP(object):
                    # try to write the file to the client
                    try :
 
-                          self.partialfile = destName
+                          d1,d2,d3,d4,tbegin = os.times()
+
+                          self.partialfile    = destName
                           self.send_file( file, destName )
                           self.partialfile = None
+
+                          d1,d2,d3,d4,tend   = os.times()
+
                           os.unlink(file)
 
                           self.logger.info("(%i Bytes) File %s delivered to %s://%s@%s%s%s" % \
                                           (nbBytes, file, self.client.protocol, self.client.user, \
                                           self.client.host, destDirString, destName))
+
+                          if self.client.kbytes_ps > 0.0 :
+                             tspan    = (tend - tbegin) * 1024.0
+                             if tspan == 0.0 : tspan = 0.001
+                             tspeed   = nbBytes/tspan
+                             self.logger.debug("Speed %f Kb/s" % tspeed)
     
                           # add data to cache if needed
                           if self.client.nodups and self.cacheMD5 != None : 
@@ -602,10 +622,31 @@ class SenderFTP(object):
         self.ftp.storlines("STOR " + destName, fileObject)
         fileObject.close()
 
+    # ftp put ascii trottle
+    def ftp_put_ascii_trottle(self,file,destName):
+        d1,d2,d3,d4,now = os.times()
+        self.tbytes     = 0.0
+        self.tbegin     = now + 0.0
+
+        fileObject = open(file)
+        self.ftp.storlines("STOR " + destName, fileObject, self.trottle)
+        fileObject.close()
+
     # ftp put binary
     def ftp_put_binary(self,file,destName):
         fileObject = open(file, 'rb')
         self.ftp.storbinary("STOR " + destName, fileObject)
+        fileObject.close()
+
+    # ftp put binary trottle
+    def ftp_put_binary_trottle(self,file,destName):
+        d1,d2,d3,d4,now = os.times()
+        self.tbytes     = 0.0
+        self.tbegin     = now + 0.0
+        blocksize       = 8192
+
+        fileObject = open(file, 'rb')
+        self.ftp.storbinary("STOR " + destName, fileObject, blocksize, self.trottle)
         fileObject.close()
 
     # sftp chmod 
@@ -623,6 +664,14 @@ class SenderFTP(object):
     def sftp_quit(self):
         self.sftp.close()
         self.t.close()
+
+    def trottle(self,buf) :
+        self.tbytes = self.tbytes + len(buf)
+        span = self.tbytes / self.bytes_ps
+        d1,d2,d3,d4,now = os.times()
+        rspan = now - self.tbegin
+        if span > rspan :
+           time.sleep(span-rspan)
 
 if __name__ == '__main__':
     pass
