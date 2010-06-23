@@ -325,6 +325,18 @@ When sftp is used, key_file gives the path to the ssh key
 for the username given by the user option.
 
 .TP
+\fBbinary (Default: True )\fR
+ftp mode type is binary by default.
+When binary is set to false the ftp mode type is ascii.
+
+.TP
+\fBkbytes_ps (default: -1 )\fR
+By default, for protocol ftp, the file is send without
+any speed check (no bandwidth limiting).  When kbytes_ps 
+is set to a positive integer the file sending are limited
+to that speed.
+
+.TP
 \fBdirectory dir (Default:'.')\fR
 defines the directory where the files are going to be sent
 When amqp is used the directory corresponds to the realm.
