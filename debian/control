@@ -2,12 +2,12 @@ Source: metpx-sundew
 Section: misc
 Priority: optional
 Maintainer: Noureddine Habili <noureddine.habili@ec.gc.ca>
-Build-Depends: debhelper (>= 4.0.0), python-dev (>= 2.3), python (>= 2.3) python-paramiko ( >= 1.5.2)
+Build-Depends: debhelper, python, python-paramiko
 Standards-Version: 3.6.1
 
 Package: metpx-sundew
 Architecture: all
-Depends: ${shlibs:Depends}, python (>= 2.3) , python-paramiko ( >= 1.5.2)
+Depends: ${shlibs:Depends}, python, python-paramiko
 Description:MetPX is a WMO TCP/IP GTS message switching system 
  WMO - World Meteorological Organization, 
  GTS - Global Telecommunications System circuits based on TCP/IP. 
