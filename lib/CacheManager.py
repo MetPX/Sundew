@@ -16,8 +16,15 @@ named COPYING in the root of the source directory tree.
 #
 #############################################################################################
 
-"""
 import md5, time, os
+"""
+import sys, time, os
+
+if sys.version[:3] >= '2.6' :
+        import hashlib
+        from hashlib import md5
+else :
+        import md5
 
 class CacheManager(object):
 
