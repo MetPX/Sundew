@@ -23,8 +23,10 @@ import sys, time, os
 if sys.version[:3] >= '2.6' :
         import hashlib
         from hashlib import md5
+        md5new = md5
 else :
         import md5
+        md5new = md5.new
 
 class CacheManager(object):
 
@@ -69,7 +71,7 @@ class CacheManager(object):
         if keyType == 'standard': 
             key = object
         elif keyType == 'md5':
-            key = md5.new(object).hexdigest()
+            key = md5new(object).hexdigest()
 
         if key in self.cache:
             self.cache[key][0] = time.time()
@@ -88,7 +90,7 @@ class CacheManager(object):
         if keyType == 'standard': 
             key = object
         elif keyType == 'md5':
-            key = md5.new(object).hexdigest()
+            key = md5new(object).hexdigest()
 
         if key in self.cache: return True
 
@@ -98,7 +100,7 @@ class CacheManager(object):
 
     def get_md5_from_file(self, path ):
 
-        m  = md5.new()
+        m  = md5new()
         sz = os.stat(path)[6]
 
         # one meg or less buffer read
@@ -151,6 +153,9 @@ class CacheManager(object):
 if __name__ == '__main__':
   
     manager = CacheManager(maxEntries=3, timeout=5 * 3600)
+
+    cacheMD5 = manager.get_md5_from_file(sys.argv[1])
+    print cacheMD5
 
     manager.find('toto')
     manager.find('tutu')
