@@ -29,9 +29,15 @@ class URLParser:
         # Sample socket url: amis://pxatx-priv.cmc.ec.gc.ca:24901
         # Sample file url  : file://localhost/apps/px/operator
         self.url = url
-        if self.url[:4] == 'amqp' : url = url.replace('amqp','ftp')
+        if self.url[:4] == 'amqp' : url = url.replace('amqp',   'ftp')
+        if self.url[:4] == 'amis' : url = url.replace('amis://','http://')
+        if self.url[:3] == 'am:'  : url = url.replace('am://',  'http://')
+        if self.url[:4] == 'wmo:' : url = url.replace('wmo://', 'http://')
         self.protocol, self.netloc, self.path, self.param, self.query, self.frag = urlparse.urlparse(url)
         if self.url[:4] == 'amqp' : self.protocol = 'amqp'
+        if self.url[:4] == 'amis' : self.protocol = 'amis'
+        if self.url[:3] == 'am:'  : self.protocol = 'am'
+        if self.url[:4] == 'wmo:' : self.protocol = 'wmo'
         self.user = None
         self.passwd = None
         self.host = None
@@ -49,7 +55,7 @@ class URLParser:
             (self.passwd, self.host) = rest.split('@')
         elif self.protocol in ['am', 'wmo', 'amis']:
             # Sample socket path part: //pxatx-priv.cmc.ec.gc.ca:24901
-            (self.host, self.port) = self.path[2:].split(':')
+            (self.host, self.port) = self.netloc.split(':')
             self.path = None
         elif self.protocol == 'file':
             # Sample file path part://apps/px/operator
@@ -86,10 +92,11 @@ class URLParser:
 if __name__ == '__main__':
 
     #parser = URLParser('wmo://pxatx-priv.cmc.ec.gc.ca:24901')
-    #parser = URLParser('am://pxatx-priv.cmc.ec.gc.ca:24901')
+    parser = URLParser('am://pxatx-priv.cmc.ec.gc.ca:24901')
     #parser = URLParser('amis://pxatx-priv.cmc.ec.gc.ca:24901')
+
     #parser = URLParser('file://localhost//apps/px/operator')
-    parser = URLParser('amqp://guest:guest@grogne.cmc.ec.gc.ca//data')
+    #parser = URLParser('amqp://guest:guestpw@grogne.cmc.ec.gc.ca//data')
 
     print parser.parse()
     print 
