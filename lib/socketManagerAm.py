@@ -39,7 +39,8 @@ class socketManagerAm(socketManager.socketManager):
         # amtcp2file (also not included in application.) to manage the fields we use
         # python struct.
         #self.patternAmRec = '80sLL4sii4s4s20s'
-        self.patternAmRec = '80sLL4siiii20s'
+        #self.patternAmRec = '80sLL4siiii20s'
+        self.patternAmRec = '80sII4siIII20s'
         self.sizeAmRec = struct.calcsize(self.patternAmRec)
 
     def unwrapBulletin(self):
