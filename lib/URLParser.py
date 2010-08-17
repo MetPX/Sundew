@@ -50,7 +50,6 @@ class URLParser:
             (self.passwd, self.host) = rest.split('@')
         elif self.protocol == 'amqp':
             # Sample ftp netloc: user:passwd@px-op.cmc.ec.gc.ca
-            print self.netloc
             (self.user, rest) = self.netloc.split(':')
             (self.passwd, self.host) = rest.split('@')
         elif self.protocol in ['am', 'wmo', 'amis']:
