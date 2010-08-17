@@ -557,10 +557,11 @@ class SenderFTP(object):
                                           self.client.host, destDirString, destName))
 
                           if self.client.kbytes_ps > 0.0 :
-                             tspan    = (tend - tbegin) * 1024.0
-                             if tspan == 0.0 : tspan = 0.001
-                             tspeed   = nbBytes/tspan
-                             self.logger.debug("Speed %f Kb/s" % tspeed)
+                             tspan    = tend - tbegin
+                             if tspan >= 1.0 : 
+                                tspan  = tspan * 1024.0
+                                tspeed = nbBytes/tspan
+                                self.logger.debug("Speed %f Kb/s" % tspeed)
     
                           # add data to cache if needed
                           if self.client.nodups and self.cacheMD5 != None : 
