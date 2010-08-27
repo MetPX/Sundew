@@ -404,6 +404,12 @@ class PXRetrans(object):
             else:
                 return
 
+        #FIXME: Should check for interactive configution of this variable
+        if len(numbers) >= 200: # FIXME: This number should be configurable (px.conf)
+            waitTimeForLogEntry = 0
+        else:
+            waitTimeForLogEntry = -1
+
         #print numbers
         numLines = fileLib.getNumLines(self.matchingFile)
         numFigures = len(str(numLines))
@@ -427,7 +433,7 @@ class PXRetrans(object):
                 #print "%%%is) %%s %%%%(forClient)s %%s" % numFigures % (number, lines[number-1].strip(), client) % self.lang
                 date, hour, fullPath, machine = lines[number-1].strip().split()
                 filename = os.path.basename(fullPath)
-                command = ".localRetrans %s %s %s %s" % (filename, client, self.options.prio, number)
+                command = ".localRetrans %s %s %s %s %s" % (filename, client, self.options.prio, waitTimeForLogEntry, number)
                 output = commands.getoutput("ssh %s %s@%s %s" % (self.fePrivKeyArg, self.beUser, machine, command))
                 print output
 
