@@ -113,7 +113,9 @@ class PullFTP(object):
         # keep only if we are interested in that file
 
         for filepattern in self.pulllst :
+            self.logger.debug("fil = (%s)" % fil)
             if re.compile(filepattern).match(fil):
+               self.logger.debug("fil = OK")
                self.ls[fil] = desc
 
 
@@ -337,6 +339,7 @@ class PullFTP(object):
 
             # cd to that directory
 
+            self.logger.debug(" cd %s" % self.destDir)
             ok = self.cd(self.destDir)
             if not ok : continue
 
@@ -523,6 +526,26 @@ class PullFTP(object):
         """
         Matching keyword with different patterns
         """
+        if keywd[:6] == "{YYYY}"         : 
+                                           return   time.strftime("%Y", time.gmtime()) + keywd[6:]
+
+        if keywd[:9] == "{YYYY-1D}"      : 
+                                           epoch  = time.mktime(time.gmtime()) - 24*60*60
+                                           return   time.strftime("%Y", time.localtime(epoch) ) + keywd[9:]
+
+        if keywd[:4] == "{MM}"           : 
+                                           return   time.strftime("%m", time.gmtime()) + keywd[4:]
+
+        if keywd[:7] == "{MM-1D}"        : 
+                                           epoch  = time.mktime(time.gmtime()) - 24*60*60
+                                           return   time.strftime("%m", time.localtime(epoch) ) + keywd[7:]
+
+        if keywd[:5] == "{JJJ}"          : 
+                                           return   time.strftime("%j", time.gmtime()) + keywd[5:]
+
+        if keywd[:8] == "{JJJ-1D}"       : 
+                                           epoch  = time.mktime(time.gmtime()) - 24*60*60
+                                           return   time.strftime("%j", time.localtime(epoch) ) + keywd[8:]
 
         if keywd[:10] == "{YYYYMMDD}"    : 
                                            return   time.strftime("%Y%m%d", time.gmtime()) + keywd[10:]
