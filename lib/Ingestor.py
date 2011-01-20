@@ -326,7 +326,7 @@ class Ingestor(object):
                             self.source.mtime, False, self.source.logger, self.source.sorter, self.source)
 
         sleep_sec = 1
-        if self.source.type == 'pull-file' : sleep_sec = self.source.pull_sleep
+        if self.source.type == 'pull-file' or self.source.pull_script != None  : sleep_sec = self.source.pull_sleep
 
         while True:
             if igniter.reloadMode == True:
@@ -342,7 +342,7 @@ class Ingestor(object):
                    self.drp.parse()
 
                 if self.source.nodups :
-                   self.fileCache.CacheManager(maxEntries=self.source.cache_size, timeout=8*3600)
+                   self.fileCache = CacheManager(maxEntries=self.source.cache_size, timeout=8*3600)
 
                 reader = DiskReader(self.ingestDir, self.source.batch, self.source.validation, self.source.patternMatching,
                                     self.source.mtime, False, self.source.logger, self.source.sorter, self.source)
@@ -350,16 +350,23 @@ class Ingestor(object):
                 igniter.reloadMode = False
 
             # pull files in rxq directory if in pull mode
-            if self.source.type == 'pull-file' :
+            if self.source.type == 'pull-file' or self.source.pull_script != None :
+               files    = []
                sleeping = os.path.isfile(PXPaths.RXQ + self.source.name + '/.sleep')
-               puller = PullFTP(self.source,self.logger,sleeping)
-               files  = puller.get()
-               puller.close()
+
+               if self.source.type == 'pull-file' :
+                  puller = PullFTP(self.source,self.logger,sleeping)
+                  files  = puller.get()
+                  puller.close()
+               elif self.source.pull_script != None :
+                  files  = self.source.pull_script(self.source,self.logger,sleeping)
+
                if not sleeping :
                   self.logger.debug("Number of files pulled = %s" % len(files) )
                else :
                   self.logger.info("This pull is sleeping")
 
+            # normal diskreader call for files
             reader.read()
             if len(reader.sortedFiles) <= 0:
                time.sleep(sleep_sec)
@@ -463,7 +470,7 @@ class Ingestor(object):
         from PullFTP import PullFTP
 
         sleep_sec = 1
-        if self.source.type == 'pull-bulletin' : sleep_sec = self.source.pull_sleep
+        if self.source.type == 'pull-bulletin' or self.source.pull_script != None : sleep_sec = self.source.pull_sleep
 
         bullManager = bulletinManager.bulletinManager(
                     self.ingestDir,
@@ -535,7 +542,7 @@ class Ingestor(object):
                                self.source.addStationInFilename)
 
                 if self.source.nodups :
-                   self.fileCache.CacheManager(maxEntries=self.source.cache_size, timeout=8*3600)
+                   self.fileCache = CacheManager(maxEntries=self.source.cache_size, timeout=8*3600)
 
                 reader = DiskReader(bullManager.pathSource, self.source.batch, self.source.validation, self.source.patternMatching,
                                     self.source.mtime, False, self.source.logger, self.source.sorter,self.source)
@@ -543,17 +550,26 @@ class Ingestor(object):
                 self.logger.info("Receiver has been reloaded")
                 igniter.reloadMode = False
 
+
             # pull files in rxq directory if in pull mode
-            if self.source.type == 'pull-bulletin' :
+            if self.source.type == 'pull-bulletin' or self.source.pull_script != None :
+               files    = []
                sleeping = os.path.isfile(PXPaths.RXQ + self.source.name + '/.sleep')
-               puller = PullFTP(self.source,self.logger,sleeping)
-               files  = puller.get()
-               puller.close()
+
+               if self.source.type == 'pull-file' :
+                  puller = PullFTP(self.source,self.logger,sleeping)
+                  files  = puller.get()
+                  puller.close()
+               elif self.source.pull_script != None :
+                  files  = self.source.pull_script(self.source,self.logger,sleeping)
+
                if not sleeping :
                   self.logger.debug("Number of files pulled = %s" % len(files) )
                else :
                   self.logger.info("This pull is sleeping")
 
+
+            # normal diskreader call for files
             reader.read()
 
             # processing the list if necessary... 
