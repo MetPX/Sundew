@@ -145,6 +145,9 @@ class Source(object):
         self.lx_script   = None   # a script to convert/modify a list of received files
         self.lx_execfile = None
 
+        self.pull_script   = None # a script to pull files prior to read rxq
+        self.pull_execfile = None
+
         #-----------------------------------------------------------------------------------------
         # All defaults for a source were set earlier in this class
         # But some of them may have been overwritten in the px.conf file
@@ -173,6 +176,10 @@ class Source(object):
         if self.lx_execfile != None :
            try    : execfile(PXPaths.SCRIPTS + self.lx_execfile )
            except : self.logger.error("Problem with lx_script %s" % self.lx_execfile)
+
+        if self.pull_execfile != None :
+           try    : execfile(PXPaths.SCRIPTS + self.pull_execfile )
+           except : self.logger.error("Problem with pull_script %s" % self.pull_execfile)
 
         #-----------------------------------------------------------------------------------------
         # Make sure the collection params are valid
@@ -275,8 +282,8 @@ class Source(object):
                     elif words[0] == 'feed': self.feeds.append(words[1])
                     elif words[0] == 'routingTable': self.routingTable = words[1]
                     elif words[0] == 'fx_script': self.fx_execfile = words[1]
-
                     elif words[0] == 'lx_script': self.lx_execfile = words[1]
+                    elif words[0] == 'pull_script': self.pull_execfile = words[1]
 
                     elif words[0] == 'arrival':
                          if self.mapEnteteDelai == None : self.mapEnteteDelai = {}
@@ -345,6 +352,11 @@ class Source(object):
         if self.lx_script == None : return filelist
         return self.lx_script(filelist, logger)
 
+    def run_pull_script(self, flow, logger, sleeping):
+        filelist = []
+        if self.pull_script == None : return filelist
+        return self.pull_script(flow, logger, sleeping)
+
     def getTransformation(self, filename):
         for mask in self.tmasks:
             if fnmatch.fnmatch(filename, mask[0]):
@@ -399,6 +411,7 @@ class Source(object):
         print("No duplicates: %s" % source.nodups)
         print("FX script: %s" % source.fx_execfile)
         print("LX script: %s" % source.lx_execfile)
+        print("Pull script: %s" % source.pull_execfile)
         
         print("******************************************")
         print("*       Source Masks                     *")
