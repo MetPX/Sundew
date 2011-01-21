@@ -144,6 +144,28 @@ The module must return one of the 3 following :
 
 .fi
 .TP
+\fBpull_script script (default:None)\fR
+Receiver that are not pull-file or pull-bulletin can implement their own
+pull mechanism. You can define a script that will retrieve the files
+into the receiver's queue directory prior to their ingestion. For example,
+a receiver that gets and ingests products from the web would implement a
+pull_script. The script must be in python and reside in $PXROOT/etc/scripts.
+The pull_script must end with the line :
+.nf
+
+         self.pull_script = module
+
+.fi
+where the module is a valid python module having 3 arguments : flow, logger, sleeping.
+The flow is more for development. It is the receiver's python class. You would use it
+if you would like to implement options in the receiver to be used in the pull_script.
+The \fBlogger\fR can be used to log messages into the receiver's log file exactly as 
+described for the fx_script option.  \fBsleeping\fR is a boolean for the presence of
+a .sleep file in the receiver's queue (see pull-file or pull-bulletin).
+The script must return a python list (that can be empty) containing the filepaths of
+the pulled files. The pull script is responsible to make sure it will not retrieve the
+same files over and over again.
+.TP
 \fBvalidation boolean (default:False )\fR
 .nf
 Validate that the file name has the following form:
