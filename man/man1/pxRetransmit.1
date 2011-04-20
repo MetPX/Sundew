@@ -1,4 +1,4 @@
-.TH PXSender "1" "Jan 2007" "px 1.0.0" "Metpx suite"
+.TH PXRetransmit "1" "Jan 2007" "px 1.0.0" "Metpx suite"
 .SH NAME
 pxRetransmit \- Metpx script to retransmit product(s) to a sender
 .SH SYNOPSIS
@@ -6,10 +6,10 @@ pxRetransmit \- Metpx script to retransmit product(s) to a sender
 \fIsender_name\fR [\fI filepath1 filepath2 filepath3...\fR]
 .SH DESCRIPTION
 .Pp
-pxRetransmit can be used to resend products to a client.  You must first seek
-the product within METPX's database $PXROOT/db/yyyymmdd... 
-Than you simply invoke the program followed by the sender's name and the product  
-filepath in that order.
+pxRetransmit can be used to resend products to a client.  first determine
+the products within METPX's database $PXROOT/db/yyyymmdd... to be retransmitted,
+Then invoke the program followed by the sender's name and the product  
+filepath.
 .nf
 
 \fBpxRetransmit\fR does the following :
@@ -25,6 +25,6 @@ The sender, scans endlessly all directories under $PXROOT/txq/"sender_name" in
 search of products.  For products present under the 0 priority directory,
 the sender process them without duplicate checking if enabled.
 
-The user must be carefull when using \fBpxRetransmit\fR.
+The user must be careful when using \fBpxRetransmit\fR.
 Any product given to the script will be put in the client's queue regardless 
 of the whole routing process and the sender's configuration.
