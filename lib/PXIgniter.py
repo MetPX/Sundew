@@ -20,6 +20,7 @@ named COPYING in the root of the source directory tree.
 """
 import sys, os, time, commands, signal
 from Igniter import Igniter
+from Client import Client
 
 class PXIgniter(Igniter):
    
@@ -77,6 +78,15 @@ class PXIgniter(Igniter):
          if not commands.getstatusoutput('ps -p ' + str(self.lockpid))[0]:
             os.unlink(self.lock)
             os.kill(self.lockpid, signal.SIGTERM)
+            # sftp is not responsive to sigterm sometimes... force sigkill after .5 sec
+            if self.direction == 'sender' :
+               client = Client(self.flowName, self.logger)
+               if client.protocol == 'sftp' :
+                  time.sleep(0.5)
+                  if not commands.getstatusoutput('ps -p ' + str(self.lockpid))[0]:
+                     self.logger.info("%s %s (sigkill) has been stopped" % (self.direction.capitalize(), self.flowName))
+                     os.kill(self.lockpid, signal.SIGKILL)
+
          # ... and not running
          else:
             self.printComment('Locked but not running')
