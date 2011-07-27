@@ -78,10 +78,10 @@ class PXIgniter(Igniter):
          if not commands.getstatusoutput('ps -p ' + str(self.lockpid))[0]:
             os.unlink(self.lock)
             os.kill(self.lockpid, signal.SIGTERM)
-            # sftp is not responsive to sigterm sometimes... force sigkill after .5 sec
+            # sftp/ftp are not always responsive to sigterm sometimes... force sigkill after .5 sec
             if self.direction == 'sender' :
                client = Client(self.flowName, self.logger)
-               if client.protocol == 'sftp' :
+               if client.protocol[-3:] == 'ftp' :
                   time.sleep(0.5)
                   if not commands.getstatusoutput('ps -p ' + str(self.lockpid))[0]:
                      self.logger.info("%s %s (sigkill) has been stopped" % (self.direction.capitalize(), self.flowName))
