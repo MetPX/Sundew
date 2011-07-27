@@ -78,7 +78,7 @@ class PXIgniter(Igniter):
          if not commands.getstatusoutput('ps -p ' + str(self.lockpid))[0]:
             os.unlink(self.lock)
             os.kill(self.lockpid, signal.SIGTERM)
-            # if a sender is responsive to sigterm... after .5 sec force sigkill 
+            # if a sender is not responsive to sigterm after .5 sec force sigkill 
             if self.direction == 'sender' :
                time.sleep(0.5)
                if not commands.getstatusoutput('ps -p ' + str(self.lockpid))[0]:
