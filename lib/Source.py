@@ -293,6 +293,16 @@ class Source(object):
                     elif words[0] == 'directory': 
                          currentDir = words[1]
                          currentLST = []
+                         # permit directory duplications but warn
+                         for lst in self.pulls :
+                             if lst[0] == currentDir :
+                                currentLST = lst
+                                break
+                         if len(currentLST) != 0 :
+                            self.logger.warning("This directory appears twice %s" % currentDir)
+                            self.logger.warning("Please correct your config")
+                            continue
+                         # normal directory addition
                          currentLST.append( currentDir )
                          self.pulls.append( currentLST )
                     elif words[0] == 'get':
