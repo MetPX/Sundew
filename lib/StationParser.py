@@ -39,11 +39,17 @@ class StationParser(FileParser):
 
         for line in file:
             if not re.compile('^[ \t]*#').search(line):
-                line = line.strip()
-                words = line.split(':')
-                header = words[0]
-                coll = words[1]
-                stations = words[2].split()
+                # make sure it doesnt bumb
+                try :
+                       line = line.strip()
+                       words = line.split(':')
+                       header = words[0]
+                       coll = words[1]
+                       stations = words[2].split()
+                # log problem and skip line
+                except :
+                       self.logger.error("parsing error line =  %s" % line)
+                       continue
     
                 # Find duplicate station for a given header
                 uniqueStations = self.removeDuplicate(stations)
@@ -113,6 +119,7 @@ class StationParser(FileParser):
             print "=============================================================================="
 
 if __name__ == '__main__':
+    from Logger import Logger
     import sys
     #sp = StationParser('/apps/px/etc/collection_stations.conf')
     sp = StationParser('/apps/px/etc/stations.conf')
