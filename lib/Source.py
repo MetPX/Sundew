@@ -607,8 +607,8 @@ if __name__ == '__main__':
     if source.getTransformation('ALLOxxxxBonjour'): print source.getTransformation('ALLOxxxxBonjour')
     if source.getTransformation('TUTU'): print source.getTransformation('TUTU')
     if source.getTransformation('*Salut*Bonjour'): print source.getTransformation('*Salut*Bonjour')
-    """
     
     source=  Source('collecteur')
     source.readConfig('/tmp/trunk/sundew/etc/rx/collecteur.conf')
     source.printInfos(source)
+    """
