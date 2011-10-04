@@ -331,7 +331,10 @@ class Source(object):
 
                     # options for collector
                     if   self.type == 'collector' :
-                         if   words[0] == 'history': self.history = int(words[1])
+                         if   words[0] == 'aaxx'   : self.aaxx  = words[1].split(',')
+                         if   words[0] == 'metar'  : self.metar = words[1].split(',')
+                         elif words[0] == 'taf'    : self.taf = words[1].split(',')
+                         elif words[0] == 'history': self.history = int(words[1])
                          elif words[0] == 'future' : self.future = int(words[1])
                          elif words[0] == 'issue'  : 
                                                      if words[1] == 'all' :
@@ -487,6 +490,9 @@ class Source(object):
            print("******************************************")
            print("*       Collection Params                *")
            print("******************************************")
+           print "bulletin aaxx  %s" % self.aaxx
+           print "bulletin metar %s" % self.metar
+           print "bulletin taf   %s" % self.taf
 
            for position, header in enumerate(self.headers):
                print "\nHeader %s" % header
@@ -597,9 +603,12 @@ if __name__ == '__main__':
             source.ingestor.setClients()
             print source.ingestor.getIngestName('toto')
 
-    """
     source = Source('wmo')
     if source.getTransformation('ALLOxxxxBonjour'): print source.getTransformation('ALLOxxxxBonjour')
     if source.getTransformation('TUTU'): print source.getTransformation('TUTU')
     if source.getTransformation('*Salut*Bonjour'): print source.getTransformation('*Salut*Bonjour')
+    """
     
+    source=  Source('collecteur')
+    source.readConfig('/tmp/trunk/sundew/etc/rx/collecteur.conf')
+    source.printInfos(source)
