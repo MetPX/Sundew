@@ -73,16 +73,24 @@ class CollectionBuilder(object):
         self.alpha = \
         [ 'A','B','C','D','E','F','G','H','I','J','K','L','M','N','O','P','Q','R','S','T','U','V','W','X','Y','Z' ]
 
+        # AAXX / METAR / TAF
+
+        self.AAXX  = self.source.aaxx
+        self.metar = self.source.metar
+        self.taf   = self.source.taf
+
         # AAXX...
-
-        self.AAXX = [ 'SI', 'SM' ]
-
+        #self.AAXX = [ 'SI', 'SM' ]
+        #
         # metar...
-
-        self.metar = \
-        [ 'SACN31',  \
-          'SACN40', 'SACN41', 'SACN42', 'SACN43', 'SACN44', 'SACN45', 'SACN46', 'SACN47', 'SACN48', 'SACN49', \
-          'SACN51', 'SACN52'  ]
+        #self.metar = \
+        #[ 'SACN31',  \
+        #  'SACN40', 'SACN41', 'SACN42', 'SACN43', 'SACN44', 'SACN45', 'SACN46', 'SACN47', 'SACN48', 'SACN49', \
+        #  'SACN51', 'SACN52'  ]
+        #
+        # taf...
+        #self.taf = \
+        #[ 'FTCN31', 'FTCN32', 'FTCN33', 'FTCN34', 'FTCN35', 'FTCN36', 'FTCN37', 'FTCN38' ]
 
     #-----------------------------------------------------------------------------------------
     # cache used files
@@ -348,8 +356,9 @@ class CollectionBuilder(object):
             # station not found : add with NIL 
 
             if best == None :
-               if header[0][:6] in self.metar : data += 'METAR ' + station + ' NIL=\n'
-               else :                           data +=            station + ' NIL=\n'
+               if   header[0][:6] in self.metar : data += 'METAR ' + station + ' NIL=\n'
+               elif header[0][:6] in self.taf   : data += 'TAF '   + station + ' ' + header[2] + 'Z NIL=\n'
+               else :                             data +=            station + ' NIL=\n'
                continue
 
             # add station to the collection
