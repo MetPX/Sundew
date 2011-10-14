@@ -556,7 +556,7 @@ class Ingestor(object):
                files    = []
                sleeping = os.path.isfile(PXPaths.RXQ + self.source.name + '/.sleep')
 
-               if self.source.type == 'pull-file' :
+               if self.source.type == 'pull-bulletin' :
                   puller = PullFTP(self.source,self.logger,sleeping)
                   files  = puller.get()
                   puller.close()
