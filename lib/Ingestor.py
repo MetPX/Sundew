@@ -242,12 +242,18 @@ class Ingestor(object):
             return 0
         
         self.createDir(os.path.dirname(dbName), self.dbDirsCache)
-        #try:
-        #    os.link(receptionName, dbName)
-        #except OSError:
-        #    (type, value, tb) = sys.exc_info()
-        #    self.logger.error("Unable to link %s %s, Type: %s, Value: %s" % (receptionName, dbName, type, value))
-        os.link(receptionName, dbName)
+
+        try:
+                os.link(receptionName, dbName)
+
+        # sometime multiple file with the same name within the same second
+        # cause the process to bumb... for theses specific cases add a 3 digits count
+        # after the datetime postfix
+        except:
+                self.count = self.count + 1
+                if self.count > 999 : self.count = 1
+                dbName = dbName + '.%.3d' % self.count
+                os.link(receptionName, dbName)
 
         nbBytes = os.stat(receptionName)[stat.ST_SIZE]
 
@@ -280,12 +286,16 @@ class Ingestor(object):
         for name in clientNames:
             clientQueueName = self.getClientQueueName(name, ingestName, priority)
             self.createDir(os.path.dirname(clientQueueName), self.clientDirsCache)
-            #try:
-            #    os.link(dbName, clientQueueName)
-            #except OSError:
-            #    (type, value, tb) = sys.exc_info()
-            #    self.logger.error("Unable to link %s %s, Type: %s, Value: %s" % (dbName, clientQueueName, type, value))
-            os.link(dbName, clientQueueName)
+
+            try:
+                os.link(dbName, clientQueueName)
+
+            # sometime multiple file with the same name within the same second
+            # cause the process to bumb... for theses specific cases add a 3 digits count
+            # after the datetime postfix
+            except:
+                clientQueueName = clientQueueName + '.%.3d' % self.count
+                os.link(dbName, clientQueueName)
 
         feedNames = []
         if len(self.feedNames) > 0 :
@@ -296,7 +306,16 @@ class Ingestor(object):
             if name in clientNames : continue
             sourceQueueName = PXPaths.RXQ + name + '/' + ingestName
             self.createDir(os.path.dirname(sourceQueueName), self.clientDirsCache)
-            os.link(dbName, sourceQueueName)
+
+            try:
+                os.link(dbName, sourceQueueName)
+
+            # sometime multiple file with the same name within the same second
+            # cause the process to bumb... for theses specific cases add a 3 digits count
+            # after the datetime postfix
+            except:
+                sourceQueueName = sourceQueueName + '.%.3d' % self.count
+                os.link(dbName, sourceQueueName)
 
         self.logger.info("Queued for: %s" % string.join(clientNames) + ' ' + string.join(feedNames) )
         return 1
