@@ -479,7 +479,7 @@ class Ingestor(object):
                     99999,
                     '\n',
                     self.source.extension,
-                    PXPaths.ROUTING_TABLE,
+                    self.source.routingTable,
                     self.source.mapEnteteDelai,
                     self.source,
                     self.source.addStationInFilename)
@@ -492,7 +492,7 @@ class Ingestor(object):
                     99999,
                     '\n',
                     self.source.extension,
-                    PXPaths.ROUTING_TABLE,
+                    self.source.routingTable,
                     self.source.addSMHeader,
                     PXPaths.STATION_TABLE,
                     self.source.mapEnteteDelai,
@@ -521,7 +521,7 @@ class Ingestor(object):
                                99999,
                                '\n',
                                self.source.extension,
-                               PXPaths.ROUTING_TABLE,
+                               self.source.routingTable,
                                self.source.mapEnteteDelai,
                                self.source,
                                self.source.addStationInFilename)
@@ -534,7 +534,7 @@ class Ingestor(object):
                                99999,
                                '\n',
                                self.source.extension,
-                               PXPaths.ROUTING_TABLE,
+                               self.source.routingTable,
                                self.source.addSMHeader,
                                PXPaths.STATION_TABLE,
                                self.source.mapEnteteDelai,
@@ -653,7 +653,7 @@ class Ingestor(object):
                     99999,
                     '\n',
                     self.source.extension,
-                    PXPaths.ROUTING_TABLE,
+                    self.source.routingTable,
                     self.source.mapEnteteDelai,
                     self.source)
 
@@ -675,7 +675,7 @@ class Ingestor(object):
                                99999,
                                '\n',
                                self.source.extension,
-                               PXPaths.ROUTING_TABLE,
+                               self.source.routingTable,
                                self.source.mapEnteteDelai,
                                self.source)
                 reader = DiskReader(bullManager.pathSource, self.source.batch, self.source.validation, self.source.patternMatching,
