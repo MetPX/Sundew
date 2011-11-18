@@ -230,7 +230,7 @@ class SenderScript(object):
         # ok using script to send the file list
 
         try :
-                  self.client.send_script( filelst, self.logger )
+                  self.client.send_script( self.client, filelst, self.logger )
 
                   for t in filelst :
                       file,destdir,destName = t
