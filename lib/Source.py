@@ -80,8 +80,8 @@ class Source(object):
         self.bulletin_type = None                 # type of bulletin ingested (None, am, wmo)
         self.masks = []                           # All the masks (accept and reject)
         self.masks_deprecated = []                # All the masks (imask and emask)
-        self.routemask = False                    # use accept and parenthesis in mask to create a key and route with it
-        self.routing_version = 0                  # directRouting version setting
+        self.routemask = True                     # use accept and parenthesis in mask to create a key and route with it
+        self.routing_version = 1                  # directRouting version setting
         self.nodups = False                       # Check if the file was already received (md5sum present in the cache)
         self.tmasks = []                          # All the transformation maks (timask, temask)
         self.extension = ':MISSING:MISSING:MISSING:MISSING:'   # Extension to be added to the ingest name
