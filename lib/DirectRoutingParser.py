@@ -63,6 +63,13 @@ class DirectRoutingParser(FileParser):
         return key
 
     def getHeaderPriority(self, header):
+        if not self.routingInfos.has_key(header):
+           for mask in self.keyMasks :
+               if mask[3].match(header) :
+                  # rejected by key_reject
+                  if not mask[4] : break
+               return mask[2]
+
         return self.routingInfos[header]['priority']
 
     def getHeaderClients(self, header):
