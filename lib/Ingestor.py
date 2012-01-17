@@ -426,6 +426,24 @@ class Ingestor(object):
 
         ingestName = self.getIngestName(os.path.basename(file))
 
+        # make sure we do not have a dbName already in there
+        # if it happens add a second to the postfix datetime stamp
+        # until the dbName is not found
+
+        dbName = self.getDBName(ingestName)
+        if dbName != '' and os.path.exists(dbName) :
+           ingestOrig = ingestName
+           self.logger.warning('dbName %s found in db, attempt to modify suffix ' % ingestName)
+           sec = int(ingestName[-2:]) + 1
+           while( sec <= 59 ) :
+                ingestName = ingestName[:-2] + "%.2d" % sec
+                dbName = self.getDBName(ingestName)
+                if not os.path.exists(dbName) : break
+                sec = sec + 1
+
+           # our trick did not work... process will bumb
+           if sec == 60 : ingestName = ingestOrig
+
         # usual clients
 
         potentials = self.clientNames + self.filterNames
