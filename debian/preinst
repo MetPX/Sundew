@@ -19,6 +19,10 @@ if ! getent passwd px >/dev/null; then
         adduser --system --ingroup px --home $PXHOME --uid $PXUID --gecos "PX user" --shell /bin/false px  >/dev/null
 fi
 
+# user px already exist with a home different from /home/px
+
+PXHOME=`getent passwd px | cut -d: -f6`
+
 # creating px home directory
 if [ ! -d $PXHOME -a ! -L $PXHOME ]; then
         mkdir $PXHOME 
