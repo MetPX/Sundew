@@ -162,7 +162,7 @@ class SenderScript(object):
 
             # applying the fx_script if defined redefine the file list
 
-            if self.client.execfile2 != None :
+            if self.client.fx_execfile != None :
                fxfile = self.client.run_fx_script(file,self.logger)
                if fxfile == None :
                   self.logger.warning("FX script ignored the file : %s"    % os.path.basename(file) )
