@@ -249,7 +249,9 @@ class Ingestor(object):
         #    self.logger.error("Unable to link %s %s, Type: %s, Value: %s" % (receptionName, dbName, type, value))
         os.link(receptionName, dbName)
 
-        nbBytes = os.stat(receptionName)[stat.ST_SIZE]
+        lstat   = os.stat(receptionName)
+        nbBytes = lstat[stat.ST_SIZE]
+        mtime   = lstat[stat.ST_MTIME]
 
         if self.source.debug:
             self.logger.info("DBDirsCache: %s" % self.dbDirsCache.cache)
@@ -270,11 +272,11 @@ class Ingestor(object):
             self.logger.debug("Client Caching stats: %s => %s" % (str(stats), percentage))
 
             self.logger.info("Ingestion Name: %s" % ingestName)
-            
-        self.logger.info("(%i Bytes) Ingested in DB as %s" % (nbBytes, dbName))
 
         # Problem bulletins are databased, but not sent to clients
         if ingestName.find("PROBLEM_BULLETIN") is not -1:
+            latency = time.time() - mtime
+            self.logger.info("(%i Bytes) Ingested in DB as %s (lat=%f)" % (nbBytes, dbName, latency))
             return 1
 
         for name in clientNames:
@@ -298,6 +300,8 @@ class Ingestor(object):
             self.createDir(os.path.dirname(sourceQueueName), self.clientDirsCache)
             os.link(dbName, sourceQueueName)
 
+        latency = time.time() - mtime
+        self.logger.info("(%i Bytes) Ingested in DB as %s (lat=%f)" % (nbBytes, dbName, latency))
         self.logger.info("Queued for: %s" % string.join(clientNames) + ' ' + string.join(feedNames) )
         return 1
 
@@ -418,7 +422,8 @@ class Ingestor(object):
 
            # file converted...
            else :
-                  self.logger.info("FX script modified %s to %s " % (os.path.basename(file),os.path.basename(fxfile)) )
+                  latency = time.time() - os.stat(file)[stat.ST_MTIME]
+                  self.logger.info("FX script modified %s to %s (lat=%f)" % (os.path.basename(file),os.path.basename(fxfile),latency) )
                   os.unlink(file)
                   file = fxfile
 

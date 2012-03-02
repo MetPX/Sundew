@@ -1,4 +1,4 @@
-#!/usr/bin/env python2
+#!/usr/bin/env python
 
 """
 MetPX Copyright (C) 2004-2006  Environment Canada
