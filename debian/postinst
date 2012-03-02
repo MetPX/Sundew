@@ -16,12 +16,9 @@ PXHOME=`getent passwd px | cut -d: -f6`
 
 for dir in $PXLOG $PXSPOOL $PXETC $PXHOME $PXLIB; do
 	if ! dpkg-statoverride --list $dir >/dev/null 2>&1; then
-    		chown px:px $dir
+		chmod -R 775 $dir
+    		chown -R px:px $dir
 		chmod 4775 $dir
-		if [ "$dir" = "$PXLIB" ]; then
-			chown -R px:px "$dir/"
-			chmod -R 775 "$dir/"
-		fi
 	fi
 done	
 

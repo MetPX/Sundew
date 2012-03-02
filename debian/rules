@@ -108,6 +108,13 @@ install: build
 	# Create the spool directory
 	install -d debian/metpx-sundew/var/spool/px
 
+	# queues and db to be ready to start
+	install -d debian/metpx-sundew/var/spool/px/db
+	install -d debian/metpx-sundew/var/spool/px/fxq
+	install -d debian/metpx-sundew/var/spool/px/rxq
+	install -d debian/metpx-sundew/var/spool/px/trxq
+	install -d debian/metpx-sundew/var/spool/px/txq
+
 	# Install init script px	
 	dh_installinit --name=px --no-start 	
 
