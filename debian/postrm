@@ -3,12 +3,16 @@
 
 set -e
 
+PXETC=/etc/px
+PXLIB=/usr/lib/px
 PXLOG=/var/log/px
 PXSPOOL=/var/spool/px
 PXHOME=`getent passwd px | cut -d: -f6`
 
 if [ "$1" = "purge" ] ; then
 	rm -rf $PXLOG
+	rm -rf $PXLIB
+	rm -rf $PXETC
 	rm -rf $PXSPOOL
 	rm -rf $PXHOME
 	deluser --quiet --remove-home px > /dev/null || true

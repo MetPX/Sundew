@@ -119,7 +119,7 @@ binary-arch: build install
 	dh_testdir 
 	dh_testroot 
 	#dh_installinit --name=px -n 	
-	dh_installdocs 
+	dh_installdocs  --exclude=".svn"
 	dh_installchangelogs 
 	#dh_installcron
 	dh_strip 

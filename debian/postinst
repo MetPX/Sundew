@@ -9,9 +9,10 @@ PXSPOOL=/var/spool/px
 
 PXHOME=`getent passwd px | cut -d: -f6`
 
-if [ ! -d $PXHOME/etc -a ! -L $PXHOME/etc ]; then
-	ln -s $PXETC $PXHOME/etc
-fi
+#MG useless and anoying
+#if [ ! -d $PXHOME/etc -a ! -L $PXHOME/etc ]; then
+#	ln -s $PXETC $PXHOME/etc
+#fi
 
 for dir in $PXLOG $PXSPOOL $PXETC $PXHOME $PXLIB; do
 	if ! dpkg-statoverride --list $dir >/dev/null 2>&1; then
