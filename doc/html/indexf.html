@@ -1,0 +1,156 @@
+<html>
+  <head>
+ <META http-equiv="Content-Type" content="text/html"; charset="iso8859-1">
+    <title>Bienvenue à MetPX</title>
+    <meta content="">
+    <style></style>
+  </head>
+  <body>
+<H1>MetPX - Logiciel libre d'aiguillage de données du STM</H1>
+<P>
+$Date$
+<P>
+[<A HREF="indexe.html">English</a>]
+<P>
+MetPX est un système de commutation de messages sur les circuits TCP/IP du 
+Système de télécommunications mondiales (STM) de l'organisation mondial de 
+la météorologie (l'<A HREF="http://www.wmo.int">OMM.</a>) Pour une 
+sélection de fonctionnalités, le système est déjà d'une qualité opérationelle 
+et est utilisé au CMC en tant que noyau nationale de commutation de bulletins
+et fichiers (satelites, radars, produits numériques.)  le logiciel permet
+la participation canadienne dans les projets internationales tel que: 
+
+<A HREF="http://www.unidata.ucar.edu/">Unidata</A> et <A HREF="http://tigge.ecmwf.int/">TIGGE</a> via une passerelle à LDM,
+ainsi que <A HREF="http://www.emc.ncep.noaa.gov/gmb/ens/NAEFS.html">NAEFS</a> via le transfert de fichiers.
+MetPX se démarque par sa capcité de routage détaillé a très faible latence et à haute vitesse.
+Le projet se veut une sorte de plateforme partagé et universelle pour les télécommunications via GTS, sur 
+le modèle d´apache pour les serveurs web.
+
+<P>
+[ liste de couriel (Anglais-Français): <A HREF="http://lists.sourceforge.net/lists/listinfo/metpx-devel"> metpx-devel.</a>, 
+ <A HREF="http://lists.sourceforge.net/lists/listinfo/metpx-commit"> metpx-commit.</a> ] 
+[ projet:  <A HREF="http://www.sourceforge.net/projects/metpx"> Sourceforge </a> ]
+<P>
+
+<P>
+[<A HREF="#Documentation">Documentation</A>]
+[ <A HREF="http://sourceforge.net/project/showfiles.php?group_id=165061">Téléchargement</a>]
+[<A HREF="#Source">Accès au code source</A>]
+[<A HREF="#Links">Liens, Références</a>]
+<br>
+[ listes de courier:   <A HREF="http://lists.sourceforge.net/lists/listinfo/metpx-devel"> metpx-devel.</a> , 
+ <A HREF="http://lists.sourceforge.net/lists/listinfo/metpx-commit"> metpx-commit.</a>  ]
+[ Page principale de dévéloppement:   <A HREF="http://www.sourceforge.net/projects/metpx"> Sourceforge </a> ]
+<P>
+
+Types de connections TCP/IP:
+<UL>
+<LI>AM (socket prorietaire au systèmes canadiens)
+<LI>sockets OMM (voir le manuel 386) 
+<LI>FTP pour le transport, pas le nomenclature de l'OMM pour l´instant (facile à ajouter)
+<LI>SFTP (but similaire au FTP, mais avec plus de sécurité)
+<LI>AFTN/IP passerelle (Version NavCanada du "Aviation Fixed Telecommunications Network", normalement basée sur du X.25)
+<LI>Bientôt à l´affiche!:  AMQP.
+</UL>
+<P>
+fonctionnalités:
+<UL>
+<LI>Routage détaillé (.... avec 30,000 entrées distinctes dans la table de routage)
+<LI>modalités de commutation commun entre les fichiers et les bulletins.
+<LI>Temps de commutation inférieur à une seconde (avec 28,000 entrées)
+<LI>Commutation et livraison à haute vitesse (était plus de 300 messages par seconde l'an dernier 
+mais il est à noter que plusieurs fonctionnalités ont été ajoutés qui pourraient 
+affecter la vitesse.  Il serait nécessaire de re-vérifier cet aspect.
+<LI>Aucune limite de taille des messages.
+<LI>Segmentation de messages (pour protocoles tel que AM &amp; OMM qui ont de tels limites)
+<LI>Supression des duplicata (à l'envoie)
+<LI>AFTN/IP canadien.
+<LI>collecte de bulletins
+<LI>mécanisme de filtrage général (les collections seront adaptées à ce mécanisme) 
+</UL>
+<P>
+Il y a actuelment trois modules dans ce projet et un troisième est à l'étude.    
+Les modules de MetPX sont nommés selon des noms d'espèces de plantes 
+en voie de disparition au Canada.  (voir:   <A HREF="http://www.especesenperil.gc.ca"> Espèces en péril</a>. )w
+<P>
+<UL>
+<LI>sundew:  module de commutation de l'OMM
+<LI>columbo: module de surveillance, pour sundew et PDS
+<LI>stats: module de collecte et affichages de statistiques.
+</UL>
+<P> 
+Plate-forme:  Linux dérivé de Debian (Sarge, Etch, Lenny, Ubuntu...)  N´importe lesquel Linux modèrne  (2.6  vanille ou bien 2.4 avec plusieurs rustines).  Python version 2.3 où mieux)
+<P>
+license:    GPLv2
+<P>
+le code source en dévéloppement est disponible en utilisant subversion via:  svn co https://metpx.svn.sourceforge.net/svnroot/metpx/trunk
+( accès anonyme pour fins de lecture. )
+
+<A NAME="Documentation"><H3>Documentation</H3></a>
+La documentation en français n´est pas disponible pour le moment.
+Ca va être traduite une fois qu´on aura stabilisé une première édition en anglais.
+Après la traduction initiale, l´espoir sera de les garder en unison.
+<P>
+Veuillez consulter la <A HREF="index.html#Documentation">Documentation anglaise.</a> pour l´instant
+
+<A NAME="Download"><H3>Téléchargement</H3>
+
+<A HREF="http://sourceforge.net/project/showfiles.php?group_id=165061">Téléchargement</a>
+<P>
+La module sundew est relativement stable est peut être téléchargée du site 
+de sourceforge.   Les autres modules ne sont pas assez mature pour être distribuée.
+<P>
+</a>
+
+<H3><A NAME="Source">Accès au code source</A></H3>
+
+Présentement, les installations sont faite une à la fois, à partir du code source.
+La Dévéloppement se fait dans le branche ´trunk´ (terminologie de subversion.) Quand
+on installe, on créé une branche de maintenance pour l´installation.  Il y a des 
+fichiers README et INSTALL qui peuvent donner des indices pour arriver a une 
+installation initiale.
+<P>
+Il faut noter que c´est assez critique d´installer des ´jobs cron´ (mr-clean 
+en particulier) parce que le cas écheant, le serveur va tranquillement rouler 
+de plus en plus lentement jusqu´au moment ou il arrête carrément.  Ça serait 
+optimale de vous inscrire au liste de couriel (français, bienvenu, peut-être 
+même préféré...) ce qui nous donnera des indices pour des tâches futurs, et 
+potentiel de collaboration.
+<P>
+Sentez vous libre de prendre une copie de la version à jour du code source via:
+<UL>
+        svn co https://svn.sourceforge.net/svnroot/metpx/trunk
+</UL>
+
+(disponible anonymement en lecture seulement.) D´autre versions sont disponible 
+en téléchargeant une branche spécifique.
+
+<A NAME="Links"><H3>Liens et Références</H3>
+
+D´autres projets et produits qui sont vaguement dans une domaine similaire.  
+les mentions ici ne devront pas être interpreté comme des recommandations.
+<UL>
+<LI>le manuel WMO 386, référence pour le domaine.(version sans doute périmé est <A HREF="WMO-386.pdf"> ici. </a> Voir http://www.wmo.int pour une version plus r&eacute;cente.
+<LI><A HREF="http://www.unidata.ucar.edu/software/ldm">http://www.unidata.ucar.edu/software/ldm</a>  - Local Data Manager.  LDM inclut une protocol résautique, et veut fondamentalement échanger des données avec d´autres serveurs LDM.  Ce logiciel a servi comme inspiration de plusieurs façons.  Au début des années 2000, on avait étudier le protocol pour les besoins du CMC et identifié des charactéristiques qui le rendaient inapte a notre application.   Par contre, il y avait un effort ´NLDM´ qui avait remplacé le protocol résautique de 
+LDM par un protocol standard (NNTP.) L´éffort a sombré, par contre, ça a servi comme inspiration pour la séparation de la domaine météorologique du protocole de télécommunication, ce qui a été reprit philosophiquement par MetPX.  
+<LI><A HREF="http://www.dwd.de/AFD">http://www.dwd.de/AFD</a> - Automatic File Distributor - de la service météorologique allemande.  Aiguilleur de fichiers dans le protocol au choix de l´usager.  Similaire à MetPX en philosophie
+<LI><A HREF="http://www.corobor.com"> http://www.corobor.com </a> - commutateur OMM commerciale.
+<LI><A HREF="http://www.netsys.co.za"> http://www.netsys.co.za </a> - commutateur OMM commerciale.
+<LI><A HREF="http://www.iblsoft.com"> http://www.iblsoft.com </a> - commutateur OMM commerciale.
+<LI>Quelques autres logiciels de transfert de fichiers: Standard Networks Move IT DMZ, Softlink B-HUB & FEST, Globalscape EFT Server, Axway XFB, Primeur Spazio, Tumbleweed Secure File Transfer, Messageway
+<LI>AMQP (Advanced Message Queuing Protocol) est une nouvelle protocole standard pour l´échange de messages.  Elle est apparue en 2007 et il y a maintenant plusieurs implantations en logiciel libre. Le standard évolue rapidement actuelement.
+<LI>
+AMQP n´est pas uniquement une méthode pour transporter des messages JAVA.  Il est plutôt neutre en vers la langue de programmation et vise l´interopérabilité qui n´est pas fourni par les ¨JMS providers¨ en générale.
+<UL>
+<LI><A HREF="http://www.amqp.org">www.amqp.org</a>  Définition d´AMQP.
+<LI><A HREF="http://www.openamq.org">www.openamq.org</a> 1<sup>ière</sup> implantation de JPMorganChase
+<LI><A HREF="http://www.rabbitmq.com">www.rabbitmq.com</a> une autre.
+<LI><A HREF="http://cwiki.apache.org/qpid">Apache Qpid</a> encore une autre.
+<LI><A HREF="http://activemq.apache.org/">Apache ActiveMQ</a> un "JMS provider" avec un capacité d´utiliser AMQP comme transport. 
+
+</UL>
+</UL>
+
+
+  </body>
+</html>

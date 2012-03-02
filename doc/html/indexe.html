@@ -1,0 +1,152 @@
+<html>
+<head>
+<META http-equiv="Content-Type" content="text/html"; charset="utf-8">
+<title>MetPX welcome</title>
+</head>
+<body>
+<H1>MetPX - Open Source GTS Switching</H1>
+<P>
+$Date$
+<p>
+[<A HREF="indexf.html">fran&#231;ais</a>]
+<P>
+
+MetPX is a message switching system for use with <a href="http://www.wmo.int">World Meteorological Organization (WMO)</a> 
+<A HREF="http://www.wmo.ch/pages/prog/www/TEM/XGTS/gts.html">Global Telecommunications System (GTS)</a> circuits based on TCP/IP.  The system is already production quality for a limited set of features and is in production 
+use at the CMC as the core of our national switching infrastructure for bulletins, as well as file data (satellite, 
+RADAR, numerical outputs, charts & imagery...) It is used to ingest from a NOAAPORT feed, as well as two GTS protocol 
+links, feed several hundred clients in both socket and file based feeds, provide Canadian participation in 
+<A HREF="http://www.unidata.ucar.edu/">Unidata</A> and <A HREF="http://tigge.ecmwf.int/">TIGGE</a> via a bridge to LDM,
+as well as <A HREF="http://www.emc.ncep.noaa.gov/gmb/ens/NAEFS.html">NAEFS</a> via direct file transfer.
+MetPX is unique in its ability to run fine-grained routing with low latency and high performance.  
+Developed at the Canadian Meteorological Centre of <a href="http://www.ec.gc.ca">Environment 
+Canada</a> for our own use.  Licensed under GPL for collaborative development, MetPX aims to be 
+to meteorological switching what apache is to web serving.
+
+<P>
+[<A HREF="#Documentation">Documentation</A>]
+[<A HREF="#Download">Download</A>]
+[<A HREF="http://sourceforge.net/project/showfiles.php?group_id=165061">Download</a>]
+[<A HREF="#Source">Getting Source Code</A>]
+[<A HREF="#Links">References &amp; Links</a>]
+<br>
+[ mailing-lists:   <A HREF="http://lists.sourceforge.net/lists/listinfo/metpx-devel"> metpx-devel.</a>, 
+<A HREF="http://lists.sourceforge.net/lists/listinfo/metpx-commit"> metpx-commit.</a> ]
+[ Main Project page:   <A HREF="http://www.sourceforge.net/projects/metpx"> Sourceforge </a> ]
+<P>
+Protocol support:
+<UL>
+<LI>AM (Canadian proprietary socket protocol) 
+<LI>WMO (see manual 386 for the WMO TCP/IP socket protocol.)
+<LI>FTP (for transport, no support for WMO naming yet (but trivial to add.))
+<LI>SFTP (similar to FTP.)
+<LI>AFTN/IP bridge (NavCanada version of AFTN running on IP networks.) 
+<LI>coming soon!: AMQP bridge (open standard protocol, comes from the business messaging world.)
+</UL>
+<P>
+features:
+<UL>
+<LI>detailed routing (in production with 30,000 distinct entries in the routing table.)
+<LI>unified/similar for bulletins and files.
+<LI>sub-second latency (with 28,000 routing entries.)
+<LI>high speed routing and delivery. (was &gt;300 messages per second, but that was a year ago, and many features which might slow it down have been added, a re-test is in order.)
+<LI>no message size limit.
+<LI>message segmentation (for protocols such as AM &amp; WMO which have message length limits.)
+<LI>duplicate suppression (on send.)
+<LI>bulletin collections, NMC function for WMO. 
+<LI>generalized filter mechanism.  (collections will be modified to fit this general mechanism.)
+</UL>
+</UL>
+<P>
+There are three modules in the project right now.  Modules of 
+MetPX are named after species of plant which are endangered in 
+Canada (see <A HREF="http://www.speciesatrisk.gc.ca"> Species at Risk </a> for more details.)
+<UL>
+<LI>sundew: the WMO switching component.
+<LI>columbo: the web based monitoring component, for both sundew, and the older (not released) PDS.
+<LI>stats: collection and display of statistics... (ok so it's not a flower...)
+</UL>
+<P>
+<P>
+Platform: we build packages for Debian Derived Linux (Debian Sarge, Etch. any Ubuntu will do).  
+Any modern Linux should do. (stock 2.6 or 2.4 with many patches.)   Python &gt;2.3
+<P>
+Licensing: GPLv2
+
+<A NAME="Documentation"><H3>Documentation</H3></a>
+<UL>
+<LI><A HREF="Guide.html">User's Guide</a>
+<LI><A HREF="DevGuide.html">Contributor's Guide</a>
+<LI>Man Pages:
+<UL>
+<LI><A HREF="px.1.html">px (main startup wrapper)</a>
+<LI><A HREF="pxReceiver.1.html"> pxReceiver.1</a>
+<LI><A HREF="pxSender.1.html">pxSender.1</a>
+<LI><A HREF="pxTransceiver.1.html">pxTransceiver.1</a>
+<LI><A HREF="pxFilter.1.html">pxFilter.1</a>
+<LI><A HREF="pxRetransmit.1.html">pxRetransmit.1</a>
+<LI><A HREF="pxRouting.conf.5.html">pxRouting.conf.5</a>
+<LI><A HREF="pxRouting.7.html">pxRouting.7</a>
+</UL>
+</UL>
+
+<A NAME="Download"><H3>Download Packages</H3>
+
+<A HREF="http://sourceforge.net/project/showfiles.php?group_id=165061">Download</a>
+<P>
+Sundew is rather stable for now, current work is on improving the installation process by 
+implementing Debian packages.  A package for the sundew module is available from
+the sourceforge site, in either source or .deb form.  We hope to produce packages for 
+columbo at some point.  
+
+
+
+<A NAME="Source"><H3>Getting Source Code</H3>
+<P>
+Currently internal installations are done, one at a time, from source.  Development
+is done on the trunk release.  When we install operationally, the process consists
+of creating a branch, and running the branch on a staging system, and then implementing
+on operational systems.  There are README and INSTALL files that can be used for 
+installation of sundew.  One can follow those instructions and get an initial installed 
+system.  
+<P>
+It is critical to install the cron cleanup jobs (mr-clean) since otherwise the 
+server will slow down continuously over time until the system slows to a crawl.  If you 
+Best bet is to subscribe to the mailing list and let us know what is stopping you from 
+trying it out, it could inspire us to work on that bit faster to get some collaboration 
+going.  
+<P>
+with those explanations, feel free to grab a snapshot can be obtained using subversion via:
+<UL>
+    svn co https://metpx.svn.sourceforge.net/svnroot/metpx/trunk
+</UL>
+
+Available for anonymous read-only access.  One can also download a stable release by doing an checkout by accessong the currently highest numbered branch.
+
+<P>
+
+<A NAME="Links"><H3>References &amp; Links</H3>
+
+Other, somewhat similar software, no endorsements or judgements should be taken from these links:
+<UL>
+<LI>Manual on the Global Telecommunications´ System: WMO Manual 386. The standard reference for this domain. (a likely stale copy is <A href="WMO-386.pdf">here.</a> try http://www.wmo.int for the latest version.
+<LI><A HREF="http://www.unidata.ucar.edu/software/ldm">http://www.unidata.ucar.edu/software/ldm</a>  - Local Data Manager.  LDM includes a network protocol, and it fundamentally wishes to exchange with other LDM systems.  This package was instructive in interesting ways, in the early 2000's there was an effort called NLDM which layered meteorological messaging over a standard TCP/IP protocol.  That effort died, however, but the inspiration of keeping the domain (weather) separate from the transport layer (TCP/IP) was an important motivation for MetPX.
+<LI><A HREF=http://www.dwd.de/AFD>http://www.dwd.de/AFD</a> - Automatic File Distributor - from the German Weather Service.  Routes files using the transport protocol of the user's choice.  Philosophically close to MetPX.
+<LI><A HREF="http://www.corobor.com">http://www.corobor.com</a> - commercial WMO switch supplier. 
+<LI><A HREF="http://www.netsys.co.za">http://www.netsys.co.za</a> - commercial WMO switch supplier.
+<LI><A HREF="http://www.iblsoft.com">http://www.iblsoft.com</a> - commercial WMO switch supplier.
+<LI>a variety of file transfer engines: Standard Networks Move IT DMZ, Softlink B-HUB & FEST, Globalscape EFT Server, Axway XFB, Primeur Spazio, Tumbleweed Secure File Transfer, Messageway.
+<LI>New emerging messaging standard: AMQP - Advanced Message Queuing Protocol.  implementation have appeared in 2007, current version is 0-8, next useful version expected to be 1-0.  Standard is still fluid.  
+<P>
+AMQP implementations are not JMS plumbing.  JMS standardizes the API programmers use, but not the on the wire protocol.  So typically, one cannot exchange messages between people using different JMS providers.  AMQP standardizes for interoperability, and functions effectively as an interoperability shim for JMS, without being limited to Java.  AMQP is language neutral, and message neutral.  there are many deployments using python, C++, and ruby.  One could adapt WMO protocols very easily to function over AMQP.  JMS providers are very Java oriented.
+<UL>
+<LI><A HREF="http://www.amqp.org">www.amqp.org</a>  defining AMQP. 
+<LI><A HREF="http://www.openamq.org">www.openamq.org</a> original GPL implementation from JPMorganChase
+<LI><A HREF="http://www.rabbitmq.com">www.rabbitmq.com</a> another free implementation.
+<LI><A HREF="http://cwiki.apache.org/qpid">Apache Qpid</a> yafi.
+<LI><A HREF="http://activemq.apache.org/">Apache ActiveMQ</a> This is really a JMS provider with a bridge for AMQP.  They prefer their own openwire protocol. 
+</UL>
+</UL>
+
+</body>
+</html>

@@ -1,0 +1,48 @@
+MetPX Copyright (C) 2004-2006  Environment Canada
+MetPX comes with ABSOLUTELY NO WARRANTY; For details type see the file
+named COPYING in the root of the source directory tree.
+
+
+  -- revamp coding standard.
+        -- doc/StyleGuide.txt should be created.
+        -- move 'authorship' to start of file, alone. not every routine.
+           If a file has more than one author major, list all at top (once)
+        -- scope (public vs. private) of a routine is revealed by it's name
+           this information is redundant. Date per routine is redundant.
+           available from source management system.
+        -- at least the documentation in English (required for open sourcing.)
+
+
+  -- Extract all the TIKI stuff .. dump it into docs/specs... or some developer manual.
+     sub-dir like requirements/Spec/Design.?
+
+  -- documentation needed.
+	-- Have the README's collected into man pages.
+	-- Create a Users Guide...
+		(have a dpkg done so installation is 'apt-get')
+
+		Someone needs to write a basic routing section.
+			-- Receiver  -- role determine: key for lookup & ingest file name.
+			-- pxRouting -- determine appropriate routing based on key.
+			-- Sender   -- chooses to send items based on ingest file name & 
+				       prioritization scheme.
+
+
+		AMB needs to write an advanced routing section...
+			-- create a pretend model of our configuration with all the complexities.
+			-- multiple sources for the same data, routing the same data to different
+			   destinations based on its origin.
+
+		canned configurations to go with the basic and advanced routing sections.
+			a basic loop-back, and a glorious loop-back...
+
+		AMB/MG ... integration with DWD / IBLSoft METDATA application. ?
+		MG ... Integration with LDM
+		MG ... advanced filtering / transformations.
+			-- how to products routed for processing, a la FHS.
+			-- include collection processing.
+
+		DL ... section for AFTN?
+				-- subclient
+				-- aftnmap
+

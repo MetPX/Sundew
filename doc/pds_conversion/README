@@ -1,0 +1,218 @@
+NOTE : This is intended for an audience inside Environment Canada...
+       It describes some steps on how to convert from the
+       Software Management Board program called PDS  to 
+       sundew-px or metpx.
+
+
+CMC was able to convert all its PDS cluster to its METPX application.
+At the beginning METPX was written to replace the TANDEM machines that
+served as bulletin routing switch to clients. With very few additions
+the application was able to easily replace our PDS program running within
+our PDS cluster.
+
+This document was written with the idea that there might be someone
+who would like to convert its PDS switching configs to METPX.
+
+The steps presented here are the one we followed succesfully when doing
+our own convertion... 
+
+Enjoy !
+
+MG
+
+----------------------------------------------------------------
+
+METPX uses a routing table.
+
+    STEP 1
+
+    Each product filename is a key in the routing table. Associated with this
+    key are the clients'name and the priority for that product. Ex.:
+
+    key GRBNAT:ajgandr:CMC:GRIB:BIN allproducts,gander2,mailpatch 3
+
+    Here the pds filename 'GRBNAT:ajgandr:CMC:GRIB:BIN' is delivered to clients
+    'allproducts,gander2,mailpatch' with a priority of 3.
+
+    To build the routing table out of your PDS processes you will derived
+    these informations from the pdsswitch's log. Take the pdsswitch log for
+    a whole day (if you have a cluster concatenate all pdsswitch logs of 
+    the day into one file) ... Than run routing_step1.py  like this
+    
+    python routing_step1.py pdsswitch.20071023 > s1_routing
+    
+    Each line of the s1_routing file contains one product file name and 
+    its clients.  If you would add the word key in front of all lines and
+    the number 3 at the end of all lines you would get the routing table 
+    for that day... But wait... there is a catch.
+
+
+    STEP 2
+
+    If you look closer at  s1_routing, you will notice that it would not be a
+    good routing table... For example, some products have dates in there 
+    filenames. So what you want to do is to "wildcard" with a * the parts
+    of the product filename that is not static enough to make a stable
+    static key for the routing table...  Here no script can perform for
+    you the task needed for your own products lists... I am providing
+    you the python script I used and it will probably cover part of your
+    products list... You will have to adjust that script for your needs.
+    So to try to have small list of wildcard pattern that matches all your
+    products you would run :
+
+    python routing_step2.py s1_routing | sort -u > s2_wildcard
+
+
+    Each line of the s2_wildcar could look like the following :
+
+.*~XAM_CAPPI_RAIN_NAVCAN~CAPPI:URP:XAM_480KM:RADAR:IMV6 allproducts,metser-tx
+.*~XAM_ECHOTOP_NAVCAN~ECHOTOP:URP:XAM_480KM:RADAR:IMV6 allproducts,metser-tx
+.*~XBE_CAPPI_RAIN_NAVCAN~CAPPI:URP:XBE_480KM:RADAR:IMV6 allproducts,metser-tx
+
+    Here the radar product file names had their datetime stamp prefix wildcarded
+    with .*  doing so, we have reduced the amound of XAM_CAPPI_RAIN in our 
+    routing table and we have taken out datetime dependencies of the products.
+
+    When your routing_step2.py script is good enough and that the pattern
+    generated is invariable and good enough to recognize the product you are
+    almost done. You can derive 2 files from s1_wildcard :
+
+    a) The file fromPds.conf formed with accept options matching theses files...
+       for example :
+
+       accept .*(~.*:URP:.*_480KM:RADAR:IMV6).*
+
+    b) The routing key entries for that corresponding pattern filematch for
+       theses files... for example :
+
+       key ~XAM_CAPPI_RAIN_NAVCAN~CAPPI:URP:XAM_480KM:RADAR:IMV6 allproducts,metser-tx 3
+       key ~XAM_ECHOTOP_NAVCAN~ECHOTOP:URP:XAM_480KM:RADAR:IMV6 allproducts,metser-tx 3
+       key ~XBE_CAPPI_RAIN_NAVCAN~CAPPI:URP:XBE_480KM:RADAR:IMV6 allproducts,metser-tx 3
+
+    
+    Here is a little more explanation on this
+
+    The accept key is a line that "allow" a product within a receiver
+    It has the same meaning as the imask for PDS. It has more
+    functionnality in the sense that pattern enclosed by parenthesis
+    form the routing key... and if there is a set of enclosed pattern
+    the key is formed by the concatenation with character '_'
+
+    accept .*(URP:).*(:RADAR:IMV6).*
+
+    This accept line would match all previous lines and its
+    corresponding routing key entry would be :
+
+    key URP:_:RADAR:IMV6 allproducts,metser-tx 3
+
+    (***We decided here at CMC to try to keep the key closest 
+        to the filename as possible... our routing table is of course
+	bigger  but it is easier to target who is getting that product.)
+
+
+    At the end of step2, you should have a fromPds.conf file filled with
+    accept options,  and, a file pdsRouting.conf  containing your needed
+    keys.
+
+
+
+    STEP3 
+
+    The next step is to confront your receiver accept lines in fromPds.conf
+    and your routing table pdsRouting.conf with your PDS'daily pdsswitch logs
+    This step is more the daily verification of your fromPds.conf file
+    and your pdsRouting.conf file. 
+
+    Take any of your pdsswitch log and do the following
+
+    python routing_step1.py  pdsswitch.2??????? > check_that
+    python routing_step3.py  check_that
+
+
+    Look at the routing_step3.py code...  It reads in fromPds.conf
+    that pdsRouting.conf and check for duplicated of errors. Than
+    for each lines in the "check_that" file, it tries to match the
+    product file name with the one of the pattern, if it match, it
+    generates its key and look for it in the routing table...
+
+    Any error in the process will be printed out... so you may have
+    to go back to the fromPds.conf file and/or to the pdsRouting.conf
+    file to modify/add entries...
+
+    When you have success for more than a month worth of pdsswitch logs
+    you are probably ready to give it a METPX parallel try...
+    
+
+    ---------------------------------------------------------------
+    ---- END  OF ROUTING / CONVERT CLIENTS ------------------------
+    ---------------------------------------------------------------
+
+
+    Now another 3 steps to convert and verify the product delivering to
+    clients.
+
+    STEP1
+
+    Install METPX. 
+    Put your pdsRouting.conf from the above in : /apps/px/etc
+    Put your fromPds.conf    from the above in : /apps/px/etc/rx
+
+    Edit  client_translate.py  and change the strings
+
+    YOUR.TEST.MACHINE.HERE
+    YOUR.TEST.USER
+    YOUR.TEST.PASSWORD
+
+    for a machine, ftp user and password that you wish to use
+    to test a client... "DONT USE YOUR REAL THE CLIENT STUFF"
+
+    Than from the PDS, get  a client say client.conf file,
+    the clientlist file and a whole day of log for that client
+    will say that file's name is client.log
+    Than run
+
+    ./client_step1.sh client.conf client.log
+
+    This script generate 3 files
+
+    .drop_test    : contains a list of files sent to the client
+                    one file for each accept in the accept line
+
+    .touch_test   : for each file in the drop_test this file 
+                    run a touch command in /apps/px/rxq/fromPds
+		    to fake the incoming of that file
+
+    and
+    
+    client.conf.px : the converted client.conf file to a PX format
+
+    You should vi the client.conf.px file, clean it / comment it  etc...
+
+
+
+    STEP2
+
+    Run the following script
+
+    client_step2.sh  client
+
+    This script activate the client into metpx.
+    Than execute the .touch_test for the ingestion on 1 file sample
+    for each of its accept lines.
+
+    You can double check with the .drop_test file that the files were
+    sent to the TEST machine with the proper name at the right place.
+
+
+
+    STEP3
+
+    client_step3.sh client
+
+    Turns this config off and rename it
+    /apps/px/etc/tx/client.conf.off
+
+
+    VOILA
+
+    MG
