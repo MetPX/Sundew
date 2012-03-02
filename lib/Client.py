@@ -95,17 +95,16 @@ class Client(object):
         self.lock = '.tmp'                  # file send with extension .tmp for lock
                                             # if lock == "umask" than use umask 777 to put files
 
-        self.destfn_script   = None         # a script to rename the file for client
-        self.destfn_execfile = None
+        self.destfn_script = None           # a script to rename the file for client
+        self.execfile      = None
 
-        self.dx_script       = None         # a script to convert the file for client
-        self.dx_execfile     = None
+        self.dx_script     = None           # a script to convert the file for client
+        self.fx_script     = None           # a script to convert the file for client
+        self.execfile2     = None
+        self.execfile3     = None
 
-        self.fx_script       = None         # a script to convert the file for client
-        self.fx_execfile     = None
-
-        self.send_script     = None         # a script to send a list of files
-        self.send_execfile   = None
+        self.send_script   = None           # a script to send a list of files
+        self.execfile4     = None
 
         # All defaults for a source were set earlier in this class
         # But some of them may have been overwritten in the px.conf file
@@ -118,21 +117,21 @@ class Client(object):
 
         self.readConfig()
 
-        if self.destfn_execfile != None :
-           try    : execfile(PXPaths.SCRIPTS + self.destfn_execfile )
-           except : self.logger.error("Problem with destfn_script %s" % self.destfn_execfile)
+        if self.execfile != None :
+           try    : execfile(PXPaths.SCRIPTS + self.execfile )
+           except : self.logger.error("Problem with destfn_script %s" % self.execfile)
 
-        if self.fx_execfile != None :
-           try    : execfile(PXPaths.SCRIPTS + self.fx_execfile )
-           except : self.logger.error("Problem with fx_script %s" % self.fx_execfile)
+        if self.execfile2 != None :
+           try    : execfile(PXPaths.SCRIPTS + self.execfile2 )
+           except : self.logger.error("Problem with fx_script %s" % self.execfile2)
 
-        if self.dx_execfile != None :
-           try    : execfile(PXPaths.SCRIPTS + self.dx_execfile )
-           except : self.logger.error("Problem with dx_script %s" % self.dx_execfile)
+        if self.execfile3 != None :
+           try    : execfile(PXPaths.SCRIPTS + self.execfile3 )
+           except : self.logger.error("Problem with dx_script %s" % self.execfile3)
 
-        if self.send_execfile != None :
-           try    : execfile(PXPaths.SCRIPTS + self.send_execfile )
-           except : self.logger.error("Problem with send_script %s" % self.send_execfile)
+        if self.execfile4 != None :
+           try    : execfile(PXPaths.SCRIPTS + self.execfile4 )
+           except : self.logger.error("Problem with send_script %s" % self.execfile4)
 
         #self.printInfos(self)
 
@@ -249,10 +248,10 @@ class Client(object):
                     elif words[0] == 'dir_pattern': self.dir_pattern =  isTrue(words[1])
                     elif words[0] == 'binary': self.binary =  isTrue(words[1])
                     elif words[0] == 'dir_mkdir': self.dir_mkdir =  isTrue(words[1])
-                    elif words[0] == 'destfn_script': self.destfn_execfile = words[1]
-                    elif words[0] == 'fx_script': self.fx_execfile = words[1]
-                    elif words[0] == 'dx_script': self.dx_execfile = words[1]
-                    elif words[0] == 'send_script': self.send_execfile = words[1]
+                    elif words[0] == 'destfn_script': self.execfile = words[1]
+                    elif words[0] == 'fx_script': self.execfile2 = words[1]
+                    elif words[0] == 'dx_script': self.execfile3 = words[1]
+                    elif words[0] == 'send_script': self.execfile4 = words[1]
 
                     elif words[0] == 'am_dest_thread':
                          if self.am_dest_thread == None : self.am_dest_thread = {}
@@ -315,13 +314,12 @@ class Client(object):
             timeSuffix   = ''
             satnet       = ''
             parts        = filename.split(':')
+            firstPart    = parts[0]
             destFileName = filename
-            if parts[-1][0] == '2' : destFileName = ':'.join(parts[:-1])
             for spec in mask[2].split(':'):
                 if spec == 'WHATFN':
-                    destFileName =  parts[0]
+                    destFileName =  firstPart
                 elif spec == 'HEADFN':
-                    firstPart = parts[0]
                     headParts = firstPart.split('_')
                     if len(headParts) >= 2:
                         destFileName = headParts[0] + '_' + headParts[1] 

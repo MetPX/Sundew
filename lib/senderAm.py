@@ -197,7 +197,7 @@ class senderAm(gateway.gateway):
 
         # applying the dx_script to the data
 
-        if self.client.dx_execfile != None :
+        if self.client.execfile3 != None :
             try : 
                      newBulletinAm = self.client.run_dx_script(unBulletinAm,self.logger)
                      if newBulletinAm == None :

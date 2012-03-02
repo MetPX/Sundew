@@ -62,78 +62,11 @@ class Logger:
         self.logger.setLevel(eval("logging." + log_level))                     # Set logging level
         self.logger.addHandler(hdlr)
 
-        self.logmon = LoggerMonitor(self.logger)
         #print logging.getLevelName(5)
         #print logging.getLevelName(3)
 
     def getLogger(self):
-        return self.logmon 
-
-    def setFlow(self,flow):
-        self.logmon.monitor.flow = flow
-        
-
-#############################################################################################
-#
-# Michel Grenier Fev 2012
-#
-# Monitor and LoggerMonitor classes
-# interlace Logging and monitoring together
-# monitor captures logging events creating a file
-# showing the immediate state of the process
-#
-#############################################################################################
-
-# all the calls from a logger are supported and
-# passed to the logger... some arguments for monitoring purposes
-# are added when the module is envoked. The module will catch
-# and remove the extra arguments... passing regular args to the logger call
-
-
-class Monitor:
-
-    def __init__(self, logger):
-        self.logger = logger
-        self.flow   = None
-
-    def process(self, msg, kwargs):
-        return msg, kwargs
-
-    def debug(self, msg, *args, **kwargs):
-        msg, kwargs = self.process(msg, kwargs)
-        self.logger.debug(msg, *args, **kwargs)
-
-    def info(self, msg, *args, **kwargs):
-        msg, kwargs = self.process(msg, kwargs)
-        self.logger.info(msg, *args, **kwargs)
-
-    def warning(self, msg, *args, **kwargs):
-        msg, kwargs = self.process(msg, kwargs)
-        self.logger.warning(msg, *args, **kwargs)
-
-    def error(self, msg, *args, **kwargs):
-        msg, kwargs = self.process(msg, kwargs)
-        self.logger.error(msg, *args, **kwargs)
-
-    def critical(self, msg, *args, **kwargs):
-        msg, kwargs = self.process(msg, kwargs)
-        self.logger.critical(msg, *args, **kwargs)
-
-    def log(self, level, msg, *args, **kwargs):
-        msg, kwargs = self.process(msg, kwargs)
-        self.logger.log(level, msg, *args, **kwargs)
-
-class LoggerMonitor:
-    def __init__(self, logger):
-        self.logger   = logger
-        self.monitor  = Monitor(logger)
-
-        self.debug    = logger.debug
-        self.info     = logger.info
-        self.warning  = logger.warning
-        self.error    = logger.error
-        self.critical = logger.critical
-        self.log      = logger.log
+        return self.logger 
 
 if (__name__ == "__main__"):
     """
@@ -168,26 +101,3 @@ if (__name__ == "__main__"):
         print "Bad exception has been raised"
         logger.exception("Ceci est un exception!")
     """
-
-# d1,d2,d3,d4,tbegin = os.times()
-#
-# d1,d2,d3,d4,tend   = os.times()
-#
-# tspan = tend - tbegin
-# if tspan >= 1.0 : 
-#    tspan  = tspan * 1024.0
-#    tspeed = nbBytes/tspan
-#    self.logger.debug("Speed %f Kb/s" % tspeed)
-
-# if  not time.time() - os.stat(file)[ST_MTIME] > self.mtime:
-# nbBytes = os.stat(file)[stat.ST_SIZE] 
-#ST_MODE  = 0
-#ST_INO   = 1
-#ST_DEV   = 2
-#ST_NLINK = 3
-#ST_UID   = 4
-#ST_GID   = 5
-#ST_SIZE  = 6
-#ST_ATIME = 7
-#ST_MTIME = 8
-#ST_CTIME = 9
