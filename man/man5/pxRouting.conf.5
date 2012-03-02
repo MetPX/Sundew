@@ -2,7 +2,7 @@
 .SH NAME
 pxRouting.conf \- defining the file's syntax
 .SH DESCRIPTION
-.Pp
+.PP
 The product routing table is a simple ascii file. It must be placed in 
 directory $PXROOT/etc (PXROOT is usually /apps/px). The default file's name
 is \fB pxRouting.conf\fR. You can overwrite the default with the option 
@@ -45,9 +45,9 @@ The following clients can be used in "key" and "clientAlias" directives:
 .nf
 <client.subclient1>
 <client.subclient2>
-...
+<...>
 <client.subclientN>
-.ni
+
 
 On reception, the bulletin will be linked in the tx queue of <client>. 
 On transmission, the <client> must know how to use the <subclient?> part
@@ -63,7 +63,7 @@ clientAlias ab toto.AAAAAAAA toto.BBBBBBBB
 clientAlias abc AB,toto.CCCCCCCC
 key AACN01_ANIK ab,client1,client2
 key AACN02_ANIK client3,abc
-.ni
+
 
 When a px receiver receive an AACN01_ANIK bulletin, it will be linked in the tx queue of the 
 transceiver named toto.
