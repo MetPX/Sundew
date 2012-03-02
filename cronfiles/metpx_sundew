@@ -10,7 +10,7 @@
 
 # check for Sender that are hung... this script completed pxChecker's task
 
-* * * * * px  if test -x /usr/bin/hang_check.sh; then /usr/bin/hang_check.sh > /dev/null 2>&1; fi
+* * * * * px  if test -x /usr/bin/hang_check; then /usr/bin/hang_check > /dev/null 2>&1; fi
 
 
 # Remove all DB directories older than x days ago  (set by "--days x" in command line or by parameter "daysToKeepInDB x" in /etc/px/px.conf;  Default is 40 days)
