@@ -1,0 +1,14 @@
+.TH pxChecker "1" "Jan 2007" "px 1.0.0" "Metpx suite"
+.SH NAME
+pxChecker \- Metpx script to check that all processes are running
+.SH SYNOPSIS
+.B pxChecker
+.SH DESCRIPTION
+.PP
+Automatically set in the crontab.
+This script verifies that all metpx processes are currently running.
+If you stop a process it .lock file will not be present in its queue and
+therefore pxChecker will assume that the associated process is stopped and
+should not be running for now. If the .lock file is present, it contains
+the pid of the process and this process should be executing or else pxChecker
+will restart that process.
