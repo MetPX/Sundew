@@ -4,7 +4,7 @@ Priority: optional
 Maintainer: Noureddine Habili <noureddine.habili@ec.gc.ca>
 
 Package: metpx-sundew
-Architecture: any
+Architecture: all
 Depends: python, python-paramiko
 Description:MetPX is a WMO TCP/IP GTS message switching system 
  WMO - World Meteorological Organization, 
