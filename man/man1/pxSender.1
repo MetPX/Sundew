@@ -5,7 +5,7 @@ pxSender \- Metpx program to manage sender processes
 .B pxSender
 \fIsender_name\fR [\fIstart|stop|restart|reload|status\fR]...
 .SH DESCRIPTION
-.Pp
+.PP
 A sender, in the METPX suite, is a program that deliver products to a client. 
 The products it processes usually comes from a METPX receiver (or a filter). Once 
 a receiver databased a product and determined that a sender should transmit that 
@@ -28,7 +28,7 @@ directory $PXROOT/etc/tx (PXROOT is usually /apps/px). The file's name must be
 the sender_name with the suffix .conf. For example if the 
 file $PXROOT/etc/tx/am-bulletins.conf exists and is syntactically correct, then 
 the following commands are valid :
-.Pp
+.PP
 .nf
 
 .B pxSender am-bulletins start
@@ -38,7 +38,7 @@ the following commands are valid :
 .B pxSender am-bulletins stop
 
 .fi
-.Pp
+.PP
 The action arguments do simply what they mean. 
 .TP
 \fBreload\fR
@@ -77,7 +77,7 @@ host using the information in its configuration file (protocol, host, user,passw
 mode... etc ). It sends the files to their proper remote destination, and closes 
 the connection.
 .SH CONFIGURATION
-.Pp
+.PP
 As said earlier, the configuration file for a sender resides 
 in $PXROOT/etc/tx/"\fBSenderName\fR".conf The syntax of the file is simple. 
 A comment is a line that begins with \fB#\fR. Empty lines are permitted.
@@ -386,7 +386,6 @@ Ex. :
 .fi
 .TP
 \fBThe remainig of the file options is irrelevant to the amqp protocol\fR
--------------------------------------------------------------------
 
 .TP
 \fBftp_mode mode (Default: passive )\fR

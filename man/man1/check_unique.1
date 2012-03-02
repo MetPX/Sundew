@@ -1,0 +1,12 @@
+.TH check_unique "1" "Jan 2007" "px 1.0.0" "Metpx suite"
+.SH NAME
+check_unique \- Metpx adhoc script to check that no process is hang
+.SH SYNOPSIS
+.B check_unique
+.SH DESCRIPTION
+.PP
+This script checks if a process is duplicated. Sometimes when a process
+hangs, hang_check stops and restarts it. It may happen that the process 
+does not stop... hence duplicated process. This script shows any process
+in that situation.
+.PP

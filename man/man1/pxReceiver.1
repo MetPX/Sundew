@@ -5,7 +5,7 @@ pxReceiver \- Metpx program to manage receiver processes
 .B pxReceiver
 \fIreceiver_name\fR [\fIstart|stop|restart|reload|status\fR]...
 .SH DESCRIPTION
-.Pp
+.PP
 A receiver, in the METPX suite, is a program that waits (directory watching or socket 
 reading) for the reception of products. When a product arrives, the receiver processes it according 
 to its configuration, puts the product into the product database (simple file/directory hiearchy)
@@ -16,7 +16,7 @@ The receiver configuration is a simple ascii file. It must be placed in director
 $PXROOT/etc/rx (PXROOT is usually /apps/px). The file's name must be
 the receiver_name with the suffix .conf. For example if file $PXROOT/etc/rx/wmo-bulletins.conf
 exists and is syntaxically correct than the following commands are valid :
-.Pp
+.PP
 .nf
 
 .B pxReceiver wmo-bulletins start
@@ -26,7 +26,7 @@ exists and is syntaxically correct than the following commands are valid :
 .B pxReceiver wmo-bulletins stop
 
 .fi
-.Pp
+.PP
 The action arguments do simply what they mean. 
 .TP
 \fBreload\fR
@@ -74,7 +74,7 @@ the configuration defines a remote host and an account to use. It also defines d
 \fBpull-file\fR
 the configuration defines a remote host and an account to use. It also defines directories and files to retrieve from that site. New files are retreived and written into the receiver directory $PXROOT/rxq/"receiver_name". The rest of the process is identical to a receiver of type single-file. When the receiver directory holds a file named .sleep, the receiver doesn't get any file. The .sleep file becomes useful on a clustered implementation of metpx.
 .SH CONFIGURATION
-.Pp
+.PP
 As stated above, the configuration file for a receiver resides in $PXROOT/etc/rx/"\fBReceiverName\fR".conf
 The syntax of the file is simple. A comment is a line that begins with \fB#\fR. Empty lines are permitted.
 To declare or set an option you simply use one of these form (depending on the option) :

@@ -1,0 +1,13 @@
+.TH mr-clean "1" "Jan 2007" "px 1.0.0" "Metpx suite"
+.SH NAME
+mr-clean \- Metpx script to cleanup TXQ of outdated yyyymmddhh subdirectories
+.SH SYNOPSIS
+.B mr-clean
+.SH DESCRIPTION
+.PP
+Automatically set in the crontab.
+A client TXQ has the following form $PXROOT/txq/client/prio/yyyymmddhh/*products*
+Each receiver or filter, will create the directory if it doesn't exist before
+disseminate the product to the queue. The mr-clean cleans all outdated yyyymmddhh
+subdirectories.
+.PP

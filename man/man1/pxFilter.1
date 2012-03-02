@@ -5,7 +5,7 @@ pxFilter \- Metpx program to manage filter processes
 .B pxFilter
 \fIfilter_name\fR [\fIstart|stop|restart|reload|status\fR]...
 .SH DESCRIPTION
-.Pp
+.PP
 A filter, in the METPX suite, is a program that scans endlessly its queue directory namely
 $PXROOT/fxq/"filter_name" for the reception of products. Once a product arrives, the filter
 processes it according to its configuration, puts the derived product into the product database
@@ -16,7 +16,7 @@ The configuration of a filter is a simple ascii file. It must be placed in
 directory $PXROOT/etc/fx (PXROOT is usually /apps/px). The file's name must be
 the filter_name with the suffix .conf. For example, if file $PXROOT/etc/fx/from-gif-to-png.conf
 exists and is syntactically correct, then the following commands are valid :
-.Pp
+.PP
 .nf
 
 .B pxFilter from-gif-to-png start
@@ -26,7 +26,7 @@ exists and is syntactically correct, then the following commands are valid :
 .B pxFilter from-gif-to-png stop
 
 .fi
-.Pp
+.PP
 The action arguments do simply what they mean. 
 .TP
 \fBreload\fR
@@ -54,7 +54,7 @@ the routing of the converted product is done without consideration to its conten
 the routing of the converted product considers its content; it must be a meteorological bulletin.
 .TP
 .SH CONFIGURATION
-.Pp
+.PP
 As said earlier, the configuration file for a filter resides in $PXROOT/etc/fx/"\fBFilterName\fR".conf
 The syntax of the file is simple. A comment is a line that begins with \fB#\fR. Empty lines are permitted.
 To declare or set an option you simply use one of these form (depending on the option) :

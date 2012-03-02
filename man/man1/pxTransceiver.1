@@ -5,7 +5,7 @@ pxTransceiver \- Metpx program to manage transceiver processes
 .B pxTranceiver
 \fItransceiver_name\fR [\fIstart|stop|restart|reload|status\fR]...
 .SH DESCRIPTION
-.Pp
+.PP
 A transceiver, in the METPX suite, is a program that is a receiver and a sender
 at the same time. 
 
@@ -33,7 +33,7 @@ directory $PXROOT/etc/trx (PXROOT is usually /apps/px). The file's name must be
 the transceiver_name with the suffix .conf. For example if the 
 file $PXROOT/etc/trx/aftn.conf exists and is syntactically correct, then 
 the following commands are valid :
-.Pp
+.PP
 .nf
 
 .B pxTransceiver aftn start
@@ -43,7 +43,7 @@ the following commands are valid :
 .B pxTransceiver aftn stop
 
 .fi
-.Pp
+.PP
 The action arguments do simply what they mean. 
 .TP
 \fBreload\fR
@@ -69,7 +69,7 @@ listen for a Message Handling System (MHS) to connect or connect to a MSH via so
 Aeronautical Fixed Telecommunication Network (AFTN) protocol. The output data are bulletins
 .TP
 .SH CONFIGURATION
-.Pp
+.PP
 As said earlier, the configuration file for a transceiver resides 
 in $PXROOT/etc/tx/"\fBTransceiverName\fR".conf The syntax of the file is simple. 
 A comment is a line that begins with \fB#\fR. Empty lines are permitted.
