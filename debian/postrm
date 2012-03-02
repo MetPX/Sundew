@@ -4,20 +4,20 @@
 set -e
 
 PXLOG=/var/log/px
-PXHOME=/home/px
 PXSPOOL=/var/spool/px
+PXHOME=`getent passwd px | cut -d: -f6`
 
 if [ "$1" = "purge" ] ; then
-        rm -fr $PXLOG
+	rm -rf $PXLOG
 	rm -rf $PXSPOOL
 	rm -rf $PXHOME
-        deluser --quiet px > /dev/null || true
+	deluser --quiet --remove-home px > /dev/null || true
 fi
 
 
 case "$1" in
     purge|remove|upgrade|failed-upgrade|abort-install|abort-upgrade|disappear)
-    ;;
+    ;; 
 
     *)
         echo "postrm called with unknown argument \`$1'" >&2
@@ -31,5 +31,4 @@ esac
 #DEBHELPER#
 
 exit 0
-
 

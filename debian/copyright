@@ -1,13 +1,13 @@
 
-This package was debianized by Noureddine habili <noureddine.habili@ec.gc.ca> on
-Thu, 08 May 2008 15:39:52 +0000.
+This package was debianized by Jun Hu <jun.hu@ec.gc.ca> on
+Wed, 22 February 2012 16:24:30 +0000.
 
 It was downloaded from: http://sourceforge.net/projects/metpx 
 
 
 Copyright:
 
-  MetPX Copyright (C) 2004-2006  Environment Canada
+  MetPX Copyright (C) 2004-2012  Environment Canada
   MetPX comes with ABSOLUTELY NO WARRANTY; For details type see 
   the GNU General Public License, Version 2.
   On Debian systems, the complete text of the GNU General Public

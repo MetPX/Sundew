@@ -21,8 +21,6 @@ install: build
 	dh_clean -k
 	dh_installdirs
 
-
-
 	# install the binary files in /usr/bin
 	for f in `find bin/ \( ! -regex '.*/\..*' \)` bin/.localRetrans; \
 	     do if [ -f $$f ]; then \
@@ -41,7 +39,7 @@ install: build
 	# install the tools/tooLib in /usr/lib/px
 	for f in `find tools/toolLib \( ! -regex '.*/\..*' \)`; \
 	     do if [ -f $$f ]; then \
-		    install -m 755 $$f debian/metpx-sundew/usr/lib/px; \
+		    install -m 644 $$f debian/metpx-sundew/usr/lib/px; \
 		fi; \
 	 done
 
@@ -72,7 +70,7 @@ install: build
 		    install -d debian/metpx-sundew/$$directory_debian; \
 	        elif [ -f $$f ]; then \
 		    directory_debian=$$(echo $$f | sed -e "s/lib/usr\/lib\/px/"); \
-		    install -m 755 $$f debian/metpx-sundew/$$directory_debian; \
+		    install -m 644 $$f debian/metpx-sundew/$$directory_debian; \
 	        fi; \
 	done
 
@@ -109,8 +107,9 @@ install: build
 
 	# Create the spool directory
 	install -d debian/metpx-sundew/var/spool/px
-	
-	
+
+	# Install init script px	
+	dh_installinit --name=px --no-start 	
 
 # Build architecture-independent files here.
 binary-indep: build install
@@ -119,15 +118,16 @@ binary-indep: build install
 binary-arch: build install
 	dh_testdir 
 	dh_testroot 
+	#dh_installinit --name=px -n 	
 	dh_installdocs 
 	dh_installchangelogs 
 	#dh_installcron
 	dh_strip 
-	dh_compress 
 	dh_fixperms
 	dh_python 
 	dh_installman
 	dh_installdeb 
+	dh_compress 
 	dh_shlibdeps 
 	dh_gencontrol 
 	dh_md5sums 

@@ -1,6 +1,13 @@
-metpx-sundew (0.5.8lucid) unstable; urgency=low
+metpx-sundew (0.5.9-ubuntu1) lucid; urgency=low
 
+  * Add init script 
+  * Update doc	 
+
+ -- Jun Hu <jun.hu@ec.gc.ca>  Mon, 27 Feb 2012 21:16:10 +0000
+
+metpx-sundew (0.5.9-ubuntu) unstable; urgency=low
+
+  [ Michel Grenier ]
   * Initial Release.
-
- -- Noureddine Habili <noureddine.habili@ec.gc.ca>  Fri, 23 May 2008 14:54:39 +0000
-
+ 
+ -- Michel Grenier <michel.grenier@ec.gc.ca>  Mon, 27 Feb 2012 19:44:18 +0000

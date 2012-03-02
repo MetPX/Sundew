@@ -7,33 +7,22 @@ PXLIB=/usr/lib/px
 PXLOG=/var/log/px
 PXSPOOL=/var/spool/px
 
-PXHOME=`cat /etc/passwd | grep '^px:' | cut -d: -f6`
+PXHOME=`getent passwd px | cut -d: -f6`
 
-if [ -d $PXLOG ]; then
-    chown px:px $PXLOG
+if [ ! -d $PXHOME/etc -a ! -L $PXHOME/etc ]; then
+	ln -s $PXETC $PXHOME/etc
 fi
 
-if [ -d $PXSPOOL ]; then
-    chown px:px $PXSPOOL
-fi
-
-if [ -d $PXETC ]; then
-    chown px:px $PXETC
-
-    # Daniel requiered this...
-    if [ ! -d $PXHOME/etc -a ! -L $PXHOME/etc ]; then
-        ln -s $PXETC $PXHOME/etc
-        chown px:px $PXHOME/etc
-    fi
-fi
-
-# without this : serious performance issue
-# perhaps we should generate the .pyc .pyo instead...
-
-if [ -d $PXLIB ]; then
-    chown -R px:px $PXLIB
-    chmod -R 755   $PXLIB
-fi
+for dir in $PXLOG $PXSPOOL $PXETC $PXHOME $PXLIB; do
+	if ! dpkg-statoverride --list $dir >/dev/null 2>&1; then
+    		chown px:px $dir
+		chmod 4775 $dir
+		if [ "$dir" = "$PXLIB" ]; then
+			chown -R px:px "$dir/"
+			chmod -R 775 "$dir/"
+		fi
+	fi
+done	
 
 case "$1" in
     configure)

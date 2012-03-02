@@ -3,35 +3,20 @@
 
 set -e
 
-
-PXHOME=/home/px
-PXUID=928
-
-# creating px group if he isn't already there
-if ! getent group px >/dev/null; then
-        # Adding system group: px.
-        addgroup --system px >/dev/null
-fi
-
-# creating px user if he isn't already there
-if ! getent passwd px >/dev/null; then
-        # Adding system user: px.
-        adduser --system --ingroup px --home $PXHOME --uid $PXUID --gecos "PX user" --shell /bin/false px  >/dev/null
-fi
-
-# user px already exist with a home different from /home/px
-
-PXHOME=`getent passwd px | cut -d: -f6`
-
-# creating px home directory
-if [ ! -d $PXHOME -a ! -L $PXHOME ]; then
-        mkdir $PXHOME 
-fi
-
-chown px:px $PXHOME
-
 case "$1" in
     install|upgrade)
+	# creating px group if he isn't already there
+	if ! getent group px >/dev/null; then
+        	# Adding system group: px.
+        	addgroup --system px >/dev/null
+	fi
+
+	# creating px user if he isn't already there
+	if ! getent passwd px >/dev/null; then
+        	# Adding system user: px.
+        	adduser --system --ingroup px --gecos "PX user" --shell /bin/sh px  >/dev/null
+	fi
+	PXHOME=`getent passwd px | cut -d: -f6`
     ;;
 
     abort-upgrade)
