@@ -1,4 +1,74 @@
 
+---------------- Below are changes made up to version px-0-6-0 --------------------------------------
+
+*** Note  CMO packaging 
+
+2012-03-02   (JH) lib/LatMessage.py lib/Latencies.py lib/PDSLatencies.py lib/PXLatencies.py
+                  lib/Plotter.py lib/copyFiles.py bin/paplat   change python2 for python
+
+             (JH) rename .localRetrans for localRetrans and modifi pxRetrans accordingly
+                  rename hang-check.sh for hang-check
+
+             (JH) move doc from trunk to sundew
+                  debian/metpx-sundew.docs
+
+             (JH) debian/changelog modified
+                  debian/control   modified for architecture and dependencies
+                  debian/copyright updated
+                  debian/postinst  PXHOME from getent and use dpkg-statoverride for directories
+                  debian/rules     modified to install doc (exclude .svn)
+                                   create queuedirs and db dir
+                                   move  dh_compress for the man
+
+             (JH) /etc/init.d/px written and packaged
+
+             (MG) bulletinLib.py utils.py deleted
+                  short manpages written for  pxValidator, pxRetrans, pxFlowNames, pxDBCleaner,
+                  pxChecker, mr-clean, localRetrans, hang-check, check-unique, paplat
+
+
+---------------- Below are changes made up to version px-0-5-9 --------------------------------------
+
+2012-01-17   (MG) Ingestor.py Attempt to correct name clash in db by adding a second
+                  to the date suffix 
+
+2011-12-15   (MG) DirectRoutingParser.py bug fix : return priority  when product match key_accept 
+
+2011-11-18   (MG) SenderScript.py  client object first argument of send_script
+
+2011-10-26   (MG) Ingestor.py Routingtable can be modified for bulletins too.
+
+2011-10-04   (MG) Source.py/CollectionBuilder.py moved aaxx, metar and taf as receiver options
+
+2011-10-04   (MG) StationParser.py trap error and log when a station entry is wrong and continue
+
+2011-08-27   (DL) pxRetrans Option waitTimeForLogEntry : confirms resending within n sec from log
+
+2011-07-27   (MG) PXIgnitor.py   kill sender if stop did not work after .5 sec.
+
+2011-01-20   (MG) Source.py/Ingestor.py add pull-script capability
+
+2010-11-19   (MG) PullFTP.py  added pattern match like JJJ julian day and JJJ-1...
+
+
+---------------- Below are changes made up to version px-0-5-8 --------------------------------------
+
+*** Note  etch to debian  and  32 to 64 bits mods.
+
+
+2010-08-17   (MG) SenderFtp.py   debug log speed for delivery that took more than a sec.
+
+2010-08-16   (MG) socketManagerAm.py change pack/unpack format for 32 and 64bits compliance
+
+2010-08-16   (MG) URLParser.py   python2.6 urlparse different from previous version
+                                 modify code accordingly.
+
+2010-08-10   (MG) CacheManager.py  python2.6 implemented md5 into hashlib 
+                                   and had some syntax/module changed...
+                                   Code this new version and support old one too.
+
+2010-06-23   (MG) Client.py/SenderFtp.py   throttling support ftp/sftp
+
 ---------------- Below are changes made up to version px-0-5-7 --------------------------------------
 
 2010-03-31   (MG) DiskReader.py
