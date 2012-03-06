@@ -234,9 +234,10 @@ class SenderScript(object):
 
                   for t in filelst :
                       file,destdir,destName = t
-                      self.logger.info("(%i Bytes) File %s delivered to %s://%s@%s%s%s" % \
+                      latency = time.time() - os.stat(file)[stat.ST_MTIME]
+                      self.logger.info("(%i Bytes) File %s delivered to %s://%s@%s%s%s (lat=%f)" %\
                                          (nbBytes, file, self.client.protocol, self.client.user, \
-                                         self.client.host, destDir, destName))
+                                         self.client.host, destDir, destName, latency))
                       os.unlink(file)
     
                       # add data to cache if needed
