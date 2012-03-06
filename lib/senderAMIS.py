@@ -16,7 +16,7 @@
 #############################################################################################
 
 """
-import os, sys, time, socket, curses.ascii, string
+import os, os.stat, stat, sys, time, socket, curses.ascii, string
 from DiskReader import DiskReader
 from MultiKeysStringSorter import MultiKeysStringSorter
 from CacheManager import CacheManager
@@ -132,7 +132,11 @@ class senderAMIS:
              if tosplit :
                 succes, nbBytesSent = self.write_segmented_data( data[index], self.reader.sortedFiles[index] )
                 # all parts were cached... nothing to do
-                if succes and nbBytesSent == 0 :
+                if succes :
+                   path = self.reader.sortedFiles[index]
+                   basename = os.path.basename(path)
+                   latency = time.time() - os.stat(path)[stat.ST_MTIME]
+                   self.logger.info("(%i Bytes) Bulletin %s  delivered (lat=%f)" % (nbBytesSent, basename, latency))
                    self.unlink_file( self.reader.sortedFiles[index] )
                    continue
              else:
@@ -150,8 +154,11 @@ class senderAMIS:
                 succes, nbBytesSent = self.write_data( dataAmis )
              #if the bulletin was sent, erase the file.
              if succes:
-                basename = os.path.basename(self.reader.sortedFiles[index])
-                self.logger.info("(%i Bytes) Bulletin %s  delivered" % (nbBytesSent, basename))
+                path = self.reader.sortedFiles[index]
+                basename = os.path.basename(path)
+                latency = time.time() - os.stat(path)[stat.ST_MTIME]
+                self.logger.info("(%i Bytes) Bulletin %s  delivered (lat=%f)" % (nbBytesSent, basename, latency))
+
                 self.unlink_file( self.reader.sortedFiles[index] )
              else:
                 self.logger.info("%s: Sending problem" % self.reader.sortedFiles[index])
@@ -336,6 +343,7 @@ class senderAMIS:
 
            succes, nbBytesSent = self.write_data(rawSegment)
            if succes :
+              totSent = totSent + nbBytesSent
               self.totBytes += nbBytesSent
               self.logger.info("(%i Bytes) Bulletin Segment number %d sent" % (nbBytesSent,i))
            else :
