@@ -16,7 +16,7 @@
 #############################################################################################
 
 """
-import os, os.stat, stat, sys, time, socket, curses.ascii, string
+import os, os.path, stat, sys, time, socket, curses.ascii, string
 from DiskReader import DiskReader
 from MultiKeysStringSorter import MultiKeysStringSorter
 from CacheManager import CacheManager
