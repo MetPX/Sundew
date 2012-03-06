@@ -363,9 +363,10 @@ class Client(object):
                      self.destfn_script = old_destfn_script
                      if destFileName == None : destFileName = old_destFileName
                 elif spec == 'TIME':
-                    timeSuffix = ':' + time.strftime("%Y%m%d%H%M%S", time.gmtime())
-                    # check for PX or PDS behavior ... if file already had a time extension keep his...
-                    if parts[-1][0] == '2' : timeSuffix = ':' + parts[-1]
+                    if destFileName != filename :
+                       timeSuffix = ':' + time.strftime("%Y%m%d%H%M%S", time.gmtime())
+                       # check for PX or PDS behavior ... if file already had a time extension keep his...
+                       if parts[-1][0] == '2' : timeSuffix = ':' + parts[-1]
                 else:
                     self.logger.error("Don't understand this DESTFN parameter: %s" % spec)
                     return (None, None) 
