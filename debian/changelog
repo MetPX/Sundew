@@ -1,13 +1,57 @@
-metpx-sundew (0.5.9-ubuntu1) lucid; urgency=low
+metpx-sundew (0.6.0-lucid2) lucid; urgency=low
 
+  [ Jun Hu ]
+  * postrm : --force on deluser
+
+ -- Jun Hu <jun.hu@ec.gc.ca>  Thu, 08 Mar 2012 18:14:11 +0000
+
+metpx-sundew (0.6.0-lucid1) lucid; urgency=low
+
+  [ Jun Hu ]
   * Add init script 
   * Update doc	 
-
- -- Jun Hu <jun.hu@ec.gc.ca>  Mon, 27 Feb 2012 21:16:10 +0000
-
-metpx-sundew (0.5.9-ubuntu) unstable; urgency=low
+  * lib/LatMessage.py lib/Latencies.py lib/PDSLatencies.py lib/PXLatencies.py
+  * lib/Plotter.py lib/copyFiles.py bin/paplat   change python2 for python
+  * rename .localRetrans for localRetrans and modifi pxRetrans accordingly
+  * rename hang-check.sh for hang-check
+  * move doc from trunk to sundew
+  * debian/metpx-sundew.docs
+  * debian/changelog modified
+  * debian/control   modified for architecture and dependencies
+  * debian/copyright updated
+  * debian/postinst PXHOME from getent and use dpkg-statoverride for directories
+  * debian/rules     modified to install doc (exclude .svn)
+  *                  create queuedirs and db dir
+  *                  move  dh_compress for the man
+  * /etc/init.d/px written and packaged
 
   [ Michel Grenier ]
-  * Initial Release.
+  * bulletinLib.py utils.py deleted
+  * manpages written for  pxValidator, pxRetrans, pxFlowNames, pxDBCleaner,
+  * pxChecker, mr-clean, localRetrans, hang-check, check-unique, paplat
+
+ -- Michel Grenier <michel.grenier@ec.gc.ca>  Mon, 05 Mar 2012 15:43:50 +0000
+
+metpx-sundew (0.5.9-lucid) unstable; urgency=low
+
+  [ Michel Grenier ]
+  * Ingestor.py Attempt to correct name clash in db by adding a second to the date suffix 
+  * DirectRoutingParser.py bug fix : return priority  when product match key_accept 
+  * SenderScript.py  client object first argument of send_script
+  * Ingestor.py Routingtable can be modified for bulletins too.
+  * Source.py/CollectionBuilder.py moved aaxx, metar and taf as receiver options
+  * StationParser.py trap error and log when a station entry is wrong and continue
+  * pxRetrans Option waitTimeForLogEntry : confirms resending within n sec from log
+  * PXIgnitor.py   kill sender if stop did not work after .5 sec.
+  * Source.py/Ingestor.py add pull-script capability
+  * PullFTP.py  added pattern match like JJJ julian day and JJJ-1...
  
  -- Michel Grenier <michel.grenier@ec.gc.ca>  Mon, 27 Feb 2012 19:44:18 +0000
+
+metpx-sundew (0.5.8-etch) unstable; urgency=low
+
+  * initial release
+  * see RELEASE_NOTES for history
+  * see sourceforge logs and doc for more details
+
+ -- Michel Grenier <michel.grenier@ec.gc.ca>  Thu, 08 Sep 2011 19:44:18 +0000

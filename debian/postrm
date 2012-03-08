@@ -15,7 +15,7 @@ if [ "$1" = "purge" ] ; then
 	rm -rf $PXETC
 	rm -rf $PXSPOOL
 	rm -rf $PXHOME
-	deluser --quiet --remove-home px > /dev/null || true
+	deluser --force --quiet --remove-home px > /dev/null || true
 fi
 
 
