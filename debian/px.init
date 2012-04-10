@@ -134,7 +134,7 @@ case "$1" in
 	esac
 	;;
   status)
-       	is_running && log_daemon_msg "$NAME is running" && exit 0 || log_daemon_msg "$NAME is not running" && exit $?
+       	is_running && log_daemon_msg "$NAME is running" && exit 0 || log_daemon_msg "$NAME is not running" && exit 3 
         #status_of_proc "$DAEMON" "$NAME" && exit 0 || exit $?
        ;;
   reload)
