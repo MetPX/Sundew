@@ -17,7 +17,7 @@
 #
 #############################################################################################
 """
-import sys, os, os.path, time, string, stat
+import sys, os.path, time, string
 import gateway
 import socketManagerWmo
 import bulletinManagerWmo
@@ -107,10 +107,6 @@ class senderWmo(gateway.gateway):
                    succes, nbBytesSent = self.write_segmented_data( data[index], self.reader.sortedFiles[index] )
                    # all parts were cached... nothing to do
                    if succes and nbBytesSent == 0 :
-                      path = self.reader.sortedFiles[index]
-                      basename = os.path.basename(path)
-                      latency = time.time() - os.stat(path)[stat.ST_MTIME]
-                      self.logger.info("(%i Bytes) Bulletin %s  delivered (lat=%f)" % (nbBytesSent, basename, latency))
                       self.unlink_file( self.reader.sortedFiles[index] )
                       continue
 
@@ -131,8 +127,7 @@ class senderWmo(gateway.gateway):
                 #If the bulletin was sent successfully, erase the file.
                 if succes:
                    basename = os.path.basename(self.reader.sortedFiles[index])
-                   latency = time.time() - os.stat(self.reader.sortedFiles[index])[stat.ST_MTIME]
-                   self.logger.info("(%i Bytes) Bulletin %s  delivered (lat=%f)" % (nbBytesSent, basename, latency))
+                   self.logger.info("(%i Bytes) Bulletin %s  delivered" % (nbBytesSent, basename))
                    self.unlink_file( self.reader.sortedFiles[index] )
                 else:
                    self.logger.info("%s: Sending problem" % self.reader.sortedFiles[index])

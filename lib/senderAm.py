@@ -18,7 +18,7 @@
 #
 #############################################################################################
 """
-import sys, os, os.path, time, stat
+import sys, os.path, time
 import gateway
 import socketManagerAm
 import bulletinAm
@@ -113,11 +113,7 @@ class senderAm(gateway.gateway):
                 if tosplit :
                    succes, nbBytesSent = self.write_segmented_data( data[index], self.reader.sortedFiles[index] )
                    # all parts were cached... nothing to do
-                   if succes :
-                      path = self.reader.sortedFiles[index]
-                      basename = os.path.basename(path)
-                      latency = time.time() - os.stat(path)[stat.ST_MTIME]
-                      self.logger.info("(%i Bytes) Bulletin %s  delivered (lat=%f)" % (nbBytesSent, basename, latency))
+                   if succes and nbBytesSent == 0 :
                       self.unlink_file( self.reader.sortedFiles[index] )
                       continue
 
@@ -137,10 +133,8 @@ class senderAm(gateway.gateway):
 
                 #si le bulletin a ete envoye correctement, le fichier est efface
                 if succes:
-                   path = self.reader.sortedFiles[index]
-                   basename = os.path.basename(path)
-                   latency = time.time() - os.stat(path)[stat.ST_MTIME]
-                   self.logger.info("(%i Bytes) Bulletin %s  delivered (lat=%f)" % (nbBytesSent, basename, latency))
+                   basename = os.path.basename(self.reader.sortedFiles[index])
+                   self.logger.info("(%i Bytes) Bulletin %s  delivered" % (nbBytesSent, basename))
                    self.unlink_file( self.reader.sortedFiles[index] )
                 else:
                    self.logger.info("%s: Sending problem" % self.reader.sortedFiles[index])
@@ -304,7 +298,6 @@ class senderAm(gateway.gateway):
             succes, nbBytesSent = self.write_data(rawSegment)
             if succes :
                self.tallyBytes(nbBytesSent)
-               totSent =  totSent + nbBytesSent
                self.logger.info("(%i Bytes) Bulletin Segment number %d sent (%s)" % (nbBytesSent,i,header + " P" + l1 + l2))
                self.logger.debug("Bulletin is \n%s" % rawSegment)
             else :

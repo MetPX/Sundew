@@ -550,13 +550,11 @@ class SenderFTP(object):
 
                           d1,d2,d3,d4,tend   = os.times()
 
-                          latency = time.time() - os.stat(file)[stat.ST_MTIME]
-
                           os.unlink(file)
 
-                          self.logger.info("(%i Bytes) File %s delivered to %s://%s@%s%s%s (lat=%f)" % \
+                          self.logger.info("(%i Bytes) File %s delivered to %s://%s@%s%s%s" % \
                                           (nbBytes, file, self.client.protocol, self.client.user, \
-                                          self.client.host, destDirString, destName, latency))
+                                          self.client.host, destDirString, destName))
 
                           if self.client.kbytes_ps > 0.0 :
                              tspan    = tend - tbegin

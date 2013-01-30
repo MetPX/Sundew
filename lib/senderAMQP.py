@@ -14,7 +14,7 @@
 #############################################################################################
 
 """
-import os, os.path, stat, sys, time, string
+import os, sys, time, string
 from DiskReader import DiskReader
 from MultiKeysStringSorter import MultiKeysStringSorter
 from CacheManager import CacheManager
@@ -155,8 +155,7 @@ class senderAMQP:
                     routing_key = pts[0] + '_' + pts[1]
                     self.channel.basic_publish(msg, 'myfan', routing_key )
 
-                    latency = time.time() - os.stat(path)[stat.ST_MTIME]
-                    self.logger.info("(%i Bytes) Bulletin %s  delivered (lat=%f)" % (nbBytesSent, basename, latency))
+                    self.logger.info("(%i Bytes) Bulletin %s  delivered" % (nbBytesSent, basename))
                     self.unlink_file( path )
 
                     self.totBytes += nbBytesSent
