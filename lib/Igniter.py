@@ -139,12 +139,12 @@ class Igniter:
 
    def status(self):
       # If it is locked ... 
-      if self.isLocked(): 
+      if self.isLocked(): 	 	
          # ... and running
-         if not commands.getstatusoutput('ps -p ' + str(self.lockpid))[0]:
+         if not commands.getstatusoutput('ps -p ' + str(self.lockpid))[0]:     
             self.printComment('Status, started')
          # ... and not running, delete the lock.
-         else:
+         else:	    
             self.printComment('Status, locked')
       # If it is unlocked 
       else:
@@ -152,6 +152,7 @@ class Igniter:
       sys.exit()
 
    def isLocked(self):
+      
       if os.path.exists(self.lock):
          lockFile = open(self.lock, 'r')
          try: 
