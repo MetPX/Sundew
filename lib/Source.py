@@ -103,6 +103,13 @@ class Source(object):
                                                                # been touched before being picked
 
 
+        # AMQP
+
+        self.realm           = '/data'
+        self.exchangename    = None
+        self.exchangetype    = 'fanout'
+        self.amqp_key        = ''
+
         #-----------------------------------------------------------------------------------------
         # Setting up pulls configuration values
         #-----------------------------------------------------------------------------------------
@@ -329,6 +336,17 @@ class Source(object):
                     elif words[0] == 'delete': self.delete = isTrue(words[1])
                     elif words[0] == 'pull_prefix': self.pull_prefix = words[1]
 
+
+                    # AMQP
+                    elif words[0] == 'realm': self.realm = words[1]
+                    elif words[0] == 'exchangename': self.exchangename = words[1]
+                    elif words[0] == 'amqp_key': self.amqp_key = words[1]
+                    elif words[0] == 'exchangetype':
+                         if words[1] in ['fanout','direct','topic','headers'] :
+                            self.exchangetype = words[1]
+                         else :
+                            self.logger.error("Problem with exchangetype %s" % words[1])
+
                     # options for collector
                     if   self.type == 'collector' :
                          if   words[0] == 'aaxx'   : self.aaxx  = words[1].split(',')
@@ -425,7 +443,16 @@ class Source(object):
         print("FX script: %s" % source.fx_execfile)
         print("LX script: %s" % source.lx_execfile)
         print("Pull script: %s" % source.pull_execfile)
-        
+
+        print("******************************************")
+        print("*       AMQP stuff                       *")
+        print("******************************************")
+
+        print("amqp_key: %s" % source.amqp_key)
+        print("exchangename: %s" % source.exchangename)
+        print("exchangetype: %s" % source.exchangetype)
+        print("realm: %s" % source.realm)
+
         print("******************************************")
         print("*       Source Masks                     *")
         print("******************************************")

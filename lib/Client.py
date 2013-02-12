@@ -95,6 +95,7 @@ class Client(object):
         self.lock = '.tmp'                  # file send with extension .tmp for lock
                                             # if lock == "umask" than use umask 777 to put files
 
+
         self.destfn_script   = None         # a script to rename the file for client
         self.destfn_execfile = None
 
@@ -106,6 +107,13 @@ class Client(object):
 
         self.send_script     = None         # a script to send a list of files
         self.send_execfile   = None
+
+        # AMQP
+
+        self.realm           = '/data'
+        self.exchangename    = None
+        self.exchangetype    = 'fanout'
+        self.amqp_key        = ''
 
         # All defaults for a source were set earlier in this class
         # But some of them may have been overwritten in the px.conf file
@@ -258,6 +266,16 @@ class Client(object):
                          if self.am_dest_thread == None : self.am_dest_thread = {}
                          self.am_dest_thread[words[1]] = int(words[2])
 
+                    # AMQP
+                    elif words[0] == 'realm': self.realm = words[1]
+                    elif words[0] == 'amqp_key': self.amqp_key = words[1]
+                    elif words[0] == 'exchangename': self.exchangename = words[1]
+                    elif words[0] == 'exchangetype': 
+                         if words[1] in ['fanout','direct','topic','headers'] :
+                            self.exchangetype = words[1]
+                         else :
+                            self.logger.error("Problem with exchangetype %s" % words[1])
+
                 except:
                     self.logger.error("Problem with this line (%s) in configuration file of client %s" % (words, self.name))
 
@@ -407,6 +425,15 @@ class Client(object):
         print("Pattern Matching: %s" % client.patternMatching)
         print("No duplicates: %s" % client.nodups)
         print("am_dest_thread: %s" % client.am_dest_thread)
+
+        print("******************************************")
+        print("*       AMQP stuff                       *")
+        print("******************************************")
+
+        print("amqp_key: %s" % client.amqp_key)
+        print("exchangename: %s" % client.exchangename)
+        print("exchangetype: %s" % client.exchangetype)
+        print("realm: %s" % client.realm)
 
         print("******************************************")
         print("*       Client Masks                     *")

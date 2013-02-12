@@ -34,7 +34,6 @@ class senderAMQP:
       self.logger     = logger                        # Logger object
       self.connection = None                          # The connection
       self.igniter    = None
-      self.realm      = None
       self.ssl        = False
       self.reader     = DiskReader(PXPaths.TXQ  + self.client.name, self.client.batch,
                                self.client.validation, self.client.patternMatching,
@@ -73,14 +72,45 @@ class senderAMQP:
 
       self.connection = None
       self.channel    = None
-      self.realm      = None
 
       while True:
          try:
               host = self.client.host
               if self.client.port != None : host = host + ':' + self.client.port
+              # connect
               self.connection = amqp.Connection(host, userid=self.client.user, password=self.client.passwd, ssl=self.ssl)
+              #host='localhost',
+              #userid='guest',
+              #password='guest',
+              #login_method='AMQPLAIN',
+              #login_response=None,
+              #virtual_host='/',
+              #locale='en_US',
+              #client_properties=None,
+              #ssl=False,
+              #insist=False,
+              #connect_timeout=None,
               self.channel    = self.connection.channel()
+              # channel_id = None
+
+              # what kind of exchange
+              self.channel.access_request(self.client.realm, active=True, write=True)
+              # realm   = /data for appl resources     /admin for admin resources
+              # exclusive=False,
+              # passive=False
+              # active=False
+              # write=False
+              # read=False
+              self.channel.exchange_declare(self.client.exchangename, self.client.exchangetype, auto_delete=True)
+              # exchange  reserved .amqp
+              # type     
+              # passive=False
+              # durable=False
+              # auto_delete=True
+              # internal=False
+              # nowait=False,
+              # arguments=None
+              # ticket=None):
 
               self.logger.info("AMQP Sender is now connected to: %s" % str(self.client.host))
               break
@@ -139,21 +169,42 @@ class senderAMQP:
                 self.logger.info('No destination name: %s has been erased' % path)
                 continue
 
-             self.realm = destDir
-             if destDir[:2] == '//': self.realm = destDir[1:]
-
              try :
-                    self.channel.access_request(self.realm, active=True, write=True)
-                    self.channel.exchange_declare('myfan', 'fanout', auto_delete=True)
 
                     limit = nbBytesSent
                     if limit > 15 : limit = 15
-                    pts = msg_body[:limit].split()
+                    ####bulletin only
+                    #pts = msg_body[:limit].split()
+                    #hdr = {'T1T2A1A2ii': pts[0], 'CCCC': pts[1]}
+                    #msg = amqp.Message(msg_body, content_type='text/plain', application_headers=hdr)
+                    msg = amqp.Message(msg_body, content_type='text/plain')
+                    # body
+                    # children=None
+                    # ('content_type', 'shortstr'),
+                    # ('content_encoding', 'shortstr'),
+                    # ('application_headers', 'table'),
+                    # ('delivery_mode', 'octet'),
+                    # ('priority', 'octet'),
+                    # ('correlation_id', 'shortstr'),
+                    # ('reply_to', 'shortstr'),
+                    # ('expiration', 'shortstr'),
+                    # ('message_id', 'shortstr'),
+                    # ('timestamp', 'timestamp'),
+                    # ('type', 'shortstr'),
+                    # ('user_id', 'shortstr'),
+                    # ('app_id', 'shortstr'),
+                    # ('cluster_id', 'shortstr')
 
-                    hdr = {'T1T2A1A2ii': pts[0], 'CCCC': pts[1]}
-                    msg = amqp.Message(msg_body, content_type='text/plain', application_headers=hdr)
-                    routing_key = pts[0] + '_' + pts[1]
-                    self.channel.basic_publish(msg, 'myfan', routing_key )
+                    parts = basename.split(':')
+                    if parts[-1][0:2] == '20' : parts = parts[:-1]
+                    routing_key = self.client.amqp_key + '.:' + ':'.join(parts)
+                    self.channel.basic_publish(msg, self.client.exchangename, routing_key )
+                    # msg
+                    # exchange=''
+                    # routing_key=''
+                    # mandatory=False
+                    # immediate=False
+                    # ticket=None):
 
                     self.logger.info("(%i Bytes) Bulletin %s  delivered" % (nbBytesSent, basename))
                     self.unlink_file( path )
