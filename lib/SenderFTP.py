@@ -358,9 +358,9 @@ class SenderFTP(object):
 
         if self.sftp != None :
            # does not seem to work do a straight put
-           #self.sftp.put(file,tempName)
-           #self.sftp.rename(tempName, destName)
-           self.sftp.put(file,destName)
+           self.sftp.put(file,tempName)
+           self.sftp.rename(tempName, destName)
+           #self.sftp.put(file,destName)
 
         if self.ftp != None :
            self.partialfile = tempName
