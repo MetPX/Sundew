@@ -43,7 +43,7 @@ class senderAMQP:
 
       self.cacheManager = CacheManager(maxEntries=self.client.cache_size, timeout=8*3600)
 
-      # AMQP  is there a max for bulletin size
+      # AMQP  is there a max for message size
       # self.set_maxLength(self.client.maxLength)
 
       # statistics.
@@ -114,7 +114,7 @@ class senderAMQP:
 
    def write(self, data):
       if len(data) >= 1:
-         self.logger.info("%d new bulletins will be sent", len(data) )
+         self.logger.info("%d new messages will be sent", len(data) )
 
          for index in range(len(data)):
 
@@ -153,7 +153,7 @@ class senderAMQP:
                     # publish message
                     self.channel.basic_publish(msg, self.client.exchange_name, self.client.exchange_key )
 
-                    self.logger.info("(%i Bytes) Bulletin %s  delivered" % (nbBytesSent, basename))
+                    self.logger.info("(%i Bytes) Message %s  delivered" % (nbBytesSent, basename))
                     self.unlink_file( path )
 
                     self.totBytes += nbBytesSent
@@ -161,16 +161,6 @@ class senderAMQP:
                     self.logger.info("%s: Sending problem" % path )
       else:
          time.sleep(1)
-
-      if (self.totBytes > 108000):
-         self.logger.info(self.printSpeed() + " Bytes/sec")
-         # Log infos about caching
-         (stats, cached, total) = self.cacheManager.getStats()
-         if total:
-            percentage = "%2.2f %% of the last %i requests were cached (implied %i files were deleted)" % (cached/total * 100,  total, cached)
-         else:
-            percentage = "No entries in the cache"
-         self.logger.info("Caching stats: %s => %s" % (str(stats), percentage))
 
    def run(self):
       while True:
