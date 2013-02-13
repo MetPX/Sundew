@@ -105,10 +105,10 @@ class Source(object):
 
         # AMQP
 
-        self.realm           = '/data'
-        self.exchangename    = None
-        self.exchangetype    = 'fanout'
-        self.amqp_key        = ''
+        self.exchange_key   = ''
+        self.exchange_name  = None
+        self.exchange_realm = '/data'
+        self.exchange_type  = 'fanout'
 
         #-----------------------------------------------------------------------------------------
         # Setting up pulls configuration values
@@ -338,14 +338,14 @@ class Source(object):
 
 
                     # AMQP
-                    elif words[0] == 'realm': self.realm = words[1]
-                    elif words[0] == 'exchangename': self.exchangename = words[1]
-                    elif words[0] == 'amqp_key': self.amqp_key = words[1]
-                    elif words[0] == 'exchangetype':
+                    elif words[0] == 'exchange_key': self.exchange_key = words[1]
+                    elif words[0] == 'exchange_name': self.exchange_name = words[1]
+                    elif words[0] == 'exchange_realm': self.exchange_realm = words[1]
+                    elif words[0] == 'exchange_type':
                          if words[1] in ['fanout','direct','topic','headers'] :
-                            self.exchangetype = words[1]
+                            self.exchange_type = words[1]
                          else :
-                            self.logger.error("Problem with exchangetype %s" % words[1])
+                            self.logger.error("Problem with exchange_type %s" % words[1])
 
                     # options for collector
                     if   self.type == 'collector' :
@@ -448,10 +448,10 @@ class Source(object):
         print("*       AMQP stuff                       *")
         print("******************************************")
 
-        print("amqp_key: %s" % source.amqp_key)
-        print("exchangename: %s" % source.exchangename)
-        print("exchangetype: %s" % source.exchangetype)
-        print("realm: %s" % source.realm)
+        print("exchange_key: %s" % source.exchange_key)
+        print("exchange_name: %s" % source.exchange_name)
+        print("exchange_realm: %s" % source.exchange_realm)
+        print("exchange_type: %s" % source.exchange_type)
 
         print("******************************************")
         print("*       Source Masks                     *")

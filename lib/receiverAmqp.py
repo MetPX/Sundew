@@ -50,68 +50,18 @@ class receiverAmqp(gateway.gateway):
         self.connection.close()
 
     def establishConnection(self):
+        # connection
         self.connection = amqp.Connection( self.source.host,userid=self.source.user,password=self.source.passwd,ssl=self.ssl)
-        #host='localhost',
-        #userid='guest',
-        #password='guest',
-        #login_method='AMQPLAIN',
-        #login_response=None,
-        #virtual_host='/',
-        #locale='en_US',
-        #client_properties=None,
-        #ssl=False,
-        #insist=False,
-        #connect_timeout=None,
-
         self.channel = self.connection.channel()
-        # channel_id = None
 
-        self.channel.access_request(self.source.realm, active=True, read=True)
-        # realm   = /data for appl resources     /admin for admin resources
-        # exclusive=False,
-        # passive=False
-        # active=False
-        # write=False
-        # read=False
-
-        self.channel.exchange_declare(self.source.exchangename, self.source.exchangetype, auto_delete=True)
-        # exchange  reserved .amqp
-        # type     
-        # passive=False
-        # durable=False
-        # auto_delete=True
-        # internal=False
-        # nowait=False,
-        # arguments=None
-        # ticket=None):
-
-        self._queuename, message_count, consumer_count = self.channel.queue_declare()
-        # queue=''
-        # passive=False
-        # durable=False,
-        # exclusive=False
-        # auto_delete=True
-        # nowait=False,
-        # arguments=None
-        # ticket=None):
-
-        self.channel.queue_bind(self._queuename, self.source.exchangename, self.source.amqp_key)
-        # queue
         # exchange
-        # routing_key='',
-        # nowait=False
-        # arguments=None
-        # ticket=None):
+        self.channel.access_request(self.source.exchange_realm, active=True, read=True)
+        self.channel.exchange_declare(self.source.exchange_name, self.source.exchange_type, auto_delete=True)
 
+        # queue and reading callback
+        self._queuename, message_count, consumer_count = self.channel.queue_declare()
+        self.channel.queue_bind(self._queuename, self.source.exchange_name, self.source.exchange_key)
         self.channel.basic_consume(self._queuename, callback=self.read_callback)
-        # queue=''
-        # consumer_tag=''
-        # no_local=False,
-        # no_ack=False
-        # exclusive=False
-        # nowait=False,
-        # callback=None
-        # ticket=None):
 
 
     def read(self):
@@ -145,28 +95,19 @@ class receiverAmqp(gateway.gateway):
             self.logger.debug("Error: %s", str(e.args))
 
     def read_callback(self,msg):
-        #for key, val in msg.properties.items(): 
-        #    self.logger.info('message properties %s: %s' % (key, str(val)))
-        #for key, val in msg.delivery_info.items():
-        #    self.logger.info('message delivery_info %s: %s' % (key, str(val)))
 
-        routing_key   = msg.delivery_info['routing_key']
-        parts         = routing_key.split(':')
-        self.filename = ':'.join(parts[1:])
+        hdr = msg.properties['application_headers']
+        self.filename = hdr['filename']
 
         self.msg = msg.body
 
         msg.channel.basic_ack(msg.delivery_tag)
-        # delivery_tag
-        # multiple=False
 
         #
         # Cancel this callback
         #
         if msg.body == 'quit':
             msg.channel.basic_cancel(msg.consumer_tag)
-            # consumer_tag
-            # nowait=False)
 
             self.msg = None
             self.logger.error('CRITICAL ERROR...')
