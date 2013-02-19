@@ -118,6 +118,8 @@ class senderAMQP:
 
          for index in range(len(data)):
 
+             self.logger.start_timer()
+
              # data info
 
              msg_body = data[index]
@@ -153,7 +155,7 @@ class senderAMQP:
                     # publish message
                     self.channel.basic_publish(msg, self.client.exchange_name, self.client.exchange_key )
 
-                    self.logger.info("(%i Bytes) Message %s  delivered" % (nbBytesSent, basename))
+                    self.logger.delivered("(%i Bytes) Message %s  delivered" % (nbBytesSent, basename),path,nbBytesSent)
                     self.unlink_file( path )
 
                     self.totBytes += nbBytesSent

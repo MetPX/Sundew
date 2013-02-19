@@ -484,9 +484,10 @@ class SenderFTP(object):
             # file protocol means file renaming
             if self.client.protocol == 'file':
                try:
+                      self.logger.start_timer()
                       if self.client.dir_mkdir == True and not os.path.isdir(destDirString) : os.makedirs(destDirString)
                       os.rename(file, destDirString + destName)
-                      self.logger.info("(%i Bytes) File %s delivered to %s://%s@%s%s%s" % (nbBytes, file, self.client.protocol, self.client.user, self.client.host, destDirString, destName))
+                      self.logger.delivered("(%i Bytes) File %s delivered to %s://%s@%s%s%s" % (nbBytes, file, self.client.protocol, self.client.user, self.client.host, destDirString, destName),destDirString + destName)
 
                       # add data to cache if needed
                       if self.client.nodups and self.cacheMD5 != None : 
@@ -502,6 +503,7 @@ class SenderFTP(object):
             if self.client.protocol == 'ftp' or self.client.protocol == 'sftp':
 
                try :
+                   self.logger.start_timer()
 
                    # the alarm timeout is set at that level
                    # it means that everything done to a file must be done
@@ -550,11 +552,11 @@ class SenderFTP(object):
 
                           d1,d2,d3,d4,tend   = os.times()
 
-                          os.unlink(file)
-
-                          self.logger.info("(%i Bytes) File %s delivered to %s://%s@%s%s%s" % \
+                          self.logger.delivered("(%i Bytes) File %s delivered to %s://%s@%s%s%s" % \
                                           (nbBytes, file, self.client.protocol, self.client.user, \
-                                          self.client.host, destDirString, destName))
+                                          self.client.host, destDirString, destName),file)
+
+                          os.unlink(file)
 
                           if self.client.kbytes_ps > 0.0 :
                              tspan    = tend - tbegin

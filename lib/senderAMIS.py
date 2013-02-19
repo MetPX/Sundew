@@ -127,19 +127,23 @@ class senderAMIS:
 
          for index in range(len(data)):
 
+             self.logger.start_timer()
+             path = self.reader.sortedFiles[index]
+             basename = os.path.basename( path )
+
              tosplit = self.need_split( data[index] )
 
              if tosplit :
-                succes, nbBytesSent = self.write_segmented_data( data[index], self.reader.sortedFiles[index] )
+                succes, nbBytesSent = self.write_segmented_data( data[index], path )
                 # all parts were cached... nothing to do
                 if succes and nbBytesSent == 0 :
-                   self.unlink_file( self.reader.sortedFiles[index] )
+                   self.logger.delivered("(%i Bytes) Bulletin %s  delivered" % (len(data[index]), basename),path)
+                   self.unlink_file( path )
                    continue
              else:
                 # if in cache than it was already sent... nothing to do
                 # priority 0 is retransmission and is never suppressed
 
-                path = self.reader.sortedFiles[index]
                 priority = path.split('/')[-3]
 
                 if self.client.nodups and priority != '0' and self.in_cache( data[index], True, path ) :
@@ -150,11 +154,10 @@ class senderAMIS:
                 succes, nbBytesSent = self.write_data( dataAmis )
              #if the bulletin was sent, erase the file.
              if succes:
-                basename = os.path.basename(self.reader.sortedFiles[index])
-                self.logger.info("(%i Bytes) Bulletin %s  delivered" % (nbBytesSent, basename))
-                self.unlink_file( self.reader.sortedFiles[index] )
+                self.logger.delivered("(%i Bytes) Bulletin %s  delivered" % (nbBytesSent, basename),path,nbBytesSent)
+                self.unlink_file( path )
              else:
-                self.logger.info("%s: Sending problem" % self.reader.sortedFiles[index])
+                self.logger.info("%s: Sending problem" % path )
       else:
          time.sleep(1)
 

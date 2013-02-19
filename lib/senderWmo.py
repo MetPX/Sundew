@@ -99,15 +99,20 @@ class senderWmo(gateway.gateway):
 
         for index in range(len(data)):
 
+            self.logger.start_timer()
+            path = self.reader.sortedFiles[index]
+            basename = os.path.basename( path )
+
             try:
                 tosplit = self.need_split( data[index] )
 
                 # need to be segmented...
                 if tosplit :
-                   succes, nbBytesSent = self.write_segmented_data( data[index], self.reader.sortedFiles[index] )
+                   succes, nbBytesSent = self.write_segmented_data( data[index], path )
                    # all parts were cached... nothing to do
                    if succes and nbBytesSent == 0 :
-                      self.unlink_file( self.reader.sortedFiles[index] )
+                      self.logger.delivered("(%i Bytes) Bulletin %s  delivered" % (len(data[index]), basename),path)
+                      self.unlink_file( path )
                       continue
 
                 # send the entire bulletin
@@ -115,7 +120,6 @@ class senderWmo(gateway.gateway):
 
                    # if in cache than it was already sent... nothing to do
                    # priority 0 are retransmission and no check for duplicate
-                   path     = self.reader.sortedFiles[index]
                    priority = path.split('/')[-3]
 
                    if self.client.nodups and priority != '0' and self.in_cache( data[index], True, path ) :
@@ -126,11 +130,10 @@ class senderWmo(gateway.gateway):
 
                 #If the bulletin was sent successfully, erase the file.
                 if succes:
-                   basename = os.path.basename(self.reader.sortedFiles[index])
-                   self.logger.info("(%i Bytes) Bulletin %s  delivered" % (nbBytesSent, basename))
-                   self.unlink_file( self.reader.sortedFiles[index] )
+                   self.logger.delivered("(%i Bytes) Bulletin %s  delivered" % (nbBytesSent, basename),path,nbBytesSent)
+                   self.unlink_file( path )
                 else:
-                   self.logger.info("%s: Sending problem" % self.reader.sortedFiles[index])
+                   self.logger.info("%s: Sending problem" % path )
 
             except Exception, e:
             # e==104 or e==110 or e==32 or e==107 => connection broken

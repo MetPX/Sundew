@@ -13,7 +13,7 @@ named COPYING in the root of the source directory tree.
 #
 #############################################################################################
 
-import sys, logging, logging.handlers, fnmatch
+import os, sys, logging, logging.handlers, fnmatch, stat,time
 
 def funcToMethod(func, clas, method_name=None):
     setattr(clas, method_name or func.__name__, func)
@@ -62,11 +62,116 @@ class Logger:
         self.logger.setLevel(eval("logging." + log_level))                     # Set logging level
         self.logger.addHandler(hdlr)
 
+        self.logmon = LoggerMonitor(self.logger)
         #print logging.getLevelName(5)
         #print logging.getLevelName(3)
 
     def getLogger(self):
-        return self.logger 
+        return self.logmon 
+
+
+#############################################################################################
+#
+# Michel Grenier Fev 2012
+#
+# LoggerMonitor classes
+# interlace Logging and monitoring together
+# monitor captures some events and logs them.
+# When ingesting,delivering or when errors occur
+# a loggerMonitor module is called
+#
+#############################################################################################
+
+class LoggerMonitor:
+    def __init__(self, logger):
+        self.flow        = None
+        self.logger      = logger
+        self.tbegin      = 0
+
+        self.setLevel   = logger.setLevel
+        self.debug      = logger.debug
+        self.info       = logger.info
+        self.warning    = logger.warning
+        self.error      = logger.error
+        self.exception  = logger.exception
+        self.critical   = logger.critical
+   
+        self.exception        = logger.exception
+        self.veryverbose      = logger.veryverbose
+        self.veryveryverbose  = logger.veryveryverbose
+
+
+    def bulletin_delivered(self,ifile,nbBytes,fxPenalty):
+
+        ts_ingest = time.strptime(ifile[-21:-7], '%Y%m%d%H%M%S')
+        fage = time.mktime(ts_ingest) + float(ifile[-7:])
+
+        tend    = time.time()
+        latency = tend - fage + fxPenalty
+        fttim   = tend - self.tbegin
+
+        self.info("(%i Bytes) Bulletin %s delivered (lat=%f,tt=%f)" % \
+                      (nbBytes, ifile, latency, fttim) )
+
+    def file_delivered(self,ifile,destination,fxPenalty):
+        lstat   = os.stat(ifile)
+        fsiz    = lstat[stat.ST_SIZE]
+
+        ts_ingest = time.strptime(ifile[-21:-7], '%Y%m%d%H%M%S')
+        fage = time.mktime(ts_ingest) + float(ifile[-7:])
+
+        tend    = time.time()
+        latency = tend - fage + fxPenalty
+        fttim   = tend - self.tbegin
+
+        self.info("(%i Bytes) File %s delivered to %s (lat=%f,tt=%f)" % \
+                      (fsiz, ifile, destination, latency, fttim) )
+
+    def ingested(self,dbName):
+        fsiz    = os.stat(dbName)[stat.ST_SIZE]
+        tend    = time.time()
+        fttim   = tend - self.tbegin
+        self.info("(%i Bytes) Ingested in DB as %s (lat=%f)" % (fsiz, dbName, fttim))
+
+
+    def moved(self,ifile,mfile,destination,fxPenalty):
+        lstat   = os.stat(mfile)
+        fsiz    = lstat[stat.ST_SIZE]
+
+        ts_ingest = time.strptime(ifile[-21:-7], '%Y%m%d%H%M%S')
+        fage = time.mktime(ts_ingest) + float(ifile[-7:])
+
+        tend    = time.time()
+        latency = tend - fage + fxPenalty
+        fttim   = tend - self.tbegin
+
+        self.info("(%i Bytes) File %s delivered to %s (lat=%f,tt=%f)" % \
+                      (fsiz, ifile, destination, latency, fttim) )
+
+    def start_timer(self):
+        self.tbegin = time.time()
+
+    def delivered(self,infostr,ifile=None,fsiz=None):
+
+        if ifile == None :
+           self.info(infostr)
+           return
+
+        tend  = time.time()
+
+        lstat = os.stat(ifile)
+        ftim  = lstat[stat.ST_MTIME]
+
+        if fsiz == None : 
+           fsiz = lstat[stat.ST_SIZE]
+
+        speed = 0.0
+        dtim  = tend - self.tbegin
+        if dtim > 0.0 : speed = fsiz/dtim
+
+        latency = tend - ftim
+
+        self.info("%s (lat=%f,speed=%f)" % (infostr,latency,speed) )
 
 if (__name__ == "__main__"):
     """
