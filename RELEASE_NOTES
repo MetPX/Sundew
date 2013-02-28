@@ -1,4 +1,48 @@
 
+---------------- Below are changes made up to version px-0-6-1 --------------------------------------
+
+2013-02      (MG) clean up trunk to restart at px-0-6-0
+
+             (MG) Client.py
+                  execfile name rearranged
+                  AMQP options revisited
+
+                  Logger.py
+                  addition of class LoggerMonitor
+                  insert module start_timer and delivered 
+                  for logging of latency and speed for senders
+
+                  SenderFTP.py
+                  sftp  rename for .tmp lock uncommented
+                  execfile name rearranged
+                  use logger.start_timer() and logger.delivered for latency and speed 
+
+                  Source.py
+                  AMQP options revisited
+
+                  receiverAmqp.py
+                  AMQP options revisited
+                  arguments in function calls revisited
+                  Use ingestor instead of bulletin manager 
+                  Use message properties application_headers for filename
+
+                  senderAMIS.py
+                  use logger.start_timer() and logger.delivered for latency and speed 
+
+                  senderAMQP.py
+                  AMQP options revisited
+                  arguments in function calls revisited
+                  Use message properties application_headers for filename
+                  use logger.start_timer() and logger.delivered for latency and speed 
+
+                  senderAm.py
+                  use logger.start_timer() and logger.delivered for latency and speed 
+                  execfile name rearranged
+
+                  senderWmo.py
+                  use logger.start_timer() and logger.delivered for latency and speed 
+
+
 ---------------- Below are changes made up to version px-0-6-0 --------------------------------------
 
 *** Note  CMO packaging 
