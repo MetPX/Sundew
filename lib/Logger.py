@@ -100,54 +100,6 @@ class LoggerMonitor:
         self.veryverbose      = logger.veryverbose
         self.veryveryverbose  = logger.veryveryverbose
 
-
-    def bulletin_delivered(self,ifile,nbBytes,fxPenalty):
-
-        ts_ingest = time.strptime(ifile[-21:-7], '%Y%m%d%H%M%S')
-        fage = time.mktime(ts_ingest) + float(ifile[-7:])
-
-        tend    = time.time()
-        latency = tend - fage + fxPenalty
-        fttim   = tend - self.tbegin
-
-        self.info("(%i Bytes) Bulletin %s delivered (lat=%f,tt=%f)" % \
-                      (nbBytes, ifile, latency, fttim) )
-
-    def file_delivered(self,ifile,destination,fxPenalty):
-        lstat   = os.stat(ifile)
-        fsiz    = lstat[stat.ST_SIZE]
-
-        ts_ingest = time.strptime(ifile[-21:-7], '%Y%m%d%H%M%S')
-        fage = time.mktime(ts_ingest) + float(ifile[-7:])
-
-        tend    = time.time()
-        latency = tend - fage + fxPenalty
-        fttim   = tend - self.tbegin
-
-        self.info("(%i Bytes) File %s delivered to %s (lat=%f,tt=%f)" % \
-                      (fsiz, ifile, destination, latency, fttim) )
-
-    def ingested(self,dbName):
-        fsiz    = os.stat(dbName)[stat.ST_SIZE]
-        tend    = time.time()
-        fttim   = tend - self.tbegin
-        self.info("(%i Bytes) Ingested in DB as %s (lat=%f)" % (fsiz, dbName, fttim))
-
-
-    def moved(self,ifile,mfile,destination,fxPenalty):
-        lstat   = os.stat(mfile)
-        fsiz    = lstat[stat.ST_SIZE]
-
-        ts_ingest = time.strptime(ifile[-21:-7], '%Y%m%d%H%M%S')
-        fage = time.mktime(ts_ingest) + float(ifile[-7:])
-
-        tend    = time.time()
-        latency = tend - fage + fxPenalty
-        fttim   = tend - self.tbegin
-
-        self.info("(%i Bytes) File %s delivered to %s (lat=%f,tt=%f)" % \
-                      (fsiz, ifile, destination, latency, fttim) )
-
     def start_timer(self):
         self.tbegin = time.time()
 
@@ -172,6 +124,7 @@ class LoggerMonitor:
         latency = tend - ftim
 
         self.info("%s (lat=%f,speed=%f)" % (infostr,latency,speed) )
+
 
 if (__name__ == "__main__"):
     """
