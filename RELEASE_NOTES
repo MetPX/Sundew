@@ -14,6 +14,7 @@
 
                   SenderFTP.py
                   sftp  rename for .tmp lock uncommented
+                  sftp  supports throttling
                   execfile name rearranged
                   use logger.start_timer() and logger.delivered for latency and speed 
 
@@ -41,6 +42,9 @@
 
                   senderWmo.py
                   use logger.start_timer() and logger.delivered for latency and speed 
+
+                  DirectRoutingParser.py
+                  option include "filename" now supported
 
 
 ---------------- Below are changes made up to version px-0-6-0 --------------------------------------
