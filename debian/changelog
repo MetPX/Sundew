@@ -4,7 +4,9 @@ metpx-sundew (0.6.1-lucid3) lucid; urgency=low
   * Improve AMQP usage and options
   * Add latency,speed for senders
   * SFTP locking with rename uncommented
+  * SFTP throttling
   * Client.py execfile name revisited 
+  * DirectRoutingParser.py now supports include option
 
  -- Michel Grenier <michel.grenier@ec.gc.ca>  Thu, 28 Feb 2013 15:22:50 +0000
 
