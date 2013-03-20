@@ -89,6 +89,9 @@ class SenderFTP(object):
            self.put         = self.sftp.put
            self.quit        = self.sftp_quit
 
+           if self.client.kbytes_ps > 0.0 :
+              self.put = self.sftp_put_trottle
+
         # First put method : use a temporary filename = filename + lock extension
         if self.client.lock[0] == '.':
            self.send_file = self.send_lock
@@ -358,7 +361,7 @@ class SenderFTP(object):
 
         if self.sftp != None :
            # does not seem to work do a straight put
-           self.sftp.put(file,tempName)
+           self.put(file,tempName)
            self.sftp.rename(tempName, destName)
            #self.sftp.put(file,destName)
 
@@ -671,6 +674,19 @@ class SenderFTP(object):
     def trottle(self,buf) :
         self.tbytes = self.tbytes + len(buf)
         span = self.tbytes / self.bytes_ps
+        d1,d2,d3,d4,now = os.times()
+        rspan = now - self.tbegin
+        if span > rspan :
+           time.sleep(span-rspan)
+
+    # sftp put trottle
+    def sftp_put_trottle(self,file,destName):
+        d1,d2,d3,d4,now = os.times()
+        self.tbegin     = now + 0.0
+        self.sftp.put(file,destName,self.strottle)
+
+    def strottle(self, tbytes, total) :
+        span = tbytes / self.bytes_ps
         d1,d2,d3,d4,now = os.times()
         rspan = now - self.tbegin
         if span > rspan :

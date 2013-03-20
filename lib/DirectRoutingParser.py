@@ -203,11 +203,30 @@ class DirectRoutingParser(FileParser):
 
     def parse(self):
         self.clearInfos()
-        file = self.openFile(self.filename)
+
+        self.parseFile(self.filename)
+
+        # Up to here: 2.3 s of execution time
+
+        badClients = self.badClients.keys()
+        badClients.sort()
+        for client in badClients:
+            if client == '' : continue
+            self.logger.warning("Client %s is in %s but not in px" % (client, os.path.basename(self.filename)))
+
+    def parseFile(self,filename):
+
+        file = self.openFile(filename)
 
         for line in file:
             if line[0] == '#' : continue
             words = self.getWordsFromLine(line)
+
+            # include file support
+            if len(words) == 2 and words[0] == 'include':
+               self.parseFile(words[1])
+               continue
+
             # Up to here: 0.2 s of execution time
             #print words
             #if (len(words) >= 2 and not re.compile('^[ \t]*#').search(line)): # Regex costs ~ 0.35 seconds (when compare to if len(words) >= 2)
@@ -350,7 +369,7 @@ class DirectRoutingParser(FileParser):
                 except:
                     (type, value, tb) = sys.exc_info()
                     self.logger.error("Type: %s, Value: %s" % (type, value))
-                    self.logger.error("Problem with this line (%s) in the direct routing file (%s)" % (words, self.filename))
+                    self.logger.error("Problem with this line (%s) in the direct routing file (%s)" % (words, filename))
                     try:
                         del self.routingInfos[words[0]]
                         self.logger.error("%s won't be included in the routing table" % words[0])
@@ -358,17 +377,9 @@ class DirectRoutingParser(FileParser):
                         self.logger.error("Problem seems to be with a special directive line (not a header line)")
 
         file.close()
-        # Up to here: 2.3 s of execution time
-
-        badClients = self.badClients.keys()
-        badClients.sort()
-        for client in badClients:
-            if client == '' : continue
-            self.logger.warning("Client %s is in %s but not in px" % (client, os.path.basename(self.filename)))
 
     def parseAndShowErrors(self):
         self.clearInfos()
-        file = self.openFile(self.filename)
 
         if self.printErrors:
             myprint = lambda *x:sys.stdout.write(" ".join(map(str, x)) + '\n')
@@ -378,9 +389,21 @@ class DirectRoutingParser(FileParser):
         uniqueHeaders = {}
         duplicateHeaders = {}
 
+        self.parseFileAndShowErrors(self.filename)
+
+    def parseFileAndShowErrors(self,filename):
+
+        file = self.openFile(filename)
+
         for line in file: 
             if line[0] == '#' : continue
             words = self.getWordsFromLine(line)
+
+            # include file support
+            if len(words) == 2 and words[0] == 'include':
+               self.parseFileAndShowErrors(words[1])
+               continue
+
             #print words
             # Up to here: 0.2 s of execution time
             #myprint words
@@ -549,7 +572,7 @@ class DirectRoutingParser(FileParser):
                 except:
                     (type, value, tb) = sys.exc_info()
                     myprint("Type: %s, Value: %s" % (type, value))
-                    myprint("Problem with this line (%s) in the direct routing file (%s)" % (words, self.filename))
+                    myprint("Problem with this line (%s) in the direct routing file (%s)" % (words, filename))
 
         if len(duplicateHeaders):
             myprint("Duplicate header line(s): %s" % duplicateHeaders.keys())
