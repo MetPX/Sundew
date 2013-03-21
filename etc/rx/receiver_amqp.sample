@@ -1,0 +1,21 @@
+#
+# Install rabbitMQ-server on your workstation
+# Install python-amqplib  on your workstation
+#
+
+type amqp
+
+validation False
+
+protocol amqp
+host localhost
+user guest
+password guest
+
+exchange_name myname  
+exchange_key  exp.test.this
+exchange_type topic
+
+accept .*
+
+
