@@ -14,7 +14,7 @@
 #############################################################################################
 
 """
-import os, sys, time, string
+import os, sys, time, string, re
 from DiskReader import DiskReader
 from MultiKeysStringSorter import MultiKeysStringSorter
 from CacheManager import CacheManager
@@ -89,6 +89,7 @@ class senderAMQP:
               break
          except:
             (type, value, tb) = sys.exc_info()
+            self.logger.error("AMQP Sender cannot connected to: %s" % str(self.client.host))
             self.logger.error("Type: %s, Value: %s, Sleeping 5 seconds ..." % (type, value))
          time.sleep(5)
 
@@ -152,8 +153,14 @@ class senderAMQP:
                     hdr = {'filename': ':'.join(parts) }
                     msg = amqp.Message(msg_body, content_type= self.client.exchange_content,application_headers=hdr)
 
+                    # exchange_key pattern 
+                    exchange_key = self.client.exchange_key
+                    if '$' in self.client.exchange_key :
+                       exchange_key = self.keyPattern(basename,self.client.exchange_key)
+                    self.logger.debug("exchange key = %s" % exchange_key)
+
                     # publish message
-                    self.channel.basic_publish(msg, self.client.exchange_name, self.client.exchange_key )
+                    self.channel.basic_publish(msg, self.client.exchange_name, exchange_key )
 
                     self.logger.delivered("(%i Bytes) Message %s  delivered" % (nbBytesSent, basename),path,nbBytesSent)
                     self.unlink_file( path )
@@ -212,6 +219,90 @@ class senderAMQP:
        except OSError, e:
               (type, value, tb) = sys.exc_info()
               self.logger.error("Unable to unlink %s ! Type: %s, Value: %s" % (path, type, value))
+
+
+   def basename_parts(self,basename):
+       """
+       Using regexp, basename parts can become a valid key pattern replacements
+       """
+
+       # check against the masks
+       for mask in self.client.masks:
+          # no match
+          if not mask[3].match(basename) : continue
+
+          # reject
+          if not mask[4] : return None
+
+          # accept... so key generation
+          parts = re.findall( mask[0], basename )
+          if len(parts) == 2 and parts[1] == '' : parts.pop(1)
+          if len(parts) != 1 : continue
+
+          lst = []
+          if isinstance(parts[0],tuple) :
+             lst = list(parts[0])
+          else:
+            lst.append(parts[0])
+
+          return lst
+
+
+   def matchPattern(self,BN,EN,BP,keywd,defval) :
+       """
+       Matching keyword with different patterns
+       """
+
+       if   keywd[:4] == "{T1}"    : return (EN[0])[0:1]   + keywd[4:]
+       elif keywd[:4] == "{T2}"    : return (EN[0])[1:2]   + keywd[4:]
+       elif keywd[:4] == "{A1}"    : return (EN[0])[2:3]   + keywd[4:]
+       elif keywd[:4] == "{A2}"    : return (EN[0])[3:4]   + keywd[4:]
+       elif keywd[:4] == "{ii}"    : return (EN[0])[4:6]   + keywd[4:]
+       elif keywd[:6] == "{CCCC}"  : return  EN[1]         + keywd[6:]
+       elif keywd[:4] == "{YY}"    : return (EN[2])[0:2]   + keywd[4:]
+       elif keywd[:4] == "{GG}"    : return (EN[2])[2:4]   + keywd[4:]
+       elif keywd[:4] == "{Gg}"    : return (EN[2])[4:6]   + keywd[4:]
+       elif keywd[:5] == "{BBB}"   : return (EN[3])[0:3]   + keywd[5:]
+       elif keywd[:7] == "{RYYYY}" : return (BN[6])[0:4]   + keywd[7:]
+       elif keywd[:5] == "{RMM}"   : return (BN[6])[4:6]   + keywd[5:]
+       elif keywd[:5] == "{RDD}"   : return (BN[6])[6:8]   + keywd[5:]
+       elif keywd[:5] == "{RHH}"   : return (BN[6])[8:10]  + keywd[5:]
+       elif keywd[:5] == "{RMN}"   : return (BN[6])[10:12] + keywd[5:]
+       elif keywd[:5] == "{RSS}"   : return (BN[6])[12:14] + keywd[5:]
+
+       # Matching with basename parts if given
+
+       if BP != None :
+          for i,v in enumerate(BP):
+              kw  = '{' + str(i) +'}'
+              lkw = len(kw)
+              if keywd[:lkw] == kw : return v + keywd[lkw:]
+
+       return defval
+
+   def keyPattern(self, basename, key):
+
+       BN = basename.split(":")
+       EN = BN[0].split("_")
+       BP = self.basename_parts(basename)
+
+       #self.logger.debug("BN = %s" % BN )
+       #self.logger.debug("EN = %s" % EN )
+       #self.logger.debug("BP = %s" % BP )
+
+       keyp = ""
+       DD = key.split(".")
+       for  ddword in DD :
+            if ddword == "" : continue
+
+            nddword = ""
+            DW = ddword.split("$")
+            for dwword in DW :
+                nddword += self.matchPattern(BN,EN,BP,dwword,dwword)
+
+            keyp += "." + nddword
+
+       return keyp
 
 if __name__ == "__main__":
    from Logger import Logger
