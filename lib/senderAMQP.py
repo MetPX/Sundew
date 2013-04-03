@@ -278,6 +278,8 @@ class senderAMQP:
               lkw = len(kw)
               if keywd[:lkw] == kw : return v + keywd[lkw:]
 
+       if len(defval) > 2 and defval[0] == '{' and defval[-1] == '}' : return ''
+
        return defval
 
    def keyPattern(self, basename, key):
@@ -301,6 +303,8 @@ class senderAMQP:
                 nddword += self.matchPattern(BN,EN,BP,dwword,dwword)
 
             keyp += "." + nddword
+
+       while( keyp[-1] == '.' ) : keyp = keyp[:-1]
 
        return keyp
 
