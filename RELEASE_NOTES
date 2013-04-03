@@ -35,6 +35,7 @@
                   arguments in function calls revisited
                   Use message properties application_headers for filename
                   use logger.start_timer() and logger.delivered for latency and speed 
+                  exchange_key can be used with file regex pattern
 
                   senderAm.py
                   use logger.start_timer() and logger.delivered for latency and speed 
