@@ -302,7 +302,7 @@ class senderAMQP:
             for dwword in DW :
                 nddword += self.matchPattern(BN,EN,BP,dwword,dwword)
 
-            keyp += "." + nddword
+            keyp += nddword + "."
 
        while( keyp[-1] == '.' ) : keyp = keyp[:-1]
 
