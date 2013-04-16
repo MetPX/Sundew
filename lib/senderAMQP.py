@@ -14,7 +14,7 @@
 #############################################################################################
 
 """
-import os, sys, time, string, re
+import os, sys, socket, time, string, re
 from DiskReader import DiskReader
 from MultiKeysStringSorter import MultiKeysStringSorter
 from CacheManager import CacheManager
@@ -145,29 +145,26 @@ class senderAMQP:
                 self.logger.info('No destination name: %s has been erased' % path)
                 continue
 
-             try :
+             # build message
+             parts = basename.split(':')
+             if parts[-1][0:2] == '20' : parts = parts[:-1]
+             hdr = {'filename': ':'.join(parts) }
+             msg = amqp.Message(msg_body, content_type= self.client.exchange_content,application_headers=hdr)
 
-                    # build message
-                    parts = basename.split(':')
-                    if parts[-1][0:2] == '20' : parts = parts[:-1]
-                    hdr = {'filename': ':'.join(parts) }
-                    msg = amqp.Message(msg_body, content_type= self.client.exchange_content,application_headers=hdr)
+             # exchange_key pattern 
+             exchange_key = self.client.exchange_key
+             if '$' in self.client.exchange_key :
+                exchange_key = self.keyPattern(basename,self.client.exchange_key)
+             self.logger.debug("exchange key = %s" % exchange_key)
 
-                    # exchange_key pattern 
-                    exchange_key = self.client.exchange_key
-                    if '$' in self.client.exchange_key :
-                       exchange_key = self.keyPattern(basename,self.client.exchange_key)
-                    self.logger.debug("exchange key = %s" % exchange_key)
+             # publish message
+             self.channel.basic_publish(msg, self.client.exchange_name, exchange_key )
 
-                    # publish message
-                    self.channel.basic_publish(msg, self.client.exchange_name, exchange_key )
+             self.logger.delivered("(%i Bytes) Message %s  delivered" % (nbBytesSent, basename),path,nbBytesSent)
+             self.unlink_file( path )
 
-                    self.logger.delivered("(%i Bytes) Message %s  delivered" % (nbBytesSent, basename),path,nbBytesSent)
-                    self.unlink_file( path )
+             self.totBytes += nbBytesSent
 
-                    self.totBytes += nbBytesSent
-             except:
-                    self.logger.info("%s: Sending problem" % path )
       else:
          time.sleep(1)
 
