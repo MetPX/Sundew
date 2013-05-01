@@ -173,7 +173,7 @@ class senderAMQP:
          data = self.read()
          try:
             self.write(data)
-         except socket.error, e:
+         except:
             (type, value, tb) = sys.exc_info()
             self.logger.error("Sender error! Type: %s, Value: %s" % (type, value))
             
