@@ -379,21 +379,29 @@ class DirectRoutingParser(FileParser):
         file.close()
 
     def parseAndShowErrors(self):
-        self.clearInfos()
 
         if self.printErrors:
             myprint = lambda *x:sys.stdout.write(" ".join(map(str, x)) + '\n')
         else:
             myprint = lambda *x: None
 
-        uniqueHeaders = {}
-        duplicateHeaders = {}
+        self.clearInfos()
+
+        self._uniqueHeaders = {}
+        self._duplicateHeaders = {}
 
         self.parseFileAndShowErrors(self.filename)
 
-    def parseFileAndShowErrors(self,filename):
+        if len(self._duplicateHeaders):
+            myprint("Duplicate header line(s): %s" % self._duplicateHeaders.keys())
 
+    def parseFileAndShowErrors(self,filename):
         file = self.openFile(filename)
+
+        if self.printErrors:
+            myprint = lambda *x:sys.stdout.write(" ".join(map(str, x)) + '\n')
+        else:
+            myprint = lambda *x: None
 
         for line in file: 
             if line[0] == '#' : continue
@@ -508,10 +516,10 @@ class DirectRoutingParser(FileParser):
                            myprint("ERROR LINE : %s" % line)
                            continue
 
-                        if uniqueHeaders.has_key(words[0]):
-                            duplicateHeaders[words[0]] = 1
+                        if self._uniqueHeaders.has_key(words[0]):
+                            self._duplicateHeaders[words[0]] = 1
                         else:
-                            uniqueHeaders[words[0]] = 1
+                            self._uniqueHeaders[words[0]] = 1
                         
                         # Assure us that each client is present only once for each header
                         # This is accomplished in O(1). Costs ~ 0.5 seconds to execute.
@@ -574,8 +582,6 @@ class DirectRoutingParser(FileParser):
                     myprint("Type: %s, Value: %s" % (type, value))
                     myprint("Problem with this line (%s) in the direct routing file (%s)" % (words, filename))
 
-        if len(duplicateHeaders):
-            myprint("Duplicate header line(s): %s" % duplicateHeaders.keys())
         file.close()
         # Up to here: 2.3 s of execution time
 
