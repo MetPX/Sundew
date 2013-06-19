@@ -164,7 +164,7 @@ class Client(object):
             hours.strip(), pri.strip()
             sec = int(hours[:-1]) * HOUR
             if pri[-1] == '+':
-                pri = range(int(pri[:-1]), 6)
+                pri = list(range(int(pri[:-1]), 6))
             elif int(pri) in [1,2,3,4,5]:
                 pri = [int(pri)]
             newInst.append((sec,pri))

@@ -246,7 +246,7 @@ class CollectionBuilder(object):
 
         # get the sorted list of unique stations for that collection
 
-        stationlist = stations.keys()
+        stationlist = list(stations.keys())
         stationlist.sort()
 
         # build header
@@ -448,7 +448,7 @@ class CollectionBuilder(object):
         for entry in self.Cycle :
             map[entry.period] = 1
 
-        cycles = map.keys()
+        cycles = list(map.keys())
         cycles.sort()
 
         # loop on cycles : recent towards ntil no one left

@@ -92,7 +92,7 @@ class CollectionState(object):
 
         count = 0
         map   = {}
-        keys  = self.mapCollectionState.keys()
+        keys  = list(self.mapCollectionState.keys())
         keys.sort()
 
         for key in keys :
@@ -126,7 +126,7 @@ class CollectionState(object):
 
         # loop on all path found
 
-        for path in map.keys() :
+        for path in list(map.keys()) :
             parse    = path.split("/")
             specific = string.join(parse[-3:],'/')
 
@@ -236,7 +236,7 @@ class CollectionState(object):
 
         # get compatible headers between source.headers and stations.conf
 
-        for key in station_conf.keys() :
+        for key in list(station_conf.keys()) :
             if key[:2] in src_headers  :
                parse  = key.split()
                header = parse[0] + '_' + parse[1]
@@ -274,7 +274,7 @@ class CollectionState(object):
 
     def getKeys(self):
 
-        keys = self.mapCollectionState.keys()
+        keys = list(self.mapCollectionState.keys())
         keys.sort()
 
         return keys
@@ -287,7 +287,7 @@ class CollectionState(object):
 
         if not self.debug : return
 
-        keys = self.mapCollectionState.keys()
+        keys = list(self.mapCollectionState.keys())
         keys.sort()
         for key in keys :
             ( period, amendement, correction, retard, Primary, Cycle ) = self.mapCollectionState[key]
@@ -351,7 +351,7 @@ class CollectionState(object):
 
         # sort the keys just for the beauty of the state file
 
-        keys = self.mapCollectionState.keys()
+        keys = list(self.mapCollectionState.keys())
         keys.sort()
 
         # open collection state config

@@ -60,7 +60,7 @@ class CacheManager(object):
         # MG (I decided to flush half of the cache when it happens)
 
         #print "still full, clean half or more of cache"
-        temp = [(item[1][0], item[0]) for item in self.cache.items()]
+        temp = [(item[1][0], item[0]) for item in list(self.cache.items())]
         temp.sort()            
         half_timeout = time.time() - temp[int(self.maxEntries/2)][0]
         self.timeoutClear( half_timeout )
@@ -135,7 +135,7 @@ class CacheManager(object):
 
         compteurs = {}
 
-        for item in self.cache.items():
+        for item in list(self.cache.items()):
             if item[1][1] in compteurs:
                 compteurs[item[1][1]] += 1
             else:
@@ -144,7 +144,7 @@ class CacheManager(object):
         total = 0.0
         cached = 0.0
 
-        for (key, value) in compteurs.items():
+        for (key, value) in list(compteurs.items()):
             cached += (key-1) * value
             total += key * value
 
