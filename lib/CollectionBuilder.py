@@ -15,6 +15,8 @@ named COPYING in the root of the source directory tree.
 #
 # Description: now that we have classified the collections to do process it
 #
+# MG python3 compatible
+#
 #############################################################################################
 
 """
