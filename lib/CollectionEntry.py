@@ -5,6 +5,8 @@ MetPX comes with ABSOLUTELY NO WARRANTY; For details type see the file
 named COPYING in the root of the source directory tree.
 """
 
+# MG python3 compatible
+
 class CollectionEntry:
     """A class to hold all info about a bulletin entry in a collection.
     Author: Michel Grenier
