@@ -6,6 +6,8 @@ import string, traceback, sys
 
 __version__ = '1.0'
 
+# MG python3 compatible
+
 class Bufr:
     """This class is a very basic BUFR processing.
 
@@ -55,7 +57,7 @@ class Bufr:
 
         e = self.s0 + self.length;
 
-        if self.bulletin[e-4:e] != "7777" :
+        if self.bulletin[e-4:e] != b'7777' :
            self.valid = False
 
     def integer2bytes(self,i):
@@ -63,14 +65,14 @@ class Bufr:
         """
         a = self.array
 
-        return  ( long(a[i]) * 256 ) + long(a[i+1]) 
+        return  ( int(a[i]) * 256 ) + int(a[i+1]) 
 
     def integer3bytes(self,i):
         """return an integer made of the 3 bytes starting at i
         """
         a = self.array
 
-        return  ( long(a[i]) * 256 + long(a[i+1]) ) * 256 + long(a[i+2])
+        return  ( int(a[i]) * 256 + int(a[i+1]) ) * 256 + int(a[i+2])
 
     def observation_date(self):
         """derive observation date from section 1
@@ -97,7 +99,7 @@ class Bufr:
 
         if self.size < 8 : return
 
-        self.s0 = self.bulletin.find('BUFR')
+        self.s0 = self.bulletin.find(b'BUFR')
         if self.s0 == -1 : return
 
         self.begin = self.s0
@@ -110,7 +112,7 @@ class Bufr:
         self.length = self.integer3bytes(b4)
         if self.length > self.size-self.s0 : return
 
-        self.version = long(self.array[b7])
+        self.version = int(self.array[b7])
 
         self.last  = self.s0 + self.length
 
@@ -157,22 +159,22 @@ class Bufr:
 
            # uncomment anything you need
 
-           #self.s1_master_table        = long(self.array[b0+3])
-           #self.s1_subcenter           = long(self.array[b0+4])
-           #self.s1_center              = long(self.array[b0+5])
-           #self.s1_update_sequence     = long(self.array[b0+6])
-           #self.s1_optional_section    = long(self.array[b0+7])
-           #self.s1_data_category       = long(self.array[b0+8])
-           #self.s1_data_subcategory    = long(self.array[b0+9])
-           #self.s1_data_master_version = long(self.array[b0+10])
-           #self.s1_data_local_version  = long(self.array[b0+11])
+           #self.s1_master_table        = int(self.array[b0+3])
+           #self.s1_subcenter           = int(self.array[b0+4])
+           #self.s1_center              = int(self.array[b0+5])
+           #self.s1_update_sequence     = int(self.array[b0+6])
+           #self.s1_optional_section    = int(self.array[b0+7])
+           #self.s1_data_category       = int(self.array[b0+8])
+           #self.s1_data_subcategory    = int(self.array[b0+9])
+           #self.s1_data_master_version = int(self.array[b0+10])
+           #self.s1_data_local_version  = int(self.array[b0+11])
 
-           self.s1_century             = long(self.array[b0+12])
+           self.s1_century             = int(self.array[b0+12])
            self.s1_year                = 2000 + self.s1_century
-           self.s1_month               = long(self.array[b0+13])
-           self.s1_day                 = long(self.array[b0+14])
-           self.s1_hour                = long(self.array[b0+15])
-           self.s1_min                 = long(self.array[b0+16])
+           self.s1_month               = int(self.array[b0+13])
+           self.s1_day                 = int(self.array[b0+14])
+           self.s1_hour                = int(self.array[b0+15])
+           self.s1_min                 = int(self.array[b0+16])
            self.s1_sec                 = 0
 
            now=time.localtime()
@@ -214,23 +216,23 @@ class Bufr:
 
            # uncomment anything you need
 
-           #self.s1_master_table           = long(self.array[b0+3])
+           #self.s1_master_table           = int(self.array[b0+3])
            #self.s1_subcenter              = self.integer2bytes(b0+5)
            #self.s1_center                 = self.integer2bytes(b0+7)
-           #self.s1_update_sequence        = long(self.array[b0+8])
-           #self.s1_optional_section       = long(self.array[b0+9])
-           #self.s1_data_category          = long(self.array[b0+10])
-           #self.s1_data_subcategory       = long(self.array[b0+11])
-           #self.s1_data_local_subcategory = long(self.array[b0+12])
-           #self.s1_data_master_version    = long(self.array[b0+13])
-           #self.s1_data_local_version     = long(self.array[b0+14])
+           #self.s1_update_sequence        = int(self.array[b0+8])
+           #self.s1_optional_section       = int(self.array[b0+9])
+           #self.s1_data_category          = int(self.array[b0+10])
+           #self.s1_data_subcategory       = int(self.array[b0+11])
+           #self.s1_data_local_subcategory = int(self.array[b0+12])
+           #self.s1_data_master_version    = int(self.array[b0+13])
+           #self.s1_data_local_version     = int(self.array[b0+14])
 
            self.s1_year                   = self.integer2bytes(b0+15)
-           self.s1_month                  = long(self.array[b0+17])
-           self.s1_day                    = long(self.array[b0+18])
-           self.s1_hour                   = long(self.array[b0+19])
-           self.s1_min                    = long(self.array[b0+20])
-           self.s1_sec                    = long(self.array[b0+21])
+           self.s1_month                  = int(self.array[b0+17])
+           self.s1_day                    = int(self.array[b0+18])
+           self.s1_hour                   = int(self.array[b0+19])
+           self.s1_min                    = int(self.array[b0+20])
+           self.s1_sec                    = int(self.array[b0+21])
 
            if self.s1_month   < 1 or self.s1_month   > 12 : return
            if self.s1_day     < 1 or self.s1_day     > 31 : return
@@ -248,30 +250,30 @@ if __name__=="__main__":
       fd = open(sys.argv[1], 'rb')
       str = fd.read()
       bufr = Bufr(str)
-      print bufr.valid
-      print 'BUFR'
-      print bufr.length
-      print bufr.version
-      #print 'subcenter'
-      #print bufr.s1_subcenter           
-      #print 'center'
-      #print bufr.s1_center              
-      #print 'update'
-      #print bufr.s1_update_sequence     
+      print(bufr.valid)
+      print('BUFR')
+      print(bufr.length)
+      print(bufr.version)
+      #print('subcenter')
+      #print(bufr.s1_subcenter)
+      #print('center')
+      #print(bufr.s1_center)
+      #print('update')
+      #print(bufr.s1_update_sequence)
 
-      print ' '
+      print(' ')
       if bufr.version <= 3 :
-         print 'century'
-         print bufr.s1_century             
+         print('century')
+         print(bufr.s1_century)
       else :
-         print 'year'
-         print bufr.s1_year             
-      print bufr.s1_month               
-      print bufr.s1_day                 
-      print bufr.s1_hour                
-      print bufr.s1_min                 
-      print bufr.s1_sec                 
-      print ' '
-      print bufr.observation
-      print bufr.ep_observation
+         print('year')
+         print(bufr.s1_year)
+      print(bufr.s1_month)
+      print(bufr.s1_day)
+      print(bufr.s1_hour)
+      print(bufr.s1_min)
+      print(bufr.s1_sec)
+      print(' ')
+      print(bufr.observation)
+      print(bufr.ep_observation)
       fd.close()
