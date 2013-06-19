@@ -11,6 +11,8 @@ named COPYING in the root of the source directory tree.
 # Authors: 
 #          Michel Grenier (from a web inspiration)
 #
+# Note: python3 compatible
+#
 #############################################################################################
 
 """
@@ -34,3 +36,30 @@ class AlarmFTP:
       def cancel(self):
           signal.alarm(0)
           self.state = False
+
+
+import time
+
+if __name__=="__main__":
+
+  timex = AlarmFTP('Testing alarm timeout')
+
+  # should not timeout
+  try :
+           timex.alarm(10)
+           time.sleep(2)
+           timex.cancel()
+           print("alarm OK 1")
+  except :
+           print("ERROR 1")
+
+  # should timeout
+  try :
+           timex.alarm(2)
+           time.sleep(10)
+           timex.cancel()
+           print("ERROR 2")
+
+  except :
+           print("alarm OK 2")
+
