@@ -27,6 +27,8 @@ named COPYING in the root of the source directory tree.
 #              Primary list : bulletins classified for the primary collection
 #              Cycle   list : bulletins classified for amendements, corrections and retards
 #
+# MG python3 compatible
+#
 #############################################################################################
 
 """
