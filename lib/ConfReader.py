@@ -15,6 +15,8 @@ named COPYING in the root of the source directory tree.
 #
 # Date: 2006-08-23
 #
+# MG python3 compatible
+#
 ###########################################################
 """
 
