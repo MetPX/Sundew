@@ -13,6 +13,8 @@ named COPYING in the root of the source directory tree.
 #
 # Description: Use to search bulletins in the sundew database
 #
+# MG python3 compatible
+#
 #############################################################################################
 """
 
@@ -39,7 +41,7 @@ class DBSearcher:
     FD_NUMBERS = [1, 2, 3]
 
     temp = dict(zip(FD_NUMBERS, ['', '', '']))
-    temp = dict(zip(FD_COUNTRIES, [temp.copy() for x in range(4)]))
+    temp = dict(zip(FD_COUNTRIES,[copy.deepcopy(temp),copy.deepcopy(temp),copy.deepcopy(temp),copy.deepcopy(temp)]))
     FD = {'low': copy.deepcopy(temp), 'high': copy.deepcopy(temp)}
 
     # Note: The country is not used in the logical of the search.
@@ -136,7 +138,7 @@ class DBSearcher:
         words = [word.upper() for word in words]
             
         if len(words) < 2 or len(words) > 6:
-            if self.debug: print "\nBad request"
+            if self.debug: print("\nBad request")
         elif len(words) == 2  and 4 <= len(words[0]) <= 6 and len(words[1]) == 4:
             # ex: SACN31 CWAO
             # ex: FPCN31 CWAO
@@ -164,14 +166,14 @@ class DBSearcher:
                 else:
                     if self.debug: print("%s is not a valid station name" % station)
         else:
-            if self.debug: print "\nBad request even if the word's number is good"
+            if self.debug: print("\nBad request even if the word's number is good")
 
     def _search(self):
         # FIXME: Must select best result from multiple machines
 
         if self.requestType == 1:
             # Fully qualified header request
-            if self.debug: print self.ttaaii, self.center, self.country
+            if self.debug: print(self.ttaaii, self.center, self.country)
             for date in [self.today, self.yesterday]:
                 theFile = self._findFullHeader(date, True, self.ttaaii, self.center, self.country, DBSearcher.EXCLUDED_SOURCES)
                 if theFile:
@@ -189,9 +191,9 @@ class DBSearcher:
                             allResults.extend(results)
                             #self.printResults(results, self.type)
                             if self.printout:
-                                print 80 * '-'
+                                print(80 * '-')
                                 for result in results:
-                                    print self.formatResult(result, self.type)
+                                    print(self.formatResult(result, self.type))
                             break
                     elif self.type in ['FC', 'FT', 'TAF']:
                         results = self._findTAF([station], date)
@@ -199,9 +201,9 @@ class DBSearcher:
                             allResults.extend(results)
                             #self.printResults(results, self.type)
                             if self.printout:
-                                print 80 * '-'
+                                print(80 * '-')
                                 for result in results:
-                                    print self.formatResult(result, self.type)
+                                    print(self.formatResult(result, self.type))
                             break
 
                     elif self.type in ['FD', 'FD1', 'FD2', 'FD3']:
@@ -210,9 +212,9 @@ class DBSearcher:
                             allResults.extend(results)
                             #self.printResults(results)
                             if self.printout:
-                                print 80 * '-'
+                                print(80 * '-')
                                 for result in results:
-                                    print self.formatResult(result, self.type)
+                                    print(self.formatResult(result, self.type))
                             break
 
             #print allResults
@@ -435,26 +437,26 @@ class DBSearcher:
         return speciResult + saResult + banner
 
     def printResults(self, results, type=None):
-        print "%s RESULTS %s" % (30*'=', 30*'=')
+        print("%s RESULTS %s" % (30*'=', 30*'='))
         for result in results:
             if type == 'SA':
                 station, theLine, bestHeaderTime, theFile, bestFileTime, speciLine, speciHeaderTime, speciFile, speciFileTime = result
             else:
                 station, theLine, bestHeaderTime, theFile, bestFileTime = result
             
-            print "Station: %s" % station
-            print "Line:\n%s" % theLine
-            print "HeaderTime: %s" % bestHeaderTime
-            print "File: %s" % theFile
-            print "FileTime: %s" % bestFileTime
+            print("Station: %s" % station)
+            print("Line:\n%s" % theLine)
+            print("HeaderTime: %s" % bestHeaderTime)
+            print("File: %s" % theFile)
+            print("FileTime: %s" % bestFileTime)
 
             if type == 'SA':
-                print "SP_Line: %s" % speciLine
-                print "SP_HeaderTime: %s" % speciHeaderTime
-                print "SP_File: %s" % speciFile
-                print "SP_FileTime: %s" % speciFileTime
+                print("SP_Line: %s" % speciLine)
+                print("SP_HeaderTime: %s" % speciHeaderTime)
+                print("SP_File: %s" % speciFile)
+                print("SP_FileTime: %s" % speciFileTime)
 
-            print "\n"
+            print("\n")
 
     def _findSpeci(self, station, header, headerTime, DBDate):
         from SAParser import SAParser
@@ -475,15 +477,15 @@ class DBSearcher:
 
         """
         surround = 30*'=' 
-        print "%s SPECI INFOS %s" % (surround, surround)
-        print "Number of files: %d" % len(filesToParse)
-        print "Station: %s" % station
-        print "Header: %s" % header
-        print "Time: %s" % headerTime
-        print "ttaaii: %s" % ttaaii
-        print "center: %s" % center
-        print "Now: %s\n" % now
-        print "%s%s%s" % (surround, len(' SPECI INFOS ') * '=', surround)
+        print("%s SPECI INFOS %s" % (surround, surround))
+        print("Number of files: %d" % len(filesToParse))
+        print("Station: %s" % station)
+        print("Header: %s" % header)
+        print("Time: %s" % headerTime)
+        print("ttaaii: %s" % ttaaii)
+        print("center: %s" % center)
+        print("Now: %s\n" % now)
+        print("%s%s%s" % (surround, len(' SPECI INFOS ') * '=', surround))
         """
         
         return (theLine, bestHeaderTime, theFile, bestFileTime)
@@ -520,7 +522,7 @@ class DBSearcher:
         try:
             iterator = os.walk(PXPaths.DB + date)
             path, dirs, files =  iterator.next()
-            if self.debug: print path, dirs, files
+            if self.debug: print(path, dirs, files)
         except:
             (type, value, tb) = sys.exc_info()
             if self.debug: print("In _findFullHeader: Type = %s, Value = %s" % (type, value))
@@ -537,7 +539,7 @@ class DBSearcher:
         # able to turn this off
         try:
             pathBeforeSource, dirs, files = iterator.next()
-            if self.debug: print pathBeforeSource, dirs, files
+            if self.debug: print(pathBeforeSource, dirs, files)
         except:
             (type, value, tb) = sys.exc_info()
             if self.debug: print("Type: %s, Value: %s" % (type, value))
@@ -565,7 +567,7 @@ class DBSearcher:
             # We select only the "center" directory
             try:
                 path, dirs, files = iterator.next()
-                if self.debug: print path, dirs, files
+                if self.debug: print(path, dirs, files)
             except:
                 (type, value, tb) = sys.exc_info()
                 if self.debug:
@@ -582,7 +584,7 @@ class DBSearcher:
             # We select the "good bulletins"
             try:
                 path, dirs, files = iterator.next()
-                if self.debug > 10: print path, dirs, files
+                if self.debug > 10: print(path, dirs, files)
             except:
                 (type, value, tb) = sys.exc_info()
                 if self.debug:
@@ -697,7 +699,7 @@ if __name__ == '__main__':
 
     request = ' '.join(sys.argv[1:])
     dbs = DBSearcher(request)
-    print dbs.results
+    print(dbs.results)
 
     """
     for country in DBSearcher.FD_COUNTRIES:
