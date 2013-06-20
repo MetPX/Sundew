@@ -63,7 +63,7 @@ class DirectRoutingParser(FileParser):
         return key
 
     def getHeaderPriority(self, header):
-        if not self.routingInfos.has_key(header):
+        if not header in self.routingInfos:
            for mask in self.keyMasks :
                if mask[3].match(header) :
                   # rejected by key_reject
@@ -128,7 +128,7 @@ class DirectRoutingParser(FileParser):
         return clients
 
     def isRoutable(self, key):
-        if self.routingInfos.has_key(key): return True
+        if key in self.routingInfos: return True
         for mask in self.keyMasks :
             if mask[3].match(key) :
                if mask[4] : return True
@@ -136,7 +136,7 @@ class DirectRoutingParser(FileParser):
         return False
 
     def getClients(self,key):
-        if self.routingInfos.has_key(key):
+        if key in self.routingInfos:
            self.logger.debug("Key %s had direct routing : %s " % (key,self.routingInfos[key]['clients']) )
            return self.routingInfos[key]['clients']
         return self.getKeyClients(key)
@@ -169,7 +169,7 @@ class DirectRoutingParser(FileParser):
                         clients = self.removeDuplicate(clients)
 
                         for client in clients[:]:
-                            if self.aliasedClients.has_key(client):
+                            if client in self.aliasedClients:
                                 clients.remove(client)
                                 clients.extend(self.aliasedClients[client])
 
@@ -248,7 +248,7 @@ class DirectRoutingParser(FileParser):
                            continue
                         clients = self.removeDuplicate(clients)
                         for client in clients[:]:
-                            if self.aliasedClients.has_key(client):
+                            if client in self.aliasedClients:
                                 clients.remove(client)
                                 clients.extend(self.aliasedClients[client])
                         self.aliasedClients[words[1]] = self.removeDuplicate(clients)
@@ -279,7 +279,7 @@ class DirectRoutingParser(FileParser):
                          # Replace alias by their client list
 
                          for client in clients[:]:
-                             if self.aliasedClients.has_key(client):
+                             if client in self.aliasedClients:
                                 clients.remove(client)
                                 clients.extend(self.aliasedClients[client])
 
@@ -323,7 +323,7 @@ class DirectRoutingParser(FileParser):
                         # Replace alias by their client list
                         # The following "for" block costs ~ 0.5 s
                         for client in clients[:]:
-                            if self.aliasedClients.has_key(client):
+                            if client in self.aliasedClients:
                                 clients.remove(client)
                                 clients.extend(self.aliasedClients[client])
                         clients = self.removeDuplicate(clients)
@@ -334,9 +334,9 @@ class DirectRoutingParser(FileParser):
                             if client.find('.') != -1:
                                 # Here we have subclients (ex: aftn.XXXXXXXX)
                                 clientParts = client.split('.')
-                                if self.subClients.has_key(clientParts[0]):
+                                if clientParts[0] in self.subClients:
                                     if clientParts[1] in self.subClients[clientParts[0]]:
-                                        if not self.routingInfos[words[0]]['subclients'].has_key(clientParts[0]):
+                                        if not clientParts[0] in self.routingInfos[words[0]]['subclients']:
                                             #print clientParts
                                             self.routingInfos[words[0]]['subclients'][clientParts[0]] = [clientParts[1]]
                                             clients.remove(client)
@@ -439,7 +439,7 @@ class DirectRoutingParser(FileParser):
                            self.logger.warning("Line ignored : %s" % line )
                            continue
                         for client in clients[:]:
-                            if self.aliasedClients.has_key(client):
+                            if client in self.aliasedClients:
                                 clients.remove(client)
                                 clients.extend(self.aliasedClients[client])
                         self.aliasedClients[words[1]] = self.removeDuplicate(clients)
@@ -471,7 +471,7 @@ class DirectRoutingParser(FileParser):
                            continue
 
                         # check that the key was not already given
-                        if self.keyMaskMap.has_key(keyI):
+                        if keyI in self.keyMaskMap:
                             myprint("The key_accept pattern %s was already defined" % keyI )
 
                         # check for duplicated clients
@@ -482,7 +482,7 @@ class DirectRoutingParser(FileParser):
                         # Replace alias by their client list
 
                         for client in clients[:]:
-                            if self.aliasedClients.has_key(client):
+                            if client in self.aliasedClients:
                                clients.remove(client)
                                clients.extend(self.aliasedClients[client])
 
@@ -516,7 +516,7 @@ class DirectRoutingParser(FileParser):
                            myprint("ERROR LINE : %s" % line)
                            continue
 
-                        if self._uniqueHeaders.has_key(words[0]):
+                        if words[0] in self._uniqueHeaders:
                             self._duplicateHeaders[words[0]] = 1
                         else:
                             self._uniqueHeaders[words[0]] = 1
@@ -541,7 +541,7 @@ class DirectRoutingParser(FileParser):
                         # The following "for" block costs ~ 0.4 s
                         clients = self.routingInfos[words[0]]['clients'][:]
                         for client in clients:
-                            if self.aliasedClients.has_key(client):
+                            if client in self.aliasedClients:
                                 self.routingInfos[words[0]]['clients'].remove(client)
                                 self.routingInfos[words[0]]['clients'].extend(self.aliasedClients[client])
                         # Up to here: 1.8 s of execution time
@@ -553,9 +553,9 @@ class DirectRoutingParser(FileParser):
                                 # Here we have subclients (ex: aftn.XXXXXXXX)
                                 clientParts = client.split('.')
                                 # Up to here: ~ 1.6 s of execution time
-                                if self.subClients.has_key(clientParts[0]):
+                                if clientParts[0] in self.subClients:
                                     if clientParts[1] in self.subClients[clientParts[0]]:
-                                        if not self.routingInfos[words[0]]['subclients'].has_key(clientParts[0]):
+                                        if not clientParts[0] in self.routingInfos[words[0]]['subclients']:
                                             #myprint clientParts
                                             self.routingInfos[words[0]]['subclients'][clientParts[0]] = [clientParts[1]]
                                             self.routingInfos[words[0]]['clients'].remove(client)
@@ -586,22 +586,22 @@ class DirectRoutingParser(FileParser):
         # Up to here: 2.3 s of execution time
 
     def printInfos(self):
-        print "#---------------------------------------------------------------#"
+        print("#---------------------------------------------------------------#")
         for header in self.routingInfos:
-            print ("%s(%s): %s, sub: %s" % (header, self.routingInfos[header]['priority'], self.routingInfos[header]['clients'], self.routingInfos[header]['subclients']))
-        print "#---------------------------------------------------------------#"
+            print("%s(%s): %s, sub: %s" % (header, self.routingInfos[header]['priority'], self.routingInfos[header]['clients'], self.routingInfos[header]['subclients']))
+        print("#---------------------------------------------------------------#")
         for mask in self.keyMasks:
             if mask[4] :
-               print ("%s(%s): %s" % (mask[0],mask[2],mask[1]) )
+               print("%s(%s): %s" % (mask[0],mask[2],mask[1]) )
             else :
-               print ("key_reject %s(%s): %s" % (mask[0],mask[2],mask[1]) )
-        print "#---------------------------------------------------------------#"
+               print("key_reject %s(%s): %s" % (mask[0],mask[2],mask[1]) )
+        print("#---------------------------------------------------------------#")
         for client in self.subClients:
             print("%s: %s" % (client, self.subClients[client]))
-        print "#---------------------------------------------------------------#"
+        print("#---------------------------------------------------------------#")
         for alias in self.aliasedClients:
             print("%s: %s" % (alias, self.aliasedClients[alias]))
-        print "#---------------------------------------------------------------#"
+        print("#---------------------------------------------------------------#")
         print("Good clients (%i): %s" % (len(self.goodClients), self.goodClients.keys()))
         print("Bad clients (%i): %s" % (len(self.badClients), self.badClients.keys()))
 
@@ -639,11 +639,11 @@ if __name__ == '__main__':
     pxLinkables = ['cmc', 'aftn', 'satnet-ice']
     parser = DirectRoutingParser(PXPaths.ETC+'pxRouting.conf', pxLinkables, logger)
     parser.parseAndShowErrors()
-    #parser.parse()
-    parser.printInfos()
-    print parser.getHeaderPriority('AACN01_CWAO')
-    print parser.getHeaderClients('AACN01_CWAO')
-    print parser.getHeaderSubClients('AACN01_CWAO')
-    print parser.getHeaderSubClients('AACN01_CWAO').get('aftn', [])
+    parser.parse()
+    #parser.printInfos()
+    print(parser.getHeaderPriority('AACN01_CWAO'))
+    print(parser.getHeaderClients('AACN01_CWAO'))
+    print(parser.getHeaderSubClients('AACN01_CWAO'))
+    print(parser.getHeaderSubClients('AACN01_CWAO').get('aftn', []))
     print("Good clients (%i): %s" % (len(parser.goodClients), parser.goodClients.keys()))
     print("Bad clients (%i): %s" % (len(parser.badClients), parser.badClients.keys()))
