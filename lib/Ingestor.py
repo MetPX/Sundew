@@ -18,6 +18,8 @@ named COPYING in the root of the source directory tree.
 #
 # Revision :  2006-05-14 (ingestCollection by MG)
 #
+# MG Python3 compatible
+#
 #############################################################################################
 
 """
@@ -86,7 +88,7 @@ class Ingestor(object):
     def createDir(self, dir, cacheManager):
         if cacheManager.find(dir) == None:
             try:
-                os.makedirs(dir, 01775)
+                os.makedirs(dir, 0o1775)
             except OSError:
                 (type, value, tb) = sys.exc_info()
                 self.logger.debug("Problem when creating dir (%s) => Type: %s, Value: %s" % (dir, type, value)) 
@@ -655,7 +657,7 @@ class Ingestor(object):
                     os.unlink(file)
                     if duplicate : self.logger.info("suppressed duplicate file %s", os.path.basename(file))
                     self.logger.debug("%s has been erased", os.path.basename(file))
-                except OSError, e:
+                except OSError as e:
                     (type, value, tb) = sys.exc_info()
                     self.logger.error("Unable to unlink %s ! Type: %s, Value: %s" % (reader.sortedFiles[index], type, value))
 
