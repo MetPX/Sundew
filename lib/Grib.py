@@ -6,6 +6,8 @@ import string, traceback, sys
 
 __version__ = '1.0'
 
+# MG python3 compatible
+
 class Grib:
     """This class is a very basic GRIB processing.
 
@@ -41,10 +43,10 @@ class Grib:
 
         a = array.array('B',str)
 
-        i = 1
-        p = long(a[0])
+        i = 0
+        p = int(a[0])
         while i<3 : 
-              l = p * 256 + long(a[i])
+              l = p * 256 + int(a[i])
               p = l
               i = i + 1
 
@@ -57,9 +59,9 @@ class Grib:
         a = array.array('B',str)
 
         i = 1
-        p = long(a[0])
+        p = int(a[0])
         while i<8 : 
-              l = p * 256 + long(a[i])
+              l = p * 256 + int(a[i])
               p = l
               i = i + 1
 
@@ -71,7 +73,7 @@ class Grib:
 
         e = self.begin + self.len;
 
-        if self.bulletin[e-4:e] != "7777" :
+        if self.bulletin[e-4:e] != b'7777' :
            self.valid = False
            return -1
 
@@ -123,7 +125,7 @@ class Grib:
         """return the position where the GRIB message starts 
         """
 
-        self.begin = self.bulletin.find('GRIB')
+        self.begin = self.bulletin.find(b'GRIB')
 
         if self.begin == -1 : self.valid = False
 
@@ -145,4 +147,11 @@ class Grib:
 import sys, os, os.path, time, stat
 
 if __name__=="__main__":
-   pass
+      fd = open(sys.argv[1], 'rb')
+      str = fd.read()
+      grib = Grib(str)
+      print(grib.valid)
+      print('GRIB')
+      print(grib.version)
+      print(grib.length())
+      fd.close()
