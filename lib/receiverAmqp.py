@@ -20,8 +20,6 @@ import bulletinManager
 
 PXPaths.normalPaths()
 
-perm644 = 6*64 + 8*4 + 4
-
 class receiverAmqp(gateway.gateway):
     __doc__ = gateway.gateway.__doc__ + \
     """ amqp receiver """
@@ -84,7 +82,7 @@ class receiverAmqp(gateway.gateway):
         fp = open(fname,'w')
         fp.write(data)
         fp.close()
-        os.chmod(fname,perm644)
+        os.chmod(fname,0o644)
 
         self.source.ingestor.ingestFile(fname)
 
