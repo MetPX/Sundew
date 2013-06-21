@@ -6,6 +6,8 @@
 # Author:
 #    2008/11 - Michel Grenier
 #
+# MG Python3 compatible
+#
 
 """ReceiverAmqp: amqp bulletins received, ingested and processed"""
 
@@ -17,6 +19,8 @@ import PXPaths
 import bulletinManager 
 
 PXPaths.normalPaths()
+
+perm644 = 6*64 + 8*4 + 4
 
 class receiverAmqp(gateway.gateway):
     __doc__ = gateway.gateway.__doc__ + \
@@ -80,7 +84,7 @@ class receiverAmqp(gateway.gateway):
         fp = open(fname,'w')
         fp.write(data)
         fp.close()
-        os.chmod(fname,0644)
+        os.chmod(fname,perm644)
 
         self.source.ingestor.ingestFile(fname)
 
@@ -90,7 +94,7 @@ class receiverAmqp(gateway.gateway):
             newConfig = gateway.gateway.loadConfig(self.pathToConfigFile)
             self.unBulletinManager.drp.reparse()
             self.logger.info('configuration reload successful')
-        except Exception, e:
+        except Exception as e:
             self.logger.error('configuration reload failed')
             self.logger.debug("Error: %s", str(e.args))
 
