@@ -14,9 +14,17 @@ named COPYING in the root of the source directory tree.
 #
 # Description: Useful file related functions
 #
+# MG python3 compatible
+#
 #############################################################################################
 """
-import sys, commands
+import sys
+
+if sys.version[:1] >= '3' :
+   import subprocess
+else :
+   import commands
+   subprocess = commands
 
 def getNumLines(filename):
     try:    
@@ -44,14 +52,14 @@ def sortFilesByTime(list, searchWord):
     files = {}
     for file in list:
         #print file
-        first = commands.getoutput('grep -m1 %s %s | head -n1 | cut -f1,2 -d" "' % (searchWord, file))
+        first = subprocess.getoutput('grep -m1 %s %s | head -n1 | cut -f1,2 -d" "' % (searchWord, file))
         if first:
             #print "debut"
-            last =  commands.getoutput('grep %s %s | tail -n1 | cut -f1,2 -d" "' % (searchWord, file))
+            last =  subprocess.getoutput('grep %s %s | tail -n1 | cut -f1,2 -d" "' % (searchWord, file))
             #print "fin"
             files[file] = (first, last)
 
-    backItems = [(item[1][1], item[0]) for item in files.items()]
+    backItems = [(item[1][1], item[0]) for item in list(files.items())]
     backItems.sort()
     return [tuple[1] for tuple in backItems]
 
@@ -61,7 +69,7 @@ def sortFilesByTime(list, searchWord):
 def mergeFiles(files, mergeName):
     fileString = " ".join(files)
     if fileString:
-        commands.getstatusoutput("echo %s | xargs cat | sort > %s" % (fileString, mergeName))
+        subprocess.getstatusoutput("echo %s | xargs cat | sort > %s" % (fileString, mergeName))
         return mergeName
     else:
         return ""
