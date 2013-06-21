@@ -51,8 +51,6 @@ else :
    import commands
    subprocess = commands
 
-perm1775 = 1*512 + 7*64 + 7*8 + 5
-
 class Igniter:
    
    LOCK_NAME = ".lock"
@@ -178,7 +176,7 @@ class Igniter:
 
    def makeLock(self):
       if not os.path.exists(self.lockPath):
-         os.makedirs(self.lockPath, perm1775)
+         os.makedirs(self.lockPath, 0o1775)
       self.pid = os.getpid()    
       lockFile = open(self.lock, 'w')
       lockFile.write(repr(self.pid))
