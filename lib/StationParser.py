@@ -12,6 +12,8 @@ named COPYING in the root of the source directory tree.
 #
 # Description: Use to parse the stations file (stations.conf)
 #
+# MG python3 compatible
+#
 #############################################################################################
 """
 import sys, time, re
@@ -66,7 +68,7 @@ class StationParser(FileParser):
                     self.stationsColl[header] = uniqueStations
     
                 # Find duplicate headers
-                if uniqueHeaders.has_key(header):
+                if header in uniqueHeaders:
                     duplicateHeaders[header] = 1
                 else:
                     uniqueHeaders[header] = 1
@@ -82,29 +84,29 @@ class StationParser(FileParser):
 
         if self.printErrors:
             if len(duplicateHeaders):
-                print("Duplicate header line(s): %s" % duplicateHeaders.keys())
+                print("Duplicate header line(s): %s" % list(duplicateHeaders.keys()))
             #else:
             #    print("No duplicated header")
         if self.logErrors and self.logger:
             if len(duplicateHeaders):
-                self.logger.warning("Duplicate header line(s): %s" % duplicateHeaders.keys())
+                self.logger.warning("Duplicate header line(s): %s" % list(duplicateHeaders.keys()))
 
     def printMenu(self):
-        print
+        print('')
         print("1-Headers indexed by station")
         print("2-Stations indexed by header")
         print("3-Reprint this menu")
         print("q-Quit")
-        print
+        print('')
 
     def printInfos(self):
             max = 0
             min = 1000
-            for key in self.headers.keys():
+            for key in list(self.headers.keys()):
                 #print key, self.headers[key]
                 nbHeaders = len(self.headers[key])
                 if nbHeaders >= 3:
-                    print "%s: %s" % (key, self.headers[key])
+                    print("%s: %s" % (key, self.headers[key]))
                 #if key == 'CYBL':
                 #    print "%s: %s" % (key, self.headers[key])
                 if nbHeaders > max:
@@ -112,26 +114,30 @@ class StationParser(FileParser):
                     station = key
                 elif nbHeaders < min:
                     min = nbHeaders
-            print "=============================================================================="
-            print "Number of different stations: %i" % len(self.headers.keys())
-            print "Max: %i (%s): %s" % (max, repr(station), self.headers[station]) 
-            print "Min: %i" % min
-            print "=============================================================================="
+            print("==============================================================================")
+            print("Number of different stations: %i" % len(self.headers.keys()))
+            print("Max: %i (%s): %s" % (max, repr(station), self.headers[station]) )
+            print("Min: %i" % min)
+            print("==============================================================================")
 
 if __name__ == '__main__':
     from Logger import Logger
     import sys
+
+    if sys.version[:1] < '3' :
+       input = raw_input
+
     #sp = StationParser('/apps/px/etc/collection_stations.conf')
     sp = StationParser('/apps/px/etc/stations.conf')
     sp.printErrors = True
     sp.parse()
     sp.printInfos()
-    print sp.getStationsColl()
+    print(sp.getStationsColl())
     sp.printMenu()
     mustChoose = True
     while True:
         if mustChoose:
-            mode = raw_input("Your choice: ")
+            mode = input("Your choice: ")
             if mode == '1':
                 selector = 'station'
             elif mode == '2':
@@ -142,8 +148,8 @@ if __name__ == '__main__':
             elif mode == 'q' or mode == 'Q': sys.exit()
             mustChoose = False
 
-        print
-        answer = raw_input("Enter a %s:  " % selector).upper()
+        print('')
+        answer = input("Enter a %s:  " % selector).upper()
         if answer == 'Q' or answer == '': sys.exit()
         elif answer == '3':
             sp.printMenu()
@@ -151,7 +157,7 @@ if __name__ == '__main__':
             continue
 
         if mode == '1':
-            print sp.headers.get(answer, "%s is not in the table" % answer)
+            print(sp.headers.get(answer, "%s is not in the table" % answer))
         elif mode == '2':
-            print sp.stations.get(answer, "%s is not in the table" % answer),
+            print(sp.stations.get(answer, "%s is not in the table" % answer))
             
