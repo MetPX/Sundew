@@ -7,6 +7,8 @@
 #    2004/10  Louis-Philippe Thériault
 #    2004/12  Pierre Michaud
 #
+# MG python3 compatible
+#
 
 """WMO protocol socket manager"""
 
@@ -169,7 +171,7 @@ class socketManagerWmo(socketManager.socketManager):
                 else:
                     return (1, bytesSent)
 
-            except socket.error, e:
+            except socket.error as e:
                 #possible errors: 104, 107, 110 or 32
                 self.logger.error("senderWmo.write(): connection broken: %s",str(e.args))
                 self.connected = False
@@ -177,7 +179,7 @@ class socketManagerWmo(socketManager.socketManager):
                 self.socket.close()
                 self._socketManager__establishConnection()
 
-        except Exception, e:
+        except Exception as e:
             self.logger.error("socketManagerWmo.sendBulletin(): send error: %s",str(e.args))
             raise
 
