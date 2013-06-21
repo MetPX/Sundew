@@ -19,6 +19,8 @@ named COPYING in the root of the source directory tree.
 #
 # Description: use file/ftp/sftp to send files to clients
 #
+# MG python3 compatible
+#
 #############################################################################################
 """
 import re,sys, os, os.path, time, stat, string
