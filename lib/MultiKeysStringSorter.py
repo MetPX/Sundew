@@ -14,10 +14,12 @@ named COPYING in the root of the source directory tree.
 #
 # Description:
 #
+# MG python3 compatible
+#
 #############################################################################################
 
 """
-import os, commands
+import os,sys
 from SortableString import SortableString
 import time
 
@@ -38,18 +40,25 @@ class MultiKeysStringSorter:
 
 if __name__ == "__main__":
 
-    (status, output) = commands.getstatusoutput("date")
-    print output
+
+    if sys.version[:1] >= '3' :
+       import subprocess
+    else :
+        import commands
+        subprocess = commands
+
+    (status, output) = subprocess.getstatusoutput("date")
+    print(output)
     #files = os.listdir("/apps/pds/tools/ColumboNCCS/testfiles1/")
     files = os.listdir("/users/dor/aspy/dan/metpx/sundew/test/")
     #for f in files:
     #    print f
-    (status, output) = commands.getstatusoutput("date")
-    print output
+    (status, output) = subprocess.getstatusoutput("date")
+    print(output)
     sortedFiles = MultiKeysStringSorter(files).sort()
-    (status, output) = commands.getstatusoutput("date")
-    print output
+    (status, output) = subprocess.getstatusoutput("date")
+    print(output)
     #print sortedFiles
     for f in sortedFiles:
-        print f
+        print(f)
     # regarder si lstat rallonge beaucoup
