@@ -1,17 +1,19 @@
 import os, sys
 
+# MG python3 compatible
+
 def daemonize():
    try:
       pid = os.fork()
-   except OSError, e:
-      raise Exception, "fork #1 failed: %s [%d]" % (e.strerror, e.errno)
+   except OSError as e:
+      raise Exception( "fork #1 failed: %s [%d]" % (e.strerror, e.errno))
 
    if (pid == 0):
       os.setsid()
       try:
          pid = os.fork() 
-      except OSError, e:
-         raise Exception, "fork #2 failed: %s [%d]" % (e.strerror, e.errno)
+      except OSError as e:
+         raise Exception( "fork #2 failed: %s [%d]" % (e.strerror, e.errno))
 
       if (pid == 0):   
          os.chdir('/')
