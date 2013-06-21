@@ -7,6 +7,8 @@
 # Author:
 #   2004/10 - Louis-Philippe Thériault
 #
+# MG Python3 compatible
+#
 
 """Manage "AM" Bulletins (whatever that means...) """
 
@@ -48,7 +50,7 @@ class bulletinManagerAm(bulletinManager.bulletinManager):
         # on Error...
         try:
             premierMot = rawBulletin.splitlines()[0].split()[0]
-        except Exception, e:
+        except Exception as e:
             self.logger.error("Error parsing header\nBulletin:\n%s",rawBulletin)
             return False
 
@@ -134,7 +136,7 @@ class bulletinManagerAm(bulletinManager.bulletinManager):
 
             self.logger.info("station table reloaded")
 
-        except Exception,e :
+        except Exception as e :
 
             self.mapEntetes = oldMapEntetes
 
@@ -190,12 +192,12 @@ class bulletinManagerAm(bulletinManager.bulletinManager):
 
     def print_debug(self):
 
-        keys = self.mapEntetes.keys()
+        keys = list(self.mapEntetes.keys())
         keys.sort()
         for key in keys :
             print(" mapEntetes key (%s) = (%s) " % (key,self.mapEntetes[key]) )
 
-        keys = self.mapEntetes2mapStations.keys()
+        keys = list(self.mapEntetes2mapStations.keys())
         keys.sort()
         for key in keys :
             print(" mapEntetes2mapStations key (%s) = (%s) " % (key,self.mapEntetes2mapStations[key]) )
