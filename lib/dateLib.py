@@ -14,6 +14,8 @@ named COPYING in the root of the source directory tree.
 #
 # Description:
 #
+# MG python3 compatible
+#
 #############################################################################################
 """
 import time
@@ -108,14 +110,14 @@ def getSecondsSinceEpoch(date='08/30/05 20:06:59'):
     try:
         timeStruct = time.strptime(date, '%m/%d/%y %H:%M:%S')
     except:
-        print date
+        print(date)
     return time.mktime(timeStruct)
 """
 def getSecondsSinceEpoch(date='2005-08-30 20:06:59', format='%Y-%m-%d %H:%M:%S'):
     try:
         timeStruct = time.strptime(date, format)
     except:
-        print date
+        print(date)
     return time.mktime(timeStruct)
     
 def getYesterdayInSeconds():
@@ -141,7 +143,7 @@ def getISODate(string, dash=True):
 
 def ISOToBad(ISODate, dash=False):
     if dash:
-        raise 'Not implemented'
+        raise ValueError("Not implemented")
     else:
         year = ISODate[2:4]
         month = ISODate[4:6]
@@ -190,7 +192,7 @@ if __name__ == '__main__':
     insert_point = bisect(sep, 179)
     print insert_point
     """
-    print getISODateDashed('20051207')
-    print getSecondsSinceEpoch('1970-01-01 00:00:00')
-    print getSecondsSinceEpoch('1970-01-01 00:00:05')
-    print getYYGGgg()
+    print(getISODateDashed('20051207'))
+    print(getSecondsSinceEpoch('1970-01-01 00:00:00'))
+    print(getSecondsSinceEpoch('1970-01-01 00:00:05'))
+    print(getYYGGgg())
