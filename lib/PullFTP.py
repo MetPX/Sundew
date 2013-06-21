@@ -38,10 +38,13 @@ named COPYING in the root of the source directory tree.
 #
 # Note: MG  2008-07-04  now supports sftp
 #
+# MG  python3 compatible
+#
 #############################################################################################
 
 """
-import commands, os, os.path, re, stat, string, sys, time
+import os, os.path, re, stat, string, sys, time
+
 import PXPaths, signal, socket
 from AlarmFTP  import AlarmFTP
 from AlarmFTP  import FtpTimeoutException
@@ -173,14 +176,14 @@ class PullFTP(object):
     def differ(self):
 
         # get new list and description
-        new_lst  = self.ls.keys()
+        new_lst  = list(self.ls.keys())
         new_desc = self.ls
         new_lst.sort()
 
         # get old list and description
         self.load_ls_file(self.lspath)
 
-        old_lst  = self.lsold.keys()
+        old_lst  = list(self.lsold.keys())
         old_desc = self.lsold
         old_lst.sort()
 
@@ -366,7 +369,7 @@ class PullFTP(object):
 
             # get the file list from the ls
             
-            filelst = self.ls.keys()
+            filelst = list(self.ls.keys())
             desclst = self.ls
 
             # if we dont delete, get file list from difference in ls
@@ -744,7 +747,7 @@ class PullFTP(object):
 
     def write_ls_file(self,path):
 
-        filelst = self.ls.keys()
+        filelst = list(self.ls.keys())
         desclst = self.ls
         filelst.sort()
 
