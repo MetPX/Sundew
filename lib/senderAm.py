@@ -16,6 +16,8 @@
 #
 # Description:
 #
+# MG python3 compatible
+#
 #############################################################################################
 """
 import sys, os.path, time
@@ -142,7 +144,7 @@ class senderAm(gateway.gateway):
                 else:
                    self.logger.info("%s: Sending problem" % path )
 
-            except Exception, e:
+            except Exception as e:
             # e==104 or e==110 or e==32 or e==107 => connection broken
                 (type, value, tb) = sys.exc_info()
                 self.logger.error("Type: %s, Value: %s" % (type, value))
@@ -169,7 +171,7 @@ class senderAm(gateway.gateway):
               try:
                    os.unlink(path)
                    self.logger.info("suppressed duplicate send %s", os.path.basename(path))
-              except OSError, e:
+              except OSError as e:
                    (type, value, tb) = sys.exc_info()
                    self.logger.info("In_cache unable to unlink %s ! Type: %s, Value: %s"
                                    % (path, type, value))
@@ -239,7 +241,7 @@ class senderAm(gateway.gateway):
         try:
                os.unlink(path)
                self.logger.debug("%s has been erased", os.path.basename(path))
-        except OSError, e:
+        except OSError as e:
                (type, value, tb) = sys.exc_info()
                self.logger.error("unlink_file failed %s ! Type: %s, Value: %s" % (path, type, value))
 
