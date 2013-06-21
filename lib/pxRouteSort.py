@@ -13,11 +13,13 @@
     Auteur: David Nantel
     Date: 9 Octobre 2007
     Version: 1.0
+
+    MG python3 compatible
 """
 
 import sys, os
 from optparse import OptionParser
-from sets import *
+#from sets import *
 
 def commandLineParser():
     """
@@ -44,7 +46,7 @@ def commandLineParser():
     (options, args) = parser.parse_args()
     
     if(options.version):
-        print version
+        print(version)
         sys.exit()
             
     if(len(args) != 2):
@@ -154,19 +156,19 @@ def diffTableRoutage(tableRoutage1, tableRoutage2):
             nbCaract2 = 0
             for t in listTuple2:
                 nbCaract2 += t[1]
-            print "ERREUR a la ligne", numLigne+1
-            print ficEntree,":",nbCaract1,":",tableRoutage1[numLigne],
-            print ficSortie,":",nbCaract2,":",tableRoutage2[numLigne],
-            print
+            print("ERREUR a la ligne", numLigne+1)
+            print(ficEntree,":",nbCaract1,":",tableRoutage1[numLigne],)
+            print(ficSortie,":",nbCaract2,":",tableRoutage2[numLigne],)
+            print("")
             nbCaractDiff += (nbCaract1 - nbCaract2) 
             erreur = True
     
         numLigne += 1
     if not erreur:
-        if(options.verbose): print "Test complete avec succes."
+        if(options.verbose): print("Test complete avec succes.")
     else:
-        print "Le test de difference a echoue."
-        print nbCaractDiff, "caractere(s) de difference entre les deux fichiers"
+        print("Le test de difference a echoue.")
+        print(nbCaractDiff, "caractere(s) de difference entre les deux fichiers")
     
 if __name__ == "__main__":
     
@@ -176,14 +178,14 @@ if __name__ == "__main__":
     ficSortie = args[1]
     
     #Sorting
-    if(options.verbose): print "Tri du fichier de la table de routage", ficEntree
+    if(options.verbose): print("Tri du fichier de la table de routage", ficEntree)
     tableRoutage1 = ouvrirFichier(ficEntree,"r")
     sortirFichierTableRoutageMAJ(sortTableRoutage(tableRoutage1),ficSortie)
-    if(options.verbose): print "Sortie du fichier trie:", ficSortie
+    if(options.verbose): print("Sortie du fichier trie:", ficSortie)
     
     
     #Testing
-    if(options.verbose): print "Test de difference entre", ficEntree, "et", ficSortie 
+    if(options.verbose): print("Test de difference entre", ficEntree, "et", ficSortie )
     tableRoutage1 = ouvrirFichier(ficEntree,"r")
     tableRoutage2 = ouvrirFichier(ficSortie,"r")
     table1 = tableRoutage1.readlines()
