@@ -43,7 +43,7 @@ class Grib:
 
         a = array.array('B',str)
 
-        i = 0
+        i = 1
         p = int(a[0])
         while i<3 : 
               l = p * 256 + int(a[i])
