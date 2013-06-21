@@ -37,11 +37,21 @@ named COPYING in the root of the source directory tree.
 #       #real code goes here
 #       pass
 # 
+# MG python3 compatible
+# 
 #############################################################################################
 
 """
-import sys, os, os.path, time, commands, signal
+import sys, os, os.path, time, signal
 import daemon 
+
+if sys.version[:1] >= '3' :
+   import subprocess
+else :
+   import commands
+   subprocess = commands
+
+perm1775 = 1*512 + 7*64 + 7*8 + 5
 
 class Igniter:
    
@@ -65,19 +75,19 @@ class Igniter:
       subclass if necessary
       """
       if commentID == 'Already start':
-         print "WARNING: %s is already started with PID %d, use stop or restart!" % (self.progName, self.lockpid)
+         print("WARNING: %s is already started with PID %d, use stop or restart!" % (self.progName, self.lockpid))
       elif commentID == 'Locked but not running':
-         print "INFO: The program %s was locked, but not running! The lock has been unlinked!" % (self.progName)
+         print("INFO: The program %s was locked, but not running! The lock has been unlinked!" % (self.progName))
       elif commentID == 'No lock':
-         print "No lock on the program %s. Are you sure it was started?" % (self.progName)
+         print("No lock on the program %s. Are you sure it was started?" % (self.progName))
       elif commentID == 'Restarted successfully':
-         print "Program %s has been restarted successfully!" % (self.progName)
+         print("Program %s has been restarted successfully!" % (self.progName))
       elif commentID == 'Status, started':
-         print "Program %s is running with PID %d" % (self.progName, self.lockpid)
+         print("Program %s is running with PID %d" % (self.progName, self.lockpid))
       elif commentID == 'Status, not running':
-         print "Program %s is not running" % (self.progName)
+         print("Program %s is not running" % (self.progName))
       elif commentID == 'Status, locked':
-         print "Program %s is locked (PID %d) but not running" % (self.progName, self.lockpid)
+         print("Program %s is locked (PID %d) but not running" % (self.progName, self.lockpid))
      
    def start(self):
       """
@@ -97,7 +107,7 @@ class Igniter:
       # If it is locked ... 
       if self.isLocked(): 
          # ... and running, exit!!
-         if not commands.getstatusoutput('ps -p ' + str(self.lockpid))[0]:
+         if not subprocess.getstatusoutput('ps -p ' + str(self.lockpid))[0]:
             self.printComment('Already start')
             sys.exit(2)
          # ... and not running, delete the lock.
@@ -114,7 +124,7 @@ class Igniter:
       # If it is locked ...
       if self.isLocked():
          # ... and running
-         if not commands.getstatusoutput('ps -p ' + str(self.lockpid))[0]:
+         if not subprocess.getstatusoutput('ps -p ' + str(self.lockpid))[0]:
             os.unlink(self.lock)
             os.kill(self.lockpid, signal.SIGKILL)
          # ... and not running
@@ -141,7 +151,7 @@ class Igniter:
       # If it is locked ... 
       if self.isLocked(): 	 	
          # ... and running
-         if not commands.getstatusoutput('ps -p ' + str(self.lockpid))[0]:     
+         if not subprocess.getstatusoutput('ps -p ' + str(self.lockpid))[0]:     
             self.printComment('Status, started')
          # ... and not running, delete the lock.
          else:	    
@@ -168,7 +178,7 @@ class Igniter:
 
    def makeLock(self):
       if not os.path.exists(self.lockPath):
-         os.makedirs(self.lockPath, 01775)
+         os.makedirs(self.lockPath, perm1775)
       self.pid = os.getpid()    
       lockFile = open(self.lock, 'w')
       lockFile.write(repr(self.pid))
