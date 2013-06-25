@@ -641,8 +641,8 @@ if __name__ == '__main__':
     pxLinkables = ['cmc', 'aftn', 'satnet-ice']
     parser = DirectRoutingParser(PXPaths.ETC+'pxRouting.conf', pxLinkables, logger)
     parser.parseAndShowErrors()
-    parser.parse()
-    #parser.printInfos()
+    #parser.parse()
+    parser.printInfos()
     print(parser.getHeaderPriority('AACN01_CWAO'))
     print(parser.getHeaderClients('AACN01_CWAO'))
     print(parser.getHeaderSubClients('AACN01_CWAO'))
