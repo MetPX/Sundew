@@ -89,9 +89,9 @@ class SAParser(FileParser):
                     # We erase line like: METAR 221600Z
                     del lines[1]
             except:
-                print self.filename
-                print secondLineParts
-                print thirdLineParts
+                print(self.filename)
+                print(secondLineParts)
+                print(thirdLineParts)
                 raise
 
             #print lines
@@ -146,9 +146,9 @@ class SAParser(FileParser):
             except:
                 #print secondLineParts 
                 #print thirdLineParts
-                print self.filename
-                print secondLineParts
-                print thirdLineParts
+                print(self.filename)
+                print(secondLineParts)
+                print(thirdLineParts)
                 raise
             
             #print lines
@@ -203,8 +203,8 @@ class SAParser(FileParser):
                         if len(parts[1]) == 4:
                             self.stations.setdefault(header, []).append(parts[2])
                         else:
-                            print "COR CASE"
-                            print self.filename
+                            print("COR CASE")
+                            print(self.filename)
                             print("PROBLEM: %s" % line)
                             countProblem += 1
                     else:
@@ -213,10 +213,10 @@ class SAParser(FileParser):
                         countProblem += 1
                         #sys.exit()
                 except:
-                    print newLines
-                    print line
-                    print parts
-                    print self.filename
+                    print(newLines)
+                    print(line)
+                    print(parts)
+                    print(self.filename)
                     raise
 
             if countProblem:
@@ -308,7 +308,7 @@ if __name__ == '__main__':
                 sp.parse()
 
     # Remove duplicates stations
-    for header in sp.stations.keys():
+    for header in list(sp.stations.keys()):
         noDupStations = sp.removeDuplicate(sp.stations[header])
         noDupStations.sort()
         sp.stations[header] = noDupStations
