@@ -521,7 +521,7 @@ class DBSearcher:
         allGoodFiles = []
         try:
             iterator = os.walk(PXPaths.DB + date)
-            path, dirs, files =  iterator.next()
+            path, dirs, files =  next(iterator)
             if self.debug: print(path, dirs, files)
         except:
             (type, value, tb) = sys.exc_info()
@@ -538,7 +538,7 @@ class DBSearcher:
         # This is considered an optimization. We should be 
         # able to turn this off
         try:
-            pathBeforeSource, dirs, files = iterator.next()
+            pathBeforeSource, dirs, files = next(iterator)
             if self.debug: print(pathBeforeSource, dirs, files)
         except:
             (type, value, tb) = sys.exc_info()
@@ -566,7 +566,7 @@ class DBSearcher:
             iterator = os.walk(pathBeforeSource + "/" + source)
             # We select only the "center" directory
             try:
-                path, dirs, files = iterator.next()
+                path, dirs, files = next(iterator)
                 if self.debug: print(path, dirs, files)
             except:
                 (type, value, tb) = sys.exc_info()
@@ -583,7 +583,7 @@ class DBSearcher:
 
             # We select the "good bulletins"
             try:
-                path, dirs, files = iterator.next()
+                path, dirs, files = next(iterator)
                 if self.debug > 10: print(path, dirs, files)
             except:
                 (type, value, tb) = sys.exc_info()
