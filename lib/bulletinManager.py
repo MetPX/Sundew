@@ -8,6 +8,9 @@
  Authors: Louis-Philippe Thériault, NSD, 
 
 """
+
+# MG Python3 compatible
+
 import math, re, string, os, bulletinPlain, traceback, sys, time
 import PXPaths
 
@@ -156,11 +159,11 @@ class bulletinManager:
         try:
             unFichier = os.open( tempNom , os.O_CREAT | os.O_WRONLY )
 
-        except (OSError,TypeError), e:
+        except (OSError,TypeError) as e:
             # bad file name, make up a new one. 
 
             self.logger.warning("cannot write file! (bad file name)")
-            self.logger.error("Exception: " + ''.join(traceback.format_exception(Exception,e,sys.exc_traceback)))
+            self.logger.error("Exception: " + ''.join(traceback.format_exception(Exception,e,sys.exc_info()[2])))
 
             nomFichier = self.getFileName(unBulletin,error=True,compteur=compteur)
             tempNom = self.pathTemp + nomFichier
@@ -168,7 +171,7 @@ class bulletinManager:
         
         os.write( unFichier , unBulletin.getBulletin(includeError=includeError) )
         os.close( unFichier )
-        os.chmod(tempNom,0644)
+        os.chmod(tempNom,0o644)
 
         entete = ' '.join(unBulletin.getHeader().split()[:2])
 
@@ -222,11 +225,11 @@ class bulletinManager:
         try:
             unFichier = os.open( tempNom , os.O_CREAT | os.O_WRONLY )
 
-        except (OSError,TypeError), e:
+        except (OSError,TypeError) as e:
             # bad file name. Make up a new one.
 
             self.logger.warning("Cannot write file! (bad file name)")
-            self.logger.error("Exception: " + ''.join(traceback.format_exception(Exception,e,sys.exc_traceback)))
+            self.logger.error("Exception: " + ''.join(traceback.format_exception(Exception,e,sys.exc_info()[2])))
 
             nomFichier = self.getFileName(unBulletin,error=True,compteur=compteur)
             tempNom = self.pathTemp + nomFichier
@@ -234,7 +237,7 @@ class bulletinManager:
 
         os.write( unFichier , unBulletin.getBulletin(includeError=includeError) )
         os.close( unFichier )
-        os.chmod(tempNom,0644)
+        os.chmod(tempNom,0o644)
 
         entete = ' '.join(unBulletin.getHeader().split()[:2])
 
@@ -277,7 +280,7 @@ class bulletinManager:
         return bulletinPlain.bulletinPlain(rawBulletin,self.logger,self.lineSeparator)
 
     def getListeNomsFichiersAbsolus(self):
-        return self.mapBulletinsBruts.keys()
+        return list(self.mapBulletinsBruts.keys())
 
     def __normalizePath(self,path):
         """normalizePath(path) -> path
@@ -384,7 +387,7 @@ class bulletinManager:
                 return  whatfn + self.getExtension(bulletin,self.extension,False).replace(' ','_')
 
             # extension problem...
-            except Exception, e:
+            except Exception as e:
                 w = whatfn.split('_')
                 self.logger.warning(" %s not in routing table" % '_'.join(w[:2]) )
                 return 'PROBLEM_BULLETIN_' + whatfn + self.getExtension(bulletin,self.extension,True).replace(' ','_')
@@ -403,7 +406,7 @@ class bulletinManager:
                 return  whatfn + self.getExtension(bulletin,self.source.arrival_extension,False).replace(' ','_')
 
             # extension problem... probably routing or station
-            except Exception, e:
+            except Exception as e:
                 w = whatfn.split('_')
                 self.logger.warning(" %s not in routing table" % '_'.join(w[:2]) )
                 return 'PROBLEM_BULLETIN_' + whatfn + self.getExtension(bulletin,self.extension,True).replace(' ','_')
@@ -519,7 +522,7 @@ class bulletinManager:
 
         try:
             type = unBulletin.getHeader()[:2]
-            if not type in self.mapEnteteDelai.keys() : return
+            if not type in list(self.mapEnteteDelai.keys()) : return
 
             (future,history) = self.mapEnteteDelai[type]
 
