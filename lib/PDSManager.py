@@ -17,7 +17,7 @@ named COPYING in the root of the source directory tree.
 #############################################################################################
 """
 
-import os, os.path, sys, commands, re, pickle, time, logging
+import os, os.path, sys, re, pickle, time, logging
 import SystemManager, PDSPaths
 from SystemManager import SystemManager
 
@@ -125,5 +125,5 @@ if __name__ == '__main__':
     manager = PDSManager()
     #print manager.getRxNames()
     #print manager.getTxNames()
-    print manager.getRxPaths()
-    print manager.getTxPaths()
+    print(manager.getRxPaths())
+    print(manager.getTxPaths())
