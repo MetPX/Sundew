@@ -105,7 +105,7 @@ class RetransConfig(object):
 
                 except:
                     (type, value, tb) = sys.exc_info()
-                    print "Problem (%s, %s) with this line (%s) in configuration file of px.conf (pxRetrans section)" % (type, value, words)
+                    print("Problem (%s, %s) with this line (%s) in configuration file of px.conf (pxRetrans section)" % (type, value, words))
 
     def printInfos(self):
         print("%s" % (80*"#"))
