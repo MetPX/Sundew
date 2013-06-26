@@ -11,7 +11,7 @@
 #############################################################################################
 
 """
-import os, sys, time, commands, re, curses.ascii, re, pickle
+import os, sys, time, re, curses.ascii, re, pickle
 
 sys.path.insert(1,sys.path[0] + '/..')
 
@@ -324,7 +324,7 @@ class MessageManager:
             try:
                 os.unlink(dataFromFiles[0][1])
                 self.logger.debug("%s has been erased", os.path.basename(dataFromFiles[index][1]))
-            except OSError, e:
+            except OSError as e:
                 (type, value, tb) = sys.exc_info()
                 self.logger.error("Unable to unlink %s ! Type: %s, Value: %s" % (dataFromFiles[index][1], type, value))
 
@@ -332,7 +332,7 @@ class MessageManager:
         try:
             os.unlink(dataFromFiles[0][1])
             self.logger.debug("%s has been erased", os.path.basename(dataFromFiles[index][1]))
-        except OSError, e:
+        except OSError as e:
             (type, value, tb) = sys.exc_info()
             self.logger.error("Unable to unlink %s ! Type: %s, Value: %s" % (dataFromFiles[index][1], type, value))
 
@@ -453,19 +453,19 @@ class MessageManager:
                     #print  "Well placed Ending"
                     return True
                 else:
-                    print "Badly placed ending"
+                    print("Badly placed ending")
                     return False
             elif type == 'ACK':
                 if len(text)-1 == position:
                     #print  "Well placed Ending"
                     return True
                 else:
-                    print "Badly placed ending"
+                    print("Badly placed ending")
                     return False
 
         else:
-            print "No valid ending"
-            print "Type=%s, Text=%s" % (type, text)
+            print("No valid ending")
+            print("Type=%s, Text=%s" % (type, text))
         return False
 
     def getMaxAckTime(self):
@@ -497,7 +497,7 @@ class MessageManager:
             config = open(filename, 'r')
         except IOError:
             (type, value, tb) = sys.exc_info()
-            print "Type: %s Value: %s (Try to open %s)" % (type, value, filename)
+            print("Type: %s Value: %s (Try to open %s)" % (type, value, filename))
             sys.exit(103)
 
         configLines = config.readlines()
@@ -560,19 +560,19 @@ class MessageManager:
             return False
 
     def printInfos(self):
-        print "**************************** Infos du Message Manager *****************************"
-        print "Header: %s" % self.header
-        print "Station ID: %s" % self.stationID
-        print "Other Station ID: %s" % self.otherStationID
-        print "Originator Address: %s" % self.address
-        print "Other Address: %s" % self.otherAddress
-        print "Priority: %s" % self.priority
-        print "Destination Addresses: %s" % self.destAddress
-        print "Filing Time: %s" % self.filingTime
-        print "Date Time: %s" % self.dateTime
-        print "CSN: %s" % self.CSN
-        print "********************************** Fin(Manager) ***********************************"
-        print "\n"
+        print("**************************** Infos du Message Manager *****************************")
+        print("Header: %s" % self.header)
+        print("Station ID: %s" % self.stationID)
+        print("Other Station ID: %s" % self.otherStationID)
+        print("Originator Address: %s" % self.address)
+        print("Other Address: %s" % self.otherAddress)
+        print("Priority: %s" % self.priority)
+        print("Destination Addresses: %s" % self.destAddress)
+        print("Filing Time: %s" % self.filingTime)
+        print("Date Time: %s" % self.dateTime)
+        print("CSN: %s" % self.CSN)
+        print("********************************** Fin(Manager) ***********************************")
+        print("\n")
 
     def reduceCSN(self):
         if self.CSN == '0000':
@@ -629,7 +629,7 @@ if __name__ == "__main__":
 
     sourlient = Sourlient('aftn', logger)
 
-    print "Longueur Max = %d" % MessageAFTN.MAX_TEXT_SIZE
+    print("Longueur Max = %d" % MessageAFTN.MAX_TEXT_SIZE)
 
     mm = MessageManager(logger, sourlient)
 
@@ -657,5 +657,5 @@ if __name__ == "__main__":
           #                        mm.destAddress, mm.CSN, mm.filingTime, mm.dateTime)
 
           myMessage.printInfos()
-          print mm.addHeaderToMessage(myMessage)
+          print(mm.addHeaderToMessage(myMessage))
           

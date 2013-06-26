@@ -11,7 +11,7 @@
 #############################################################################################
 
 """
-import os, sys, commands, re, curses.ascii
+import os, sys, re, curses.ascii
 
 sys.path.insert(1,sys.path[0] + '/..')
 sys.path.insert(1,sys.path[0] + '/../importedLibs')

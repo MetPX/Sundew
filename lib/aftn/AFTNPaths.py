@@ -41,11 +41,11 @@ def normalPaths(name, rootPath=""):
 
 if __name__ == "__main__":
     normalPaths('toto')
-    print ROOT
-    print LIB
+    print(ROOT)
+    print(LIB)
 
-    print RECEIVED
-    print SENT
-    print SPECIAL_ORDERS
+    print(RECEIVED)
+    print(SENT)
+    print(SPECIAL_ORDERS)
 
-    print STATE
+    print(STATE)

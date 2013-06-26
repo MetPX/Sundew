@@ -68,11 +68,7 @@ class MessageParser:
         self.findType()
 
     def printInfos(self):
-        print """
-        type: %s
-        serviceType: %s (%s)
-        header: %s 
-        """ % (self.type, self.serviceType, MessageParser.names.get(self.serviceType, "Undefined Service Type"), self.header)
+        print(" type: %s serviceType: %s (%s) header: %s " % (self.type, self.serviceType, MessageParser.names.get(self.serviceType, "Undefined Service Type"), self.header))
 
     def findType(self):
         """
@@ -201,10 +197,10 @@ if __name__ == '__main__':
         fh = open(dirname + file, 'r') 
         text = fh.read()
         lines = text.splitlines()
-        print "########## %s ##########" % file
+        print("########## %s ##########" % file)
         for line in lines:
-            print line
+            print(line)
         fh.close()
-        print 1*'\n'
+        print(1*'\n')
         mp = MessageParser(text)
         mp.printInfos()
