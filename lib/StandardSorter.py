@@ -17,29 +17,36 @@ named COPYING in the root of the source directory tree.
 #############################################################################################
 
 """
-import os, commands
+import os,sys
 from SortableString import SortableString
 import time
 
 class StandardSorter:
 
-    def __init__(self, list):
-        self.list = list
+    def __init__(self, listx):
+        self.list = listx
 
     def sort(self):
         self.list.sort()
-        return self.list 
+        return self.list
 
 if __name__ == "__main__":
 
     """
-    (status, output) = commands.getstatusoutput("date")
+
+    if sys.version[:1] >= '3' :
+       import subprocess
+    else :
+       import commands
+       subprocess = commands
+
+    (status, output) = subprocess.getstatusoutput("date")
     print output
     files = os.listdir("/apps/pds/tools/ColumboNCCS/testfiles1/")
-    (status, output) = commands.getstatusoutput("date")
+    (status, output) = subprocess.getstatusoutput("date")
     print output
     sortedFiles = MultiKeysStringSorter(files).sort()
-    (status, output) = commands.getstatusoutput("date")
+    (status, output) = subprocess.getstatusoutput("date")
     print output
     #print sortedFiles
     # regarder si lstat rallonge beaucoup
@@ -48,9 +55,8 @@ if __name__ == "__main__":
     l = ['pomme', 'poire', 'abricot', 'tomate', 'banane']
 
     sorter = StandardSorter(l)
-    print sorter.list
+    print(sorter.list)
     sorter.sort()
-    print sorter.list
+    print(sorter.list)
 
 
-    
