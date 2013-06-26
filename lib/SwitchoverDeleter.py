@@ -41,11 +41,11 @@ from Logger import Logger
 import os, pwd, sys, getopt, ftplib
 
 def usage():
-    print "\nUsage:\n"
-    print "SwitchoverDeleter (-s|--system) {PDS | PX} -m MACHINE\n"
-    print "-s, --system: PDS or PX\n"
-    print "-m MACHINE where MACHINE is the name of the host where we find files containing"
-    print "the name of the files to delete. (These files will be obtained by ftp)\n"
+    print("\nUsage:\n")
+    print("SwitchoverDeleter (-s|--system) {PDS | PX} -m MACHINE\n")
+    print("-s, --system: PDS or PX\n")
+    print("-m MACHINE where MACHINE is the name of the host where we find files containing")
+    print("the name of the files to delete. (These files will be obtained by ftp)\n")
 
 class SwitchoverDeleter:
 
