@@ -14,10 +14,20 @@ named COPYING in the root of the source directory tree.
 #
 # Description: 
 #
+# MG python3 compatible
+#
 #############################################################################################
 
 """
-import urlparse,string
+#import urlparse,string
+import sys,string
+
+if sys.version[:1] >= '3' :
+   import urllib.parse
+   urlparse = urllib.parse
+else :
+   import urlparse
+
 
 
 class URLParser:
@@ -82,7 +92,7 @@ class URLParser:
         print("PARAM = %s" % self.param)
         print("QUERY = %s" % self.query)
         print("FRAG = %s" % self.frag)
-        print
+        print('')
         print("USER= %s" % self.user)
         print("PASSWD = %s" % self.passwd)
         print("HOST = %s" % self.host)
@@ -97,8 +107,8 @@ if __name__ == '__main__':
     #parser = URLParser('file://localhost//apps/px/operator')
     #parser = URLParser('amqp://guest:guestpw@grogne.cmc.ec.gc.ca//data')
 
-    print parser.parse()
-    print 
+    print(parser.parse())
+    print('')
     parser.printAll()
-    print parser.join(parser.protocol, parser.path, parser.user, parser.passwd, parser.host, parser.port)
-    print URLParser.join(parser.protocol, parser.path, parser.user, parser.passwd, parser.host, parser.port)
+    print(parser.join(parser.protocol, parser.path, parser.user, parser.passwd, parser.host, parser.port))
+    print(URLParser.join(parser.protocol, parser.path, parser.user, parser.passwd, parser.host, parser.port))
