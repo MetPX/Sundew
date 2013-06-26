@@ -19,7 +19,15 @@ named COPYING in the root of the source directory tree.
 # 
 #############################################################################################
 """
-import sys, os, os.path, commands, fnmatch
+import sys, os, os.path, fnmatch
+
+if sys.version[:1] >= '3' :
+   import subprocess
+else :
+   import commands
+   subprocess = commands
+
+
 
 import PXPaths, dateLib
 from Latencies import Latencies
@@ -58,15 +66,15 @@ class PDSLatencies(Latencies):
             self.manager.createDir(PXPaths.LAT_TMP +  machine + '_' + self.random)
             for source in self.sources:
                 command = 'scp -q %s:%s %s' % (machine, LOG + source + '.' + date, PXPaths.LAT_TMP + machine + '_' + self.random)
-                (status, output) = commands.getstatusoutput(command)
+                (status, output) = subprocess.getstatusoutput(command)
 
             command = 'scp -q %s:%s %s' % (machine, LOG + self.client + '.' + date, PXPaths.LAT_TMP + machine + '_' + self.random)
-            (status, output) = commands.getstatusoutput(command)
+            (status, output) = subprocess.getstatusoutput(command)
 
             # xferlog data
             if self.xstats:
                 command = "ssh %s grep -h -e \"'%s %s'\" /var/log/xferlog /var/log/xferlog.?" % (machine, monthAbbrev, day)
-                (status, output) = commands.getstatusoutput(command)
+                (status, output) = subprocess.getstatusoutput(command)
                 xferlog = open(PXPaths.LAT_TMP + machine + '_' + self.random + '/xferlog_paplat', 'w')
                 xferlog.write(output)
                 xferlog.close()
@@ -81,7 +89,7 @@ class PDSLatencies(Latencies):
             try:
                 files = os.listdir(dirPath)
             except OSError:
-                print "%s doesn't exist!\nDon't use -n|--nopull option if you don't have some data." % dirPath
+                print("%s doesn't exist!\nDon't use -n|--nopull option if you don't have some data." % dirPath)
                 sys.exit(1)
                 
             if prefix == 'rx':
