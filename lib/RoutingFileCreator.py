@@ -30,7 +30,7 @@ class RoutingFileCreator(FileCreator):
         self._closeFile()
 
     def createSubclientsSection(self):
-        keys = self.drp.subClients.keys()
+        keys = list(self.drp.subClients.keys())
         keys.sort()
         for sub in keys: 
             subClients = self.drp.subClients.get(sub, [])
@@ -41,7 +41,7 @@ class RoutingFileCreator(FileCreator):
                    self.file.write("subclient %s %s\n" % (sub, ','.join(subClients)))
     
     def createAFTNMapSection(self):
-        keys = self.drp.aftnMap.keys()
+        keys = list(self.drp.aftnMap.keys())
         keys.sort()
         for mapping in keys:
             if self.drp.version == 0 :
@@ -50,7 +50,7 @@ class RoutingFileCreator(FileCreator):
                    self.file.write("aftnMap %s %s\n" % (mapping,self.drp.aftnMap[mapping] ))
 
     def createClientAliasesSection(self):
-        keys = self.drp.aliasedClients.keys()
+        keys = list(self.drp.aliasedClients.keys())
         keys.sort()
         for alias in keys:
             clients = self.drp.aliasedClients.get(alias, [])
@@ -61,7 +61,7 @@ class RoutingFileCreator(FileCreator):
                    self.file.write("clientAlias %s %s\n" % (alias, ','.join(clients)))
 
     def createHeadersSection(self):
-        headers = self.drp.routingInfos.keys()
+        headers = list(self.drp.routingInfos.keys())
         headers.sort()
 
         for header in headers:
@@ -92,7 +92,7 @@ class RoutingFileCreator(FileCreator):
                  5:'KEY_ACCEPT'
                 }
 
-        m = max(map(len, words.values()))
+        m = max(list(map(len, list(words.values()))))
 
         top =  lambda x: int(math.ceil((length-(len(x)+2))/2.0)) * '#' + ' %s ' % x + (length-(len(x)+2))/2 * '#' + '\n'
 
