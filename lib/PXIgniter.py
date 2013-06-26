@@ -15,10 +15,19 @@ named COPYING in the root of the source directory tree.
 # Description: Use to start, stop, restart, reload and obtain status informations
 #              about receivers and senders.
 #
+# MG python3 compatible
+#
 #############################################################################################
 
 """
-import sys, os, time, commands, signal
+import sys, os, time, signal
+
+if sys.version[:1] >= '3' :
+   import subprocess
+else :
+   import commands
+   subprocess = commands
+
 from Igniter import Igniter
 from Client import Client
 
@@ -47,19 +56,19 @@ class PXIgniter(Igniter):
         
    def printComment(self, commentID):
       if commentID == 'Already start':
-         print "WARNING: The %s %s is already started with PID %d, use stop or restart!" % (self.direction, self.flowName, self.lockpid)
+         print("WARNING: The %s %s is already started with PID %d, use stop or restart!" % (self.direction, self.flowName, self.lockpid))
       elif commentID == 'Locked but not running':
-         print "INFO: The %s %s was locked, but not running! The lock has been unlinked!" % (self.direction, self.flowName)
+         print("INFO: The %s %s was locked, but not running! The lock has been unlinked!" % (self.direction, self.flowName))
       elif commentID == 'No lock':
-         print "No lock on the %s %s. Are you sure it was started?" % (self.direction, self.flowName)
+         print("No lock on the %s %s. Are you sure it was started?" % (self.direction, self.flowName))
       elif commentID == 'Restarted successfully':
-         print "%s %s has been restarted successfully!" % (self.direction.capitalize(), self.flowName)
+         print("%s %s has been restarted successfully!" % (self.direction.capitalize(), self.flowName))
       elif commentID == 'Status, started':
-         print "%s %s is running with PID %d" % (self.direction.capitalize(), self.flowName, self.lockpid)
+         print("%s %s is running with PID %d" % (self.direction.capitalize(), self.flowName, self.lockpid))
       elif commentID == 'Status, not running':
-         print "* %s %s is not running" % (self.direction, self.flowName)
+         print("* %s %s is not running" % (self.direction, self.flowName))
       elif commentID == 'Status, locked':
-         print "** %s %s is locked (PID %d) but not running" % (self.direction, self.flowName, self.lockpid)
+         print("** %s %s is locked (PID %d) but not running" % (self.direction, self.flowName, self.lockpid))
 
    def start(self):
       
@@ -75,13 +84,13 @@ class PXIgniter(Igniter):
       # If it is locked ...
       if self.isLocked():
          # ... and running
-         if not commands.getstatusoutput('ps -p ' + str(self.lockpid))[0]:
+         if not subprocess.getstatusoutput('ps -p ' + str(self.lockpid))[0]:
             os.unlink(self.lock)
             os.kill(self.lockpid, signal.SIGTERM)
             # if a sender is not responsive to sigterm after .5 sec force sigkill 
             if self.direction == 'sender' :
                time.sleep(0.5)
-               if not commands.getstatusoutput('ps -p ' + str(self.lockpid))[0]:
+               if not subprocess.getstatusoutput('ps -p ' + str(self.lockpid))[0]:
                   self.logger.info("%s %s (sigkill) has been stopped" % (self.direction.capitalize(), self.flowName))
                   os.kill(self.lockpid, signal.SIGKILL)
 
@@ -122,7 +131,7 @@ class PXIgniter(Igniter):
          # particular source/client is by restarting it!
 
          #self.logger.info("ppid=%s, pid=%s, pgid=%s, sid=%s, cterm=%s" % (os.getppid(), os.getpid(), os.getpgrp(), os.getsid(os.getpid()), os.ctermid()))
-         #output = commands.getoutput('ls -alrt /proc/%s/fd' % os.getpid())
+         #output = subprocess.getoutput('ls -alrt /proc/%s/fd' % os.getpid())
          #self.logger.info(output)
 
          if os.fork() == 0:
@@ -219,14 +228,14 @@ class PXIgniter(Igniter):
       """
       # Verify user is not root
       if os.getuid() == 0:
-         print "FATAL: Do not reload as root. It will be a mess."
+         print("FATAL: Do not reload as root. It will be a mess.")
          sys.exit(2)
          
-      if Igniter.isLocked(self) and not commands.getstatusoutput('ps -p ' + str(self.lockpid))[0]:
+      if Igniter.isLocked(self) and not subprocess.getstatusoutput('ps -p ' + str(self.lockpid))[0]:
          # SIGHUP is sent to initiate the reload
          os.kill(self.lockpid, signal.SIGHUP) 
       else:
-         print "No process to reload for %s (%s %s)!" % (self.flowName, self.direction, self.type)
+         print("No process to reload for %s (%s %s)!" % (self.flowName, self.direction, self.type))
 
       # In any case, we exit!!
       sys.exit(2)
