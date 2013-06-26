@@ -49,13 +49,13 @@ from Logger import Logger
 import os, pwd, sys, time, getopt
 
 def usage():
-    print "\nUsage:\n"
-    print "SwitchoverCopier (-s|--system) {PDS | PX} (-d|--drbd) DRBD_ROOT\n"
-    print "-s, --system: PDS or PX"
-    print "-d, --drbd: DRBD_ROOT is the mount point of the backup partition\n"
-    print "Suppose pds3-dev and pds4-dev are a drbd pair. pds3-dev crash, we are on pds4-dev:\n"
-    print "example 1: SwitchoverCopier -s PDS -d '/apps.pds3-dev'"
-    print "example 2: SwitchoverCopier -s PX -d '/apps.pds3-dev'\n"
+    print("\nUsage:\n")
+    print("SwitchoverCopier (-s|--system) {PDS | PX} (-d|--drbd) DRBD_ROOT\n")
+    print("-s, --system: PDS or PX")
+    print("-d, --drbd: DRBD_ROOT is the mount point of the backup partition\n")
+    print("Suppose pds3-dev and pds4-dev are a drbd pair. pds3-dev crash, we are on pds4-dev:\n")
+    print("example 1: SwitchoverCopier -s PDS -d '/apps.pds3-dev'")
+    print("example 2: SwitchoverCopier -s PX -d '/apps.pds3-dev'\n")
 
 class SwitchoverCopier:
 
@@ -105,7 +105,7 @@ class SwitchoverCopier:
 
     def copy(self):
         timestamp = time.strftime("%Y%m%d%H%M%S", time.gmtime())
-        os.umask(0777)
+        os.umask(0o777)
         #for sourceDir in self.txPaths:
         #    self.manager.copyFiles(sourceDir, self.getDestDir(sourceDir))   
 
@@ -119,7 +119,7 @@ class SwitchoverCopier:
             self.manager.copyFiles(clientDir, self.getDestDir(clientDir, SwitchoverCopier.STANDARD_ROOT),
                                                               SwitchoverCopier.SWITCH_DIR + '_'.join(parts[1:]) + timestamp + '.log')   
 
-        os.umask(0022)
+        os.umask(0o022)
 
     def getOptionsParser(self):
         
