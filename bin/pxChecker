@@ -83,26 +83,26 @@ class PXChecker:
         self.manager.initRunningNames()
 
         if DEBUG:
-            print("*************** All names (.conf) **************")
-            print(self.manager.getFxNames())
-            print(self.manager.getRxNames())
-            print(self.manager.getTxNames())
-            print(self.manager.getTRxNames())
-            print("*************** Should run names (.conf + .lock) **************")
-            print(self.manager.getShouldRunFxNames())
-            print(self.manager.getShouldRunRxNames())
-            print(self.manager.getShouldRunTxNames())
-            print(self.manager.getShouldRunTRxNames())
-            print("************** Running names (.conf + .lock + ps -p pid) *************")
-            print(self.manager.getRunningFxNames())
-            print(self.manager.getRunningRxNames())
-            print(self.manager.getRunningTxNames())
-            print(self.manager.getRunningTRxNames())
-            print("************** Should  run but not running names *************")
-            print(self.manager.getNotRunningFxNames())
-            print(self.manager.getNotRunningRxNames())
-            print(self.manager.getNotRunningTxNames())
-            print(self.manager.getNotRunningTRxNames())
+            print "*************** All names (.conf) **************"
+            print self.manager.getFxNames()
+            print self.manager.getRxNames()
+            print self.manager.getTxNames()
+            print self.manager.getTRxNames()
+            print "*************** Should run names (.conf + .lock) **************"
+            print self.manager.getShouldRunFxNames()
+            print self.manager.getShouldRunRxNames()
+            print self.manager.getShouldRunTxNames()
+            print self.manager.getShouldRunTRxNames()
+            print "************** Running names (.conf + .lock + ps -p pid) *************"
+            print self.manager.getRunningFxNames()
+            print self.manager.getRunningRxNames()
+            print self.manager.getRunningTxNames()
+            print self.manager.getRunningTRxNames()
+            print "************** Should  run but not running names *************"
+            print self.manager.getNotRunningFxNames()
+            print self.manager.getNotRunningRxNames()
+            print self.manager.getNotRunningTxNames()
+            print self.manager.getNotRunningTRxNames()
 
         # Restart receivers
         for name in self.manager.getNotRunningRxNames():

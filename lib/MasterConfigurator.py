@@ -17,14 +17,7 @@ named COPYING in the root of the source directory tree.
 #############################################################################################
 
 """
-import sys, os, os.path, re, time, fnmatch
-
-if sys.version[:1] >= '3' :
-   import subprocess
-else :
-   import commands
-   subprocess = commands
-
+import sys, os, os.path, commands, re, time, fnmatch
 import PXPaths
 from SystemManager import SystemManager
 from PXManager import PXManager
@@ -60,10 +53,10 @@ class MasterConfigurator(object):
         self.flowCluster = {}             # A mapping from a flow to it's cluster
         
     def printClusterInfos(self, flowCluster):
-        keys = list(flowCluster.keys())
+        keys = flowCluster.keys()
         keys.sort()
         for key in keys:
-            print("%s: %s" % (key, flowCluster[key]))
+            print "%s: %s" % (key, flowCluster[key])
 
     def setMachine(self, machine):
         self.machine = machine
@@ -110,7 +103,7 @@ class MasterConfigurator(object):
                 command = "grep -l -E '%s' %s" % (name, PXPaths.TX_CONF + "*.conf")
 
             #print "%s" % cluster.upper()
-            output = subprocess.getoutput(command)
+            output = commands.getoutput(command)
             clients = [ (os.path.basename(cli)[:-5], cluster) for cli in output.split()]
             cliClust.extend(clients)
 
@@ -246,7 +239,7 @@ class MasterConfigurator(object):
         iprint("Duplicate beetween flows (sources, clients, sourlients) from all clusters: %s" % self.dupFlows)
 
         iprint() 
-        keys = list(self.flowCluster.keys())
+        keys = self.flowCluster.keys()
         keys.sort()
         for key in keys:
             if len(self.flowCluster[key]) > 1:
@@ -267,22 +260,22 @@ if __name__ == '__main__':
     mc.setClusters(['px', 'pds', 'pxatx'])
     mc.getAllFlows(noPrint=True)
     print("%s: %s" % ('metmgr1', mc.getTypeCluster('metmgr1')))
-    print(mc.getType('metmgr1'))
-    print(mc.getCluster('metmgr1'))
+    print mc.getType('metmgr1')
+    print mc.getCluster('metmgr1')
     print("%s: %s" % ('aftn', mc.getTypeCluster('aftn')))
     print("%s: %s" % ('pds5', mc.getTypeCluster('pds5')))
 
     print("%s: %s" % ('metmgr3', mc.getTypeCluster('metmgr3')))
-    print(mc.getType('metmgr3'))
-    print(mc.getCluster('metmgr3'))
+    print mc.getType('metmgr3')
+    print mc.getCluster('metmgr3')
 
     print("%s: %s" % ('px-stage', mc.getTypeCluster('px-stage')))
-    print(mc.getType('px-stage'))
-    print(mc.getCluster('px-stage'))
+    print mc.getType('px-stage')
+    print mc.getCluster('px-stage')
 
     print("%s: %s" % ('pds_metser', mc.getTypeCluster('pds_metser')))
-    print(mc.getType('pds_metser'))
-    print(mc.getCluster('pds_metser'))
+    print mc.getType('pds_metser')
+    print mc.getCluster('pds_metser')
 
     #print mc.sourceCluster
     #print mc.clientCluster
@@ -290,7 +283,7 @@ if __name__ == '__main__':
     #print mc.flowCluster
 
     mc1 = MasterConfigurator()
-    print(mc1.getType('metmgr1', ['px', 'pds', 'pxatx']))
-    print(mc1.getCluster('metmgr1'))
+    print mc1.getType('metmgr1', ['px', 'pds', 'pxatx'])
+    print mc1.getCluster('metmgr1')
 
     mc1.findClient(ip='199.212.17.60', clusters=['px', 'pxatx', 'pds'])

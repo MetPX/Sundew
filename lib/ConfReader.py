@@ -15,8 +15,6 @@ named COPYING in the root of the source directory tree.
 #
 # Date: 2006-08-23
 #
-# MG python3 compatible
-#
 ###########################################################
 """
 
@@ -58,7 +56,7 @@ class ConfReader(object):
         return self.configDict
 
     def addToConfigDict(self, type, values):
-        if type in list(self.configDict.keys()):
+        if type in self.configDict.keys():
             self.configDict[type] += values
         else:
             self.configDict[type] = values
@@ -73,4 +71,4 @@ class ConfReader(object):
 
     def listConfigTypes(self):
         configDict = self.getConfigDict()
-        return list(configDict.keys())
+        return configDict.keys()

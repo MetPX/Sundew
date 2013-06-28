@@ -11,7 +11,7 @@
 #############################################################################################
 
 """
-import os, sys, time, socket, select, traceback
+import os, sys, time, commands, socket, select, traceback
 
 sys.path.insert(1,sys.path[0] + '/..')
 sys.path.insert(1,sys.path[0] + '/../importedLibs')
@@ -162,10 +162,10 @@ class TransceiverAFTN:
                 socketSender.connect(remoteAddress)
                 logger.info("Sender is now (after %d trial(s)) connected to: %s" % (trials, str(remoteAddress)))
                 break
-            except socket.gaierror as e:
+            except socket.gaierror, e:
                 logger.error("Address related error connecting to receiver: %s" % e)
                 sys.exit(1)
-            except socket.error as e:
+            except socket.error, e:
                 (type, value, tb) = sys.exc_info()
                 logger.error("Type: %s, Value: %s, Sleeping %d seconds ..." % (type, value, self.sleepBetweenConnect))
                 socketSender.close()
@@ -190,11 +190,11 @@ class TransceiverAFTN:
             socketReceiver.bind(('', port))
             logger.info("Receiver is bound with local port %d" % port)
 
-        except socket.gaierror as e:
+        except socket.gaierror, e:
             logger.error("Address related error when binding receiver port: %s" % e)
             sys.exit(1)
 
-        except socket.error as e:
+        except socket.error, e:
             (type, value, tb) = sys.exc_info()
             logger.error("Type: %s, Value: %s, Sleeping 5 seconds ..." % (type, value))
             time.sleep(5)
@@ -211,13 +211,13 @@ class TransceiverAFTN:
                 logger.info("Connexion established with %s" % str(clientAddress))
                 break
 
-            except socket.timeout as e:
+            except socket.timeout, e:
                 (type, value, tb) = sys.exc_info()
                 logger.error("Type: %s, Value: %s, Timeout exceeded ..." % (type, value))
                 socketReceiver.close()
                 return None
 
-            except socket.error as e:
+            except socket.error, e:
                 (type, value, tb) = sys.exc_info()
                 logger.error("Type: %s, Value: %s, Sleeping 2 seconds ..." % (type, value))
                 time.sleep(2)
@@ -725,7 +725,7 @@ class TransceiverAFTN:
                             try:
                                 self.logger.warning("%s has been erased (no valid destination address)", os.path.basename(self.dataFromFiles[0][1]))
                                 os.unlink(self.dataFromFiles[0][1])
-                            except OSError as e:
+                            except OSError, e:
                                 (type, value, tb) = sys.exc_info()
                                 self.logger.error("Unable to unlink %s ! Type: %s, Value: %s" % (self.dataFromFiles[0][1], type, value))
                             del self.dataFromFiles[0]
@@ -743,7 +743,7 @@ class TransceiverAFTN:
                             try:
                                 self.logger.warning("%s has been erased", os.path.basename(self.dataFromFiles[0][1]))
                                 os.unlink(self.dataFromFiles[0][1])
-                            except OSError as e:
+                            except OSError, e:
                                 (type, value, tb) = sys.exc_info()
                                 self.logger.error("Unable to unlink %s ! Type: %s, Value: %s" % (self.dataFromFiles[0][1], type, value))
                             del self.dataFromFiles[0]
@@ -808,7 +808,7 @@ class TransceiverAFTN:
                         try:
                             os.unlink(self.dataFromFiles[0][1])
                             self.logger.debug("%s has been erased", os.path.basename(self.dataFromFiles[0][1]))
-                        except OSError as e:
+                        except OSError, e:
                             (type, value, tb) = sys.exc_info()
                             self.logger.error("Unable to unlink %s ! Type: %s, Value: %s" % (self.dataFromFiles[0][1], type, value))
                         del self.dataFromFiles[0]

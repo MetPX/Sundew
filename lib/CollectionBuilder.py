@@ -15,8 +15,6 @@ named COPYING in the root of the source directory tree.
 #
 # Description: now that we have classified the collections to do process it
 #
-# MG python3 compatible
-#
 #############################################################################################
 
 """
@@ -246,7 +244,7 @@ class CollectionBuilder(object):
 
         # get the sorted list of unique stations for that collection
 
-        stationlist = list(stations.keys())
+        stationlist = stations.keys()
         stationlist.sort()
 
         # build header
@@ -448,7 +446,7 @@ class CollectionBuilder(object):
         for entry in self.Cycle :
             map[entry.period] = 1
 
-        cycles = list(map.keys())
+        cycles = map.keys()
         cycles.sort()
 
         # loop on cycles : recent towards ntil no one left

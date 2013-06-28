@@ -12,8 +12,6 @@ named COPYING in the root of the source directory tree.
 #
 # Description: Used to create files (parent class)
 #
-# MG python3 compatible
-#
 #############################################################################################
 """
 import sys

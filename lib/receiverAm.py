@@ -6,8 +6,6 @@
 # Author:
 #    2004/10 - Louis-Philippe Thériault
 #
-# MG Python3 compatible
-#
 
 """ReceiverAm: socketAm -> disk, including bulletin processing"""
 
@@ -89,7 +87,7 @@ class receiverAm(gateway.gateway):
         if self.unSocketManagerAm.isConnected():
             try:
                 data = self.unSocketManagerAm.getNextBulletins()
-            except socketManager.socketManagerException as e:
+            except socketManager.socketManagerException, e:
                 if e.args[0] == "la connexion est brisee":
                     self.logger.error("lost connection, processing rest of buffer")
                     data, nbBullEnv = self.unSocketManagerAm.closeProperly()
@@ -142,7 +140,7 @@ class receiverAm(gateway.gateway):
 
             self.logger.info('configuration reload successful')
 
-        except Exception as e:
+        except Exception, e:
 
             self.logger.error('configuration reload failed')
 

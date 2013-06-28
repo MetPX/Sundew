@@ -7,8 +7,6 @@
 #
 #      2004/10 -- Louis-Philippe Thériault
 #
-# MG python3 compatible
-#
 
 """abstract class for bulletin transfers """
 
@@ -94,7 +92,7 @@ class gateway:
 
             return config
         except IOError:
-            print("*** Error: configuration file missing !")
+            print "*** Error: configuration file missing !"
             sys.exit(-1)
 
     loadConfig = staticmethod(loadConfig)
@@ -141,7 +139,7 @@ class gateway:
 
             try:
                 data = self.read()
-            except gatewayException as e:
+            except gatewayException, e:
                 if e.args[0] == "Le lecteur ne peut être accédé":
                 # Lecture impossible, il ne devrait plus y avoir
                 # de données en attente

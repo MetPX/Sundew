@@ -14,8 +14,6 @@ named COPYING in the root of the source directory tree.
 #
 # Description: Used to parse frequency files
 #
-# MG python3 compatible
-#
 #############################################################################################
 
 """
@@ -38,7 +36,7 @@ class FreqReader(object):
     def printProdInfos(self, prod="", type='clients'):
         infos = {'sources': self.sources, 'clients': self.clients, 'freqs': self.freqs}
         
-        matches = fnmatch.filter(list(self.sources.keys()), '*' + prod + '*')
+        matches = fnmatch.filter(self.sources.keys(), '*' + prod + '*')
         matches.sort()      
 
         for match in matches:
@@ -70,7 +68,7 @@ class FreqReader(object):
         except:
             (type, value, tb) = sys.exc_info()
             print("Type: %s, Value: %s" % (type, value))
-            print("File (%s) is not present" % filename)
+            print("File (%s) is not present") % filename
             return
 
         for line in file.readlines():
@@ -89,7 +87,7 @@ if __name__ == '__main__':
     fr_pxatx = FreqReader('pxatx.db', 'pxatx')
     fr_pds = FreqReader('pds.db', 'pds')
 
-    print("Reading is done")
+    print "Reading is done"
 
     #print fr.sources
     #print fr.freqs

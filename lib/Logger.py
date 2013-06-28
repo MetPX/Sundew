@@ -11,8 +11,6 @@ named COPYING in the root of the source directory tree.
 #
 # Date: 2004-09-28
 #
-# MG python3 compatible
-#
 #############################################################################################
 
 import os, sys, logging, logging.handlers, fnmatch, stat,time

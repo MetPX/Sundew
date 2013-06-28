@@ -6,8 +6,6 @@
 # Author:
 #    2008/11 - Michel Grenier
 #
-# MG Python3 compatible
-#
 
 """ReceiverAmqp: amqp bulletins received, ingested and processed"""
 
@@ -82,7 +80,7 @@ class receiverAmqp(gateway.gateway):
         fp = open(fname,'w')
         fp.write(data)
         fp.close()
-        os.chmod(fname,0o644)
+        os.chmod(fname,0644)
 
         self.source.ingestor.ingestFile(fname)
 
@@ -92,7 +90,7 @@ class receiverAmqp(gateway.gateway):
             newConfig = gateway.gateway.loadConfig(self.pathToConfigFile)
             self.unBulletinManager.drp.reparse()
             self.logger.info('configuration reload successful')
-        except Exception as e:
+        except Exception, e:
             self.logger.error('configuration reload failed')
             self.logger.debug("Error: %s", str(e.args))
 

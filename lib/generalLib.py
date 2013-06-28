@@ -14,8 +14,6 @@ named COPYING in the root of the source directory tree.
 #
 # Description: Useful general functions
 #
-# MG python3 compatible
-#
 #############################################################################################
 """
 import sys
@@ -41,8 +39,8 @@ def isIPAddress(value):
     else: return False
 
 if __name__ == '__main__':
-    print("%s: %s" % ("awws", isIPAddress("awws"))    )
-    print("%s: %s" % ("awws.awws.awws.awws", isIPAddress("awws.awws.awws.awws"))    )
-    print("%s: %s" % ("192.168.1.10", isIPAddress("192.168.1.10"))    )
-    print("%s: %s" % ("192.168.1.1.1", isIPAddress("192.168.1.1.1"))    )
-    print("%s: %s" % ("192.168.256.1", isIPAddress("192.168.256.1"))    )
+    print "%s: %s" % ("awws", isIPAddress("awws"))    
+    print "%s: %s" % ("awws.awws.awws.awws", isIPAddress("awws.awws.awws.awws"))    
+    print "%s: %s" % ("192.168.1.10", isIPAddress("192.168.1.10"))    
+    print "%s: %s" % ("192.168.1.1.1", isIPAddress("192.168.1.1.1"))    
+    print "%s: %s" % ("192.168.256.1", isIPAddress("192.168.256.1"))    

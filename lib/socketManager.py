@@ -8,8 +8,6 @@
 #    2004/10 -- Louis-Philippe Thériault
 #    2005/12 -- Pierre Michaud
 #
-# MG python3 compatible
-#
 
 """Generic socket manager"""
 
@@ -190,7 +188,7 @@ class socketManager:
         try:
             self.socket.shutdown(2)
             self.logger.debug("Shutdown socket: [OK]")
-        except Exception as e:
+        except Exception, e:
             self.logger.debug("Shutdown socket: [ERROR]\n %s",str(e))
 
         # Copy rest of input buffer 
@@ -293,7 +291,7 @@ class socketManager:
                 self.inBuffer = self.inBuffer + temp
                 break
 
-            except socket.error as inst:
+            except socket.error, inst:
                 (type, value, tb) = sys.exc_info()
                 # Normally, this error is generated when a SIGHUP signal is sent and the system call (socket.recv(32768))
                 # is interrupted

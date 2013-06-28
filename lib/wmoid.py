@@ -9,8 +9,6 @@
 # Description: parse the wmo_id.conf file
 #              this file is used to force the station name into the ingested filename
 #
-# MG python3 compatible
-#
 #############################################################################################
 """
 
@@ -53,4 +51,4 @@ class wmoid:
       
 if __name__ == '__main__':
 
-    print(wmoid(None).parse())
+    print wmoid(None).parse()

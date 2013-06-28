@@ -10,7 +10,7 @@
 #
 #############################################################################################
 """
-import os, re, curses.ascii
+import os, commands, re, curses.ascii
 
 class AckAFTN:
 
@@ -55,6 +55,6 @@ if __name__ == "__main__":
 
     ack = AckAFTN('WWW1023')
     while ack.getAck():
-        print(ack.ackMessage)
+        print ack.ackMessage
 
 

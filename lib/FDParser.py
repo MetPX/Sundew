@@ -13,8 +13,6 @@ named COPYING in the root of the source directory tree.
 #
 # Description: Use to extract stations from FD bulletins
 #
-# MG Python3 compatible
-#
 #############################################################################################
 """
 
@@ -57,7 +55,7 @@ class FDParser(FileParser):
             file.close()
         except:
             (type, value, tb) = sys.exc_info()
-            print("Type: %s, Value: %s" % (type, value))
+            print ("Type: %s, Value: %s" % (type, value))
             sys.exit()
 
         if prefix in ['FDCN']:
@@ -92,7 +90,7 @@ class FDParser(FileParser):
         for line in lines:
             try:
                 if line[-1].upper() == 'W':
-                    newLines.append(line + '\n' + next(lines))
+                    newLines.append(line + '\n' + lines.next())
                 else:
                     newLines.append(line)
             except IndexError:
@@ -122,7 +120,7 @@ class FDParser(FileParser):
             for line in lines:
                 try:
                     if line[-1].upper() == 'W': 
-                        newLines.append(line + '\n' + next(lines))   
+                        newLines.append(line + '\n' + lines.next())   
                     else:
                         newLines.append(line)   
                 except IndexError:
@@ -141,16 +139,16 @@ class FDParser(FileParser):
                         pass
                     else:
                         if self.printErrors:
-                            print(self.filename)
+                            print self.filename
                             print("PROBLEM: %s" % line)
-                            print(parts)
+                            print parts
                         countProblem += 1
                         #sys.exit()
                 except:
-                    print(newLines)
-                    print(line)
-                    print(parts)
-                    print(self.filename)
+                    print newLines
+                    print line
+                    print parts
+                    print self.filename
                     raise
 
             if countProblem:
@@ -212,7 +210,7 @@ if __name__ == '__main__':
                 sp.parse()
 
     # Remove duplicates stations
-    for header in list(sp.stations.keys()):
+    for header in sp.stations.keys():
         noDupStations = sp.removeDuplicate(sp.stations[header])
         noDupStations.sort()
         sp.stations[header] = noDupStations
@@ -220,14 +218,14 @@ if __name__ == '__main__':
         #print "%s : %s" % (header, sp.stations[header])
     
     """
-    print("Number of files: %d" % nbFiles)
-    print("Number of headers: %d" % len(sp.stations))
-    print("Number of stations: %d" % nbStations)
+    print "Number of files: %d" % nbFiles
+    print "Number of headers: %d" % len(sp.stations)
+    print "Number of stations: %d" % nbStations
 
-    print(sp.stations)
+    print sp.stations
     headers = sp.stations.keys()
     headers.sort()
-    print(headers)
+    print headers
     """
 
     sfc = StationFileCreator(PXPaths.ETC + 'stations_FD.conf', stations=sp.stations)

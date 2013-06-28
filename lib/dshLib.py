@@ -14,20 +14,10 @@ named COPYING in the root of the source directory tree.
 #
 # Description: Useful dsh related functions
 #
-# MG python3 compatible
-#
 #############################################################################################
 """
-import sys
+import sys, commands
 import fileLib
-
-
-if sys.version[:1] >= '3' :
-   import subprocess
-else :
-   import commands
-   subprocess = commands
-
 
 DSH_ROOT = "/etc/dsh/"
 DSH_GROUP = DSH_ROOT + "group/"
@@ -36,7 +26,7 @@ def getMachines(group):
     if group == 'pxatx':
         try:
             command = 'ssh pds@pxatx hostname'
-            hostname = subprocess.getoutput(command)
+            hostname = commands.getoutput(command)
         except:
             hostname = None
 
@@ -59,15 +49,15 @@ def getMachines(group):
     """
 
 if __name__ == '__main__':
-    print(getMachines("px"))
-    print(getMachines("pds"))
-    print(getMachines("pxatx"))
+    print getMachines("px")
+    print getMachines("pds")
+    print getMachines("pxatx")
 
-    print(getMachines("PX"))
-    print(getMachines("PDS"))
-    print(getMachines("PXATX"))
+    print getMachines("PX")
+    print getMachines("PDS")
+    print getMachines("PXATX")
 
-    print(getMachines("toto"))
-    print(getMachines("userv"))
-    print(getMachines("userver"))
+    print getMachines("toto")
+    print getMachines("userv")
+    print getMachines("userver")
 

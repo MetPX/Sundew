@@ -12,8 +12,6 @@ named COPYING in the root of the source directory tree.
 #
 # Description: Used to create stations file
 #
-# MG python3 compatible
-#
 #############################################################################################
 """
 import sys
@@ -33,7 +31,7 @@ class StationFileCreator(FileCreator):
         self._closeFile()
 
     def _appendToFile(self):
-        headers = list(self.stations.keys())
+        headers = self.stations.keys()
         headers.sort()
 
         for header in headers:
@@ -48,7 +46,7 @@ class StationFileCreator(FileCreator):
             coll = ''
 
             if self.stationsColl:
-                if header in self.stationsColl:
+                if self.stationsColl.has_key(header):
                     coll = 'COLL'
 
             line = "%s:%s:%s:\n" % (header, coll, stations)

@@ -18,13 +18,7 @@ named COPYING in the root of the source directory tree.
 # 
 #############################################################################################
 """
-import sys, os, os.path, time, pwd, fnmatch, random
-
-if sys.version[:1] >= '3' :
-   import subprocess
-else :
-   import commands
-   subprocess = commands
+import sys, os, os.path, time, pwd, commands, fnmatch, random
 
 import PXPaths, dateLib
 from Logger import Logger
@@ -66,7 +60,7 @@ class Latencies:
         self.stats = {}            # Final stats
         self.sortedStats = []      # Final sorted stats
         self.max = 0               # Maximum latency time in seconds
-        self.min = sys.maxsize     # Minimum latency time in seconds
+        self.min = sys.maxint      # Minimum latency time in seconds
         self.mean = 0              # Mean latency time in seconds
         self.latencyThreshold = 15 # We don't want to go over this threshold (in seconds)
         self.overThreshold = 0     # Number of files with latency over threshold
@@ -94,7 +88,7 @@ class Latencies:
         for dir in fnmatch.filter(os.listdir(PXPaths.LAT_TMP), '*' + self.random):
             fullPath = PXPaths.LAT_TMP + dir
             command = 'rm -rf %s' % fullPath
-            (status, output) = subprocess.getstatusoutput(command)
+            (status, output) = commands.getstatusoutput(command)
 
     def obtainFiles(self):
         raise 'Must be implemented in a child class'
@@ -133,7 +127,7 @@ class Latencies:
             self.mean = 0
             self.underThresholdP = 100
 
-        if self.min == sys.maxsize:
+        if self.min == sys.maxint:
             self.min = 0
 
         self.sortedStats = self._getSortedStats(self.stats)
@@ -172,10 +166,10 @@ class Latencies:
                     self.min = bigLat
 
                 if bigLat > 40000:
-                    print(file, bigLat, machine)
-                    print(self.xferlogInfos[file])
-                    print(self.receivingInfos[file])
-                    print(self.sendingInfos[file])
+                    print file, bigLat, machine
+                    print self.xferlogInfos[file]
+                    print self.receivingInfos[file]
+                    print self.sendingInfos[file]
             else:
                 self.rejected += 1
 
@@ -189,7 +183,7 @@ class Latencies:
             self.meanWaiting = 0
             self.underThresholdP = 100
 
-        if self.min == sys.maxsize:
+        if self.min == sys.maxint:
             self.min = 0
 
         self.sortedStats = self._getSortedStats(self.stats)
@@ -202,7 +196,7 @@ class Latencies:
 
     def _getSortedStats(self, statsDict):
         # Will be sorted by date
-        items = [(v,k) for k,v in list(statsDict.items())]
+        items = [(v,k) for k,v in statsDict.items()]
         items.sort()
         return [(k,v) for v,k in items]
 

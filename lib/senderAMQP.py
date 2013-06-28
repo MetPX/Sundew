@@ -11,8 +11,6 @@
 #
 # Date: 2008-11-19
 #
-# MG python3 compatible
-#
 #############################################################################################
 
 """
@@ -203,7 +201,7 @@ class senderAMQP:
               try:
                    os.unlink(path)
                    self.logger.info("suppressed duplicate send %s", os.path.basename(path))
-              except OSError as e:
+              except OSError, e:
                    (type, value, tb) = sys.exc_info()
                    self.logger.info("in_cache unable to unlink %s ! Type: %s, Value: %s"
                                    % (path, type, value))
@@ -215,7 +213,7 @@ class senderAMQP:
        try:
               os.unlink(path)
               self.logger.debug("%s has been erased", os.path.basename(path))
-       except OSError as e:
+       except OSError, e:
               (type, value, tb) = sys.exc_info()
               self.logger.error("Unable to unlink %s ! Type: %s, Value: %s" % (path, type, value))
 

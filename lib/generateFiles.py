@@ -12,9 +12,9 @@ import sys, string, random
 root = '/apps/px/bulletins/2/'
 numFiles = sys.argv[1]
 size = sys.argv[2]
-letters = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ'
-#letters.remove('U')
-priority = list(range(1,6))
+letters = list(string.letters)
+letters.remove('U')
+priority = range(1,6)
 timestamp = 20050201174200
 
 for num in range(int(numFiles)):

@@ -593,8 +593,8 @@ class bulletin:
             else:
                 # The bulletin is alphanumeric... 
                 return stringBulletin.split(self.lineSeparator)
-        except Exception as e:
-            self.logger.exception('Error splitting bulletin:\n'+''.join(traceback.format_exception(Exception,e,sys.exc_info()[2])))
+        except Exception, e:
+            self.logger.exception('Error splitting bulletin:\n'+''.join(traceback.format_exception(Exception,e,sys.exc_traceback)))
             self.setError('Error splitting bulletin into lines')
             return stringBulletin.split(self.lineSeparator)
 

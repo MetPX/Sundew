@@ -15,8 +15,6 @@ named COPYING in the root of the source directory tree.
 #
 # Description: Format Latencies Messages
 # 
-# MG python3 compatible
-# 
 #############################################################################################
 """
 import PXPaths, dateLib
@@ -41,7 +39,7 @@ class LatMessage:
         file.close()
 
     def printResults(self):
-        print(self.text)
+        print self.text
 
     def setTextResults(self):
         part1 = """

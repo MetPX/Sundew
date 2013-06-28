@@ -85,7 +85,7 @@ if __name__ == '__main__':
             pxUID = pwd.getpwnam("px")[2]
             os.setuid(pxUID)
           except:
-            print("No pds or px user on this machine. Don't start as root!")
+            print "No pds or px user on this machine. Don't start as root!"
             sys.exit(2)
 
     

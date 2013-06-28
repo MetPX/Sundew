@@ -6,8 +6,6 @@
 # author:
 #   2004/10 Louis-Philippe Thériault
 #
-# MG python3 compatible
-#
 
 """WMO socket protocol derived bulletin class"""
 

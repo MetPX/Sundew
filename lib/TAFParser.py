@@ -163,12 +163,12 @@ class TAFParser(FileParser):
                                 self.stations.setdefault(header, []).append(parts[2])
                             else:
                                 if self.printErrors:
-                                    print(self.filename)
+                                    print self.filename
                                     print("PROBLEM: %s" % line)
                                 countProblem += 1
                         else:
                             if self.printErrors:
-                                print(self.filename)
+                                print self.filename
                                 print("PROBLEM: %s" % line)
                             countProblem += 1
                     elif parts[0] in ['3D', '?', '20', 'CHECK', '//END', 'END....', 'MF']:
@@ -176,9 +176,9 @@ class TAFParser(FileParser):
                                 
                     else:
                         if self.printErrors:
-                            print(self.filename)
+                            print self.filename
                             print("PROBLEM: %s" % line)
-                            print(parts)
+                            print parts
                         countProblem += 1
                         #sys.exit()
                 except:
@@ -188,9 +188,9 @@ class TAFParser(FileParser):
                         self.logger.debug(parts)
                         self.logger.error("An error occurs in %s" % self.filename)
                     else:
-                        print(newLines)
-                        print(line)
-                        print(parts)
+                        print newLines
+                        print line
+                        print parts
                         print("An error occurs in %s" % self.filename)
                     break
 
@@ -275,7 +275,7 @@ if __name__ == '__main__':
                 sp.parse()
 
     # Remove duplicates stations
-    for header in list(sp.stations.keys()):
+    for header in sp.stations.keys():
         noDupStations = sp.removeDuplicate(sp.stations[header])
         noDupStations.sort()
         sp.stations[header] = noDupStations

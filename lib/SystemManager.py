@@ -15,18 +15,10 @@ named COPYING in the root of the source directory tree.
 # Description: General System Manager. Regroup functionalities common to all managers.
 #              PXManager and PDSManager will implement features particular to them.
 #
-# MG python3 compatible
-#
 #############################################################################################
 
 """
-import os, os.path, sys, shutil, re, pickle, time, logging
-
-if sys.version[:1] >= '3' :
-   import subprocess
-else :
-   import commands
-   subprocess = commands
+import os, os.path, sys, shutil, commands, re, pickle, time, logging
 
 class SystemManagerException(Exception):
     pass
@@ -51,20 +43,20 @@ class SystemManager:
         self.rxPaths = []                      # Receivers (input directories in PDS parlance) paths
         self.txPaths = []                      # Transmitters (clients in PDS parlance, senders in PX parlance) paths
 
-    def removeDuplicate(listx):
-        setx = {}
-        for item in listx:
-            setx[item] = 1
-        return list(setx.keys())
+    def removeDuplicate(list):
+        set = {}
+        for item in list:
+            set[item] = 1
+        return set.keys()
     removeDuplicate = staticmethod(removeDuplicate)
 
-    def identifyDuplicate(listx):
+    def identifyDuplicate(list):
         duplicate = {}
-        listx.sort()
-        for index in range(len(listx)-1):
-            if listx[index] == listx[index+1]:
-                duplicate[listx[index]]=1
-        return list(duplicate.keys())
+        list.sort()
+        for index in range(len(list)-1):
+            if list[index] == list[index+1]:
+                duplicate[list[index]]=1
+        return duplicate.keys()
     identifyDuplicate = staticmethod(identifyDuplicate)
 
     def mergeTwoDict(dict1, dict2):
@@ -76,7 +68,7 @@ class SystemManager:
         newDict = {'toto': [item1, item2, item3, ...], 'titi':[item1], 'tata':[item4], ...}
         """
         newDict = {}
-        keys1 = list(dict1.keys()); keys2 = list(dict2.keys())
+        keys1 = dict1.keys(); keys2 = dict2.keys()
         keys = keys1 + keys2
         keys = SystemManager.removeDuplicate(keys)
         keys.sort()
@@ -230,7 +222,7 @@ class SystemManager:
 
         command = "scp " + source + " " + target
 
-        (status, output) = subprocess.getstatusoutput(command)
+        (status, output) = commands.getstatusoutput(command)
 
         if output == "scp: /apps/px/switchover/*: No such file or directory":
             # No files in the directory
@@ -244,7 +236,7 @@ class SystemManager:
         """
         if os.path.normpath(sourceDir) == os.path.normpath(targetDir):
             if self.logger is None:
-                print("Source and target are identical. We do nothing!")
+                print "Source and target are identical. We do nothing!"
             else:
                 self.logger.error("Source and target are identical. We do nothing!")
             return
@@ -253,7 +245,7 @@ class SystemManager:
             files = os.listdir(sourceDir)
         else:
             if self.logger is None:
-                print("This is not a directory (%s)" % (sourceDir))
+                print "This is not a directory (%s)" % (sourceDir)
             else:
                 self.logger.error("This is not a directory (%s)" % (sourceDir))
             return
@@ -263,7 +255,7 @@ class SystemManager:
                 self.createDir(targetDir)
             except: 
                 if self.logger is None:
-                    print("Unable to create directory (%s)" % (targetDir))
+                    print "Unable to create directory (%s)" % (targetDir)
                 else:
                     (type, value, tb) = sys.exc_info()
                     self.logger.error("Unable to create directory (%s)" % (targetDir))
@@ -282,7 +274,7 @@ class SystemManager:
                 # FIXME
                 # Should create a file with all the files that are copied
                 shutil.copyfile(sourceDir + file, targetDir + file)
-                os.chmod(targetDir + file, 0o644)
+                os.chmod(targetDir + file, 0644)
 
                 if copyLog is not None:
                     cpLog.write(targetDir + file + '\n')
@@ -290,19 +282,19 @@ class SystemManager:
                 # FIXME: Find the correct exceptions that can arrive here
                 (type, value, tb) = sys.exc_info()
                 if self.logger is None:
-                    print("Problem while shutil.copyfile(%s, %s)" % (sourceDir + file, targetDir + file))
+                    print "Problem while shutil.copyfile(%s, %s)" % (sourceDir + file, targetDir + file)
                 else:
                     self.logger.error("Problem with shutil.copyfile(%s, %s) => Type: %s, Value: %s" % 
                                                      (sourceDir + file, targetDir + file, type, value))
                                                      
         if copyLog is not None:
-            os.chmod(copyLog, 0o644)
+            os.chmod(copyLog, 0644)
             cpLog.close()
 
     def createCachedDir(self, dir, cacheManager):
         if cacheManager.find(dir) == None:
             try:
-                os.makedirs(dir, 0o1775)
+                os.makedirs(dir, 01775)
             except OSError:
                 (type, value, tb) = sys.exc_info()
                 if self.logger is None:
@@ -311,19 +303,19 @@ class SystemManager:
                     self.logger.debug("Problem when creating dir (%s) => Type: %s, Value: %s" % (dir, type, value))
 
     def createDir(self, dir):
-        oldUmask = os.umask(0o022)
+        oldUmask = os.umask(0022)
         if not os.path.isdir(dir):
-            os.makedirs(dir, 0o755)
+            os.makedirs(dir, 0755)
         os.umask(oldUmask)
 
     def changePrefixPath(self, path):
         if path[0:7] == '/apps2/':
             path = '/apps/' + path[7:]
-            print(path)
+            print path
             return path
         else:
             if self.logger is None:
-                print("This directory (%s) doesn't begin  by /apps2/" % (path))
+                print "This directory (%s) doesn't begin  by /apps2/" % (path)
                 return None
             else:
                 self.logger.warning("This directory (%s) doesn't begin  by /apps2/" % (path))
@@ -338,7 +330,7 @@ class SystemManager:
         except:
             (type, value, tb) = sys.exc_info()
             if deleteLog is None:
-                print("Problem opening %s , Type: %s Value: %s" % (cpLog, type, value))
+                print "Problem opening %s , Type: %s Value: %s" % (cpLog, type, value)
             else:
                deleteLog.error("Problem opening %s , Type: %s Value: %s" % (cpLog, type, value))
 
@@ -354,7 +346,7 @@ class SystemManager:
             except:
                 (type, value, tb) = sys.exc_info()
                 if deleteLog is None:
-                    print("Problem deleting %s , Type: %s Value: %s" % (file, type, value))
+                    print "Problem deleting %s , Type: %s Value: %s" % (file, type, value)
                 else:
                     deleteLog.error("Problem deleting %s , Type: %s Value: %s" % (file, type, value))
     

@@ -12,14 +12,9 @@ named COPYING in the root of the source directory tree.
 #
 # Description: Used to parse files (parent class)
 #
-# MG python3 compatible
-#
 #############################################################################################
 """
 import sys
-
-
-
 
 class FileParserException(Exception):
     pass
@@ -30,31 +25,25 @@ class FileParser(object):
         self.filename = filename # Name of the file we want to parse
         self.printErrors = True  # Determine if we want to print errors or not
 
-    def removeDuplicate(listx):
-        setx = {}
-        for item in listx:
-            setx[item] = 1
-        lst = list(setx.keys())
-        return lst
+    def removeDuplicate(list):
+        set = {}
+        for item in list:
+            set[item] = 1
+        return set.keys()
     removeDuplicate = staticmethod(removeDuplicate)
 
-    def identifyDuplicate(listx):
+    def identifyDuplicate(list):
         duplicate = {}
-        listx.sort()
-        for index in range(len(listx)-1):
-            if listx[index] == listx[index+1]:
-                duplicate[listx[index]]=1
-        lst= list(duplicate.keys())
-        return lst
+        list.sort()
+        for index in range(len(list)-1):
+            if list[index] == list[index+1]:
+                duplicate[list[index]]=1
+        return duplicate.keys()
     identifyDuplicate = staticmethod(identifyDuplicate)
 
     def openFile(self, filename):
         try:
-            if sys.version[:1] >= '3' :
-               import codecs
-               file = codecs.open(filename, 'r', "utf-8")
-            else :
-               file = open(filename, 'r')
+            file = open(filename, 'r')
             return file
         except:
             (type, value, tb) = sys.exc_info()
@@ -77,6 +66,6 @@ if __name__ == '__main__':
     import sys
 
     parser = FileParser('/apps/px/etc/stations.conf')
-    print("Filename: %s" % parser.filename)
+    print "Filename: %s" % parser.filename
     #parser.clearInfos()
     parser.printInfos()

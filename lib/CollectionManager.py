@@ -15,8 +15,6 @@ named COPYING in the root of the source directory tree.
 #
 # Description: yet another implementation of a collection...
 #
-# MG python3 compatible
-#
 #############################################################################################
 
 """
@@ -427,7 +425,7 @@ class CollectionManager(object):
         try:
                os.unlink(path)
                self.logger.debug("%s has been erased", os.path.basename(path))
-        except OSError as e:
+        except OSError, e:
                (type, value, tb) = sys.exc_info()
                self.logger.error("Unable to unlink %s ! Type: %s, Value: %s" % (path, type, value))
 

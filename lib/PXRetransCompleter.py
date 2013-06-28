@@ -100,10 +100,7 @@ readline.set_completer_delims(readline.get_completer_delims().replace('-', ''))
 readline.set_completer(PXRetransCompleter().complete)
 
 if __name__ == '__main__':
-    import readline, sys
-
-    if sys.version[:1] < '3' :
-       input = raw_input
+    import readline
 
     file = open('tano', 'a')
     file1 = open('tano1', 'a')
@@ -115,7 +112,7 @@ if __name__ == '__main__':
     readline.parse_and_bind("tab: complete")
     readline.set_completer_delims(readline.get_completer_delims().replace('-', ''))
     readline.set_completer(pxrc.complete)
-    input("prompt> ")
+    raw_input("prompt> ")
 
     file.close()
     file1.close()

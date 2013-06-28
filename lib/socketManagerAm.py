@@ -7,9 +7,6 @@
 #
 #    2004/10 -- Louis-Philippe Thériault
 #    2005/01 -- Pierre
-#
-# MG python3 compatible
-#
 
 """Spécialisation pour gestion de sockets "AM" """
 
@@ -175,7 +172,7 @@ class socketManagerAm(socketManager.socketManager):
                 else:
                     return (1, bytesSent)
 
-            except socket.error as e:
+            except socket.error, e:
                 #possible errors: 104, 107, 110 or 32
                 self.logger.error("senderAm.write(): connection broken: %s",str(e.args))
                 self.connected = False
@@ -183,7 +180,7 @@ class socketManagerAm(socketManager.socketManager):
                 self.socket.close()
                 self._socketManager__establishConnection()
 
-        except Exception as e:
+        except Exception, e:
             self.logger.error("socketManagerAm.sendBulletin(): send error: %s",str(e.args))
             raise
 

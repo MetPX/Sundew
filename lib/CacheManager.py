@@ -14,8 +14,6 @@ named COPYING in the root of the source directory tree.
 #
 # Description: U
 #
-# MG python3 compatible
-#
 #############################################################################################
 
 import md5, time, os
@@ -60,9 +58,9 @@ class CacheManager(object):
         # MG (I decided to flush half of the cache when it happens)
 
         #print "still full, clean half or more of cache"
-        temp = [(item[1][0], item[0]) for item in list(self.cache.items())]
+        temp = [(item[1][0], item[0]) for item in self.cache.items()]
         temp.sort()            
-        half_timeout = time.time() - temp[int(self.maxEntries/2)][0]
+        half_timeout = time.time() - temp[self.maxEntries/2][0]
         self.timeoutClear( half_timeout )
         #print "add new"
         #print len(self.cache)
@@ -107,7 +105,7 @@ class CacheManager(object):
 
         # one meg or less buffer read
 
-        f=open(path,'rb')
+        f=open(path,'r')
 
         data = f.read(1048576)
         while len(data) :
@@ -127,7 +125,7 @@ class CacheManager(object):
         # Remove all the elements that are older than oldest acceptable time
         #print self.getStats()
         oldestAcceptableTime = time.time() - timeout
-        for item  in list(self.cache.items()):
+        for item  in self.cache.items():
             if item[1][0] < oldestAcceptableTime:
                 del self.cache[item[0]]
 
@@ -135,7 +133,7 @@ class CacheManager(object):
 
         compteurs = {}
 
-        for item in list(self.cache.items()):
+        for item in self.cache.items():
             if item[1][1] in compteurs:
                 compteurs[item[1][1]] += 1
             else:
@@ -144,7 +142,7 @@ class CacheManager(object):
         total = 0.0
         cached = 0.0
 
-        for (key, value) in list(compteurs.items()):
+        for (key, value) in compteurs.items():
             cached += (key-1) * value
             total += key * value
 
@@ -157,19 +155,18 @@ if __name__ == '__main__':
     manager = CacheManager(maxEntries=3, timeout=5 * 3600)
 
     cacheMD5 = manager.get_md5_from_file(sys.argv[1])
-    print(cacheMD5)
+    print cacheMD5
 
     manager.find('toto')
     manager.find('tutu')
     time.sleep(6)
-    print(manager.cache)
+    #print manager.cache
 
     if     manager.has('toto') : print(" HAS toto")
     if not manager.has('titi') : print(" NO  titi")
     manager.find('titi')
-    time.sleep(6)
     manager.find('toto')
-    print(manager.cache)
+    print manager.cache
     manager.find('mimi')
-    print(manager.cache)
-    print(manager.getStats())
+    print manager.cache
+    print manager.getStats()

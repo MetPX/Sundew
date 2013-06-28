@@ -19,7 +19,7 @@ named COPYING in the root of the source directory tree.
 #############################################################################################
 
 """
-import sys, os, signal, string
+import sys, os, commands, signal, string
 
 class TextSplitter:
     """
@@ -194,8 +194,8 @@ class TextSplitter:
                     blocks[index] += line + self.__alignment
                     count += lineLength
                 else: 
-                    print("You should never get here. If you are, it's probably because we need to rewrite this method")
-                    print("A given line is longer than the maxSize. We don't want to break line, don't we?")
+                    print "You should never get here. If you are, it's probably because we need to rewrite this method"
+                    print "A given line is longer than the maxSize. We don't want to break line, don't we?"
                     self.__blocks = [] 
                     return blocks 
 
@@ -256,11 +256,11 @@ if __name__ == "__main__":
     """
 
     splitter = TextSplitter(text, maxSize, alignment, overhead)
-    print(splitter.getLines())
+    print splitter.getLines()
     splitter.breakLongText()
 
     for line in splitter.getBlocks():
-        print(line, len(line))
+        print line, len(line)
 
 #
 #

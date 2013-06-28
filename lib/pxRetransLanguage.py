@@ -8,8 +8,6 @@
 #
 # Description: French and English dictionaries for pxRetrans application
 #
-# MG python3 compatible
-#
 #############################################################################################
 """
 

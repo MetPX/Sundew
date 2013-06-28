@@ -20,8 +20,6 @@ named COPYING in the root of the source directory tree.
 #
 # Description:
 #
-# MG python3 compatible
-#
 #############################################################################################
 
 """
@@ -130,26 +128,22 @@ class Client(object):
         self.readConfig()
 
         if self.destfn_execfile != None :
-           try    : self.execfile(PXPaths.SCRIPTS + self.destfn_execfile )
+           try    : execfile(PXPaths.SCRIPTS + self.destfn_execfile )
            except : self.logger.error("Problem with destfn_script %s" % self.destfn_execfile)
 
         if self.fx_execfile != None :
-           try    : self.execfile(PXPaths.SCRIPTS + self.fx_execfile )
+           try    : execfile(PXPaths.SCRIPTS + self.fx_execfile )
            except : self.logger.error("Problem with fx_script %s" % self.fx_execfile)
 
         if self.dx_execfile != None :
-           try    : self.execfile(PXPaths.SCRIPTS + self.dx_execfile )
+           try    : execfile(PXPaths.SCRIPTS + self.dx_execfile )
            except : self.logger.error("Problem with dx_script %s" % self.dx_execfile)
 
         if self.send_execfile != None :
-           try    : self.execfile(PXPaths.SCRIPTS + self.send_execfile )
+           try    : execfile(PXPaths.SCRIPTS + self.send_execfile )
            except : self.logger.error("Problem with send_script %s" % self.send_execfile)
 
         #self.printInfos(self)
-
-
-    def execfile(self, path):
-        exec(compile(open(path).read(), path, 'exec'))
 
     def parsePurgeInstructions(self, line):
         # '10H,4+:18H,3'
@@ -164,7 +158,7 @@ class Client(object):
             hours.strip(), pri.strip()
             sec = int(hours[:-1]) * HOUR
             if pri[-1] == '+':
-                pri = list(range(int(pri[:-1]), 6))
+                pri = range(int(pri[:-1]), 6)
             elif int(pri) in [1,2,3,4,5]:
                 pri = [int(pri)]
             newInst.append((sec,pri))
@@ -190,7 +184,7 @@ class Client(object):
 
         def stringToOctal(string):
             if len(string) != 3:
-                return 0o644
+                return 0644
             else:
                 return int(string[0])*64 + int(string[1])*8 + int(string[2])
 
@@ -383,7 +377,7 @@ class Client(object):
                      old_destFileName  = destFileName
                      script = PXPaths.SCRIPTS + spec[13:]
                      try    :
-                              self.execfile(script)
+                              execfile(script)
                               destFileName = self.destfn_script(filename)
                      except : self.logger.error("Problem with filename DESTFNSCRIPT=%s" % script)
                      self.destfn_script = old_destfn_script
@@ -476,7 +470,7 @@ if __name__ == '__main__':
 
     """
     for filename in os.listdir(PXPaths.TX_CONF):
-        print(filename)
+        print filename
         if filename[-5:] != '.conf': 
             continue
         else:

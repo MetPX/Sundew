@@ -11,7 +11,7 @@
 #############################################################################################
 
 """
-import os, sys, re, curses.ascii
+import os, sys, commands, re, curses.ascii
 
 sys.path.insert(1,sys.path[0] + '/..')
 sys.path.insert(1,sys.path[0] + '/../importedLibs')
@@ -193,33 +193,33 @@ Message (repr):
                self.message, self.messageLines, repr(self.message))
 
     def printInfos(self):
-        print("******************************** Infos du Message *********************************")
-        print("Header: %s" % self.header)
+        print "******************************** Infos du Message *********************************"
+        print "Header: %s" % self.header
 
-        print("HeadingLine: %s" % self.headingLine)
-        print("Station ID: %s" % self.stationID)
-        print("CSN: %s" % self.CSN)
-        print("Transmit ID: %s" % self.transmitID)
-        print("DateTime: %s" % self.dateTime)
+        print "HeadingLine: %s" % self.headingLine
+        print "Station ID: %s" % self.stationID
+        print "CSN: %s" % self.CSN
+        print "Transmit ID: %s" % self.transmitID
+        print "DateTime: %s" % self.dateTime
 
-        print("Destination Address Line: %s" % self.destinationAddressLine)
-        print("Priority: %s" % self.priority)
-        print("Destination Addresses: %s" % self.destAddress)
+        print "Destination Address Line: %s" % self.destinationAddressLine
+        print "Priority: %s" % self.priority
+        print "Destination Addresses: %s" % self.destAddress
 
-        print("Origin Address Line: %s" % self.originAddressLine)
-        print("Filing Time: %s" % self.filingTime)
-        print("Originator Address: %s" % self.originatorAddress)
+        print "Origin Address Line: %s" % self.originAddressLine
+        print "Filing Time: %s" % self.filingTime
+        print "Originator Address: %s" % self.originatorAddress
 
-        print("Text Block: %s" % self.textBlock)
-        print("Text lines: %s" % self.textLines)
-        print("Text string: %s" % self.textString)
+        print "Text Block: %s" % self.textBlock
+        print "Text lines: %s" % self.textLines
+        print "Text string: %s" % self.textString
 
-        print("Message: %s" % self.message)
-        print("Message Lines: %s" % self.messageLines)
+        print "Message: %s" % self.message
+        print "Message Lines: %s" % self.messageLines
 
-        print("Message (repr): \n" + repr(self.message))
-        print("*********************************** Fin (Message) *********************************")
-        print("\n")
+        print "Message (repr): \n" + repr(self.message)
+        print "*********************************** Fin (Message) *********************************"
+        print "\n"
 
     def setMessage(self, message):
         self.message = message
@@ -463,19 +463,19 @@ if __name__ == "__main__":
                      "CYYC ILS 16 AND 34 U/S 049141530\r\nTIL 040914800\r\n" + myMessage.END_OF_MESSAGE
 
 
-    print(myMessage.message)
+    print myMessage.message
     myMessage.messageToValues()
 
-    print("=========================================")
-    print(myMessage.stationID)          # 3 Letters assigned by NavCanada for each circuit (ex: ABC)
-    print(myMessage.CSN)                # Channel sequence number, 4 digits (ex: 0003)
-    print(myMessage.transmitID)         # stationID + CSN (ex: ABC0003)
-    print(myMessage.dateTime)           # 8-digits DDHHMMSS (ex:14033608)
-    print(myMessage.priority)           # Priority indicator (SS, DD, FF, GG or KK)
-    print(myMessage.destAddress)        # 8-letter group, max. 21 addresses
-    print(myMessage.filingTime)         # 6-digits DDHHMM (ex:140335) indicating date and time of filing the message for transmission.
-    print(myMessage.originatorAddress)  # 8-letter group identifying the message originator (CYEGYFYX)
-    print("=========================================")
+    print "========================================="
+    print myMessage.stationID           # 3 Letters assigned by NavCanada for each circuit (ex: ABC)
+    print myMessage.CSN                 # Channel sequence number, 4 digits (ex: 0003)
+    print myMessage.transmitID          # stationID + CSN (ex: ABC0003)
+    print myMessage.dateTime            # 8-digits DDHHMMSS (ex:14033608)
+    print myMessage.priority            # Priority indicator (SS, DD, FF, GG or KK)
+    print myMessage.destAddress         # 8-letter group, max. 21 addresses
+    print myMessage.filingTime          # 6-digits DDHHMM (ex:140335) indicating date and time of filing the message for transmission.
+    print myMessage.originatorAddress   # 8-letter group identifying the message originator (CYEGYFYX)
+    print "========================================="
 
     myMessage.destAddress = []
     addresses = [ 8*x for x in string.uppercase]
@@ -489,17 +489,17 @@ if __name__ == "__main__":
         else:
             myMessage.destAddress.append(address)
 
-    print(myMessage.destAddress)
+    print myMessage.destAddress
 
     message = myMessage.createMessage()
-    print(message)
+    print message
 
     newMessage = MessageAFTN(logger)
     newMessage.setMessage(message)
     
     if newMessage.messageToValues():
         newMessage.createMessage()
-        print(newMessage)
+        print newMessage
     else:
-        print("PROBLEM WITH messageToValues()")
+        print "PROBLEM WITH messageToValues()"
         

@@ -18,22 +18,12 @@ named COPYING in the root of the source directory tree.
 # Revision History: 
 #   2005-12-09  NSD         Created collection db dir.
 #
-# MG python3 compatible
-#
 #############################################################################################
 
 """
-import os, os.path, sys, re, pickle, time, logging, fnmatch
+import os, os.path, sys, commands, re, pickle, time, logging, fnmatch
 import SystemManager, PXPaths, fileLib
 from SystemManager import SystemManager
-
-
-if sys.version[:1] >= '3' :
-   import subprocess
-else :
-   import commands
-   subprocess = commands
-
 
 class PXManager(SystemManager):
 
@@ -76,15 +66,15 @@ class PXManager(SystemManager):
     
             for file in files:
                 if type=='rx':
-                    subprocess.getoutput('grep Ingested %s | cut -d" " -f1,2,10 | \
+                    commands.getoutput('grep Ingested %s | cut -d" " -f1,2,10 | \
                     awk \'{date = $1 " " $2}; date >= "%s" && date <= "%s" {print $1, substr($2, 1, 8), $3, "%s"}\' >> %s.%s' %
                     (file, startDateFormatted, endDateFormatted, hostname, filename, ALL))
                 elif type=='tx':
-                    subprocess.getoutput('grep delivered %s | cut -d" " -f1,2,7 | \
+                    commands.getoutput('grep delivered %s | cut -d" " -f1,2,7 | \
                     awk \'{date = $1 " " $2}; date >= "%s" && date <= "%s" {print $1, substr($2, 1, 8), $3, "%s"}\' >> %s.%s' %
                     (file, startDateFormatted, endDateFormatted, hostname, filename, ALL))
 
-                if DEBUG: print(file)
+                if DEBUG: print file
     
             if os.path.isfile("%s.%s" % (filename, ALL)):
                 matchingFiles.append("%s.%s" % (filename, MATCH))
@@ -150,7 +140,7 @@ class PXManager(SystemManager):
         sourceNames = self.getRxNames()
 
         if drp:
-            aliases = list(drp.aliasedClients.keys())
+            aliases = drp.aliasedClients.keys()
         else:
             aliases = []
 
@@ -164,8 +154,8 @@ class PXManager(SystemManager):
         type, flowNames = self.getFlowType(flow, drp)
 
         if self.debug:
-            print(type)
-            print(flowNames)
+            print type
+            print flowNames
 
         # No type or flow is an alias
         if not type or len(flowNames) != 1: return None
@@ -317,7 +307,7 @@ class PXManager(SystemManager):
         for name in shouldRunFxNames:
             try:
                 pid = open(PXPaths.FXQ + name + '/' + '.lock', 'r').read().strip()
-                if not subprocess.getstatusoutput('ps -p ' + pid)[0]:
+                if not commands.getstatusoutput('ps -p ' + pid)[0]:
                     # Process is running
                     runningFxNames.append(name)
                 else:
@@ -340,7 +330,7 @@ class PXManager(SystemManager):
         for name in shouldRunRxNames:
             try:
                 pid = open(PXPaths.RXQ + name + '/' + '.lock', 'r').read().strip()
-                if not subprocess.getstatusoutput('ps -p ' + pid)[0]:
+                if not commands.getstatusoutput('ps -p ' + pid)[0]:
                     # Process is running
                     runningRxNames.append(name)
                 else:
@@ -363,7 +353,7 @@ class PXManager(SystemManager):
         for name in shouldRunTxNames:
             try:
                 pid = open(PXPaths.TXQ + name + '/' + '.lock', 'r').read().strip()
-                if not subprocess.getstatusoutput('ps -p ' + pid)[0]:
+                if not commands.getstatusoutput('ps -p ' + pid)[0]:
                     # Process is running
                     runningTxNames.append(name)
                 else:
@@ -387,7 +377,7 @@ class PXManager(SystemManager):
             try:
                 #We read the pid from the RXQ (we could have used TXQ)
                 pid = open(PXPaths.RXQ + name + '/' + '.lock', 'r').read().strip()
-                if not subprocess.getstatusoutput('ps -p ' + pid)[0]:
+                if not commands.getstatusoutput('ps -p ' + pid)[0]:
                     # Process is running
                     runningTRxNames.append(name)
                 else:
@@ -588,31 +578,31 @@ if __name__ == '__main__':
     manager.initShouldRunNames()
     manager.initRunningNames()
 
-    print('')
-    print("**************************************************************")
+    print
+    print "**************************************************************"
     print("FX Names: %s" % manager.getFxNames())
     print("RX Names: %s" % manager.getRxNames())
     print("TX Names: %s" % manager.getTxNames())
     print("TRX Names: %s" % manager.getTRxNames())
-    print("********************* Should run names ***********************")
+    print "********************* Should run names ***********************"
     print("FX that should run: %s" % manager.getShouldRunFxNames())
     print("RX that should run: %s" % manager.getShouldRunRxNames())
     print("TX that should run: %s" % manager.getShouldRunTxNames())
     print("TRX that should run: %s" % manager.getShouldRunTRxNames())
-    print("********************** Running names *************************")
-    print(manager.getRunningFxNames())
-    print(manager.getRunningRxNames())
-    print(manager.getRunningTxNames())
-    print(manager.getRunningTRxNames())
-    print("************* Not Running names (that should run) ************")
-    print(manager.getNotRunningFxNames())
-    print(manager.getNotRunningRxNames())
-    print(manager.getNotRunningTxNames())
-    print(manager.getNotRunningTRxNames())
-    print("**************************************************************")
-    print('')
+    print "********************** Running names *************************"
+    print manager.getRunningFxNames()
+    print manager.getRunningRxNames()
+    print manager.getRunningTxNames()
+    print manager.getRunningTRxNames()
+    print "************* Not Running names (that should run) ************"
+    print manager.getNotRunningFxNames()
+    print manager.getNotRunningRxNames()
+    print manager.getNotRunningTxNames()
+    print manager.getNotRunningTRxNames()
+    print "**************************************************************"
+    print
     
-    print(manager.getDBName("TVE-cartes_2007111300_317_P45.gif:TVE:CMOI:CARTES:4:GIF:20071113033933"))
+    print manager.getDBName("TVE-cartes_2007111300_317_P45.gif:TVE:CMOI:CARTES:4:GIF:20071113033933")
 
-    print(manager.getFlowType("pds_metser"))
-    print(manager.getFlowQueueName(flow='pds_metser', filename="200801151910~NAV9_ONT_ECHOTOP~ECHOTOP,2.0,100M,AGL,78,N:URP:NAV9_ONT:RADAR:IMV6::20080115191243", priority=2))
+    print manager.getFlowType("pds_metser")
+    print manager.getFlowQueueName(flow='pds_metser', filename="200801151910~NAV9_ONT_ECHOTOP~ECHOTOP,2.0,100M,AGL,78,N:URP:NAV9_ONT:RADAR:IMV6::20080115191243", priority=2)

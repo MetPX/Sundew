@@ -14,12 +14,10 @@ named COPYING in the root of the source directory tree.
 #
 # Description:
 #
-# MG python3 compatible
-#
 #############################################################################################
 
 """
-import os, sys, os.path, re, time, datetime, fnmatch
+import os, sys, os.path, re, commands, time, datetime, fnmatch
 import Client, Source, Sourlient
 from MultiKeysStringSorter import MultiKeysStringSorter
 from CacheManager import CacheManager
@@ -38,9 +36,6 @@ class _DirIterator(object):
 
     def __iter__(self):
         return self
-
-    def __next__(self):
-        return self.next()
 
     def next(self):
         join = os.path.join
@@ -334,9 +329,12 @@ if __name__ == "__main__":
     """
     #iterator = _DirIterator('/apps/px/toto' , True)
     #reader = DiskReader('/apps/px/txq/amis', 20)
-    reader = DiskReader('/apps/px/log', 20, False, 5, False)
-    reader.read()
+    reader = DiskReader('/apps/px/toto', 20, False, 5, False)
     #for file in iterator:
        #print file
-    print("List of all files:")
-    print(reader.sortedFiles)
+    print "List of all files:"
+    print reader.files
+    reader.sort()
+    print reader.files
+    for file in reader.files:
+       print file

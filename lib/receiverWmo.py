@@ -6,8 +6,6 @@
 # Author:
 #     2004/10 Louis-Philippe Thériault
 #
-# MG Python3 compatible
-#
 
 """ReceiverWmo: socketWmo -> disk, including bulletin processing"""
 
@@ -91,7 +89,7 @@ class receiverWmo(gateway.gateway):
         if self.unSocketManagerWmo.isConnected():
             try:
                 data = self.unSocketManagerWmo.getNextBulletins()
-            except socketManager.socketManagerException as e:
+            except socketManager.socketManagerException, e:
                 if e.args[0] == 'la connexion est brisee':
                     self.logger.error("lost connection, processing rest of buffer")
                     data, nbBullEnv = self.unSocketManagerWmo.closeProperly()
@@ -141,7 +139,7 @@ class receiverWmo(gateway.gateway):
 
             self.logger.info('configuration reload successful')
 
-        except Exception as e:
+        except Exception, e:
 
             self.logger.error('configuraton reload failed')
 

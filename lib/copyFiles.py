@@ -16,7 +16,7 @@ original = "SMCN39_CWAO_071200_71978_50953:ncp1:CWAO:SM:3:Direct:20050607123429"
 #root = "/apps/px/txq/echo/"
 root = "/apps/px/txq/echo/1/2005050510/"
 numFiles = sys.argv[1]
-priority = list(range(1,2))
+priority = range(1,2)
 timestamp = 20050201174200
 
 for num in range(int(numFiles)):

@@ -15,8 +15,6 @@ named COPYING in the root of the source directory tree.
 #
 # Description: Make a graph from data points
 # 
-# MG Not python3 compatible
-# 
 #############################################################################################
 """
 

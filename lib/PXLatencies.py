@@ -19,14 +19,7 @@ named COPYING in the root of the source directory tree.
 # 
 #############################################################################################
 """
-import sys, os, os.path, fnmatch
-
-if sys.version[:1] >= '3' :
-   import subprocess
-else :
-   import commands
-   subprocess = commands
-
+import sys, os, os.path, commands, fnmatch
 
 import PXPaths, dateLib
 from Latencies import Latencies
@@ -65,31 +58,31 @@ class PXLatencies(Latencies):
             if self.sources[0] == '__ALL__':
                 command = "ssh %s grep -h -e \"'%s.*INFO.*Ingested'\" %s/rx*" % (machine, self.dateDashed, PXPaths.LOG)
                 #print command
-                (status, output) = subprocess.getstatusoutput(command)
+                (status, output) = commands.getstatusoutput(command)
                 allSources = open(PXPaths.LAT_TMP + machine + '_' + self.random + '/rx_all.log', 'w')
                 allSources.write(output)
                 allSources.close()
             else:
                 for source in self.sources:
                     command = "ssh %s grep -h -e \"'%s.*INFO.*Ingested'\" %s/rx_%s*" % (machine, self.dateDashed, PXPaths.LOG, source)
-                    (status, output) = subprocess.getstatusoutput(command)
+                    (status, output) = commands.getstatusoutput(command)
                     sourceFile = open(PXPaths.LAT_TMP + machine + '_' + self.random + '/rx_' + source, 'w')
                     sourceFile.write(output)
                     sourceFile.close()
 
                     #command = 'scp -q %s:%s %s' % (machine, PXPaths.LOG + 'rx_' + source + '*', PXPaths.LAT_TMP + machine + '_' + self.random)
-                    #(status, output) = subprocess.getstatusoutput(command)
+                    #(status, output) = commands.getstatusoutput(command)
 
             # xferlog data
             if self.xstats:
                 command = "ssh %s grep -h -e \"'%s %s'\" /var/log/wu-ftpd/xferlog" % (machine, monthAbbrev, day)
-                (status, output) = subprocess.getstatusoutput(command)
+                (status, output) = commands.getstatusoutput(command)
                 xferlog = open(PXPaths.LAT_TMP + machine + '_' + self.random + '/xferlog_paplat', 'w')
                 xferlog.write(output)
                 xferlog.close()
 
             command = 'scp -q %s:%s %s' % (machine, PXPaths.LOG + 'tx_' + self.client + '.*', PXPaths.LAT_TMP + machine + '_' + self.random)
-            (status, output) = subprocess.getstatusoutput(command)
+            (status, output) = commands.getstatusoutput(command)
 
     def extractGoodLines(self, prefix, good):
         for machine in self.machines:
@@ -100,7 +93,7 @@ class PXLatencies(Latencies):
             try:
                 files = os.listdir(dirPath)
             except OSError:
-                print("%s doesn't exist!\nDon't use -n|--nopull option if you don't have some data." % dirPath)
+                print "%s doesn't exist!\nDon't use -n|--nopull option if you don't have some data." % dirPath
                 sys.exit(1)
 
             if prefix == 'rx' and self.xstats:
