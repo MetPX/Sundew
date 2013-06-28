@@ -13,6 +13,8 @@
 #
 # Contribution: Michel Grenier segmentation of bulletins
 #
+# MG python3 compatible
+#
 #############################################################################################
 
 """
@@ -95,11 +97,11 @@ class senderAMIS:
             self.socketAMIS.connect(self.address)
             self.logger.info("AMIS Sender is now connected to: %s" % str(self.address))
             break
-         except socket.gaierror, e:
+         except socket.gaierror as e:
             #print "Address related error connecting to server: %s" % e
             self.logger.error("Address related error connecting to server: %s" % e)
             sys.exit(1)
-         except socket.error, e:
+         except socket.error as e:
             (type, value, tb) = sys.exc_info()
             self.logger.error("Type: %s, Value: %s, Sleeping 5 seconds ..." % (type, value))
             #self.logger.error("Connection error: %s, sleeping ..." % e)
@@ -182,7 +184,7 @@ class senderAMIS:
          data = self.read()
          try:
             self.write(data)
-         except socket.error, e:
+         except socket.error as e:
             (type, value, tb) = sys.exc_info()
             self.logger.error("Sender error! Type: %s, Value: %s" % (type, value))
             
@@ -209,7 +211,7 @@ class senderAMIS:
               try:
                    os.unlink(path)
                    self.logger.info("suppressed duplicate send %s", os.path.basename(path))
-              except OSError, e:
+              except OSError as e:
                    (type, value, tb) = sys.exc_info()
                    self.logger.info("in_cache unable to unlink %s ! Type: %s, Value: %s"
                                    % (path, type, value))
@@ -269,7 +271,7 @@ class senderAMIS:
        try:
               os.unlink(path)
               self.logger.debug("%s has been erased", os.path.basename(path))
-       except OSError, e:
+       except OSError as e:
               (type, value, tb) = sys.exc_info()
               self.logger.error("Unable to unlink %s ! Type: %s, Value: %s" % (path, type, value))
 

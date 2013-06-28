@@ -18,6 +18,9 @@ named COPYING in the root of the source directory tree.
 
 import os, os.path, sys, getopt
 
+if sys.version[:1] < '3' :
+   input = raw_input
+
 # default library path
 
 # old way
@@ -56,12 +59,12 @@ from RoutingFileCreator import RoutingFileCreator
 from StationFileCreator import StationFileCreator
 
 def usage():
-    print "\nUsage: pxValidator [-m] [-r routing] [-s stations] where routing is"
-    print "the name of the routing file and stations is the name of the stations file\n"
-    print "ex 1: pxValidator  (default routing is PXPaths.ROUTING_TABLE and default stations is PXPaths.STATION_TABLE)"
-    print "ex 2: pxValidator -r pxRouting.conf (defaut path is PXPaths.ETC)"
-    print "ex 3: pxValidator -r /toto/tutu/pxRouting.conf"
-    print "ex 4: pxValidator -m (menu will appears)\n"
+    print("\nUsage: pxValidator [-m] [-r routing] [-s stations] where routing is")
+    print("the name of the routing file and stations is the name of the stations file\n")
+    print("ex 1: pxValidator  (default routing is PXPaths.ROUTING_TABLE and default stations is PXPaths.STATION_TABLE)")
+    print("ex 2: pxValidator -r pxRouting.conf (defaut path is PXPaths.ETC)")
+    print("ex 3: pxValidator -r /toto/tutu/pxRouting.conf")
+    print("ex 4: pxValidator -m (menu will appears)\n")
 
 def findChange(oldList, newList):
     deleted = []
@@ -76,7 +79,7 @@ def findChange(oldList, newList):
         else:
             deleted.append(item)
 
-    added = newDict.keys()
+    added = list(newDict.keys())
     added.sort()
     deleted.sort()
         
@@ -105,7 +108,7 @@ class PXValidator:
         #self.sp = StationParser(PXPaths.STATION_TABLE)
 
     def printMenu(self):
-        print
+        print('')
         print("1-Clients indexed by header")
         print("2-Headers indexed by station")
         print("3-Stations indexed by header")
@@ -113,7 +116,7 @@ class PXValidator:
         print("5-AFTN addresses indexed by header")
         print("m-Reprint this menu (to make another choice)")
         print("q-Quit")
-        print
+        print('')
 
     def interrogate(self):
         self.printMenu()
@@ -127,7 +130,7 @@ class PXValidator:
 
         while True:
             if mustChoose:
-                mode = raw_input("Your choice: ")
+                mode = input("Your choice: ")
                 if mode in ['1', '2', '3', '4', '5', '6']:
                     pass
                 elif mode == 'm' or mode == 'M':
@@ -135,13 +138,13 @@ class PXValidator:
                     continue
                 elif mode == 'q' or mode == 'Q': sys.exit()
                 else:
-                    print "Bad choice!"
+                    print("Bad choice!")
                     self.printMenu()
                     continue
                 mustChoose = False
 
-            print
-            answer = raw_input("Enter a %s:  " % selector[mode]).upper()
+            print('')
+            answer = input("Enter a %s:  " % selector[mode]).upper()
             if answer == 'Q' or answer == '': sys.exit()
             elif answer == 'M':
                 self.printMenu()
@@ -152,26 +155,26 @@ class PXValidator:
                 if self.drp.routingInfos.get(answer, None) is None:
                     print("%s is not in the table" % answer)
                 else:
-                    print self.drp.routingInfos[answer]['clients']
+                    print(self.drp.routingInfos[answer]['clients'])
             elif mode == '2':
-                print self.sp.headers.get(answer, "%s is not in the table" % answer)
+                print(self.sp.headers.get(answer, "%s is not in the table" % answer))
             elif mode == '3':
-                print self.sp.stations.get(answer, "%s is not in the table" % answer)
+                print(self.sp.stations.get(answer, "%s is not in the table" % answer))
             elif mode == '4':
-                print self.sp.stationsColl.get(answer, "%s is not collected (or not in the table)" % answer)
+                print(self.sp.stationsColl.get(answer, "%s is not collected (or not in the table)" % answer))
             elif mode == '5':
                 if self.drp.routingInfos.get(answer, None) is None:
                     print("%s is not in the table" % answer)
                 elif self.drp.routingInfos[answer]['subclients'].get('aftn', None) is None:
                     print("aftn client is not in the table for this header")
                 else:
-                    print self.drp.routingInfos[answer]['subclients']['aftn']
+                    print(self.drp.routingInfos[answer]['subclients']['aftn'])
 
     def stationsDiff(self, filename, sp):
         spOld = StationParser(filename)
         spOld.printErrors = False
         spOld.parse()
-        deleted, added = findChange(spOld.stations.keys(), sp.stations.keys())
+        deleted, added = findChange(list(spOld.stations.keys()), list(sp.stations.keys()))
         if deleted:
             for header in deleted:
                 print("NOTE: %s has been DELETED" % header)
@@ -183,7 +186,7 @@ class PXValidator:
         drpOld = DirectRoutingParser(filename)
         drpOld.printErrors = False
         drpOld.parseAndShowErrors()
-        deleted, added = findChange(drpOld.originalClients.keys(), drp.originalClients.keys())
+        deleted, added = findChange(list(drpOld.originalClients.keys()), list(drp.originalClients.keys()))
         if deleted:
             for header in deleted:
                 print("NOTE: key %s has been DELETED" % header)
@@ -191,7 +194,7 @@ class PXValidator:
             for header in added:
                 print("NOTE: key %s has been ADDED" % header)
 
-        deleted, added = findChange(drpOld.keyMaskMap.keys(), drp.keyMaskMap.keys())
+        deleted, added = findChange(list(drpOld.keyMaskMap.keys()), list(drp.keyMaskMap.keys()))
         if deleted:
             for header in deleted:
                 print("NOTE: key_accept %s has been DELETED" % header)
@@ -200,17 +203,17 @@ class PXValidator:
                 print("NOTE: key_accept %s has been ADDED" % header)
 
     def validate(self):
-        print "################################################################"
-        print "# Routing Table Errors (%s)" % PXValidator.routingFilename
-        print "################################################################"
+        print("################################################################")
+        print("# Routing Table Errors (%s)" % PXValidator.routingFilename)
+        print("################################################################")
         self.drp.parseAndShowErrors()
         if not PXValidator.menu:
             if os.path.isfile(PXValidator.routingFilename + '.pxv'):
                 self.routingDiff(PXValidator.routingFilename + '.pxv', self.drp)
             RoutingFileCreator(self.drp, PXValidator.routingFilename + '.pxv', self.logger)
-        print "################################################################"
-        print "# Station Table Errors (%s) " % PXValidator.stationsFilename
-        print "################################################################"
+        print("################################################################")
+        print("# Station Table Errors (%s) " % PXValidator.stationsFilename)
+        print("################################################################")
         self.sp.printErrors = True
         self.sp.parse()
         if not PXValidator.menu:
@@ -218,11 +221,11 @@ class PXValidator:
                 self.stationsDiff(PXValidator.stationsFilename + '.pxv', self.sp)
             StationFileCreator(PXValidator.stationsFilename + '.pxv', self.logger, self.sp.stations, self.sp.stationsColl)
         #self.sp.printInfos()
-        print "##########################END###################################"
+        print("##########################END###################################")
         
         if PXValidator.menu:
-            print "\nNOTE: The following menu has NOTHING to do with automatic validation"
-            print "If you're only interested in validation results, type q (to quit)."
+            print("\nNOTE: The following menu has NOTHING to do with automatic validation")
+            print("If you're only interested in validation results, type q (to quit).")
 
     def getOptionsParser(self):
         routingFilename = False

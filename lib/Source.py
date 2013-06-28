@@ -20,10 +20,13 @@ named COPYING in the root of the source directory tree.
 # Revision History: 
 #               2005-12-15 Added parsing of collection conf file
 #               2006-05-15 MG   Modification  of collection conf 
+#
+# MG Python3 compatible
+#
 #############################################################################################
 
 """
-import sys, os, os.path, time, string, commands, re, signal, fnmatch
+import sys, os, os.path, time, string, re, signal, fnmatch
 
 # default library path
 
@@ -177,15 +180,15 @@ class Source(object):
         #-----------------------------------------------------------------------------------------
 
         if self.fx_execfile != None :
-           try    : execfile(PXPaths.SCRIPTS + self.fx_execfile )
+           try    : self.execfile(PXPaths.SCRIPTS + self.fx_execfile )
            except : self.logger.error("Problem with fx_script %s" % self.fx_execfile)
 
         if self.lx_execfile != None :
-           try    : execfile(PXPaths.SCRIPTS + self.lx_execfile )
+           try    : self.execfile(PXPaths.SCRIPTS + self.lx_execfile )
            except : self.logger.error("Problem with lx_script %s" % self.lx_execfile)
 
         if self.pull_execfile != None :
-           try    : execfile(PXPaths.SCRIPTS + self.pull_execfile )
+           try    : self.execfile(PXPaths.SCRIPTS + self.pull_execfile )
            except : self.logger.error("Problem with pull_script %s" % self.pull_execfile)
 
         #-----------------------------------------------------------------------------------------
@@ -212,6 +215,10 @@ class Source(object):
            self.ingestor.setClients()
 
         #self.printInfos(self)
+
+
+    def execfile(self, path):
+        exec(compile(open(path).read(), path, 'exec'))
 
     def readConfig(self,filePath):
 
@@ -465,7 +472,7 @@ class Source(object):
 
         print("*       Source Masks deprecated          *")
         for mask in self.masks_deprecated:
-            print mask
+            print(mask)
 
         print("==========================================================================")
 
@@ -474,7 +481,7 @@ class Source(object):
         print("******************************************")
 
         for mask in self.tmasks:
-            print mask
+            print(mask)
 
         print("==========================================================================")
 
@@ -483,7 +490,7 @@ class Source(object):
         print("******************************************")
 
         for feed in self.feeds:
-            print feed
+            print(feed)
 
         print("==========================================================================")
 
@@ -492,24 +499,24 @@ class Source(object):
            print("*       Pull Params                      *")
            print("******************************************")
 
-           print "protocol          %s" % self.protocol
-           print "host              %s" % self.host
-           print "user              %s" % self.user
-           print "passwd            %s" % self.passwd
-           print "ssh_keyfile       %s" % self.ssh_keyfile
-           print "ftp_mode          %s" % self.ftp_mode
-           print ""
-           print "delete            %s" % self.delete
-           print "pull_sleep        %s" % self.pull_sleep
-           print "pull_wait         %s" % self.pull_wait
-           print "pull_prefix       %s" % self.pull_prefix
-           print "timeout_get       %s" % self.timeout_get
+           print("protocol          %s" % self.protocol)
+           print("host              %s" % self.host)
+           print("user              %s" % self.user)
+           print("passwd            %s" % self.passwd)
+           print("ssh_keyfile       %s" % self.ssh_keyfile)
+           print("ftp_mode          %s" % self.ftp_mode)
+           print("")
+           print("delete            %s" % self.delete)
+           print("pull_sleep        %s" % self.pull_sleep)
+           print("pull_wait         %s" % self.pull_wait)
+           print("pull_prefix       %s" % self.pull_prefix)
+           print("timeout_get       %s" % self.timeout_get)
 
-           print ""
+           print("")
            for lst in self.pulls :
                for pos, elem in enumerate(lst):
-                   if pos == 0 : print "directory         %s" % elem
-                   else        : print "get               %s" % elem
+                   if pos == 0 : print("directory         %s" % elem)
+                   else        : print("get               %s" % elem)
 
         print("==========================================================================")
 
@@ -517,19 +524,19 @@ class Source(object):
            print("******************************************")
            print("*       Collection Params                *")
            print("******************************************")
-           print "bulletin aaxx  %s" % self.aaxx
-           print "bulletin metar %s" % self.metar
-           print "bulletin taf   %s" % self.taf
+           print("bulletin aaxx  %s" % self.aaxx)
+           print("bulletin metar %s" % self.metar)
+           print("bulletin taf   %s" % self.taf)
 
            for position, header in enumerate(self.headers):
-               print "\nHeader %s" % header
+               print("\nHeader %s" % header)
                lst = self.issue_hours[position]
-               print "issue hours         %s" % lst
-               print "issue primary       %s" % self.issue_primary[position]
-               print "issue cycle         %s" % self.issue_cycle[position]
+               print("issue hours         %s" % lst)
+               print("issue primary       %s" % self.issue_primary[position])
+               print("issue cycle         %s" % self.issue_cycle[position])
 
-           print "history             %s" % self.history
-           print "future              %s" % self.future
+           print("history             %s" % self.histor)
+           print("future              %s" % self.future)
 
            print("==========================================================================")
 
