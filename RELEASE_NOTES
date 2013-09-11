@@ -1,7 +1,7 @@
 
 ---------------- Below are changes made up to version px-0-6-1 --------------------------------------
 
-2013-02      (MG) clean up trunk to restart at px-0-6-0
+2013-09      (MG) clean up trunk to restart at px-0-6-0
 
              (MG) Client.py
                   execfile name rearranged
@@ -26,6 +26,7 @@
                   arguments in function calls revisited
                   Use ingestor instead of bulletin manager 
                   Use message properties application_headers for filename
+                  Exchange auto-delete set to False
 
                   senderAMIS.py
                   use logger.start_timer() and logger.delivered for latency and speed 
@@ -35,7 +36,7 @@
                   arguments in function calls revisited
                   Use message properties application_headers for filename
                   use logger.start_timer() and logger.delivered for latency and speed 
-                  exchange_key can be used with file regex pattern
+                  Exchange auto-delete set to False
 
                   senderAm.py
                   use logger.start_timer() and logger.delivered for latency and speed 
