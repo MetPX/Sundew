@@ -83,7 +83,7 @@ class senderAMQP:
 
               # what kind of exchange
               self.channel.access_request(self.client.exchange_realm, active=True, write=True)
-              self.channel.exchange_declare(self.client.exchange_name, self.client.exchange_type, auto_delete=True)
+              self.channel.exchange_declare(self.client.exchange_name, self.client.exchange_type, auto_delete=False)
 
               self.logger.info("AMQP Sender is now connected to: %s" % str(self.client.host))
               break

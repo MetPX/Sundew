@@ -56,7 +56,7 @@ class receiverAmqp(gateway.gateway):
 
         # exchange
         self.channel.access_request(self.source.exchange_realm, active=True, read=True)
-        self.channel.exchange_declare(self.source.exchange_name, self.source.exchange_type, auto_delete=True)
+        self.channel.exchange_declare(self.source.exchange_name, self.source.exchange_type, auto_delete=False)
 
         # queue and reading callback
         self._queuename, message_count, consumer_count = self.channel.queue_declare()
