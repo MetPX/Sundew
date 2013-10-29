@@ -295,6 +295,10 @@ class Source(object):
                     elif words[0] == 'arrival':
                          if self.mapEnteteDelai == None : self.mapEnteteDelai = {}
                          self.mapEnteteDelai[words[1]] = (int(words[2]), int(words[3]))
+		  
+	  	    elif words[0] == 'logrotate':
+                         if words[1].isdigit():
+                                self.logger.setBackupCount(int(words[1]))
 
                     # options for pull
                     elif words[0] == 'directory': 

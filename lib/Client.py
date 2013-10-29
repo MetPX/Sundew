@@ -266,7 +266,11 @@ class Client(object):
                     elif words[0] == 'am_dest_thread':
                          if self.am_dest_thread == None : self.am_dest_thread = {}
                          self.am_dest_thread[words[1]] = int(words[2])
-
+			
+                    elif words[0] == 'logrotate':
+			 if words[1].isdigit():
+				self.logger.setBackupCount(int(words[1]))
+			
                     # AMQP
                     elif words[0] == 'exchange_content': self.exchange_content = words[1]
                     elif words[0] == 'exchange_key': self.exchange_key = words[1]

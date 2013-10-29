@@ -69,6 +69,10 @@ class Logger:
     def getLogger(self):
         return self.logmon 
 
+    def setBackupCount(self, backupCount=5):
+	self.logger.handlers[0].backupCount=backupCount
+
+
 
 #############################################################################################
 #

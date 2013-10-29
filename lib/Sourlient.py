@@ -187,6 +187,10 @@ class Sourlient(object):
                     elif words[0] == 'debug' and isTrue(words[1]): self.debug = True
                     elif words[0] == 'timeout': self.timeout = int(words[1])
                     elif words[0] == 'timeout_send': self.timeout_send = int(words[1])
+		    elif words[0] == 'logrotate':
+                         if words[1].isdigit():
+                                self.logger.setBackupCount(int(words[1]))
+
                 except:
                     self.logger.error("Problem with this line (%s) in configuration file of client %s" % (words, self.name))
 
