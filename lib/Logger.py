@@ -129,6 +129,8 @@ class LoggerMonitor:
 
         self.info("%s (lat=%f,speed=%f)" % (infostr,latency,speed) )
 
+    def setBackupCount(self, backupCount=5):
+	self.logger.handlers[0].backupCount=backupCount
 
 if (__name__ == "__main__"):
     """
