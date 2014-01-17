@@ -1,0 +1,60 @@
+# here are several scripts that are actually used in our
+# environment.
+
+cvt_ftpwmo_collector.py
+--------------------
+
+usage in a filter:
+
+type filter
+lx_script  cvt_ftpwmo_collector.py
+
+Purpose :
+from the fxq directory of the filter, all files are collected into
+a single ftp WMO file collection format, then ingested and routed 
+
+
+cvt_ftpwmo_parser.py
+--------------------
+
+usage in a filter:
+
+type filter-bulletin
+lx_script  cvt_ftpwmo_parser.py
+
+Purpose :
+from the fxq directory of the filter, "batch" files are processed
+one per one... each one is parsed as a collected ftp WMO file format
+resulting into several WMO bulletins that are ingested and routed afterward
+
+
+
+ftps-pull-script.py and PullFTPS.py
+-----------------------------------
+
+usage in a receiver:
+
+type single-file
+pull_script  ftps-pull-script.py
+
+Purpose :
+everytime the pull_script is triggered, ftps-pull-script.py make an instance
+of PullFTPS... and pull products using the ftps protocol. PullFTPS behave
+the same as PullFTP.py in the package but only supports ftps.
+
+
+pull-wget.py
+------------
+
+usage in a receiver:
+
+type single-file
+pull_script  pull-wget.py
+
+Purpose :
+everytime the pull_script is triggered, a wget (with the proper login) is done
+to pull/download products into the defined url.  A more complete version exits
+too that pull into several urls... shall you need it.
+
+
+
