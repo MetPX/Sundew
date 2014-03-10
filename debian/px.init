@@ -85,7 +85,11 @@ do_stop()
 	#   1 if daemon was already stopped
 	#   2 if daemon could not be stopped
 	#   other if a failure occurred
-	is_running && $DAEMON stop &&  return 0 || return 1
+	if [ `whoami` = $NAME ]; then
+		is_running && $DAEMON stop &&  return 0 || return 1
+	else
+		is_running && su - $NAME -c "$DAEMON stop" &&  return 0 || return 1
+	fi
 	is_running && return 2 
 	
 	#$DAEMON stop > /dev/null 2>&1
