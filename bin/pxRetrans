@@ -698,16 +698,21 @@ class PXRetrans(object):
         #    print "%s:%s " % (key, options.__dict__[key]),
         #print
 
-    def validateFlow(self, name):
+    def validateFlow(self, name, group=''):
         """
         input: flow name
         output: flow type and cluster name
         0: means that the flow doesn't exist
         2,3,4 ... means there is 2,3,4 flows with the same name
         """
+        print "group: %s" % group
         from MasterConfigurator import MasterConfigurator
         mc = MasterConfigurator(self.masterConfPath)    
-        type = mc.getType(name, self.clusters)
+
+        theClusters = self.clusters
+        if group: theClusters = [group] 
+
+        type = mc.getType(name, theClusters)
         cluster = mc.getCluster(name)
         return type, cluster
         
@@ -738,7 +743,7 @@ class PXRetrans(object):
                 if self.debug: print "%s => %s" % (switch, self._destIndexedByOpt[switch])
                 if switch in ['-c', '--clients']: # TODO: sourlients
                     if not self.options.sources: # Probably a "client resend" 
-                        flow_type, cluster = self.validateFlow(opts.__dict__[self._destIndexedByOpt[switch]]) # Only one (not 2 or more) client will work
+                        flow_type, cluster = self.validateFlow(opts.__dict__[self._destIndexedByOpt[switch]], self.options.group) # Only one (not 2 or more) client will work
                         if flow_type == 'client' and type(cluster) != int:
                             self.options.__dict__['group'] = cluster
                             self.options.__dict__[self._destIndexedByOpt[switch]] = opts.__dict__[self._destIndexedByOpt[switch]]
