@@ -705,7 +705,7 @@ class PXRetrans(object):
         0: means that the flow doesn't exist
         2,3,4 ... means there is 2,3,4 flows with the same name
         """
-        print "group: %s" % group
+        if self.debug: print "group: %s" % group
         from MasterConfigurator import MasterConfigurator
         mc = MasterConfigurator(self.masterConfPath)    
 
