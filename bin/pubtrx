@@ -1,0 +1,110 @@
+#! /usr/bin/env python
+
+import sys, os, pwd, time
+
+# default library path
+
+# old way
+sys.path.insert(1, '/apps/px/lib/importedLibs')
+sys.path.insert(1, '/apps/px/aftn/lib')
+sys.path.insert(1, '/apps/px/lib/aftn')
+sys.path.insert(1, '/apps/px/lib')
+
+# debian way
+sys.path.insert(1, '/usr/lib/px/importedLibs')
+sys.path.insert(1, '/usr/lib/px/aftn')
+sys.path.insert(1, '/usr/lib/px')
+
+import PXPaths
+from optparse import OptionParser
+from PXManager import PXManager
+from Logger import Logger
+from PXPubIgniter import PXPubIgniter
+from authPub import permitPubLog
+
+# Initialize PX Paths
+PXPaths.normalPaths()
+
+if __name__ == '__main__':
+
+    # Only if run as root, we will try to change the user
+    # id to pds user. It's because at reboot time init try
+    # to start px as root
+    if os.getuid() == 0:
+        try:
+            pxUID = pwd.getpwnam("pds")[2]
+            os.setuid(pxUID)
+        except:
+            try:
+               pxUID = pwd.getpwnam("px")[2]
+               os.setuid(pxUID)
+            except:
+               print "No pds or px user on this machine. Don't start as root!"
+               sys.exit(2)
+    
+    usage =  """%prog [flowName] (start|stop|restart|status)\n
+example 1: %prog toto start   => will publish sender toto logs
+             """
+
+    parser = OptionParser(usage)
+
+    # We can set the logLevel to ['DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL']
+    parser.add_option("-l", "--logLevel",
+                      action="store", type="string", dest="logLevel", default="INFO",
+                      metavar="LOGLEVEL", help="Set the logging level [default: %default]")
+
+    parser.add_option("-b", "--bypass", action="store_true", dest="bypass", default=False)
+
+    options, args = parser.parse_args()
+
+    manager = PXManager()
+    manager.initPXPaths()
+    manager.initNames()
+    flowNames = manager.getTRxNames()
+
+    # The command will be applied to a particular flow name 
+    if len(args) == 2:
+        if args[1] in ['start', 'stop', 'status', 'restart']:
+            command = args[1]
+        else:
+            parser.error("Wrong command name")
+
+        if args[0] in flowNames:
+            flowName = args[0]
+        else:
+            parser.error("Wrong flow name")
+
+    elif len(args) == 1:
+            parser.error("Flow name or command missing")
+    elif len(args) == 0:
+        parser.error("Flow name and command missing")
+    elif len(args) > 2:
+        parser.error("Too many arguments")
+
+    logDirSuffix = '.pub'
+    flowType = 'trx'
+
+    # FIXME: should be created only one time when px is started
+    lockPath = PXPaths.TRXQ + flowName + '/' + logDirSuffix
+    manager.createDir(lockPath)
+
+    logDir = PXPaths.LOG + logDirSuffix
+    manager.createDir(logDir)
+
+    stateDirSuffix = '.states'
+    stateDir = PXPaths.LOG + stateDirSuffix
+    manager.createDir(stateDir)
+
+    logName = "%s_%s.log" % (flowType, flowName)
+    logger = Logger(logDir + '/' + logName, options.logLevel, __name__)
+    logger = logger.getLogger()
+
+    if command in ['start']:
+        permitPubLog(logger, options, PXPaths.TRX_CONF + flowName + '.conf')
+
+    igniter = PXPubIgniter('publisher[trx]', flowName, command, lockPath, logger)
+    #eval("igniter." + command)()
+
+    from LogPublisher import LogPublisher
+    lp = LogPublisher("%s_%s" % (flowType, flowName), logger)
+    lp.run()

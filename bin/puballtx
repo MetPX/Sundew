@@ -1,0 +1,72 @@
+#! /usr/bin/python
+# -*- coding: iso-8859-1 -*-
+
+import sys, os, os.path, time, pwd
+
+# default library path
+
+# old way
+sys.path.insert(1, '/apps/px/lib/importedLibs')
+sys.path.insert(1, '/apps/px/lib')
+
+# debian way
+sys.path.insert(1, '/usr/lib/px/importedLibs')
+sys.path.insert(1, '/usr/lib/px')
+
+import PXPaths
+PXPaths.normalPaths()
+
+def startThem(dir,name,cmd):
+    """
+    sleep A and sleep B sont la pour regler un probleme de synchronisation qui
+    survient lors du startupDB a un moment ou le rep. de la journee
+    n'est pas present. Il vont disparaitre lors de la reorg.
+    """
+    counter = 0
+    for cfname in os.listdir( dir ):
+        if cfname[-5:] != '.conf':
+            continue
+
+        id = cfname[:-5]
+        counter += 1
+        if os.fork() == 0:
+             if counter == 2:
+                 time.sleep(0.6)  # sleep A
+             os.execl(sys.path[0] + '/' + name , name, id, cmd )
+
+def start(cmd):
+    startThem(PXPaths.ETC + 'tx/', 'pubtx', cmd)
+    time.sleep(2)   # sleep C
+
+# Only if run as root, we will try to change the user
+# id to pds user. It's because at reboot time init try
+# to start px as root
+if os.getuid() == 0:
+    try:
+        pdsUID = pwd.getpwnam("px")[2]
+        os.setuid(pdsUID)
+    except:
+       try:
+           pdsUID = pwd.getpwnam("pds")[2]
+           os.setuid(pdsUID)
+       except:
+           print "No pds or px user on this machine. Don't start as root!"
+           sys.exit(2)
+
+# Two arguments must be supplied (source and command)
+if len(sys.argv) == 2:
+    if sys.argv[1] not in ['start', 'stop', 'status', 'restart']:
+        print "USAGE: puballtx (start|stop|restart|status) "
+        print "Wrong command name"
+        sys.exit(1)
+elif len(sys.argv) == 1:
+    print "USAGE: puballtx (start|stop|restart|status) "
+    print "Command missing"
+    sys.exit(1)
+elif len(sys.argv) > 2:
+    print "USAGE: puballtx (start|stop|restart|status) "
+    print "Too many arguments"
+    sys.exit(1)
+
+start(sys.argv[1])
+sys.exit(0)
