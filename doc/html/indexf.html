@@ -14,8 +14,10 @@ $Date$
 <P>
 MetPX est une collection d´outils créé afin de facilité l´acquisition, l´aiguillage, et la dissemination 
 de données dans une contexte météorologique.  Il y a deux applications principales: Sundew et Sarracenia. 
-MetPX-Sundew se concerne avec le support de et compatibilité avec des systèmes matures de STM de l´OMM, 
-tandis que MetPX Sarracenia prend une nouvelle approche, afin d´addresser des besoins actuels.
+MetPX-Sundew se concerne avec le support de et compatibilité avec des systèmes matures de STM de l´OMM.
+MetPX-Sundew acquiert, transforme, et livre des produits individuels, tandis que MetPX Sarracenia prend 
+une nouvelle approche, traitant de la réplication (filtré) d´arborescences complets produite par des
+sources.  Sarracenia met de côté la compatibilité avec des anciens systèmes afin d´addresser des besoins actuels.
 
 <A NAME="Sarracenia"><H2>MetPX-Sarracenia</H2></a>
 <P>
@@ -42,11 +44,35 @@ de ce fait.  Ses avis sont reacheminés vers les sources.  Avec des systèmes trad
 à travers les commmutateurs était opaque aux sources de données.  Avec l´acheminement des accusés de 
 réceptions de Sarracenia, le réseau de commutation est rendu transparent aux sources.
 <P>
-Tandis que sundew se penchait sur le problème de support de beaucoups protocoles et formats de la météorologie,
-sarracenia se retire de cette spécificité et généralise sont approche, ce qui devrait lui permettre de 
-s´appliquer dans d´autres domaines scientifiques. Le client prototype, dd_subscribe, et en service depuis
+Tandis que sundew se penchait sur le problème de support de beaucoups de protocoles et formats de la météorologie,
+sarracenia se retire de cette spécificité et généralise sont approche, ce qui lui permettrai de 
+s´appliquer dans d´autres domaines scientifiques. Le client prototype, dd_subscribe, est en service depuis
 2013, et implante une grande partie des fonction de consommateur de données, et est la seule composante
 dans les paquets debian actuels.  Ver l´automne 2015, le reste des composantes devront apparaître.
+<P>
+Sarracenia est plus simple que Sundew de toutes les pointes de vue: Operateur, Dévéloppeur, Analyst, Source de Données, et consommateurs de données.  Bien qu´il impose une interface pour l´accès au données, celui-ci est 
+complètement générique et portable.   Il sera disponible sur n´importe lequel platteforme moderne (Linux, Windows, Mac.)
+
+<A NAME="WhyNotRSync"><H3>Pourquoi ne pas utiliser RSync?</H3></a>
+Il éxiste multiples solutions pour la replication de données, pourquoi inventer un autre?  Rsync et la
+plupart des autres outils sont 1:1, ils comparent source et destination.   Sarracenia, bien qu´il ne sert
+pas de multi-cast, est orienté vers la livraison a multiples clients, et en temps réél.  La synchronization 
+rsync se fait par la traverse d´arborescences, en calculant des signatures pour chacque fichier, pour
+chaque client. Dans des grandes arborescences, avec plusieurs clients, ceci devient onéreux, limitant
+la fréquence de mise-à-jour, et la quantités de clients qui peuvent être supportés.  Sarracenia évite les 
+traverses d´arborescences, et les processus qui écrivent les fichiers calculent les checksum une fois 
+pour utilisation directe par tout les lecteurs.  Ces deux améliorations rend l´application beaucoup plus 
+éfficace que rsync dans le cas de grandes arborescences, avec des nouveaux fichiers que apparaissent fréquamment.  
+LSync est un outil qui utilise INOTIFY sur linux pour avoir un notification real-time, mais ca prendrait 
+la couche de gestion de checksum, et une protocol réseau, et il n´est pas portatif à d´autres platteformes.  
+<P>
+RSync est également une solution point à point.  Sarracenia mise la ´transitivité´, la capacité d´enchainer
+plusieurs commutateurs de produits ensembles et s´assurer que les accusées de réception se propage jusqu´à
+la source.  Par contre, l´implantation initiale de sarracenia ne traite pas des deltas (changement de 
+contenu de fichiers éxistants) et va téléchargé le contenu complet a chaque annonce.  On étudie présentement
+le case des deltas, et l´utilisation de l´algorithm rsync via l´outil zsync et à considérer.  Sarracenia
+devrait également être plus portatif que rsync.
+
 
 <A NAME="Sundew"><H2>MetPX-Sundew</H2></a>
 <P>

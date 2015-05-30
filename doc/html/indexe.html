@@ -12,14 +12,16 @@ $Date$
 <P>
 MetPX is a collection of tools created to support data acquisition, routing, and dissemination in a meteorological context.
 There are two main applications in the MetPX suite: MetPX-sundew is the legacy WMO-GTS supporting message switching system.
-MetPX-Sarracenia is the next generation file replication system, currently under development, which leaves legacy 
-compatibility behind, in order to address more modern concerns.  Sundew is needed to interface to legacy systems, but sarracenia will be taking on an increasing role in the future.
+MetPX-Sundew transfers accepts, transforms, and delivers individual products.  MetPX-Sarracenia is the next generation 
+tree replication system, currently under development, which transfers filtered, but largely un-modified directory trees 
+of products on behalf of data sources.  While Sarracenia leaves legacy compatibility behind in order to address more 
+modern concerns, sundew remains necessary to interface to legacy systems.  
 
 <A NAME="Sarracenia"><H2>MetPX-Sarracenia</H2></a>
 <P>
 MetPX-Sarracenia is a data duplication or distribution engine that leverages existing standard technologies (web servers and the AMQP brokers) to achieve real-time message delivery and end to end transparency in file transfers.  Whereas in Sundew, 
 each switch is a standalone configuration which transforms data in complex ways, in sarracenia, the data sources establish 
-a structure which carried through any number of intervening servers until they arrive at a client.  The client can provide 
+a structure which is carried through any number of intervening switches until they arrive at a client.  The client can provide 
 explicit acknowledgement that propagates back through the network to the source.  Whereas traditional file switching is a 
 point-to-point affair where knowledge is only between each segment, in Sarracenia, information flows from end to end 
 in both directions.
@@ -42,13 +44,39 @@ the switching network is completely transparent to the sources.
 <P>
 Where sundew supported a wide variety of file formats, protocols, and conventions specific to the real-time meteorology, 
 sarracenia takes a step further away from specific applications and is a ruthlessly generic tree replication engine, 
-which should allow it to be perhaps used in other domains.  The prototype client, dd_subscribe, in use since 2013, 
+which should allow it to be used in other domains.  The prototype client, dd_subscribe, in use since 2013, 
 implements the consumer end of the switch's functions, and is the only component present in current packages.  The 
 rest of MetPX-Sarracenia should be included in packages by the Fall of 2015.
 <P>
+Sarracenia is expected to be a far simpler application than sundew from every point of view: Operator, Developer, Analyst,
+Data Sources, Data consumers.  Sarracenia imposes a single interface mechanism, but that single mechanism is completely portable
+and generic.  It should run without issue on any modern platform (Linux, Windows, Mac)
 
+<LI>Man Pages:
+<UL>
+<LI><A HREF="dd_subscribe.1.html">dd_subscribe.1</a> 
+</UL>
 
-<A HREF="Sundew"><H2>MetPX-Sundew</H2></a>
+<P>
+<A NAME="WhyNotRSync"><H3>Why not just use Rsync?</h3></a>
+There are a number of tree replication tools that are widely used, why invent another?  Rsync and other tools are
+comparison based (dealing with a single Source and Destination)  Sarracenia, while it does not require or use multi-casting,
+is oriented towards a delivery to multiple receivers.  Where rsync synchronization is typically done by walking a
+large tree, that means that the synchronization interval is inherently limited to the frequency at which you can
+do the file tree walks (in large trees, that can be a long time.) Each file tree walk generates signatures independently,
+so supporting larger numbers of clients causes large CPU overhead.  Sarracenia avoids file tree walks by having
+writers calculate the checksums once, and signal their activity directly to readers by messages, reducing overhead 
+by orders of magnitude.  Lsync is a tool that leverages the INOTIFY features of Linux to achieve the same liveness, 
+but the checksums manage would need implementation, and it is obviously not portable. Doing this through the file 
+system is thought to be inherently more error prone and inefficient than explicit middleware message passing.  
+<P>
+One of the design goals of sarracenia is to be end-to-end.  Rsync is point-to-point, and does not support the transitivity
+of transfers across multiple switching engines that is desired.  On the other hand, the first use case for Sarracenia 
+is the distribution of new files.  Updates to files are not common, and so file deltas are not yet dealt with efficiently.  
+Sarracenia may adopt the use of zsync as a means of applying that rsync algorithm to this use case.  This is under study.  
+Lastly, while there is a commercial windows client for rsync, sarracenia also should have broader platform support.  
+
+<A NAME="Sundew"><H2>MetPX-Sundew</H2></a>
 <P>
 MetPX-sundew is a message switching system for use with <a href="http://www.wmo.int">World Meteorological Organization (WMO)</a> 
 <A HREF="http://www.wmo.ch/pages/prog/www/TEM/XGTS/gts.html">Global Telecommunications System (GTS)</a> circuits based on TCP/IP.  The system is already production quality for a limited set of features and is in production 
@@ -145,7 +173,7 @@ Currently internal installations are done, one at a time, from source.  Developm
 is done on the trunk release.  When we install operationally, the process consists
 of creating a branch, and running the branch on a staging system, and then implementing
 on operational systems.  There are README and INSTALL files that can be used for 
-installation of sundew.  One can follow those instructions and get an initial installed 
+installation of sundew.  One can follow those instructions to get an initial installed 
 system.  
 <P>
 It is critical to install the cron cleanup jobs (mr-clean) since otherwise the 
