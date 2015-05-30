@@ -4,14 +4,53 @@
 <title>MetPX welcome</title>
 </head>
 <body>
-<H1>MetPX - Open Source GTS Switching</H1>
+<H1>MetPX - Meteorological Product eXChanger</H1>
 <P>
 $Date$
 <p>
 [<A HREF="indexf.html">fran&#231;ais</a>]
 <P>
+MetPX is a collection of tools created to support data acquisition, routing, and dissemination in a meteorological context.
+There are two main applications in the MetPX suite: MetPX-sundew is the legacy WMO-GTS supporting message switching system.
+MetPX-Sarracenia is the next generation file replication system, currently under development, which leaves legacy 
+compatibility behind, in order to address more modern concerns.  Sundew is needed to interface to legacy systems, but sarracenia will be taking on an increasing role in the future.
 
-MetPX is a message switching system for use with <a href="http://www.wmo.int">World Meteorological Organization (WMO)</a> 
+<A NAME="Sarracenia"><H2>MetPX-Sarracenia</H2></a>
+<P>
+MetPX-Sarracenia is a data duplication or distribution engine that leverages existing standard technologies (web servers and the AMQP brokers) to achieve real-time message delivery and end to end transparency in file transfers.  Whereas in Sundew, 
+each switch is a standalone configuration which transforms data in complex ways, in sarracenia, the data sources establish 
+a structure which carried through any number of intervening servers until they arrive at a client.  The client can provide 
+explicit acknowledgement that propagates back through the network to the source.  Whereas traditional file switching is a 
+point-to-point affair where knowledge is only between each segment, in Sarracenia, information flows from end to end 
+in both directions.
+<P>
+At it's heart, sarracenia exposes a tree of web accessible folders (WAF), using any standard HTTP server (tested with 
+apache).  Weather applications are soft real-time, where data should be delivered as quickly as possible to the next 
+hop, and minutes, perhaps seconds, count.  The standard web push technologies, ATOM, RSS, etc... are actually polling 
+technologies that when used in low latency applications consume a great deal of bandwidth an overhead.  For exactly these reasons, those standards stipulate a minimum polling interval of five minutes.   Advanced Message Queueing Protocol 
+(AMQP) messaging brings true push to notifications, and makes real-time sending far more efficient.
+<P>
+insert diagram here.
+<P>
+Sources of data announce their products, switching systems pull the data onto their WAF trees, and then announce their trees 
+for downstream clients.  When clients download data, they may write a log message back to the server.  Servers are 
+configured to forward those client log messages back through the intervening servers back to the source.  The Source 
+can see the entire path that the data took to get to each client.  With legacy switching applicatins sources would 
+only see that they had delivered to the first hop in a chain. Beyond that first hop, they were opaque, and tracing 
+the path of data required assistance from administrators of each intervening system.  With Sarracenia's log forwarding, 
+the switching network is completely transparent to the sources.
+<P>
+Where sundew supported a wide variety of file formats, protocols, and conventions specific to the real-time meteorology, 
+sarracenia takes a step further away from specific applications and is a ruthlessly generic tree replication engine, 
+which should allow it to be perhaps used in other domains.  The prototype client, dd_subscribe, in use since 2013, 
+implements the consumer end of the switch's functions, and is the only component present in current packages.  The 
+rest of MetPX-Sarracenia should be included in packages by the Fall of 2015.
+<P>
+
+
+<A HREF="Sundew"><H2>MetPX-Sundew</H2></a>
+<P>
+MetPX-sundew is a message switching system for use with <a href="http://www.wmo.int">World Meteorological Organization (WMO)</a> 
 <A HREF="http://www.wmo.ch/pages/prog/www/TEM/XGTS/gts.html">Global Telecommunications System (GTS)</a> circuits based on TCP/IP.  The system is already production quality for a limited set of features and is in production 
 use at the CMC as the core of our national switching infrastructure for bulletins, as well as file data (satellite, 
 RADAR, numerical outputs, charts & imagery...) It is used to ingest from a NOAAPORT feed, as well as two GTS protocol 
@@ -22,7 +61,6 @@ MetPX is unique in its ability to run fine-grained routing with low latency and 
 Developed at the Canadian Meteorological Centre of <a href="http://www.ec.gc.ca">Environment 
 Canada</a> for our own use.  Licensed under GPL for collaborative development, MetPX aims to be 
 to meteorological switching what apache is to web serving.
-
 <P>
 [<A HREF="#Documentation">Documentation</A>]
 [<A HREF="#Download">Download</A>]

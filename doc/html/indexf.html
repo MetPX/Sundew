@@ -12,7 +12,45 @@ $Date$
 <P>
 [<A HREF="indexe.html">English</a>]
 <P>
-MetPX est un système de commutation de messages sur les circuits TCP/IP du 
+MetPX est une collection d´outils créé afin de facilité l´acquisition, l´aiguillage, et la dissemination 
+de données dans une contexte météorologique.  Il y a deux applications principales: Sundew et Sarracenia. 
+MetPX-Sundew se concerne avec le support de et compatibilité avec des systèmes matures de STM de l´OMM, 
+tandis que MetPX Sarracenia prend une nouvelle approche, afin d´addresser des besoins actuels.
+
+<A NAME="Sarracenia"><H2>MetPX-Sarracenia</H2></a>
+<P>
+MetPX-Sarracenia est un engin de duplication ou distribution de données servant des technologies standards 
+(serveurs web, et courtiers de messages d´AMQP) afin d´obtenir des transferts de données en temps-réél 
+avec une transparence d´un bout à l´autre.  Tandis qu´en Sundew, chaque commutateur de messages est une 
+instance en soi, en Sarracenia, les source de données établissent leur organization des données ce qui 
+est maintenue à travers la chaine de serveurs jusqu´a sa livraison au clien.   Le client peut fournir des 
+accusé de réceptions explicites qui propagent à travers les mêmes serveurs pour se rendre à la source. 
+Tandis qu´un commutateur traditionnel s´échange uniquement avec ses voisins, en Sarracenia, les 
+informations passent de bord en bord du réseau.
+<P>
+Sarracenia, à sa plus simple expression, expose une arborescence de dossier disponible sur la toile 
+("Web Accessible Folders").  Les applications météos ont une importante dépendence sur la latence de livraison des données: les minutes sont comptés, et parfois les secondes.  Les technologies standards tel que ATOM et
+RSS, sont des technologies qui consomment beaucoup de bande passante et ressource quand ils sont appliqués à de tels cas.  Les standards limit la fréquence maximale de vérification de serveur à cinq minutes.  le protocol
+de sequencement de messages avancés (Advanced Message Queuing Protocol, AMQP) est une application beaucoup
+plus éfficace.
+<P>
+insert diagram here.
+<P>
+Les sources annoncent la disponibilité de leurs données, les commutateurs prennent une copie, et annonce 
+leur copie à leurs clients.  Quand les client téléchargent des données, ils peuvent avisés leurs source
+de ce fait.  Ses avis sont reacheminés vers les sources.  Avec des systèmes traditionnels, le passages
+à travers les commmutateurs était opaque aux sources de données.  Avec l´acheminement des accusés de 
+réceptions de Sarracenia, le réseau de commutation est rendu transparent aux sources.
+<P>
+Tandis que sundew se penchait sur le problème de support de beaucoups protocoles et formats de la météorologie,
+sarracenia se retire de cette spécificité et généralise sont approche, ce qui devrait lui permettre de 
+s´appliquer dans d´autres domaines scientifiques. Le client prototype, dd_subscribe, et en service depuis
+2013, et implante une grande partie des fonction de consommateur de données, et est la seule composante
+dans les paquets debian actuels.  Ver l´automne 2015, le reste des composantes devront apparaître.
+
+<A NAME="Sundew"><H2>MetPX-Sundew</H2></a>
+<P>
+MetPX-sundew est un système de commutation de messages sur les circuits TCP/IP du 
 Système de télécommunications mondiales (STM) de l'organisation mondial de 
 la météorologie (l'<A HREF="http://www.wmo.int">OMM.</a>) Pour une 
 sélection de fonctionnalités, le système est déjà d'une qualité opérationelle 
@@ -22,7 +60,7 @@ la participation canadienne dans les projets internationales tel que:
 
 <A HREF="http://www.unidata.ucar.edu/">Unidata</A> et <A HREF="http://tigge.ecmwf.int/">TIGGE</a> via une passerelle à LDM,
 ainsi que <A HREF="http://www.emc.ncep.noaa.gov/gmb/ens/NAEFS.html">NAEFS</a> via le transfert de fichiers.
-MetPX se démarque par sa capcité de routage détaillé a très faible latence et à haute vitesse.
+MetPX se démarque par sa capacité de routage détaillé a très faible latence et à haute vitesse.
 Le projet se veut une sorte de plateforme partagé et universelle pour les télécommunications via GTS, sur 
 le modèle d´apache pour les serveurs web.
 
