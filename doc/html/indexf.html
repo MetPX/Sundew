@@ -190,21 +190,7 @@ Sentez vous libre de prendre une copie de la version à jour du code source via:
 (disponible anonymement en lecture seulement.) D´autre versions sont disponible 
 en téléchargeant une branche spécifique.
 
-<A NAME="Links"><H2>Liens et Références</H2>
-
-D´autres projets et produits qui sont vaguement dans une domaine similaire.  
-les mentions ici ne devront pas être interpreté comme des recommandations.
-<UL>
-<LI>le manuel WMO 386, référence pour le domaine.(version sans doute périmé est <A HREF="WMO-386.pdf"> ici. </a> Voir http://www.wmo.int pour une version plus r&eacute;cente.
-<LI><A HREF="http://www.unidata.ucar.edu/software/ldm">http://www.unidata.ucar.edu/software/ldm</a>  - Local Data Manager.  LDM inclut une protocol résautique, et veut fondamentalement échanger des données avec d´autres serveurs LDM.  Ce logiciel a servi comme inspiration de plusieurs façons.  Au début des années 2000, on avait étudier le protocol pour les besoins du CMC et identifié des charactéristiques qui le rendaient inapte a notre application.   Par contre, il y avait un effort ´NLDM´ qui avait remplacé le protocol résautique de 
-LDM par un protocol standard (NNTP.) L´éffort a sombré, par contre, ça a servi comme inspiration pour la séparation de la domaine météorologique du protocole de télécommunication, ce qui a été reprit philosophiquement par MetPX.  
-<LI><A HREF="http://www.dwd.de/AFD">http://www.dwd.de/AFD</a> - Automatic File Distributor - de la service météorologique allemande.  Aiguilleur de fichiers dans le protocol au choix de l´usager.  Similaire à MetPX en philosophie
-<LI><A HREF="http://www.corobor.com"> http://www.corobor.com </a> - commutateur OMM commerciale.
-<LI><A HREF="http://www.netsys.co.za"> http://www.netsys.co.za </a> - commutateur OMM commerciale.
-<LI><A HREF="http://www.iblsoft.com"> http://www.iblsoft.com </a> - commutateur OMM commerciale.
-<LI>Quelques autres logiciels de transfert de fichiers: Standard Networks Move IT DMZ, Softlink B-HUB & FEST, Globalscape EFT Server, Axway XFB, Primeur Spazio, Tumbleweed Secure File Transfer, Messageway
-</UL>
-<A NAME="AMQP"><h3>AMQP</h3></a>
+<A NAME="AMQP"><h2>AMQP</h2></a>
 <LI>AMQP (Advanced Message Queuing Protocol) est une protocole standard pour l´échange de messages, qui a 
 ses origines dans le domaine financier.  Elle est apparue en 2007 et il y a maintenant plusieurs implantations 
 en logiciel libre.  AMQP n´est pas uniquement une méthode pour transporter des messages JAVA.  Il est 
@@ -221,6 +207,23 @@ Sarracenia utilise le concepte de ´courtier´ de messages, et les ´topic based ex
 qui étaient standadisé en AMQP jusqu´à la version 0.9.  La comité de standardization 1.0 a enlevé ces aspets, 
 avec une idée de le re-introduire plus tard.  Cette action nous impose un dépendence sur AMQP <= 0.9. 
 
+<A NAME="Links"><H2>Liens et Références</H2>
+
+D´autres projets et produits qui sont vaguement dans une domaine similaire.  
+les mentions ici ne devront pas être interpreté comme des recommandations.
+<UL>
+<LI>le manuel WMO 386, référence pour le domaine.(version sans doute périmé est <A HREF="WMO-386.pdf"> ici. </a> Voir http://www.wmo.int pour une version plus r&eacute;cente.
+<LI><A HREF="http://www.unidata.ucar.edu/software/ldm">http://www.unidata.ucar.edu/software/ldm</a>  - Local Data Manager.  LDM inclut une protocol résautique, et veut fondamentalement échanger des données avec d´autres serveurs LDM.  Ce logiciel a servi comme inspiration de plusieurs façons.  Au début des années 2000, on avait étudier le protocol pour les besoins du CMC et identifié des charactéristiques qui le rendaient inapte a notre application.   Par contre, il y avait un effort ´NLDM´ qui avait remplacé le protocol résautique de 
+LDM par un protocol standard (NNTP.) L´éffort a sombré, par contre, ça a servi comme inspiration pour la séparation de la domaine météorologique du protocole de télécommunication, ce qui a été reprit philosophiquement par MetPX.  
+<LI><A HREF="http://www.dwd.de/AFD">http://www.dwd.de/AFD</a> - Automatic File Distributor - de la service météorologique allemande.  Aiguilleur de fichiers dans le protocol au choix de l´usager.  Similaire à MetPX en philosophie
+<LI><A HREF="http://www.corobor.com"> http://www.corobor.com </a> - commutateur OMM commerciale.
+<LI><A HREF="http://www.netsys.co.za"> http://www.netsys.co.za </a> - commutateur OMM commerciale.
+<LI><A HREF="http://www.iblsoft.com"> http://www.iblsoft.com </a> - commutateur OMM commerciale.
+<LI>Quelques autres logiciels de transfert de fichiers: Standard Networks Move IT DMZ, Softlink B-HUB & FEST, Globalscape EFT Server, Axway XFB, Primeur Spazio, Tumbleweed Secure File Transfer, Messageway
+<LI><A HREF="https://rsync.samba.org/">Rsync</a> engin de transfert incrementale rapide.
+<LI><A HREF="https://code.google.com/p/lsyncd">Lsyncd</a> engin de synchronization en temps reel.
+<LI><A HREF="http://zsync.moria.org.uk">Zsync</a> rsync sur HTTP.
+</UL>
 
 
   </body>
