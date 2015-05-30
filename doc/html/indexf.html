@@ -14,10 +14,28 @@ $Date$
 <P>
 MetPX est une collection d´outils créé afin de facilité l´acquisition, l´aiguillage, et la dissemination 
 de données dans une contexte météorologique.  Il y a deux applications principales: Sundew et Sarracenia. 
-MetPX-Sundew se penche sur le support de et compatibilité avec des systèmes matures de STM de l´OMM.
-Il acquiert, transforme, et livre des produits individuels, tandis que MetPX Sarracenia prend 
-une nouvelle approche, traitant de la réplication (filtré) d´arborescences complets produites par des
+<A HREF="#Sundew">MetPX-Sundew</a> se penche sur le support de et compatibilité avec des systèmes matures de STM de l´OMM.
+Il acquiert, transforme, et livre des produits individuels, tandis que <A HREF="#Sarracenia">MetPX Sarracenia</a>
+prend une nouvelle approche, traitant de la réplication (filtré) d´arborescences complets produites par des
 sources.  Sarracenia met de côté la compatibilité avec des anciens systèmes afin d´addresser des besoins actuels.
+
+
+<P>
+[ liste de couriel (Anglais-Français): <A HREF="http://lists.sourceforge.net/lists/listinfo/metpx-devel"> metpx-devel.</a>, 
+ <A HREF="http://lists.sourceforge.net/lists/listinfo/metpx-commit"> metpx-commit.</a> ] 
+[ projet:  <A HREF="http://www.sourceforge.net/projects/metpx"> Sourceforge </a> ]
+<P>
+
+<P>
+[<A HREF="#Documentation">Documentation</A>]
+[ <A HREF="http://sourceforge.net/project/showfiles.php?group_id=165061">Téléchargement</a>]
+[<A HREF="#Source">Accès au code source</A>]
+[<A HREF="#Links">Liens, Références</a>]
+<br>
+[ listes de courier:   <A HREF="http://lists.sourceforge.net/lists/listinfo/metpx-devel"> metpx-devel.</a> , 
+ <A HREF="http://lists.sourceforge.net/lists/listinfo/metpx-commit"> metpx-commit.</a>  ]
+[ Page principale de dévéloppement:   <A HREF="http://www.sourceforge.net/projects/metpx"> Sourceforge </a> ]
+<P>
 
 <A NAME="Sarracenia"><H2>MetPX-Sarracenia</H2></a>
 <P>
@@ -25,16 +43,17 @@ MetPX-Sarracenia est un engin de duplication ou distribution de données servant 
 (serveurs web, et courtiers de messages d´AMQP) afin d´obtenir des transferts de données en temps-réél 
 avec une transparence d´un bout à l´autre.  Tandis qu´en Sundew, chaque commutateur de messages est une 
 instance en soi, en Sarracenia, les source de données établissent leur organization des données ce qui 
-est maintenue à travers la chaine de serveurs jusqu´a sa livraison au clien.   Le client peut fournir des 
-accusé de réceptions explicites qui propagent à travers les mêmes serveurs pour se rendre à la source. 
+est maintenue à travers la chaine de serveurs jusqu´a sa livraison au client.   Le client peut fournir des 
+accusés de réception qui propagent à travers les mêmes serveurs pour se rendre à la source. 
 Tandis qu´un commutateur traditionnel s´échange uniquement avec ses voisins, en Sarracenia, les 
 informations passent de bord en bord du réseau.
 <P>
-Sarracenia, à sa plus simple expression, expose une arborescence de dossier disponible sur la toile 
+Sarracenia, à sa plus simple expression, expose une arborescence de dossiers disponible sur la toile 
 ("Web Accessible Folders").  Les applications météos ont une importante dépendence sur la latence de livraison des données: les minutes sont comptés, et parfois les secondes.  Les technologies standards tel que ATOM et
-RSS, sont des technologies qui consomment beaucoup de bande passante et ressource quand ils sont appliqués à de tels cas.  Les standards limit la fréquence maximale de vérification de serveur à cinq minutes.  le protocol
-de sequencement de messages avancés (Advanced Message Queuing Protocol, AMQP) est une application beaucoup
-plus éfficace.
+RSS, sont des technologies qui consomment beaucoup de bande passante et ressource quand ils sont appliqués 
+à de tels cas.  Les standards limitent la fréquence maximale de vérification de serveur à cinq minutes.  
+le protocol de sequencement de messages avancés (Advanced Message Queuing Protocol, AMQP) est une 
+approche beaucoup plus éfficace pour la livraison d'annonces de nouveaux produits.
 <P>
 insert diagram here.
 <P>
@@ -44,11 +63,11 @@ de ce fait.  Ses avis sont reacheminés vers les sources.  Avec des systèmes trad
 à travers les commmutateurs était opaque aux sources de données.  Avec l´acheminement des accusés de 
 réceptions de Sarracenia, le réseau de commutation est rendu transparent aux sources.
 <P>
-Tandis que sundew se penchait sur le problème de support de beaucoup de protocoles et formats de la météorologie,
-sarracenia se retire de cette spécificité et généralise sont approche, ce qui lui permettrai de 
+Tandis que sundew traite le problème de support de beaucoup de protocoles et formats de la météorologie,
+sarracenia se retire de cette spécificité et généralise son approche, ce qui lui permet de 
 s´appliquer dans d´autres domaines scientifiques. Le client prototype, dd_subscribe, est en service depuis
-2013, et implante une grande partie des fonction de consommateur de données, et est la seule composante
-dans les paquets debian actuels.  Ver l´automne 2015, le reste des composantes devront apparaître.
+2013, et implante une grande partie des fonction de consommateurs de données, et est la seule composante
+dans les paquets debian actuels.  Vers l´automne 2015, le reste des composantes devront apparaître.
 <P>
 Sarracenia est plus simple que Sundew de toutes les pointes de vue: Operateur, Dévéloppeur, Analyst, Source de Données, et consommateurs de données.  Bien qu´il impose une interface pour l´accès au données, celui-ci est 
 complètement générique et portable.   Il sera disponible sur n´importe lequel platteforme moderne (Linux, Windows, Mac.)
@@ -67,11 +86,10 @@ LSync est un outil qui utilise INOTIFY sur linux pour avoir un notification real
 la couche de gestion de checksum, et une protocol réseau, et il n´est pas portatif à d´autres platteformes.  
 <P>
 RSync est également une solution point à point.  Sarracenia mise la ´transitivité´, la capacité d´enchainer
-plusieurs commutateurs de produits ensembles et s´assurer que les accusées de réception se propage jusqu´à
+plusieurs commutateurs de produits ensemble et s´assurer que les accusées de réception se propage jusqu´à
 la source.  Par contre, l´implantation initiale de sarracenia ne traite pas des deltas (changement de 
-contenu de fichiers éxistants) et va téléchargé le contenu complet a chaque annonce.  On étudie présentement
-le case des deltas, et l´utilisation de l´algorithm rsync via l´outil zsync et à considérer.  Sarracenia
-devrait également être plus portatif que rsync.
+contenu de fichiers éxistants) et va télécharger le contenu complet a chaque annonce.  On étudie présentement
+le cas des deltas, et l´utilisation de l´algorithm rsync via l´outil zsync et à considérer.  
 
 
 <A NAME="Sundew"><H2>MetPX-Sundew</H2></a>
@@ -89,23 +107,6 @@ ainsi que <A HREF="http://www.emc.ncep.noaa.gov/gmb/ens/NAEFS.html">NAEFS</a> vi
 MetPX se démarque par sa capacité de routage détaillé a très faible latence et à haute vitesse.
 Le projet se veut une sorte de plateforme partagé et universelle pour les télécommunications via GTS, sur 
 le modèle d´apache pour les serveurs web.
-
-<P>
-[ liste de couriel (Anglais-Français): <A HREF="http://lists.sourceforge.net/lists/listinfo/metpx-devel"> metpx-devel.</a>, 
- <A HREF="http://lists.sourceforge.net/lists/listinfo/metpx-commit"> metpx-commit.</a> ] 
-[ projet:  <A HREF="http://www.sourceforge.net/projects/metpx"> Sourceforge </a> ]
-<P>
-
-<P>
-[<A HREF="#Documentation">Documentation</A>]
-[ <A HREF="http://sourceforge.net/project/showfiles.php?group_id=165061">Téléchargement</a>]
-[<A HREF="#Source">Accès au code source</A>]
-[<A HREF="#Links">Liens, Références</a>]
-<br>
-[ listes de courier:   <A HREF="http://lists.sourceforge.net/lists/listinfo/metpx-devel"> metpx-devel.</a> , 
- <A HREF="http://lists.sourceforge.net/lists/listinfo/metpx-commit"> metpx-commit.</a>  ]
-[ Page principale de dévéloppement:   <A HREF="http://www.sourceforge.net/projects/metpx"> Sourceforge </a> ]
-<P>
 
 Types de connections TCP/IP:
 <UL>
@@ -189,7 +190,7 @@ Sentez vous libre de prendre une copie de la version à jour du code source via:
 (disponible anonymement en lecture seulement.) D´autre versions sont disponible 
 en téléchargeant une branche spécifique.
 
-<A NAME="Links"><H3>Liens et Références</H3>
+<A NAME="Links"><H2>Liens et Références</H2>
 
 D´autres projets et produits qui sont vaguement dans une domaine similaire.  
 les mentions ici ne devront pas être interpreté comme des recommandations.
@@ -202,18 +203,24 @@ LDM par un protocol standard (NNTP.) L´éffort a sombré, par contre, ça a servi c
 <LI><A HREF="http://www.netsys.co.za"> http://www.netsys.co.za </a> - commutateur OMM commerciale.
 <LI><A HREF="http://www.iblsoft.com"> http://www.iblsoft.com </a> - commutateur OMM commerciale.
 <LI>Quelques autres logiciels de transfert de fichiers: Standard Networks Move IT DMZ, Softlink B-HUB & FEST, Globalscape EFT Server, Axway XFB, Primeur Spazio, Tumbleweed Secure File Transfer, Messageway
-<LI>AMQP (Advanced Message Queuing Protocol) est une nouvelle protocole standard pour l´échange de messages.  Elle est apparue en 2007 et il y a maintenant plusieurs implantations en logiciel libre. Le standard évolue rapidement actuelement.
-<LI>
-AMQP n´est pas uniquement une méthode pour transporter des messages JAVA.  Il est plutôt neutre en vers la langue de programmation et vise l´interopérabilité qui n´est pas fourni par les ¨JMS providers¨ en générale.
+</UL>
+<A NAME="AMQP"><h3>AMQP</h3></a>
+<LI>AMQP (Advanced Message Queuing Protocol) est une protocole standard pour l´échange de messages, qui a 
+ses origines dans le domaine financier.  Elle est apparue en 2007 et il y a maintenant plusieurs implantations 
+en logiciel libre.  AMQP n´est pas uniquement une méthode pour transporter des messages JAVA.  Il est 
+plutôt neutre en vers la langue de programmation et accomplit l´interopérabilité qui n´est pas fourni par 
+les ¨JMS providers¨ en générale.
 <UL>
 <LI><A HREF="http://www.amqp.org">www.amqp.org</a>  Définition d´AMQP.
 <LI><A HREF="http://www.openamq.org">www.openamq.org</a> 1<sup>ière</sup> implantation de JPMorganChase
-<LI><A HREF="http://www.rabbitmq.com">www.rabbitmq.com</a> une autre.
+<LI><A HREF="http://www.rabbitmq.com">www.rabbitmq.com</a> une autre. Celui qu'on préfère et utilise.
 <LI><A HREF="http://cwiki.apache.org/qpid">Apache Qpid</a> encore une autre.
 <LI><A HREF="http://activemq.apache.org/">Apache ActiveMQ</a> un "JMS provider" avec un capacité d´utiliser AMQP comme transport. 
+</UL>
+Sarracenia utilise le concepte de ´courtier´ de messages, et les ´topic based exchanges´, ceux 
+qui étaient standadisé en AMQP jusqu´à la version 0.9.  La comité de standardization 1.0 a enlevé ces aspets, 
+avec une idée de le re-introduire plus tard.  Cette action nous impose un dépendence sur AMQP <= 0.9. 
 
-</UL>
-</UL>
 
 
   </body>

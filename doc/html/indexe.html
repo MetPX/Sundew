@@ -4,7 +4,7 @@
 <title>MetPX welcome</title>
 </head>
 <body>
-<H1>MetPX - Meteorological Product eXChanger</H1>
+<H1>MetPX - Meteorological Product eXchanger</H1>
 <P>
 $Date$
 <p>
@@ -12,19 +12,33 @@ $Date$
 <P>
 MetPX is a collection of tools created to support data acquisition, routing, and dissemination in a meteorological context.
 There are two main applications in the MetPX suite: MetPX-sundew is the legacy WMO-GTS supporting message switching system.
-MetPX-Sundew transfers accepts, transforms, and delivers individual products.  MetPX-Sarracenia is the next generation 
-tree replication system, currently under development, which transfers filtered, but largely un-modified directory trees 
-of products on behalf of data sources.  While Sarracenia leaves legacy compatibility behind in order to address more 
-modern concerns, sundew remains necessary to interface to legacy systems.  
+<A HREF="#Sundew">MetPX-Sundew</a> transfers accepts, transforms, and delivers individual products.  
+<A HREF="#Sarracenia">MetPX-Sarracenia</a> is the next generation tree replication system, currently under development, 
+which transfers filtered, but largely un-modified directory trees of products on behalf of data sources.  
+While Sarracenia leaves legacy compatibility behind in order to address more modern concerns, sundew remains 
+necessary to interface to legacy systems.  
 
+<P>
+[<A HREF="#SaraDocumentation">Sarracenia Documentation</A>]
+[<A HREF="#SundewDocumentation">Sundew Documentation</A>]
+[<A HREF="#Download">Download</A>]
+[<A HREF="http://sourceforge.net/project/showfiles.php?group_id=165061">Download</a>]
+[<A HREF="#Source">Getting Source Code</A>]
+[<A HREF="#Links">References &amp; Links</a>]
+<br>
+[ mailing-lists:   <A HREF="http://lists.sourceforge.net/lists/listinfo/metpx-devel"> metpx-devel.</a>, 
+<A HREF="http://lists.sourceforge.net/lists/listinfo/metpx-commit"> metpx-commit.</a> ]
+[ Main Project page:   <A HREF="http://www.sourceforge.net/projects/metpx"> Sourceforge </a> ]
+<P>
 <A NAME="Sarracenia"><H2>MetPX-Sarracenia</H2></a>
 <P>
-MetPX-Sarracenia is a data duplication or distribution engine that leverages existing standard technologies (web servers and the AMQP brokers) to achieve real-time message delivery and end to end transparency in file transfers.  Whereas in Sundew, 
-each switch is a standalone configuration which transforms data in complex ways, in sarracenia, the data sources establish 
-a structure which is carried through any number of intervening switches until they arrive at a client.  The client can provide 
-explicit acknowledgement that propagates back through the network to the source.  Whereas traditional file switching is a 
-point-to-point affair where knowledge is only between each segment, in Sarracenia, information flows from end to end 
-in both directions.
+MetPX-Sarracenia is a data duplication or distribution engine that leverages existing standard technologies (web servers 
+and the <A HREF="#AMQP">AMQP</a> brokers) to achieve real-time message delivery and end to end transparency in file 
+transfers.  Whereas in Sundew, each switch is a standalone configuration which transforms data in complex ways, 
+in sarracenia, the data sources establish a structure which is carried through any number of intervening switches until 
+they arrive at a client.  The client can provide explicit acknowledgement that propagates back through the network to 
+the source.  Whereas traditional file switching is a point-to-point affair where knowledge is only between each 
+segment, in Sarracenia, information flows from end to end in both directions.
 <P>
 At it's heart, sarracenia exposes a tree of web accessible folders (WAF), using any standard HTTP server (tested with 
 apache).  Weather applications are soft real-time, where data should be delivered as quickly as possible to the next 
@@ -37,12 +51,12 @@ insert diagram here.
 Sources of data announce their products, switching systems pull the data onto their WAF trees, and then announce their trees 
 for downstream clients.  When clients download data, they may write a log message back to the server.  Servers are 
 configured to forward those client log messages back through the intervening servers back to the source.  The Source 
-can see the entire path that the data took to get to each client.  With legacy switching applicatins sources would 
-only see that they had delivered to the first hop in a chain. Beyond that first hop, they were opaque, and tracing 
+can see the entire path that the data took to get to each client.  With traditional switching applications, sources  
+only see that they delivered to the first hop in a chain. Beyond that first hop, routing is opaque, and tracing 
 the path of data required assistance from administrators of each intervening system.  With Sarracenia's log forwarding, 
-the switching network is completely transparent to the sources.
+the switching network is completely transparent to the sources.  Diagnostics are vastly simplified for everyone.
 <P>
-Where sundew supported a wide variety of file formats, protocols, and conventions specific to the real-time meteorology, 
+Where sundew supports a wide variety of file formats, protocols, and conventions specific to the real-time meteorology, 
 sarracenia takes a step further away from specific applications and is a ruthlessly generic tree replication engine, 
 which should allow it to be used in other domains.  The prototype client, dd_subscribe, in use since 2013, 
 implements the consumer end of the switch's functions, and is the only component present in current packages.  The 
@@ -52,6 +66,7 @@ Sarracenia is expected to be a far simpler application than sundew from every po
 Data Sources, Data consumers.  Sarracenia imposes a single interface mechanism, but that single mechanism is completely portable
 and generic.  It should run without issue on any modern platform (Linux, Windows, Mac)
 
+<A NAME="SaraDocumentation"><h3>Sarracenia Documentation</h3></a>
 <LI>Man Pages:
 <UL>
 <LI><A HREF="dd_subscribe.1.html">dd_subscribe.1</a> 
@@ -67,14 +82,14 @@ do the file tree walks (in large trees, that can be a long time.) Each file tree
 so supporting larger numbers of clients causes large CPU overhead.  Sarracenia avoids file tree walks by having
 writers calculate the checksums once, and signal their activity directly to readers by messages, reducing overhead 
 by orders of magnitude.  Lsync is a tool that leverages the INOTIFY features of Linux to achieve the same liveness, 
-but the checksums manage would need implementation, and it is obviously not portable. Doing this through the file 
-system is thought to be inherently more error prone and inefficient than explicit middleware message passing.  
+but the checksum management and log communication would need implementation, and it is obviously not portable. Doing 
+this through the file system is thought to be inherently more error prone and inefficient than explicit middleware 
+message passing.  
 <P>
 One of the design goals of sarracenia is to be end-to-end.  Rsync is point-to-point, and does not support the transitivity
 of transfers across multiple switching engines that is desired.  On the other hand, the first use case for Sarracenia 
 is the distribution of new files.  Updates to files are not common, and so file deltas are not yet dealt with efficiently.  
 Sarracenia may adopt the use of zsync as a means of applying that rsync algorithm to this use case.  This is under study.  
-Lastly, while there is a commercial windows client for rsync, sarracenia also should have broader platform support.  
 
 <A NAME="Sundew"><H2>MetPX-Sundew</H2></a>
 <P>
@@ -89,16 +104,6 @@ MetPX is unique in its ability to run fine-grained routing with low latency and 
 Developed at the Canadian Meteorological Centre of <a href="http://www.ec.gc.ca">Environment 
 Canada</a> for our own use.  Licensed under GPL for collaborative development, MetPX aims to be 
 to meteorological switching what apache is to web serving.
-<P>
-[<A HREF="#Documentation">Documentation</A>]
-[<A HREF="#Download">Download</A>]
-[<A HREF="http://sourceforge.net/project/showfiles.php?group_id=165061">Download</a>]
-[<A HREF="#Source">Getting Source Code</A>]
-[<A HREF="#Links">References &amp; Links</a>]
-<br>
-[ mailing-lists:   <A HREF="http://lists.sourceforge.net/lists/listinfo/metpx-devel"> metpx-devel.</a>, 
-<A HREF="http://lists.sourceforge.net/lists/listinfo/metpx-commit"> metpx-commit.</a> ]
-[ Main Project page:   <A HREF="http://www.sourceforge.net/projects/metpx"> Sourceforge </a> ]
 <P>
 Protocol support:
 <UL>
@@ -139,7 +144,7 @@ Any modern Linux should do. (stock 2.6 or 2.4 with many patches.)   Python &gt;2
 <P>
 Licensing: GPLv2
 
-<A NAME="Documentation"><H3>Documentation</H3></a>
+<A NAME="SundewDocumentation"><H3>Sundew Documentation</H3></a>
 <UL>
 <LI><A HREF="Guide.html">User's Guide</a>
 <LI><A HREF="DevGuide.html">Contributor's Guide</a>
@@ -202,17 +207,24 @@ Other, somewhat similar software, no endorsements or judgements should be taken 
 <LI><A HREF="http://www.netsys.co.za">http://www.netsys.co.za</a> - commercial WMO switch supplier.
 <LI><A HREF="http://www.iblsoft.com">http://www.iblsoft.com</a> - commercial WMO switch supplier.
 <LI>a variety of file transfer engines: Standard Networks Move IT DMZ, Softlink B-HUB & FEST, Globalscape EFT Server, Axway XFB, Primeur Spazio, Tumbleweed Secure File Transfer, Messageway.
-<LI>New emerging messaging standard: AMQP - Advanced Message Queuing Protocol.  implementation have appeared in 2007, current version is 0-8, next useful version expected to be 1-0.  Standard is still fluid.  
-<P>
-AMQP implementations are not JMS plumbing.  JMS standardizes the API programmers use, but not the on the wire protocol.  So typically, one cannot exchange messages between people using different JMS providers.  AMQP standardizes for interoperability, and functions effectively as an interoperability shim for JMS, without being limited to Java.  AMQP is language neutral, and message neutral.  there are many deployments using python, C++, and ruby.  One could adapt WMO protocols very easily to function over AMQP.  JMS providers are very Java oriented.
+</UL>
+<A NAME="AMQP"><h3>AMQP</h3></a>
+AMQP is the Advanced Message Queuing Protocol, which emerged from the financial trading industry and has gradually 
+matured.  Implementations first appeared in 2007, and there are now several open source ones.  AMQP implementations 
+are not JMS plumbing.  JMS standardizes the API programmers use, but not the on the wire protocol.  So typically, one cannot 
+exchange messages between people using different JMS providers.  AMQP standardizes for interoperability, and functions 
+effectively as an interoperability shim for JMS, without being limited to Java.  AMQP is language neutral, and message 
+neutral.  there are many deployments using python, C++, and ruby.  One could adapt WMO-GTS protocols very easily to 
+function over AMQP.  JMS providers are very Java oriented.
 <UL>
 <LI><A HREF="http://www.amqp.org">www.amqp.org</a>  defining AMQP. 
 <LI><A HREF="http://www.openamq.org">www.openamq.org</a> original GPL implementation from JPMorganChase
-<LI><A HREF="http://www.rabbitmq.com">www.rabbitmq.com</a> another free implementation.
+<LI><A HREF="http://www.rabbitmq.com">www.rabbitmq.com</a> another free implementation.  The one we use, and are happy with.
 <LI><A HREF="http://cwiki.apache.org/qpid">Apache Qpid</a> yafi.
 <LI><A HREF="http://activemq.apache.org/">Apache ActiveMQ</a> This is really a JMS provider with a bridge for AMQP.  They prefer their own openwire protocol. 
 </UL>
-</UL>
-
+Sarracenia relies heavily on the use of brokers and topic based exchanges, which were prominent in AMQP standards efforts prior
+to version 1.0, at which point they were removed.  It is hoped that these concepts will be re-introduced at some point.  Until
+that time, the application will rely on pre-1.0 standard message brokers, such as rabbitmq.
 </body>
 </html>
