@@ -12,13 +12,14 @@ $Date$
 <P>
 [<A HREF="indexe.html">English</a>]
 <P>
-MetPX est une collection d´outils créé afin de facilité l´acquisition, l´aiguillage, et la dissemination 
-de données dans une contexte météorologique.  Il y a deux applications principales: Sundew et Sarracenia. 
-<A HREF="#Sundew">MetPX-Sundew</a> se penche sur le support de et compatibilité avec des systèmes matures de STM de l´OMM.
-Il acquiert, transforme, et livre des produits individuels, tandis que <A HREF="#Sarracenia">MetPX Sarracenia</a>
-prend une nouvelle approche, traitant de la réplication (filtré) d´arborescences complets produites par des
-sources.  Sarracenia met de côté la compatibilité avec des anciens systèmes afin d´addresser des besoins actuels.
-
+MetPX est une collection d´outils créée afin de faciliter l´acquisition, l´aiguillage, et la dissémination 
+de données dans un contexte météorologique.  Il y a deux applications principales: Sundew et Sarracenia. 
+<A HREF="#Sundew">MetPX-Sundew</a> est axé sur le support et la compatibilité des systèmes matures de 
+STM de l´OMM.  Il acquiert, transforme, et livre des produits individuels, tandis 
+que <A HREF="#Sarracenia">MetPX Sarracenia</a> prend une nouvelle approche, et offre la réplication 
+(filtré) d´arborescences complètes produites par des sources.  Sarracenia met de côté la compatibilité 
+afin d´addresser des besoins actuels. Par contre, sundew demeure tout de même un lien essentiel aux 
+anciens systèmes.
 
 <P>
 [ liste de couriel (Anglais-Français): <A HREF="http://lists.sourceforge.net/lists/listinfo/metpx-devel"> metpx-devel.</a>, 
@@ -39,57 +40,66 @@ sources.  Sarracenia met de côté la compatibilité avec des anciens systèmes afin
 
 <A NAME="Sarracenia"><H2>MetPX-Sarracenia</H2></a>
 <P>
-MetPX-Sarracenia est un engin de duplication ou distribution de données servant des technologies standards 
-(serveurs web, et courtiers de messages d´AMQP) afin d´obtenir des transferts de données en temps-réél 
-avec une transparence d´un bout à l´autre.  Tandis qu´en Sundew, chaque commutateur de messages est une 
-instance en soi, en Sarracenia, les source de données établissent leur organization des données ce qui 
-est maintenue à travers la chaine de serveurs jusqu´a sa livraison au client.   Le client peut fournir des 
-accusés de réception qui propagent à travers les mêmes serveurs pour se rendre à la source. 
-Tandis qu´un commutateur traditionnel s´échange uniquement avec ses voisins, en Sarracenia, les 
-informations passent de bord en bord du réseau.
+MetPX-Sarracenia est un engin de duplication et distribution de données qui utilise des technologies 
+standards (tel que les services web et le courtier de messages AMQP) afin d¿obtenir des transferts de 
+données en temps réel tout en permettant une transparence de bout en bout.  Tandis que chaque commutateur 
+Sundew est unique en soit, offrant des configurations sur mesure et permutations de données multiples, 
+Sarracenia cherche à maintenir  l¿intégrité de la structure des données, tel qu¿offerte et organisée 
+par la source,  à travers tous les noeuds de la chaîne,  jusqu¿à la destination.    Le client peut 
+fournir des accusés de réception qui se propagent à sens inverse jusqu¿à la source.     Tandis qu¿un 
+commutateur traditionnel échange les données de point à point,  Sarracenia permet le passage des 
+données d¿un bout à l¿autre du réseau ainsi que dans un sens ou l¿autre.
 <P>
-Sarracenia, à sa plus simple expression, expose une arborescence de dossiers disponible sur la toile 
-("Web Accessible Folders").  Les applications météos ont une importante dépendence sur la latence de livraison des données: les minutes sont comptés, et parfois les secondes.  Les technologies standards tel que ATOM et
+Sarracenia, à sa plus simple expression, expose une arborescence de dossiers disponibles sur la toile 
+("Web Accessible Folders").  Les applications météos ont une importante dépendence sur la latence de livraison des données: les minutes sont comptées, et parfois les secondes.  Les technologies standards tel que ATOM et
 RSS, sont des technologies qui consomment beaucoup de bande passante et ressource quand ils sont appliqués 
 à de tels cas.  Les standards limitent la fréquence maximale de vérification de serveur à cinq minutes.  
-le protocol de sequencement de messages avancés (Advanced Message Queuing Protocol, AMQP) est une 
-approche beaucoup plus éfficace pour la livraison d'annonces de nouveaux produits.
+Le protocol de séquencement de messages avancés (Advanced Message Queuing Protocol, AMQP) est une 
+approche beaucoup plus efficace pour la livraison d'annonces de nouveaux produits.
 <P>
 insert diagram here.
 <P>
-Les sources annoncent la disponibilité de leurs données, les commutateurs prennent une copie, et annonce 
-leur copie à leurs clients.  Quand les client téléchargent des données, ils peuvent avisés leurs source
-de ce fait.  Ses avis sont reacheminés vers les sources.  Avec des systèmes traditionnels, le passages
-à travers les commmutateurs était opaque aux sources de données.  Avec l´acheminement des accusés de 
-réceptions de Sarracenia, le réseau de commutation est rendu transparent aux sources.
+Les sources annoncent la disponibilité de leurs données, les commutateurs en prennent une copie 
+et diffuse celle-ci à leurs clients.  Quand les clients téléchargent des données, ils ont l¿option 
+d¿enregistrer cette transaction.  Les enregistrements de transaction sont réacheminés aux sources, 
+en passant par chaque système du chemin inverse.  Ceci permet aux sources de voir exactement le 
+cheminement qu¿ont pris les  données pour se rendre aux clients.   Avec les systèmes traditionnels 
+d¿échange de données,  chaque source peut seulement confirmer que le transfert  vers le prochain 
+noeud de la chaîne a été complété.  Tout transfert subséquent est « opaque » et tracer le 
+cheminement d¿un produit exige l¿aide des administrateurs des systèmes intermédiaires.  Grâce au 
+concept de Sarracenia, prévoyant l¿acheminement des enregistrements de transactions à travers 
+le réseau, la diffusion des données devient transparente aux sources.  Les diagnostiques en 
+sont aussi grandement simplifiés.
 <P>
-Tandis que sundew traite le problème de support de beaucoup de protocoles et formats de la météorologie,
-sarracenia se retire de cette spécificité et généralise son approche, ce qui lui permet de 
+Tandis que sundew supporte multiples protocoles et formats de la météorologie,
+Sarracenia se retire de cette spécificité et généralise son approche, ce qui lui permet de 
 s´appliquer dans d´autres domaines scientifiques. Le client prototype, dd_subscribe, est en service depuis
-2013, et implante une grande partie des fonction de consommateurs de données, et est la seule composante
-dans les paquets debian actuels.  Vers l´automne 2015, le reste des composantes devront apparaître.
+2013, et implante une grande partie des fonctions de consommateurs de données, et est la seule composante
+dans les paquets debian actuels.  Vers l´automne 2015, le reste des composantes devraient apparaître.
 <P>
-Sarracenia est plus simple que Sundew de toutes les pointes de vue: Operateur, Dévéloppeur, Analyst, Source de Données, et consommateurs de données.  Bien qu´il impose une interface pour l´accès au données, celui-ci est 
-complètement générique et portable.   Il sera disponible sur n´importe lequel platteforme moderne (Linux, Windows, Mac.)
+Sarracenia est plus simple que Sundew de tous les points de vue: Operateur, Dévéloppeur, Analyst, Source de Données, et consommateurs de données.  Bien qu´il impose une interface pour l´accès au données, celui-ci est 
+complètement générique et portable.   Il sera disponible sur n´importe quelle plateforme 
+moderne (Linux, Windows, Mac.)
 
 <A NAME="WhyNotRSync"><H3>Pourquoi ne pas utiliser RSync?</H3></a>
-Il éxiste multiples solutions pour la replication de données, pourquoi inventer un autre?  Rsync et la
+Il éxiste multiples solutions pour la réplication de données, pourquoi en inventer un autre?  Rsync et la
 plupart des autres outils sont 1:1, ils comparent source et destination.   Sarracenia, bien qu´il ne sert
-pas de multi-cast, est orienté vers la livraison a multiples clients, et en temps réél.  La synchronization 
-rsync se fait par la traverse d´arborescences, en calculant des signatures pour chacque fichier, pour
-chaque client. Dans des grandes arborescences, avec plusieurs clients, ceci devient onéreux, limitant
-la fréquence de mise-à-jour, et la quantités de clients qui peuvent être supportés.  Sarracenia évite les 
+pas de multi-cast, est orienté vers la livraison à multiples clients en temps réél.  La synchronization 
+rsync se fait par la traverse d´arborescences, en calculant des signatures pour chaque fichier, pour
+chaque client. Dans les grandes arborescences, avec plusieurs clients, ceci devient onéreux, limitant
+la fréquence de mise-à-jour, et la quantité de clients qui peuvent être supportés.  Sarracenia évite les 
 traverses d´arborescences, et les processus qui écrivent les fichiers calculent les checksum une fois 
 pour utilisation directe par tout les lecteurs.  Ces deux améliorations rend l´application beaucoup plus 
-éfficace que rsync dans le cas de grandes arborescences, avec des nouveaux fichiers que apparaissent fréquamment.  
-LSync est un outil qui utilise INOTIFY sur linux pour avoir un notification real-time, mais ca prendrait 
-la couche de gestion de checksum, et une protocol réseau, et il n´est pas portatif à d´autres platteformes.  
+efficace que rsync dans le cas de grandes arborescences, avec des nouveaux fichiers qui apparaissent fréquamment.
+LSync est un outil qui utilise INOTIFY sur linux pour avoir une notification en tempr-réel, mais la gestion 
+des checksum et la communication des enregistrements à travers le réseau seraient à développer, et 
+LSync n¿est pas portatif à d¿autres plateforme.
 <P>
 RSync est également une solution point à point.  Sarracenia mise la ´transitivité´, la capacité d´enchainer
 plusieurs commutateurs de produits ensemble et s´assurer que les accusées de réception se propage jusqu´à
 la source.  Par contre, l´implantation initiale de sarracenia ne traite pas des deltas (changement de 
-contenu de fichiers éxistants) et va télécharger le contenu complet a chaque annonce.  On étudie présentement
-le cas des deltas, et l´utilisation de l´algorithm rsync via l´outil zsync et à considérer.  
+contenu de fichiers existants) et va télécharger le contenu complet a chaque annonce.  On étudie présentement
+le cas des deltas, et l´utilisation de l´algorithm rsync via l´outil zsync est en considération.
 
 
 <A NAME="Sundew"><H2>MetPX-Sundew</H2></a>
@@ -191,35 +201,42 @@ Sentez vous libre de prendre une copie de la version à jour du code source via:
 en téléchargeant une branche spécifique.
 
 <A NAME="AMQP"><h2>AMQP</h2></a>
-<LI>AMQP (Advanced Message Queuing Protocol) est une protocole standard pour l´échange de messages, qui a 
-ses origines dans le domaine financier.  Elle est apparue en 2007 et il y a maintenant plusieurs implantations 
-en logiciel libre.  AMQP n´est pas uniquement une méthode pour transporter des messages JAVA.  Il est 
-plutôt neutre en vers la langue de programmation et accomplit l´interopérabilité qui n´est pas fourni par 
-les ¨JMS providers¨ en générale.
+<LI> AMQP est un protocole standard pour l¿échange de messages qui a ses origines dans le domaine financier.   
+AMQP est apparue en 2007 et a pris  graduellement de la maturité.  Il y a aujourd¿hui plusieurs 
+implémentations de ce protocole en logiciel libre.   AMQP offre une méthode pour le transport des 
+messages JAVA, mais il n¿est pas dédié uniquement à ce langage.  Sa neutralité envers les différents 
+langages de programmation facilite l¿interopérabilité avec les  fournissuers JMS , sans se limiter 
+à JAVA.  Le langage AMQP et ses messages sont neutres.  Certaines implémentations utilisent 
+python, C++ et ruby, tandis que les fournisseurs de JMS sont fortement orientés JAVA.
 <UL>
 <LI><A HREF="http://www.amqp.org">www.amqp.org</a>  Définition d´AMQP.
 <LI><A HREF="http://www.openamq.org">www.openamq.org</a> 1<sup>ière</sup> implantation de JPMorganChase
 <LI><A HREF="http://www.rabbitmq.com">www.rabbitmq.com</a> une autre. Celui qu'on préfère et utilise.
 <LI><A HREF="http://cwiki.apache.org/qpid">Apache Qpid</a> encore une autre.
-<LI><A HREF="http://activemq.apache.org/">Apache ActiveMQ</a> un "JMS provider" avec un capacité d´utiliser AMQP comme transport. 
+<LI><A HREF="http://activemq.apache.org/">Apache ActiveMQ</a> un "fournisseur JMS" avec un capacité d´utiliser AMQP comme transport. 
 </UL>
-Sarracenia utilise le concepte de ´courtier´ de messages, et les ´topic based exchanges´, ceux 
-qui étaient standadisé en AMQP jusqu´à la version 0.9.  La comité de standardization 1.0 a enlevé ces aspets, 
-avec une idée de le re-introduire plus tard.  Cette action nous impose un dépendence sur AMQP <= 0.9. 
-
+Sarracenia utilise les concepts de « courtier de messages » et « échanges basés sur le sujet » qui, 
+antérieurement à la version 1.0, étaient standards dans AMQP.  A partir de la version 1.0, le comité 
+des standards AMQP ont décidé de retirer ces aspects avec l¿idée de les réintroduire dans le futur.  
+Dû à cette décision,  Sarracenia dépend des versions pré 1.0 de AMQP, tel que « rabbitmq ».
 <A NAME="Links"><H2>Liens et Références</H2>
 
 D´autres projets et produits qui sont vaguement dans une domaine similaire.  
 les mentions ici ne devront pas être interpreté comme des recommandations.
 <UL>
 <LI>le manuel WMO 386, référence pour le domaine.(version sans doute périmé est <A HREF="WMO-386.pdf"> ici. </a> Voir http://www.wmo.int pour une version plus r&eacute;cente.
-<LI><A HREF="http://www.unidata.ucar.edu/software/ldm">http://www.unidata.ucar.edu/software/ldm</a>  - Local Data Manager.  LDM inclut une protocol résautique, et veut fondamentalement échanger des données avec d´autres serveurs LDM.  Ce logiciel a servi comme inspiration de plusieurs façons.  Au début des années 2000, on avait étudier le protocol pour les besoins du CMC et identifié des charactéristiques qui le rendaient inapte a notre application.   Par contre, il y avait un effort ´NLDM´ qui avait remplacé le protocol résautique de 
+<LI><A HREF="http://www.unidata.ucar.edu/software/ldm">http://www.unidata.ucar.edu/software/ldm</a>  - Local Data 
+Manager.  LDM inclut une protocol résautique, et veut fondamentalement échanger des données avec d´autres serveurs LDM.  
+Ce logiciel a servi comme inspiration de plusieurs façons.  Au début des années 2000, on avait étudier le protocol 
+pour les besoins du CMC et identifié des charactéristiques qui le rendaient inapte a notre application.   Par 
+contre, il y avait un effort ´NLDM´ qui avait remplacé le protocol résautique de 
 LDM par un protocol standard (NNTP.) L´éffort a sombré, par contre, ça a servi comme inspiration pour la séparation de la domaine météorologique du protocole de télécommunication, ce qui a été reprit philosophiquement par MetPX.  
 <LI><A HREF="http://www.dwd.de/AFD">http://www.dwd.de/AFD</a> - Automatic File Distributor - de la service météorologique allemande.  Aiguilleur de fichiers dans le protocol au choix de l´usager.  Similaire à MetPX en philosophie
 <LI><A HREF="http://www.corobor.com"> http://www.corobor.com </a> - commutateur OMM commerciale.
 <LI><A HREF="http://www.netsys.co.za"> http://www.netsys.co.za </a> - commutateur OMM commerciale.
 <LI><A HREF="http://www.iblsoft.com"> http://www.iblsoft.com </a> - commutateur OMM commerciale.
-<LI>Quelques autres logiciels de transfert de fichiers: Standard Networks Move IT DMZ, Softlink B-HUB & FEST, Globalscape EFT Server, Axway XFB, Primeur Spazio, Tumbleweed Secure File Transfer, Messageway
+<LI>Quelques autres logiciels de transfert de fichiers: Standard Networks Move IT DMZ, Softlink B-HUB & FEST, 
+Globalscape EFT Server, Axway XFB, Primeur Spazio, Tumbleweed Secure File Transfer, Messageway
 <LI><A HREF="https://rsync.samba.org/">Rsync</a> engin de transfert incrementale rapide.
 <LI><A HREF="https://code.google.com/p/lsyncd">Lsyncd</a> engin de synchronization en temps reel.
 <LI><A HREF="http://zsync.moria.org.uk">Zsync</a> rsync sur HTTP.

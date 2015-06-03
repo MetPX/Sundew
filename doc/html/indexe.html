@@ -43,18 +43,31 @@ segment, in Sarracenia, information flows from end to end in both directions.
 At it's heart, sarracenia exposes a tree of web accessible folders (WAF), using any standard HTTP server (tested with 
 apache).  Weather applications are soft real-time, where data should be delivered as quickly as possible to the next 
 hop, and minutes, perhaps seconds, count.  The standard web push technologies, ATOM, RSS, etc... are actually polling 
-technologies that when used in low latency applications consume a great deal of bandwidth an overhead.  For exactly these reasons, those standards stipulate a minimum polling interval of five minutes.   Advanced Message Queueing Protocol 
-(AMQP) messaging brings true push to notifications, and makes real-time sending far more efficient.
+technologies that when used in low latency applications consume a great deal of bandwidth an overhead.  
+For exactly these reasons, those standards stipulate a minimum polling interval of five minutes.   
+Advanced Message Queueing Protocol (AMQP) messaging brings true push to notifications, and makes real-time 
+sending far more efficient.
 <P>
 insert diagram here.
 <P>
-Sources of data announce their products, switching systems pull the data onto their WAF trees, and then announce their trees 
-for downstream clients.  When clients download data, they may write a log message back to the server.  Servers are 
-configured to forward those client log messages back through the intervening servers back to the source.  The Source 
-can see the entire path that the data took to get to each client.  With traditional switching applications, sources  
-only see that they delivered to the first hop in a chain. Beyond that first hop, routing is opaque, and tracing 
-the path of data required assistance from administrators of each intervening system.  With Sarracenia's log forwarding, 
-the switching network is completely transparent to the sources.  Diagnostics are vastly simplified for everyone.
+Sources of data announce their products, switching systems pull the data using HTTP or SFTP onto their WAF trees, and 
+then announce their trees for downstream clients.  When clients download data, they may write a log message back to 
+the server.  Servers are configured to forward those client log messages back through the intervening servers back to 
+the source.  The Source can see the entire path that the data took to get to each client.  With traditional switching 
+applications, sources  only see that they delivered to the first hop in a chain. Beyond that first hop, routing is 
+opaque, and tracing the path of data required assistance from administrators of each intervening system.  With 
+Sarracenia's log forwarding, the switching network is completely transparent to the sources.  Diagnostics are 
+vastly simplified.
+<P>
+For large files / high performance, files are segmented on ingest if they are sufficiently
+large to make this worthwhile.  Each file can traverse the switch network independently,
+and reassembly is only needed at end points.   A file of sufficient size will announce
+the availability of several segments for transfer, multiple threads or transfer nodes
+will pick up segments and transfer them.  The more segments available, the higher
+the parallelism of the transfer.   In many cases, Sarracenia manages parallelism
+and network usage without explicit user intervention.  As intervening switches
+do not store and forward entire files, the maximum file size which can traverse
+the network is maximized.
 <P>
 Where sundew supports a wide variety of file formats, protocols, and conventions specific to the real-time meteorology, 
 sarracenia takes a step further away from specific applications and is a ruthlessly generic tree replication engine, 
