@@ -35,10 +35,10 @@ necessary to interface to legacy systems.
 MetPX-Sarracenia is a data duplication or distribution engine that leverages existing standard technologies (web servers 
 and the <A HREF="#AMQP">AMQP</a> brokers) to achieve real-time message delivery and end to end transparency in file 
 transfers.  Whereas in Sundew, each switch is a standalone configuration which transforms data in complex ways, 
-in sarracenia, the data sources establish a structure which is carried through any number of intervening switches until 
-they arrive at a client.  The client can provide explicit acknowledgement that propagates back through the network to 
-the source.  Whereas traditional file switching is a point-to-point affair where knowledge is only between each 
-segment, in Sarracenia, information flows from end to end in both directions.
+in sarracenia, the data sources establish a structure which is carried through any number of intervening switches 
+until they arrive at a client.  The client can provide explicit acknowledgement that propagates back through the 
+network to the source.  Whereas traditional file switching is a point-to-point affair where knowledge is only 
+between each segment, in Sarracenia, information flows from end to end in both directions.
 <P>
 At it's heart, sarracenia exposes a tree of web accessible folders (WAF), using any standard HTTP server (tested with 
 apache).  Weather applications are soft real-time, where data should be delivered as quickly as possible to the next 
@@ -240,6 +240,8 @@ Other, somewhat similar software, no endorsements or judgements should be taken 
 <LI><A HREF="http://www.netsys.co.za">http://www.netsys.co.za</a> - commercial WMO switch supplier.
 <LI><A HREF="http://www.iblsoft.com">http://www.iblsoft.com</a> - commercial WMO switch supplier.
 <LI>a variety of file transfer engines: Standard Networks Move IT DMZ, Softlink B-HUB & FEST, Globalscape EFT Server, Axway XFB, Primeur Spazio, Tumbleweed Secure File Transfer, Messageway.
+<LI><A HREF="https://www.websocket.org/quantum.html">HTML5 web sockets</a> A good discussion of why traditional web push is awful, showing how web sockets can help.  AMQP is a pure socket solution that has the same advantages
+of websockets for efficiency.
 <LI><A HREF="https://rsync.samba.org/">Rsync</a> provides fast incremental file transfer.
 <LI><A HREF="https://code.google.com/p/lsyncd">Lsyncd</a> Live syncing (Mirror) Daemon.
 <LI><A HREF="http://zsync.moria.org.uk">Zsync</a> Optimised rsync over HTTP.
