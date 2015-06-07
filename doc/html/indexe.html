@@ -95,15 +95,18 @@ do the file tree walks (in large trees, that can be a long time.) Each file tree
 in order to generate signatures, so supporting larger numbers of clients causes large overhead.  Sarracenia avoids 
 file tree walks by having writers calculate the checksums once, and signal their activity directly to readers 
 by messages, reducing overhead by orders of magnitude.  Lsync is a tool that leverages the INOTIFY features of 
-Linux to achieve the same liveness, but the checksum management and log communication would need implementation, 
-and it is obviously not portable. Doing this through the file system is thought to be cumbersome and less
-general than explicit middleware message passing, which also handles the logs ins a straight-forward way.
+Linux to achieve the same liveness, and it might be more suitable but it is obviously not portable. Doing this 
+through the file system is thought to be cumbersome and less general than explicit middleware message passing, 
+which also handles the logs in a straight-forward way.
 <P>
-One of the design goals of sarracenia is to be end-to-end.  Rsync is point-to-point, and does not support the "transitivity"
-of transfers across multiple switching engines that is desired.  On the other hand, the first use case for Sarracenia 
-is the distribution of new files.  Updates to files are not common, and so file deltas are not yet dealt with efficiently.  
-ZSync is much closer in spirit to this use case, and Sarracenia may adopt zsync as a means of handling deltas, 
-but it would likely place the signatures in the announcements.
+One of the design goals of sarracenia is to be end-to-end.  Rsync is point-to-point, meaning it does not support 
+the "transitivity" of transfers across multiple switching engines that is desired.  On the other hand, the first 
+use case for Sarracenia is the distribution of new files.  Updates to files are not common, and so file deltas 
+are not yet dealt with efficiently.  ZSync is much closer in spirit to this use case, and Sarracenia may 
+adopt zsync as a means of handling deltas, but it would likely place the signatures in the announcements.
+Using an announcement per checksummed block allows transfers to be parallelized easily.   The use
+of the AMQP message bus also allows for system-wide monitoring to be straight-forward, and to integrate 
+other features such as security scanning within the flow transparently. 
 
 <A NAME="Sundew"><H2>MetPX-Sundew</H2></a>
 <P>
@@ -241,7 +244,7 @@ Other, somewhat similar software, no endorsements or judgements should be taken 
 <LI><A HREF="http://www.iblsoft.com">http://www.iblsoft.com</a> - commercial WMO switch supplier.
 <LI>a variety of file transfer engines: Standard Networks Move IT DMZ, Softlink B-HUB & FEST, Globalscape EFT Server, Axway XFB, Primeur Spazio, Tumbleweed Secure File Transfer, Messageway.
 <LI><A HREF="https://www.websocket.org/quantum.html">HTML5 web sockets</a> A good discussion of why traditional web push is awful, showing how web sockets can help.  AMQP is a pure socket solution that has the same advantages
-of websockets for efficiency.
+as websockets for efficiency. Note: KAAZING wrote the piece, not disinterested.
 <LI><A HREF="https://rsync.samba.org/">Rsync</a> provides fast incremental file transfer.
 <LI><A HREF="https://code.google.com/p/lsyncd">Lsyncd</a> Live syncing (Mirror) Daemon.
 <LI><A HREF="http://zsync.moria.org.uk">Zsync</a> Optimised rsync over HTTP.
