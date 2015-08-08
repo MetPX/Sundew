@@ -26,29 +26,29 @@ DevGuide.html:  ../dev/DevGuide.txt
 #         -- add an explicit target here.
 #         -- add a link from index.html.
 #
-pxSender.1.html: ../../sundew/man/man1/pxSender.1
-	groff -Thtml -man ../../sundew/man/man1/pxSender.1 >pxSender.1.html
+pxSender.1.html: ../../../sundew/man/man1/pxSender.1
+	groff -Thtml -man ../../../sundew/man/man1/pxSender.1 >pxSender.1.html
 
-pxTransceiver.1.html: ../../sundew/man/man1/pxTransceiver.1
-	groff -Thtml -man ../../sundew/man/man1/pxTransceiver.1 >pxTransceiver.1.html
+pxTransceiver.1.html: ../../../sundew/man/man1/pxTransceiver.1
+	groff -Thtml -man ../../../sundew/man/man1/pxTransceiver.1 >pxTransceiver.1.html
 
-pxReceiver.1.html: ../../sundew/man/man1/pxReceiver.1
-	groff -Thtml -man ../../sundew/man/man1/pxReceiver.1 >pxReceiver.1.html
+pxReceiver.1.html: ../../../sundew/man/man1/pxReceiver.1
+	groff -Thtml -man ../../../sundew/man/man1/pxReceiver.1 >pxReceiver.1.html
 
-pxRetransmit.1.html: ../../sundew/man/man1/pxRetransmit.1
-	groff -Thtml -man ../../sundew/man/man1/pxRetransmit.1 >pxRetransmit.1.html
+pxRetransmit.1.html: ../../../sundew/man/man1/pxRetransmit.1
+	groff -Thtml -man ../../../sundew/man/man1/pxRetransmit.1 >pxRetransmit.1.html
 
-px.1.html: ../../sundew/man/man1/px.1
-	groff -Thtml -man ../../sundew/man/man1/px.1 >px.1.html
+px.1.html: ../../../sundew/man/man1/px.1
+	groff -Thtml -man ../../../sundew/man/man1/px.1 >px.1.html
 
-pxFilter.1.html: ../../sundew/man/man1/pxFilter.1
-	groff -Thtml -man ../../sundew/man/man1/pxFilter.1 >pxFilter.1.html
+pxFilter.1.html: ../../../sundew/man/man1/pxFilter.1
+	groff -Thtml -man ../../../sundew/man/man1/pxFilter.1 >pxFilter.1.html
 
-pxRouting.conf.5.html: ../../sundew/man/man5/pxRouting.conf.5
-	groff -Thtml -man ../../sundew/man/man5/pxRouting.conf.5 >pxRouting.conf.5.html
+pxRouting.conf.5.html: ../../../sundew/man/man5/pxRouting.conf.5
+	groff -Thtml -man ../../../sundew/man/man5/pxRouting.conf.5 >pxRouting.conf.5.html
 
-pxRouting.7.html: ../../sundew/man/man7/pxRouting.7
-	groff -Thtml -man ../../sundew/man/man7/pxRouting.7 >pxRouting.7.html
+pxRouting.7.html: ../../../sundew/man/man7/pxRouting.7
+	groff -Thtml -man ../../../sundew/man/man7/pxRouting.7 >pxRouting.7.html
 
 Guide.pdf:   Guide.latex
 	pdflatex </dev/null Guide.latex 
