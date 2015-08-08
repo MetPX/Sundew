@@ -1,6 +1,11 @@
 
 INSTALL
 
+2015-08-08 REVIEW NOTE: 
+      this file is obsolete. we have debian packaging for some 
+      time which takes care of this.  it is just apt-get or dpkg -i now.
+      update needed FIXME
+
 sundew is the switching component of MetPX. 
 
 We've only installed this internally, fully flexible packaging is
