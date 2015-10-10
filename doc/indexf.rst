@@ -1,8 +1,8 @@
 =================
-Bienvenue à MetPX
+Bienvenue Ã  MetPX
 =================
 
-MetPX - L´échangeur de produits météorologiques
+MetPX - L'Ã©changeur de produits mÃ©tÃ©orologiques
 ===============================================
 
 .. |Date| date::
@@ -14,217 +14,217 @@ Date: |Date|
 .. _English: indexe.html
 
 
-MetPX est une collection d´outils créée afin de faciliter l´acquisition, l´aiguillage, et la dissémination 
-de données dans un contexte météorologique. Il y a deux applications principales: Sundew et Sarracenia. 
-MetPX-Sundew_ est axé sur le support et la compatibilité des systèmes matures de Système de télécommunication
-mondiale (STM) de l´Organisation mondiale de la météo (OMM). Il acquiert, transforme, et livre des produits 
+MetPX est une collection dÅ½outils crÃ©Ã©e afin de faciliter lÅ½acquisition, lÅ½aiguillage, et la dissÃ©mination 
+de donnÃ©es dans un contexte mÃ©tÃ©orologique. Il y a deux applications principales: Sundew et Sarracenia. 
+MetPX-Sundew_ est axÃ© sur le support et la compatibilitÃ© des systÃ¨mes matures de SystÃ¨me de tÃ©lÃ©communication
+mondiale (STM) de lÅ½Organisation mondiale de la mÃ©tÃ©o (OMM). Il acquiert, transforme, et livre des produits 
 individuels, tandis que MetPX-Sarracenia_ adopte une nouvelle approche, et offre la copie 
-complète (filtrée) de l'arborescence source. Sarracenia abandonne la compatibilité afin de répondre aux 
-besoins actuels. Par contre, sundew demeure tout de même un lien essentiel aux 
-anciens systèmes.
+complÃ¨te (filtrÃ©e) de l'arborescence source. Sarracenia abandonne la compatibilitÃ© afin de rÃ©pondre aux 
+besoins actuels. Par contre, sundew demeure tout de mÃªme un lien essentiel aux 
+anciens systÃ¨mes.
 
-[ liste de couriel (Anglais-Français): `metpx-devel <http://lists.sourceforge.net/lists/listinfo/metpx-devel>`_ , `metpx-commit <http://lists.sourceforge.net/lists/listinfo/metpx-commit>`_ ] 
+[ liste de couriel (Anglais-FranÃ§ais): `metpx-devel <http://lists.sourceforge.net/lists/listinfo/metpx-devel>`_ , `metpx-commit <http://lists.sourceforge.net/lists/listinfo/metpx-commit>`_ ] 
 [ projet: `Sourceforge <http://www.sourceforge.net/projects/metpx>`_ ]
 [ Documentation_ ]
-[ `Téléchargement <http://sourceforge.net/project/showfiles.php?group_id=165061>`_ ]
-[ `Accès au code source`_ ]
-[ `Liens et Références`_ ]
+[ `TÃ©lÃ©chargement <http://sourceforge.net/project/showfiles.php?group_id=165061>`_ ]
+[ `AccÃ¨s au code source`_ ]
+[ `Liens et RÃ©fÃ©rences`_ ]
 
-[ liste de couriel (Anglais-Français): `metpx-devel <http://lists.sourceforge.net/lists/listinfo/metpx-devel>`_ , `metpx-commit <http://lists.sourceforge.net/lists/listinfo/metpx-commit>`_ ] 
-[ Page principale de dévéloppement: `Sourceforge <http://www.sourceforge.net/projects/metpx>`_ ]
+[ liste de couriel (Anglais-FranÃ§ais): `metpx-devel <http://lists.sourceforge.net/lists/listinfo/metpx-devel>`_ , `metpx-commit <http://lists.sourceforge.net/lists/listinfo/metpx-commit>`_ ] 
+[ Page principale de dÃ©vÃ©loppement: `Sourceforge <http://www.sourceforge.net/projects/metpx>`_ ]
 
 
 MetPX-Sarracenia
 ================
 
-MetPX-Sarracenia est un engin de copie et de distribution de données qui utilise des technologies 
+MetPX-Sarracenia est un engin de copie et de distribution de donnÃ©es qui utilise des technologies 
 standards (tel que les services web et le courtier de messages AMQP) afin d'effectuer des transferts de 
-données en temps réel tout en permettant une transparence de bout en bout. Alors que chaque commutateur 
-Sundew est unique en soit, offrant des configurations sur mesure et permutations de données multiples, 
-Sarracenia cherche à maintenir l'intégrité de la structure des données, tel que proposée et organisée 
-par la source, à travers tous les noeuds de la chaîne, jusqu'à destination. Le client peut 
-fournir des accusés de réception qui se propagent en sens inverse jusqu'à la source. Tandis qu'un 
-commutateur traditionnel échange les données de point à point, Sarracenia permet le passage des 
-données d'un bout à l'autre du réseau, tant dans une direction que dans l'autre.
+donnÃ©es en temps rÃ©el tout en permettant une transparence de bout en bout. Alors que chaque commutateur 
+Sundew est unique en soit, offrant des configurations sur mesure et permutations de donnÃ©es multiples, 
+Sarracenia cherche Ã  maintenir l'intÃ©gritÃ© de la structure des donnÃ©es, tel que proposÃ©e et organisÃ©e 
+par la source, Ã  travers tous les noeuds de la chaÃ®ne, jusqu'Ã  destination. Le client peut 
+fournir des accusÃ©s de rÃ©ception qui se propagent en sens inverse jusqu'Ã  la source. Tandis qu'un 
+commutateur traditionnel Ã©change les donnÃ©es de point Ã  point, Sarracenia permet le passage des 
+donnÃ©es d'un bout Ã  l'autre du rÃ©seau, tant dans une direction que dans l'autre.
 
-Sarracenia, à sa plus simple expression, expose une arborescence de dossiers disponibles sur la toile 
-("Web Accessible Folders"). Le temps de latence est une composante névralgique des applications météo: les minutes, et parfois les secondes, sont comptées. Les technologies standards, telles que ATOM et
-RSS, sont des technologies qui consomment beaucoup de bande passante et de ressouces lorsqu'elles doivent répondre à ces contraintes. Les standards limitent la fréquence maximale de vérification de serveur à cinq minutes. 
-Le protocol de séquencement de messages avancés (Advanced Message Queuing Protocol, AMQP) est une 
+Sarracenia, Ã  sa plus simple expression, expose une arborescence de dossiers disponibles sur la toile 
+("Web Accessible Folders"). Le temps de latence est une composante nÃ©vralgique des applications mÃ©tÃ©o: les minutes, et parfois les secondes, sont comptÃ©es. Les technologies standards, telles que ATOM et
+RSS, sont des technologies qui consomment beaucoup de bande passante et de ressouces lorsqu'elles doivent rÃ©pondre Ã  ces contraintes. Les standards limitent la frÃ©quence maximale de vÃ©rification de serveur Ã  cinq minutes. 
+Le protocol de sÃ©quencement de messages avancÃ©s (Advanced Message Queuing Protocol, AMQP) est une 
 approche beaucoup plus efficace pour la livraison d'annonces de nouveaux produits.
 
 .. image:: f-ddsr-components.gif
 
-Les sources annoncent la disponibilité des données, les commutateurs en font une copie 
-et la diffusent à leurs clients. Quand les clients téléchargent des données, ils ont l'option 
-d'enregistrer cette transaction. Les enregistrements de transaction sont réacheminés aux sources, 
-en passant par chaque système du chemin inverse. Ceci permet aux sources de voir exactement le 
-chemin qu'ont pris les données pour se rendre aux clients.  Avec les systèmes traditionnels 
-d'échange de données, chaque source peut seulement confirmer que le transfert vers le prochain 
-noeud de la chaîne a été complété. Tout transfert subséquent est « opaque » et tracer le 
-cheminement d'un produit exige l'aide des administrateurs des systèmes intermédiaires. Grâce au 
-concept de Sarracenia, prévoyant l'acheminement des enregistrements de transactions à travers 
-le réseau, la diffusion des données devient transparente aux sources. Les diagnostiques en 
-sont aussi grandement simplifiés.
+Les sources annoncent la disponibilitÃ© des donnÃ©es, les commutateurs en font une copie 
+et la diffusent Ã  leurs clients. Quand les clients tÃ©lÃ©chargent des donnÃ©es, ils ont l'option 
+d'enregistrer cette transaction. Les enregistrements de transaction sont rÃ©acheminÃ©s aux sources, 
+en passant par chaque systÃ¨me du chemin inverse. Ceci permet aux sources de voir exactement le 
+chemin qu'ont pris les donnÃ©es pour se rendre aux clients.  Avec les systÃ¨mes traditionnels 
+d'Ã©change de donnÃ©es, chaque source peut seulement confirmer que le transfert vers le prochain 
+noeud de la chaÃ®ne a Ã©tÃ© complÃ©tÃ©. Tout transfert subsÃ©quent est Â« opaque Â» et tracer le 
+cheminement d'un produit exige l'aide des administrateurs des systÃ¨mes intermÃ©diaires. GrÃ¢ce au 
+concept de Sarracenia, prÃ©voyant l'acheminement des enregistrements de transactions Ã  travers 
+le rÃ©seau, la diffusion des donnÃ©es devient transparente aux sources. Les diagnostiques en 
+sont aussi grandement simplifiÃ©s.
 
-Tandis que Sundew supporte plusieurs protocoles et formats de la météorologie,
-Sarracenia se retire de cette spécificité et généralise son approche, ce qui lui permet d'être utile pour d´autres domaines scientifiques. Le client prototype, dd_subscribe, est en service depuis
-2013 et implante une grande partie des fonctions de consommateurs de données. Elle est la seule composante
-dans les paquets Debian actuels. Le reste des composantes devraient être disponibles à l'automne 2015.
+Tandis que Sundew supporte plusieurs protocoles et formats de la mÃ©tÃ©orologie,
+Sarracenia se retire de cette spÃ©cificitÃ© et gÃ©nÃ©ralise son approche, ce qui lui permet d'Ãªtre utile pour dÅ½autres domaines scientifiques. Le client prototype, dd_subscribe, est en service depuis
+2013 et implante une grande partie des fonctions de consommateurs de donnÃ©es. Elle est la seule composante
+dans les paquets Debian actuels. Le reste des composantes devraient Ãªtre disponibles Ã  l'automne 2015.
 
-Sarracenia est plus simple que Sundew, peu importe l'utilisateur: opérateur, dévéloppeur, analyste, 
-source et consommateurs de données. Bien qu´il impose une interface pour l´accès au 
-données, Sarracenia est complètement générique et portable.  Il sera disponible sur n´importe 
+Sarracenia est plus simple que Sundew, peu importe l'utilisateur: opÃ©rateur, dÃ©vÃ©loppeur, analyste, 
+source et consommateurs de donnÃ©es. Bien quÅ½il impose une interface pour lÅ½accÃ¨s au 
+donnÃ©es, Sarracenia est complÃ¨tement gÃ©nÃ©rique et portable.  Il sera disponible sur nÅ½importe 
 quelle plateforme moderne (GNU/Linux, Windows, Apple)
 
 Pourquoi ne pas utiliser RSync?
 ===============================
 
-Il existe multiples solutions pour la copie de données, pourquoi en inventer une autre? Rsync et la
-plupart des autres outils sont 1:1, ils comparent source et destination.  Sarracenia, bien qu´il ne sert
-pas de multi-cast, est orienté vers la livraison à de multiples clients en temps réél. La synchronization 
-RSync se fait via la communication de l´arborescences, en calculant des signatures pour chaque fichier, pour
-chaque client. Pour les arborescences importantes, comprennant plusieurs clients, ces calculs et transactions deviennent onéreuses, limitant la fréquence de mise à jour et le nombre de clients peuvant être supportés. Sarracenia évite le parcours des arborescences, et les processus qui écrivent les fichiers calculent les checksum une fois seulement, afin d'être utilisé directement par tous les intervenants. Ces deux améliorations rendent Sarracenia beaucoup plus efficace que RSync dans le cas d'arborescences imposantes comprenant l'ajout fréquent de fichiers. LSync est un outil qui utilise INOTIFY sur GNU/Linux pour avoir une notification en temps réel, mais la gestion 
-des checksum et la communication des enregistrements à travers le réseau n'existent pas. De plus,
-LSync n´est pas interopérable avec d'autres systèmes d'exploitation.
+Il existe multiples solutions pour la copie de donnÃ©es, pourquoi en inventer une autre? Rsync et la
+plupart des autres outils sont 1:1, ils comparent source et destination.  Sarracenia, bien quÅ½il ne sert
+pas de multi-cast, est orientÃ© vers la livraison Ã  de multiples clients en temps rÃ©Ã©l. La synchronization 
+RSync se fait via la communication de lÅ½arborescences, en calculant des signatures pour chaque fichier, pour
+chaque client. Pour les arborescences importantes, comprennant plusieurs clients, ces calculs et transactions deviennent onÃ©reuses, limitant la frÃ©quence de mise Ã  jour et le nombre de clients peuvant Ãªtre supportÃ©s. Sarracenia Ã©vite le parcours des arborescences, et les processus qui Ã©crivent les fichiers calculent les checksum une fois seulement, afin d'Ãªtre utilisÃ© directement par tous les intervenants. Ces deux amÃ©liorations rendent Sarracenia beaucoup plus efficace que RSync dans le cas d'arborescences imposantes comprenant l'ajout frÃ©quent de fichiers. LSync est un outil qui utilise INOTIFY sur GNU/Linux pour avoir une notification en temps rÃ©el, mais la gestion 
+des checksum et la communication des enregistrements Ã  travers le rÃ©seau n'existent pas. De plus,
+LSync nÅ½est pas interopÃ©rable avec d'autres systÃ¨mes d'exploitation.
 
  
-RSync est également une solution point à point. Sarracenia mise sur la "transitivité", c'est-à-dire sur la capacité d'enchaîner plusieurs commutateurs de produits et de s´assurer que les accusées de réception se propagent jusqu´à
-la source. Par contre, l´implantation initiale de sarracenia ne traite pas des deltas (changement de 
-contenu de fichiers existants) et va télécharger le contenu complet a chaque annonce. On étudie présentement
-le cas des deltas, et l´utilisation de l´algorithm RSync via l´outil zsync est en considération.
+RSync est Ã©galement une solution point Ã  point. Sarracenia mise sur la "transitivitÃ©", c'est-Ã -dire sur la capacitÃ© d'enchaÃ®ner plusieurs commutateurs de produits et de sÅ½assurer que les accusÃ©es de rÃ©ception se propagent jusquÅ½Ã 
+la source. Par contre, lÅ½implantation initiale de sarracenia ne traite pas des deltas (changement de 
+contenu de fichiers existants) et va tÃ©lÃ©charger le contenu complet a chaque annonce. On Ã©tudie prÃ©sentement
+le cas des deltas, et lÅ½utilisation de lÅ½algorithm RSync via lÅ½outil zsync est en considÃ©ration.
 
 
 MetPX-Sundew
 ============
 
 
-MetPX-Sundew est un système de commutation de messages sur les circuits TCP/IP du 
-Système de télécommunications mondiales (STM) de l'Organisation mondial de 
-la météorologie (l'`OMM <http://www.wmo.int>`_ ) Pour certaines fonctionnalités, le système est déjà d'une qualité opérationelle et est utilisé au Centre météorologique canadien en tant que noyau national de commutation de bulletins
-et fichiers (satelites, radars, produits numériques). le logiciel permet
-la participation canadienne à des projets internationaux tel que 
+MetPX-Sundew est un systÃ¨me de commutation de messages sur les circuits TCP/IP du 
+SystÃ¨me de tÃ©lÃ©communications mondiales (STM) de l'Organisation mondial de 
+la mÃ©tÃ©orologie (l'`OMM <http://www.wmo.int>`_ ) Pour certaines fonctionnalitÃ©s, le systÃ¨me est dÃ©jÃ  d'une qualitÃ© opÃ©rationelle et est utilisÃ© au Centre mÃ©tÃ©orologique canadien en tant que noyau national de commutation de bulletins
+et fichiers (satelites, radars, produits numÃ©riques). le logiciel permet
+la participation canadienne Ã  des projets internationaux tel que 
 
 `Unidata <http://www.unidata.ucar.edu/>`_ et `TIGGE <http://tigge.ecmwf.int/>`_ via une passerelle 
-à LDM, ainsi que `NAEFS <http://www.emc.ncep.noaa.gov/gmb/ens/NAEFS.html>`_ via le transfert de fichiers.
-MetPX se démarque par sa capacité de routage détaillé a très faible latence et à haute vitesse.
-Le projet se veut une sorte de plateforme partagé et universelle pour les télécommunications via STM, sur 
-le modèle d´Apache pour les serveurs web.
+Ã  LDM, ainsi que `NAEFS <http://www.emc.ncep.noaa.gov/gmb/ens/NAEFS.html>`_ via le transfert de fichiers.
+MetPX se dÃ©marque par sa capacitÃ© de routage dÃ©taillÃ© a trÃ¨s faible latence et Ã  haute vitesse.
+Le projet se veut une sorte de plateforme partagÃ© et universelle pour les tÃ©lÃ©communications via STM, sur 
+le modÃ¨le dÅ½Apache pour les serveurs web.
 
 Types de connections TCP/IP:
 
- - AM (socket proriétaire aux systèmes canadiens)
+ - AM (socket proriÃ©taire aux systÃ¨mes canadiens)
  - sockets OMM (voir le manuel 386) 
- - FTP pour le transport, pas de nomenclature de l'OMM pour l´instant (facile à ajouter)
- - SFTP (but similaire au FTP, mais avec plus de sécurité)
- - AFTN/IP passerelle (Version NavCanada du "Aviation Fixed Telecommunications Network", normalement basée sur du X.25)
+ - FTP pour le transport, pas de nomenclature de l'OMM pour lÅ½instant (facile Ã  ajouter)
+ - SFTP (but similaire au FTP, mais avec plus de sÃ©curitÃ©)
+ - AFTN/IP passerelle (Version NavCanada du "Aviation Fixed Telecommunications Network", normalement basÃ©e sur du X.25)
  - AMQP (protocol ouvert de messagerie provenant du monde des affaires)
 
-Fonctionnalités:
+FonctionnalitÃ©s:
 
- - Routage détaillé (.... avec 30&nbsp;000 entrées distinctes dans la table de routage)
- - modalités de commutation commun entre les fichiers et les bulletins.
- - Temps de commutation inférieur à une seconde (avec 28&nbsp;000 entrées)
- - Commutation et livraison à haute vitesse (était plus de 300 messages par seconde l'an dernier) 
-   mais il est à noter que plusieurs fonctionnalités ont été ajoutés qui pourraient 
-   affecter la vitesse. Il serait nécessaire de re-vérifier cet aspect.
+ - Routage dÃ©taillÃ© (.... avec 30&nbsp;000 entrÃ©es distinctes dans la table de routage)
+ - modalitÃ©s de commutation commun entre les fichiers et les bulletins.
+ - Temps de commutation infÃ©rieur Ã  une seconde (avec 28&nbsp;000 entrÃ©es)
+ - Commutation et livraison Ã  haute vitesse (Ã©tait plus de 300 messages par seconde l'an dernier) 
+   mais il est Ã  noter que plusieurs fonctionnalitÃ©s ont Ã©tÃ© ajoutÃ©s qui pourraient 
+   affecter la vitesse. Il serait nÃ©cessaire de re-vÃ©rifier cet aspect.
  - Aucune limite de taille des messages.
  - Segmentation de messages (pour protocols tels que AM &amp; OMM qui ont de telles limites)
- - Supression des duplicata (à l'envoi)
+ - Supression des duplicata (Ã  l'envoi)
  - AFTN/IP canadien.
  - collecte de bulletins
- - mécanisme de filtrage général (les collections seront adaptées à ce mécanisme) 
+ - mÃ©canisme de filtrage gÃ©nÃ©ral (les collections seront adaptÃ©es Ã  ce mÃ©canisme) 
 
-Il y a actuellement trois modules dans ce projet et un quatrième est à l'étude. 
-Les modules de MetPX sont nommés selon des noms d'espèces de plantes 
-en voie de disparition au Canada. (voir `Espèces en péril <http://www.especesenperil.gc.ca>`_ )
+Il y a actuellement trois modules dans ce projet et un quatriÃ¨me est Ã  l'Ã©tude. 
+Les modules de MetPX sont nommÃ©s selon des noms d'espÃ¨ces de plantes 
+en voie de disparition au Canada. (voir `EspÃ¨ces en pÃ©ril <http://www.especesenperil.gc.ca>`_ )
 
  - sundew: module de commutation de l'OMM
  - columbo: module de surveillance, pour sundew et PDS
  - stats: module de collecte et affichages de statistiques.
  
 
-Plateforme: GNU/Linux dérivé de Debian (Sarge, Etch, Lenny, Ubuntu...) N´importe quel système GNU/Linux moderne (2.6 vanille ou bien 2.4 avec plusieurs rustines). Python version 2.3 où plus récent)
+Plateforme: GNU/Linux dÃ©rivÃ© de Debian (Sarge, Etch, Lenny, Ubuntu...) NÅ½importe quel systÃ¨me GNU/Linux moderne (2.6 vanille ou bien 2.4 avec plusieurs rustines). Python version 2.3 oÃ¹ plus rÃ©cent)
 
 license: GPLv2
 
-le code source en dévéloppement est disponible en utilisant subversion via: git clone git://git.code.sf.net/p/metpx/git metpx
-( accès anonyme pour fins de lecture. )
+le code source en dÃ©vÃ©loppement est disponible en utilisant subversion via: git clone git://git.code.sf.net/p/metpx/git metpx
+( accÃ¨s anonyme pour fins de lecture. )
 
 Documentation
 =============
 
-La documentation en français n´est pas disponible pour le moment.
-Ca va être traduite une fois qu´on aura stabilisé une première édition en anglais.
+La documentation en franÃ§ais nÅ½est pas disponible pour le moment.
+Ca va Ãªtre traduite une fois quÅ½on aura stabilisÃ© une premiÃ¨re Ã©dition en anglais.
 
-Veuillez consulter la `Documentation anglaise <indexe.html#Documentation>`_ pour l´instant
+Veuillez consulter la `Documentation anglaise <indexe.html#Documentation>`_ pour lÅ½instant
 
-Téléchargement
+TÃ©lÃ©chargement
 ==============
 
-`Téléchargement <http://sourceforge.net/project/showfiles.php?group_id=165061>`_
+`TÃ©lÃ©chargement <http://sourceforge.net/project/showfiles.php?group_id=165061>`_
 
-Le module Sundew est relativement stable et peut être téléchargé du site 
-de Sourceforge.  Les autres modules ne sont pas assez matures pour être distribués.
+Le module Sundew est relativement stable et peut Ãªtre tÃ©lÃ©chargÃ© du site 
+de Sourceforge.  Les autres modules ne sont pas assez matures pour Ãªtre distribuÃ©s.
 
-Accès au code source
+AccÃ¨s au code source
 ====================
 
-Présentement, les installations sont faites une à la fois, à partir du code source.
-Le développement se fait dans le branche ´main´ (terminologie de git.) Quand
-on installe, on crée une branche de maintenance pour l´installation. Il y a des 
+PrÃ©sentement, les installations sont faites une Ã  la fois, Ã  partir du code source.
+Le dÃ©veloppement se fait dans le branche Å½mainÅ½ (terminologie de git.) Quand
+on installe, on crÃ©e une branche de maintenance pour lÅ½installation. Il y a des 
 fichiers README et INSTALL qui peuvent donner des indices pour arriver a une 
 installation initiale.
 
-Il est à noter qu'il est assez critique d´installer des ´jobs cron´ (mr-clean 
-en particulier) parce que le cas écheant, le serveur va tranquillement rouler 
-de plus en plus lentement jusqu´au moment où il arrête carrément. Ça serait 
-optimal de vous inscrire à la liste de couriel (français, bienvenu, peut-être 
-même préféré...) ce qui nous donnera des indices pour des tâches futures et de
+Il est Ã  noter qu'il est assez critique dÅ½installer des Å½jobs cronÅ½ (mr-clean 
+en particulier) parce que le cas Ã©cheant, le serveur va tranquillement rouler 
+de plus en plus lentement jusquÅ½au moment oÃ¹ il arrÃªte carrÃ©ment. Ã‡a serait 
+optimal de vous inscrire Ã  la liste de couriel (franÃ§ais, bienvenu, peut-Ãªtre 
+mÃªme prÃ©fÃ©rÃ©...) ce qui nous donnera des indices pour des tÃ¢ches futures et de
 potentielles collaborations.
 
-Sentez-vous libre de prendre une copie de la version à jour du code source via::
+Sentez-vous libre de prendre une copie de la version Ã  jour du code source via::
 
  git clone git://git.code.sf.net/p/metpx/git metpx
 
-(disponible anonymement en lecture seulement.) D´autre versions sont disponibles 
-en téléchargeant une branche spécifique.
+(disponible anonymement en lecture seulement.) DÅ½autre versions sont disponibles 
+en tÃ©lÃ©chargeant une branche spÃ©cifique.
 
 AMQP
 ====
 
-AMQP est un protocol standard pour l'échange de messages qui origine du domaine de la finance.  
-AMQP est apparu en 2007 et a graduellement gagné en maturité. Il y a aujourd'hui plusieurs 
-implémentations de ce protocole en logiciel libre.  AMQP offre une méthode pour le transport des 
-messages JAVA, mais il n'est pas dédié uniquement à ce langage. Sa neutralité envers les différents 
-langages de programmation facilite l'interopérabilité avec les fournisseurs JMS, sans se limiter 
-à JAVA. Le langage AMQP et ses messages sont neutres. Certaines implémentations utilisent 
-python, C++ et ruby, tandis que les fournisseurs de JMS sont fortement orientés JAVA.
+AMQP est un protocol standard pour l'Ã©change de messages qui origine du domaine de la finance.  
+AMQP est apparu en 2007 et a graduellement gagnÃ© en maturitÃ©. Il y a aujourd'hui plusieurs 
+implÃ©mentations de ce protocole en logiciel libre.  AMQP offre une mÃ©thode pour le transport des 
+messages JAVA, mais il n'est pas dÃ©diÃ© uniquement Ã  ce langage. Sa neutralitÃ© envers les diffÃ©rents 
+langages de programmation facilite l'interopÃ©rabilitÃ© avec les fournisseurs JMS, sans se limiter 
+Ã  JAVA. Le langage AMQP et ses messages sont neutres. Certaines implÃ©mentations utilisent 
+python, C++ et ruby, tandis que les fournisseurs de JMS sont fortement orientÃ©s JAVA.
 
- - `www.amqp.org <http://www.amqp.org>`_ Définition d´AMQP.
- - `www.openamq.org <http://www.openamq.org>`_ prémière Implantation de JPMorganChase
- - `www.rabbitmq.com <http://www.rabbitmq.com>`_ Une autre implantatation. Celle utilisé par le présent projet.
+ - `www.amqp.org <http://www.amqp.org>`_ DÃ©finition dÅ½AMQP.
+ - `www.openamq.org <http://www.openamq.org>`_ prÃ©miÃ¨re Implantation de JPMorganChase
+ - `www.rabbitmq.com <http://www.rabbitmq.com>`_ Une autre implantatation. Celle utilisÃ© par le prÃ©sent projet.
  - `Apache Qpid <http://cwiki.apache.org/qpid>`_ Encore une autre implantation.
- - `Apache ActiveMQ <http://activemq.apache.org>`_ Un "fournisseur JMS" avec la capacité d´utiliser AMQP comme transport. 
+ - `Apache ActiveMQ <http://activemq.apache.org>`_ Un "fournisseur JMS" avec la capacitÃ© dÅ½utiliser AMQP comme transport. 
 
-Sarracenia utilise les concepts de « courtier de messages » et « échanges basés sur le sujet » qui, 
-antérieurement à la version 1.0, étaient standards dans AMQP. A partir de la version 1.0, le comité 
-des standards AMQP a décidé de retirer ces aspects avec l'idée de les réintroduire dans le futur. 
-Dû à cette décision, Sarracenia dépend des versions pré 1.0 de AMQP, tel que « rabbitmq ».
+Sarracenia utilise les concepts de Â« courtier de messages Â» et Â« Ã©changes basÃ©s sur le sujet Â» qui, 
+antÃ©rieurement Ã  la version 1.0, Ã©taient standards dans AMQP. A partir de la version 1.0, le comitÃ© 
+des standards AMQP a dÃ©cidÃ© de retirer ces aspects avec l'idÃ©e de les rÃ©introduire dans le futur. 
+DÃ» Ã  cette dÃ©cision, Sarracenia dÃ©pend des versions prÃ© 1.0 de AMQP, tel que Â« rabbitmq Â».
 
-Liens et Références
+Liens et RÃ©fÃ©rences
 ===================
 
-D´autres projets et produits qui sont vaguement dans une domaine similaire. Les mentions ici ne doivent pas être interpretées comme des recommandations.
+DÅ½autres projets et produits qui sont vaguement dans une domaine similaire. Les mentions ici ne doivent pas Ãªtre interpretÃ©es comme des recommandations.
 
- - le manuel WMO 386, référence pour le domaine.(version sans doute périmée est `WMO-386 <WMO-386.pdf>`_ ici. Voir http://www.wmo.int pour une version plus récente.
+ - le manuel WMO 386, rÃ©fÃ©rence pour le domaine.(version sans doute pÃ©rimÃ©e est `WMO-386 <WMO-386.pdf>`_ ici. Voir http://www.wmo.int pour une version plus rÃ©cente.
  - `http://www.unidata.ucar.edu/software/ldm <http://www.unidata.ucar.edu/software/ldm>`_ - Local Data 
-   Manager. LDM inclut un protocol résautique, et veut fondamentalement échanger des données avec d´autres serveurs LDM. 
-   Ce logiciel a servi comme inspiration de plusieurs façons. Au début des années 2000, nous avions étudié le protocol 
-   pour les besoins du CMC et identifié des charactéristiques qui le rendaient inapte à notre application.  Par 
-   contre, il y avait un effort ´NLDM´ qui avait remplacé le protocol résautique de 
-   LDM par un protocol standard (NNTP.) L´éffort a sombré, par contre, ça a servi comme inspiration pour la séparation de le domaine météorologique de protocol de télécommunication, ce qui a été reprit philosophiquement par MetPX. 
- - `http://www.dwd.de/AFD <http://www.dwd.de/AFD>`_ - Automatic File Distributor - du Service météorologique allemand. Aiguilleur de fichiers dans le protocol au choix de l´usager. Similaire à MetPX en philosophie
+   Manager. LDM inclut un protocol rÃ©sautique, et veut fondamentalement Ã©changer des donnÃ©es avec dÅ½autres serveurs LDM. 
+   Ce logiciel a servi comme inspiration de plusieurs faÃ§ons. Au dÃ©but des annÃ©es 2000, nous avions Ã©tudiÃ© le protocol 
+   pour les besoins du CMC et identifiÃ© des charactÃ©ristiques qui le rendaient inapte Ã  notre application.  Par 
+   contre, il y avait un effort Å½NLDMÅ½ qui avait remplacÃ© le protocol rÃ©sautique de 
+   LDM par un protocol standard (NNTP.) LÅ½Ã©ffort a sombrÃ©, par contre, Ã§a a servi comme inspiration pour la sÃ©paration de le domaine mÃ©tÃ©orologique de protocol de tÃ©lÃ©communication, ce qui a Ã©tÃ© reprit philosophiquement par MetPX. 
+ - `http://www.dwd.de/AFD <http://www.dwd.de/AFD>`_ - Automatic File Distributor - du Service mÃ©tÃ©orologique allemand. Aiguilleur de fichiers dans le protocol au choix de lÅ½usager. Similaire Ã  MetPX en philosophie
  - `Corrobor <http://www.corobor.com>`_ - commutateur OMM commerciale.
  - `Netsys <http://www.netsys.co.za>`_ - commutateur OMM commerciale.
  - `IBLSoft <http://www.iblsoft.com>`_ - commutateur OMM commerciale.
