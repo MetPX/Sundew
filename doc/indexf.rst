@@ -193,13 +193,14 @@ en téléchargeant une branche spécifique.
 AMQP
 ====
 
- - AMQP est un protocol standard pour l'échange de messages qui origine du domaine de la finance.  
-   AMQP est apparu en 2007 et a graduellement gagné en maturité. Il y a aujourd'hui plusieurs 
-   implémentations de ce protocole en logiciel libre.  AMQP offre une méthode pour le transport des 
-   messages JAVA, mais il n'est pas dédié uniquement à ce langage. Sa neutralité envers les différents 
-   langages de programmation facilite l'interopérabilité avec les fournisseurs JMS, sans se limiter 
-   à JAVA. Le langage AMQP et ses messages sont neutres. Certaines implémentations utilisent 
-   python, C++ et ruby, tandis que les fournisseurs de JMS sont fortement orientés JAVA.
+AMQP est un protocol standard pour l'échange de messages qui origine du domaine de la finance.  
+AMQP est apparu en 2007 et a graduellement gagné en maturité. Il y a aujourd'hui plusieurs 
+implémentations de ce protocole en logiciel libre.  AMQP offre une méthode pour le transport des 
+messages JAVA, mais il n'est pas dédié uniquement à ce langage. Sa neutralité envers les différents 
+langages de programmation facilite l'interopérabilité avec les fournisseurs JMS, sans se limiter 
+à JAVA. Le langage AMQP et ses messages sont neutres. Certaines implémentations utilisent 
+python, C++ et ruby, tandis que les fournisseurs de JMS sont fortement orientés JAVA.
+
  - `www.amqp.org <http://www.amqp.org>`_ Définition d´AMQP.
  - `www.openamq.org <http://www.openamq.org>`_ prémière Implantation de JPMorganChase
  - `www.rabbitmq.com <http://www.rabbitmq.com>`_ Une autre implantatation. Celle utilisé par le présent projet.
