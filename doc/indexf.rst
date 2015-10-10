@@ -1,43 +1,42 @@
-<html>
- <head>
- <META http-equiv="Content-Type" content="text/html"; charset="iso8859-1">
- <title>Bienvenue à MetPX</title>
- <meta content="">
- <style></style>
- </head>
- <body>
-<H1>MetPX - L´échangeur de produits météorologiques</H1>
-<P>
-$Date$
-<P>
-[<A HREF="indexe.html">English</a>]
-<P>
+=================
+Bienvenue à MetPX
+=================
+
+MetPX - L´échangeur de produits météorologiques
+===============================================
+
+.. |Date| date::
+
+Date: |Date|
+
+[ English_ ]
+
+.. _English: indexe.html
+
+
 MetPX est une collection d´outils créée afin de faciliter l´acquisition, l´aiguillage, et la dissémination 
 de données dans un contexte météorologique. Il y a deux applications principales: Sundew et Sarracenia. 
-<A HREF="#Sundew">MetPX-Sundew</a> est axé sur le support et la compatibilité des systèmes matures de Système de télécommunicatio mondiale (STM) de l´Organisation mondiale de la météo (OMM). Il acquiert, transforme, et livre des produits individuels, tandis 
-que <A HREF="#Sarracenia">MetPX Sarracenia</a> adopte une nouvelle approche, et offre la copie complète (filtrée) de l'arborescence source. Sarracenia abandonne la compatibilité 
-afin de répondre aux besoins actuels. Par contre, sundew demeure tout de même un lien essentiel aux 
+MetPX-Sundew_ est axé sur le support et la compatibilité des systèmes matures de Système de télécommunication
+mondiale (STM) de l´Organisation mondiale de la météo (OMM). Il acquiert, transforme, et livre des produits 
+individuels, tandis que MetPX-Sarracenia_ adopte une nouvelle approche, et offre la copie 
+complète (filtrée) de l'arborescence source. Sarracenia abandonne la compatibilité afin de répondre aux 
+besoins actuels. Par contre, sundew demeure tout de même un lien essentiel aux 
 anciens systèmes.
 
-<P>
-[ liste de couriel (Anglais-Français): <A HREF="http://lists.sourceforge.net/lists/listinfo/metpx-devel"> metpx-devel.</a>, 
- <A HREF="http://lists.sourceforge.net/lists/listinfo/metpx-commit"> metpx-commit.</a> ] 
-[ projet: <A HREF="http://www.sourceforge.net/projects/metpx"> Sourceforge </a> ]
-<P>
+[ liste de couriel (Anglais-Français): `metpx-devel <http://lists.sourceforge.net/lists/listinfo/metpx-devel>`_ , `metpx-commit <http://lists.sourceforge.net/lists/listinfo/metpx-commit>`_ ] 
+[ projet: `Sourceforge <http://www.sourceforge.net/projects/metpx>`_ ]
+[ Documentation_ ]
+[ `Téléchargement <http://sourceforge.net/project/showfiles.php?group_id=165061>`_ ]
+[ `Accès au code source`_ ]
+[ `Liens et Références`_ ]
 
-<P>
-[<A HREF="#Documentation">Documentation</A>]
-[ <A HREF="http://sourceforge.net/project/showfiles.php?group_id=165061">Téléchargement</a>]
-[<A HREF="#Source">Accès au code source</A>]
-[<A HREF="#Links">Liens, Références</a>]
-<br>
-[ listes de courier:  <A HREF="http://lists.sourceforge.net/lists/listinfo/metpx-devel"> metpx-devel.</a> , 
- <A HREF="http://lists.sourceforge.net/lists/listinfo/metpx-commit"> metpx-commit.</a> ]
-[ Page principale de dévéloppement:  <A HREF="http://www.sourceforge.net/projects/metpx"> Sourceforge </a> ]
-<P>
+[ liste de couriel (Anglais-Français): `metpx-devel <http://lists.sourceforge.net/lists/listinfo/metpx-devel>`_ , `metpx-commit <http://lists.sourceforge.net/lists/listinfo/metpx-commit>`_ ] 
+[ Page principale de dévéloppement: `Sourceforge <http://www.sourceforge.net/projects/metpx>`_ ]
 
-<A NAME="Sarracenia"><H2>MetPX-Sarracenia</H2></a>
-<P>
+
+MetPX-Sarracenia
+================
+
 MetPX-Sarracenia est un engin de copie et de distribution de données qui utilise des technologies 
 standards (tel que les services web et le courtier de messages AMQP) afin d'effectuer des transferts de 
 données en temps réel tout en permettant une transparence de bout en bout. Alors que chaque commutateur 
@@ -47,15 +46,15 @@ par la source, à travers tous les noeuds de la chaîne, jusqu'à destination. Le c
 fournir des accusés de réception qui se propagent en sens inverse jusqu'à la source. Tandis qu'un 
 commutateur traditionnel échange les données de point à point, Sarracenia permet le passage des 
 données d'un bout à l'autre du réseau, tant dans une direction que dans l'autre.
-<P>
+
 Sarracenia, à sa plus simple expression, expose une arborescence de dossiers disponibles sur la toile 
 ("Web Accessible Folders"). Le temps de latence est une composante névralgique des applications météo: les minutes, et parfois les secondes, sont comptées. Les technologies standards, telles que ATOM et
 RSS, sont des technologies qui consomment beaucoup de bande passante et de ressouces lorsqu'elles doivent répondre à ces contraintes. Les standards limitent la fréquence maximale de vérification de serveur à cinq minutes. 
 Le protocol de séquencement de messages avancés (Advanced Message Queuing Protocol, AMQP) est une 
 approche beaucoup plus efficace pour la livraison d'annonces de nouveaux produits.
-<P>
-<IMG SRC="f-ddsr-components.gif">
-<P>
+
+.. image:: f-ddsr-components.gif
+
 Les sources annoncent la disponibilité des données, les commutateurs en font une copie 
 et la diffusent à leurs clients. Quand les clients téléchargent des données, ils ont l'option 
 d'enregistrer cette transaction. Les enregistrements de transaction sont réacheminés aux sources, 
@@ -67,18 +66,19 @@ cheminement d'un produit exige l'aide des administrateurs des systèmes intermédi
 concept de Sarracenia, prévoyant l'acheminement des enregistrements de transactions à travers 
 le réseau, la diffusion des données devient transparente aux sources. Les diagnostiques en 
 sont aussi grandement simplifiés.
-<P>
+
 Tandis que Sundew supporte plusieurs protocoles et formats de la météorologie,
 Sarracenia se retire de cette spécificité et généralise son approche, ce qui lui permet d'être utile pour d´autres domaines scientifiques. Le client prototype, dd_subscribe, est en service depuis
 2013 et implante une grande partie des fonctions de consommateurs de données. Elle est la seule composante
 dans les paquets Debian actuels. Le reste des composantes devraient être disponibles à l'automne 2015.
-<P>
+
 Sarracenia est plus simple que Sundew, peu importe l'utilisateur: opérateur, dévéloppeur, analyste, 
 source et consommateurs de données. Bien qu´il impose une interface pour l´accès au 
 données, Sarracenia est complètement générique et portable.  Il sera disponible sur n´importe 
 quelle plateforme moderne (GNU/Linux, Windows, Apple)
 
-<A NAME="WhyNotRSync"><H3>Pourquoi ne pas utiliser RSync?</H3></a>
+Pourquoi ne pas utiliser RSync?
+===============================
 
 Il existe multiples solutions pour la copie de données, pourquoi en inventer une autre? Rsync et la
 plupart des autres outils sont 1:1, ils comparent source et destination.  Sarracenia, bien qu´il ne sert
@@ -87,7 +87,7 @@ RSync se fait via la communication de l´arborescences, en calculant des signatur
 chaque client. Pour les arborescences importantes, comprennant plusieurs clients, ces calculs et transactions deviennent onéreuses, limitant la fréquence de mise à jour et le nombre de clients peuvant être supportés. Sarracenia évite le parcours des arborescences, et les processus qui écrivent les fichiers calculent les checksum une fois seulement, afin d'être utilisé directement par tous les intervenants. Ces deux améliorations rendent Sarracenia beaucoup plus efficace que RSync dans le cas d'arborescences imposantes comprenant l'ajout fréquent de fichiers. LSync est un outil qui utilise INOTIFY sur GNU/Linux pour avoir une notification en temps réel, mais la gestion 
 des checksum et la communication des enregistrements à travers le réseau n'existent pas. De plus,
 LSync n´est pas interopérable avec d'autres systèmes d'exploitation.
-<P>
+
  
 RSync est également une solution point à point. Sarracenia mise sur la "transitivité", c'est-à-dire sur la capacité d'enchaîner plusieurs commutateurs de produits et de s´assurer que les accusées de réception se propagent jusqu´à
 la source. Par contre, l´implantation initiale de sarracenia ne traite pas des deltas (changement de 
@@ -95,146 +95,142 @@ contenu de fichiers existants) et va télécharger le contenu complet a chaque ann
 le cas des deltas, et l´utilisation de l´algorithm RSync via l´outil zsync est en considération.
 
 
-<A NAME="Sundew"><H2>MetPX-Sundew</H2></a>
-<P>
+MetPX-Sundew
+============
+
 
 MetPX-Sundew est un système de commutation de messages sur les circuits TCP/IP du 
 Système de télécommunications mondiales (STM) de l'Organisation mondial de 
-la météorologie (l'<A HREF="http://www.wmo.int">OMM.</a>) Pour certaines fonctionnalités, le système est déjà d'une qualité opérationelle et est utilisé au Centre météorologique canadien en tant que noyau national de commutation de bulletins
+la météorologie (l'`OMM <http://www.wmo.int>`_ ) Pour certaines fonctionnalités, le système est déjà d'une qualité opérationelle et est utilisé au Centre météorologique canadien en tant que noyau national de commutation de bulletins
 et fichiers (satelites, radars, produits numériques). le logiciel permet
 la participation canadienne à des projets internationaux tel que 
 
-<A HREF="http://www.unidata.ucar.edu/">Unidata</A> et <A HREF="http://tigge.ecmwf.int/">TIGGE</a> via une passerelle à LDM, ainsi que <A HREF="http://www.emc.ncep.noaa.gov/gmb/ens/NAEFS.html">NAEFS</a> via le transfert de fichiers.
+`Unidata <http://www.unidata.ucar.edu/>`_ et `TIGGE <http://tigge.ecmwf.int/>`_ via une passerelle 
+à LDM, ainsi que `NAEFS <http://www.emc.ncep.noaa.gov/gmb/ens/NAEFS.html>`_ via le transfert de fichiers.
 MetPX se démarque par sa capacité de routage détaillé a très faible latence et à haute vitesse.
 Le projet se veut une sorte de plateforme partagé et universelle pour les télécommunications via STM, sur 
 le modèle d´Apache pour les serveurs web.
 
 Types de connections TCP/IP:
-<UL>
-<LI>AM (socket proriétaire aux systèmes canadiens)
-<LI>sockets OMM (voir le manuel 386) 
-<LI>FTP pour le transport, pas de nomenclature de l'OMM pour l´instant (facile à ajouter)
-<LI>SFTP (but similaire au FTP, mais avec plus de sécurité)
-<LI>AFTN/IP passerelle (Version NavCanada du "Aviation Fixed Telecommunications Network", normalement basée sur du X.25)
-<LI>AMQP (protocol ouvert de messagerie provenant du monde des affaires)
-</UL>
-<P>
+
+ - AM (socket proriétaire aux systèmes canadiens)
+ - sockets OMM (voir le manuel 386) 
+ - FTP pour le transport, pas de nomenclature de l'OMM pour l´instant (facile à ajouter)
+ - SFTP (but similaire au FTP, mais avec plus de sécurité)
+ - AFTN/IP passerelle (Version NavCanada du "Aviation Fixed Telecommunications Network", normalement basée sur du X.25)
+ - AMQP (protocol ouvert de messagerie provenant du monde des affaires)
+
 Fonctionnalités:
-<UL>
-<LI>Routage détaillé (.... avec 30&nbsp;000 entrées distinctes dans la table de routage)
-<LI>modalités de commutation commun entre les fichiers et les bulletins.
-<LI>Temps de commutation inférieur à une seconde (avec 28&nbsp;000 entrées)
-<LI>Commutation et livraison à haute vitesse (était plus de 300 messages par seconde l'an dernier)
-mais il est à noter que plusieurs fonctionnalités ont été ajoutés qui pourraient 
-affecter la vitesse. Il serait nécessaire de re-vérifier cet aspect.
-<LI>Aucune limite de taille des messages.
-<LI>Segmentation de messages (pour protocols tels que AM &amp; OMM qui ont de telles limites)
-<LI>Supression des duplicata (à l'envoi)
-<LI>AFTN/IP canadien.
-<LI>collecte de bulletins
-<LI>mécanisme de filtrage général (les collections seront adaptées à ce mécanisme) 
-</UL>
-<P>
+
+ - Routage détaillé (.... avec 30&nbsp;000 entrées distinctes dans la table de routage)
+ - modalités de commutation commun entre les fichiers et les bulletins.
+ - Temps de commutation inférieur à une seconde (avec 28&nbsp;000 entrées)
+ - Commutation et livraison à haute vitesse (était plus de 300 messages par seconde l'an dernier) 
+   mais il est à noter que plusieurs fonctionnalités ont été ajoutés qui pourraient 
+   affecter la vitesse. Il serait nécessaire de re-vérifier cet aspect.
+ - Aucune limite de taille des messages.
+ - Segmentation de messages (pour protocols tels que AM &amp; OMM qui ont de telles limites)
+ - Supression des duplicata (à l'envoi)
+ - AFTN/IP canadien.
+ - collecte de bulletins
+ - mécanisme de filtrage général (les collections seront adaptées à ce mécanisme) 
+
 Il y a actuellement trois modules dans ce projet et un quatrième est à l'étude. 
 Les modules de MetPX sont nommés selon des noms d'espèces de plantes 
-en voie de disparition au Canada. (voir <A HREF="http://www.especesenperil.gc.ca"> Espèces en péril</a> )
-<P>
-<UL>
-<LI>sundew: module de commutation de l'OMM
-<LI>columbo: module de surveillance, pour sundew et PDS
-<LI>stats: module de collecte et affichages de statistiques.
-</UL>
-<P> 
+en voie de disparition au Canada. (voir `Espèces en péril <http://www.especesenperil.gc.ca>`_ )
+
+ - sundew: module de commutation de l'OMM
+ - columbo: module de surveillance, pour sundew et PDS
+ - stats: module de collecte et affichages de statistiques.
+ 
 
 Plateforme: GNU/Linux dérivé de Debian (Sarge, Etch, Lenny, Ubuntu...) N´importe quel système GNU/Linux moderne (2.6 vanille ou bien 2.4 avec plusieurs rustines). Python version 2.3 où plus récent)
-<P>
+
 license: GPLv2
-<P>
+
 le code source en dévéloppement est disponible en utilisant subversion via: git clone git://git.code.sf.net/p/metpx/git metpx
 ( accès anonyme pour fins de lecture. )
 
-<A NAME="Documentation"><H3>Documentation</H3></a>
+Documentation
+=============
+
 La documentation en français n´est pas disponible pour le moment.
 Ca va être traduite une fois qu´on aura stabilisé une première édition en anglais.
-<P>
-Veuillez consulter la <A HREF="index.html#Documentation">Documentation anglaise.</a> pour l´instant
 
-<A NAME="Download"><H3>Téléchargement</H3>
+Veuillez consulter la `Documentation anglaise <indexe.html#Documentation>`_ pour l´instant
 
-<A HREF="http://sourceforge.net/project/showfiles.php?group_id=165061">Téléchargement</a>
-<P>
+Téléchargement
+==============
+
+`Téléchargement <http://sourceforge.net/project/showfiles.php?group_id=165061>`_
+
 Le module Sundew est relativement stable et peut être téléchargé du site 
 de Sourceforge.  Les autres modules ne sont pas assez matures pour être distribués.
-<P>
-</a>
 
-<H3><A NAME="Source">Accès au code source</A></H3>
+Accès au code source
+====================
 
 Présentement, les installations sont faites une à la fois, à partir du code source.
 Le développement se fait dans le branche ´trunk´ (terminologie de subversion.) Quand
 on installe, on crée une branche de maintenance pour l´installation. Il y a des 
 fichiers README et INSTALL qui peuvent donner des indices pour arriver a une 
 installation initiale.
-<P>
+
 Il est à noter qu'il est assez critique d´installer des ´jobs cron´ (mr-clean 
 en particulier) parce que le cas écheant, le serveur va tranquillement rouler 
 de plus en plus lentement jusqu´au moment où il arrête carrément. Ça serait 
 optimal de vous inscrire à la liste de couriel (français, bienvenu, peut-être 
 même préféré...) ce qui nous donnera des indices pour des tâches futures et de
 potentielles collaborations.
-<P>
-Sentez-vous libre de prendre une copie de la version à jour du code source via:
-<UL>
+
+Sentez-vous libre de prendre une copie de la version à jour du code source via::
+
  svn co https://svn.sourceforge.net/svnroot/metpx/trunk
-</UL>
 
 (disponible anonymement en lecture seulement.) D´autre versions sont disponibles 
 en téléchargeant une branche spécifique.
 
-<A NAME="AMQP"><h2>AMQP</h2></a>
+AMQP
+====
 
-<LI> AMQP est un protocol standard pour l'échange de messages qui origine du domaine de la finance.  
-AMQP est apparu en 2007 et a graduellement gagné en maturité. Il y a aujourd'hui plusieurs 
-implémentations de ce protocole en logiciel libre.  AMQP offre une méthode pour le transport des 
-messages JAVA, mais il n'est pas dédié uniquement à ce langage. Sa neutralité envers les différents 
-langages de programmation facilite l'interopérabilité avec les fournisseurs JMS, sans se limiter 
-à JAVA. Le langage AMQP et ses messages sont neutres. Certaines implémentations utilisent 
-python, C++ et ruby, tandis que les fournisseurs de JMS sont fortement orientés JAVA.
-<UL>
-<LI><A HREF="http://www.amqp.org">www.amqp.org</a> Définition d´AMQP.
-<LI><A HREF="http://www.openamq.org">www.openamq.org</a> 1<sup>ière</sup> Implantation de JPMorganChase
-<LI><A HREF="http://www.rabbitmq.com">www.rabbitmq.com</a> Une autre implantatation. Celle utilisé par le présent projet.
-<LI><A HREF="http://cwiki.apache.org/qpid">Apache Qpid</a> Encore une autre implantation.
-<LI><A HREF="http://activemq.apache.org/">Apache ActiveMQ</a> Un "fournisseur JMS" avec la capacité d´utiliser AMQP comme transport. 
-</UL>
+ - AMQP est un protocol standard pour l'échange de messages qui origine du domaine de la finance.  
+   AMQP est apparu en 2007 et a graduellement gagné en maturité. Il y a aujourd'hui plusieurs 
+   implémentations de ce protocole en logiciel libre.  AMQP offre une méthode pour le transport des 
+   messages JAVA, mais il n'est pas dédié uniquement à ce langage. Sa neutralité envers les différents 
+   langages de programmation facilite l'interopérabilité avec les fournisseurs JMS, sans se limiter 
+   à JAVA. Le langage AMQP et ses messages sont neutres. Certaines implémentations utilisent 
+   python, C++ et ruby, tandis que les fournisseurs de JMS sont fortement orientés JAVA.
+ - `www.amqp.org <http://www.amqp.org>`_ Définition d´AMQP.
+ - `www.openamq.org <http://www.openamq.org>`_ prémière Implantation de JPMorganChase
+ - `www.rabbitmq.com <http://www.rabbitmq.com>`_ Une autre implantatation. Celle utilisé par le présent projet.
+ - `Apache Qpid <http://cwiki.apache.org/qpid>`_ Encore une autre implantation.
+ - `Apache ActiveMQ <http://activemq.apache.org>`_ Un "fournisseur JMS" avec la capacité d´utiliser AMQP comme transport. 
 
 Sarracenia utilise les concepts de « courtier de messages » et « échanges basés sur le sujet » qui, 
 antérieurement à la version 1.0, étaient standards dans AMQP. A partir de la version 1.0, le comité 
 des standards AMQP a décidé de retirer ces aspects avec l'idée de les réintroduire dans le futur. 
 Dû à cette décision, Sarracenia dépend des versions pré 1.0 de AMQP, tel que « rabbitmq ».
 
-<A NAME="Links"><H2>Liens et Références</H2>
+Liens et Références
+===================
 
 D´autres projets et produits qui sont vaguement dans une domaine similaire. Les mentions ici ne doivent pas être interpretées comme des recommandations.
-<UL>
-<LI>le manuel WMO 386, référence pour le domaine.(version sans doute périmée est <A HREF="WMO-386.pdf"> ici. </a> Voir http://www.wmo.int pour une version plus r&eacute;cente.
-<LI><A HREF="http://www.unidata.ucar.edu/software/ldm">http://www.unidata.ucar.edu/software/ldm</a> - Local Data 
-Manager. LDM inclut un protocol résautique, et veut fondamentalement échanger des données avec d´autres serveurs LDM. 
-Ce logiciel a servi comme inspiration de plusieurs façons. Au début des années 2000, nous avions étudié le protocol 
-pour les besoins du CMC et identifié des charactéristiques qui le rendaient inapte à notre application.  Par 
-contre, il y avait un effort ´NLDM´ qui avait remplacé le protocol résautique de 
-LDM par un protocol standard (NNTP.) L´éffort a sombré, par contre, ça a servi comme inspiration pour la séparation de le domaine météorologique de protocol de télécommunication, ce qui a été reprit philosophiquement par MetPX. 
-<LI><A HREF="http://www.dwd.de/AFD">http://www.dwd.de/AFD</a> - Automatic File Distributor - du Service météorologique allemand. Aiguilleur de fichiers dans le protocol au choix de l´usager. Similaire à MetPX en philosophie
-<LI><A HREF="http://www.corobor.com"> http://www.corobor.com </a> - commutateur OMM commerciale.
-<LI><A HREF="http://www.netsys.co.za"> http://www.netsys.co.za </a> - commutateur OMM commerciale.
-<LI><A HREF="http://www.iblsoft.com"> http://www.iblsoft.com </a> - commutateur OMM commerciale.
-<LI>Quelques autres logiciels de transfert de fichiers: Standard Networks Move IT DMZ, Softlink B-HUB & FEST, 
-Globalscape EFT Server, Axway XFB, Primeur Spazio, Tumbleweed Secure File Transfer, Messageway
-<LI><A HREF="https://rsync.samba.org/">Rsync</a> engin de transfert incrementale rapide.
-<LI><A HREF="https://code.google.com/p/lsyncd">Lsyncd</a> engin de synchronization en temps reel.
-<LI><A HREF="http://zsync.moria.org.uk">Zsync</a> RSync sur HTTP.
-</UL>
+
+ - le manuel WMO 386, référence pour le domaine.(version sans doute périmée est `WMO-386 <WMO-386.pdf>`_ ici. Voir http://www.wmo.int pour une version plus récente.
+ - `http://www.unidata.ucar.edu/software/ldm <http://www.unidata.ucar.edu/software/ldm>`_ - Local Data 
+   Manager. LDM inclut un protocol résautique, et veut fondamentalement échanger des données avec d´autres serveurs LDM. 
+   Ce logiciel a servi comme inspiration de plusieurs façons. Au début des années 2000, nous avions étudié le protocol 
+   pour les besoins du CMC et identifié des charactéristiques qui le rendaient inapte à notre application.  Par 
+   contre, il y avait un effort ´NLDM´ qui avait remplacé le protocol résautique de 
+   LDM par un protocol standard (NNTP.) L´éffort a sombré, par contre, ça a servi comme inspiration pour la séparation de le domaine météorologique de protocol de télécommunication, ce qui a été reprit philosophiquement par MetPX. 
+ - `http://www.dwd.de/AFD <http://www.dwd.de/AFD>`_ - Automatic File Distributor - du Service météorologique allemand. Aiguilleur de fichiers dans le protocol au choix de l´usager. Similaire à MetPX en philosophie
+ - `Corrobor <http://www.corobor.com>`_ - commutateur OMM commerciale.
+ - `Netsys <http://www.netsys.co.za>`_ - commutateur OMM commerciale.
+ - `IBLSoft <http://www.iblsoft.com>`_ - commutateur OMM commerciale.
+ - Quelques autres logiciels de transfert de fichiers: Standard Networks Move IT DMZ, Softlink B-HUB & 
+   FEST, Globalscape EFT Server, Axway XFB, Primeur Spazio, Tumbleweed Secure File Transfer, Messageway
+ - `Rsync <https://rsync.samba.org/>`_ engin de transfert incrementale rapide.
+ - `Lsync <https://code.google.com/p/lsyncd>`_ engin de synchronization en temps reel.
+ - `Zsync <http://zsync.moria.org.uk>`_ RSync sur HTTP.
 
 
- </body>
-</html>

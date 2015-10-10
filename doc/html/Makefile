@@ -5,12 +5,18 @@
 #	latex2rtf </dev/null Guide.latex >Guide.rtf
 
 MANPAGES= pxTransceiver.1.html pxSender.1.html pxReceiver.1.html pxFilter.1.html px.1.html pxRetransmit.1.html pxRouting.conf.5.html pxRouting.7.html
-TARGETS= Guide.html DevGuide.html $(MANPAGES)
+TARGETS= indexe.html indexf.html Guide.html DevGuide.html $(MANPAGES)
 
 default: $(TARGETS) 
 
 .dia.png:
 	dia -t png $*.dia
+
+indexe.html: ../indexe.rst
+	rst2html ../indexe.rst >indexe.html
+
+indexf.html: ../indexf.rst
+	rst2html ../indexf.rst >indexf.html
 
 Guide.html:  ../user/Guide.txt
 	cd ../user; make Guide.html; cp *.png Guide.html ../html
