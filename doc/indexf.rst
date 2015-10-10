@@ -171,7 +171,7 @@ Accès au code source
 ====================
 
 Présentement, les installations sont faites une à la fois, à partir du code source.
-Le développement se fait dans le branche ´trunk´ (terminologie de subversion.) Quand
+Le développement se fait dans le branche ´main´ (terminologie de git.) Quand
 on installe, on crée une branche de maintenance pour l´installation. Il y a des 
 fichiers README et INSTALL qui peuvent donner des indices pour arriver a une 
 installation initiale.
@@ -185,7 +185,7 @@ potentielles collaborations.
 
 Sentez-vous libre de prendre une copie de la version à jour du code source via::
 
- svn co https://svn.sourceforge.net/svnroot/metpx/trunk
+ git clone git://git.code.sf.net/p/metpx/git metpx
 
 (disponible anonymement en lecture seulement.) D´autre versions sont disponibles 
 en téléchargeant une branche spécifique.

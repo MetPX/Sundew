@@ -22,7 +22,7 @@ trees of products on behalf of data sources.  While Sarracenia leaves legacy com
 address more modern concerns, sundew remains necessary to interface to legacy systems.  
 
 
-[ `Sarracenia Documentation`_ ] [ `Sundew Documentation`_ ] [ Downloads_ ] [ Download_ ] [ Source_ ] [ Links_ ]
+[ `Sarracenia Documentation`_ ] [ `Sundew Documentation`_ ] [ Downloads_ ] [ Download_ ] [ `Getting Source Code`_ ] [ Links_ ]
 [ mailing-lists: `metpx-devel <http://lists.sourceforge.net/lists/listinfo/metpx-devel>`_ , 
 `metpx-commit <http://lists.sourceforge.net/lists/listinfo/metpx-commit>`_ ]
 [ Main Project page: `Sourceforge <http://www.sourceforge.net/projects/metpx>`_ ]
@@ -204,9 +204,6 @@ the sourceforge site, in either source or .deb form.  We hope to produce package
 columbo at some point.  
 
 
-
-.. _Source:
-
 Getting Source Code
 ===================
 
@@ -217,9 +214,9 @@ on operational systems.  There are README and INSTALL files that can be used for
 installation of sundew.  One can follow those instructions to get an initial installed 
 system.  
 
-It is critical to install the cron cleanup jobs (mr-clean) since otherwise the 
-server will slow down continuously over time until the system slows to a crawl.  
-Recommend you to subscribe to the mailing list and let us know what is stopping you from 
+To run sundew, it is critical to install the cron cleanup jobs (mr-clean) since otherwise the 
+server will slow down continuously over time until it slows to a crawl.  
+It is recommended to subscribe to the mailing list and let us know what is stopping you from 
 trying it out, it could inspire us to work on that bit faster to get some collaboration 
 going.  
 
@@ -227,12 +224,9 @@ with those explanations, feel free to grab a snapshot can be obtained using subv
 
     git clone git://git.code.sf.net/p/metpx/git metpx
 
+Available for anonymous read-only access.  One can also obtain a stable release by checking
+out a release branch.
 
-Available for anonymous read-only access.  One can also download a stable release by doing an checkout by accessong the currently highest numbered branch.
-
-
-
-.. _AMQP:
 
 AMQP
 ====
