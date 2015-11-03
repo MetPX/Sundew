@@ -91,7 +91,11 @@ Traditional Unix style manual pages for commands:
   - `dd_post.1 <dd_post.1.html>`_ - the tool to post individual files.
   - `dd_watch.1 <dd_watch.1.html>`_ - the tool to post all changes to a given directory.
   - `dd_log.1 <dd_log.1.html>`_ - (Does not exist yet!) the tool to read log messages.
-  - `dd_sara.1 <dd_sara.1.html>`_ - (Does not exist yet!) Subscribe And Re-Advertise...  kind of subscribe and post.
+  - `dd_sara.1 <dd_sara.1.html>`_ - Subscribe And Re-Advertise...  kind of subscribe and post.
+
+administrative daemons:
+  - `dd_log2clusters(8) <dd_log2clusters.8.html>`_ - daemon to copy log messages to other clusters.
+  - `dd_log2source(8) <dd_log2source.8.html>`_ - daemon to copy log messages to the originating source.
 
 and formats/protocols:
 
