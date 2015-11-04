@@ -87,20 +87,20 @@ Man Pages
 
 Traditional Unix style manual pages for commands:
 
-  - `dd_subscribe <dd_subscribe.1.html>`_ - the http/https subscription client.
-  - `dd_post.1 <dd_post.1.html>`_ - the tool to post individual files.
-  - `dd_watch.1 <dd_watch.1.html>`_ - the tool to post all changes to a given directory.
-  - `dd_log.1 <dd_log.1.html>`_ - (Does not exist yet!) the tool to read log messages.
-  - `dd_sara.1 <dd_sara.1.html>`_ - Subscribe And Re-Advertise...  kind of subscribe and post.
+  - `sr_subscribe <sr_subscribe.1.html>`_ - the http/https subscription client.
+  - `sr_post.1 <sr_post.1.html>`_ - the tool to post individual files.
+  - `sr_watch.1 <sr_watch.1.html>`_ - the tool to post all changes to a given directory.
+  - `sr_log.1 <sr_log.1.html>`_ - (Does not exist yet!) the tool to read log messages.
+  - `sr_sara.1 <sr_sara.1.html>`_ - Subscribe And Re-Advertise...  kind of subscribe and post.
 
 administrative daemons:
-  - `dd_log2clusters(8) <dd_log2clusters.8.html>`_ - daemon to copy log messages to other clusters.
-  - `dd_log2source(8) <dd_log2source.8.html>`_ - daemon to copy log messages to the originating source.
+  - `sr_log2clusters(8) <sr_log2clusters.8.html>`_ - daemon to copy log messages to other clusters.
+  - `sr_log2source(8) <sr_log2source.8.html>`_ - daemon to copy log messages to the originating source.
 
 and formats/protocols:
 
-  -  `dd_post.7 <dd_post.7.html>`_ - the format of postings.   Posted by watch and post, consumed by subscribe.
-  -  `dd_log.7 <dd_log.7.html>`_ - the format of log messages.  Sent by consumers, for sources to measure reach.
+  -  `sr_post.7 <sr_post.7.html>`_ - the format of postings.   Posted by watch and post, consumed by subscribe.
+  -  `sr_log.7 <sr_log.7.html>`_ - the format of log messages.  Sent by consumers, for sources to measure reach.
 
 
 Why not just use Rsync?
