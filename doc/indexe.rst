@@ -16,10 +16,13 @@ Date: |Date|
 
 MetPX is a collection of tools created to support data acquisition, routing, and dissemination in a meteorological context.
 There are two main applications in the MetPX suite: MetPX-Sundew_ is the legacy WMO-GTS supporting message switching system.
-`MetPX-Sundew`_ transfers accepts, transforms, and delivers individual products.  `MetPX Sarracenia`_ is the next generation 
-tree replication system, currently under development, which transfers filtered, but largely un-modified directory 
-trees of products on behalf of data sources.  While Sarracenia leaves legacy compatibility behind in order to 
-address more modern concerns, sundew remains necessary to interface to legacy systems.  
+`MetPX-Sundew`_ transfers accepts, transforms, and delivers individual 
+products.  `MetPX Sarracenia`_ is the next generation *data pump*,
+currently under development.
+Sarracenia transfers directory trees of products on behalf of data sources 
+across a sequence of switches.  While Sarracenia leaves legacy 
+compatibility behind in order to address more modern concerns, sundew remains 
+necessary to interface to legacy systems.  
 
 
 [ `Sarracenia Documentation`_ ] [ `Sundew Documentation`_ ] [ Downloads_ ] [ Download_ ] [ `Getting Source Code`_ ] [ Links_ ]
@@ -33,7 +36,7 @@ MetPX Sarracenia
 MetPX-Sarracenia is a data duplication or distribution engine that leverages existing standard technologies (web servers 
 and the AMQP_ brokers) to achieve real-time message delivery and end to end transparency in file 
 transfers.  Whereas in Sundew, each switch is a standalone configuration which transforms data in complex ways, 
-in sarracenia, the data sources establish a structure which is carried through any number of intervening switches 
+in sarracenia, the data sources establish a structure which is carried through any number of intervening pumps 
 until they arrive at a client.  The client can provide explicit acknowledgement that propagates back through the 
 network to the source.  Whereas traditional file switching is a point-to-point affair where knowledge is only 
 between each segment, in Sarracenia, information flows from end to end in both directions.
@@ -50,34 +53,40 @@ sending far more efficient.
 .. image:: e-ddsr-components.gif
 
 
-Sources of data announce their products, switching systems pull the data using HTTP or SFTP onto their WAF trees, and 
-then announce their trees for downstream clients.  When clients download data, they may write a log message back to 
-the server.  Servers are configured to forward those client log messages back through the intervening servers back to 
-the source.  The Source can see the entire path that the data took to get to each client.  With traditional switching 
-applications, sources  only see that they delivered to the first hop in a chain. Beyond that first hop, routing is 
-opaque, and tracing the path of data required assistance from administrators of each intervening system.  With 
-Sarracenia's log forwarding, the switching network is completely transparent to the sources.  Diagnostics are 
-vastly simplified.
+Sources of data announce their products, pumping systems pull the data using HTTP 
+or SFTP onto their WAF trees, and then announce their trees for downstream clients.  
+When clients download data, they may write a log message back to the server.  Servers 
+are configured to forward those client log messages back through the intervening 
+servers back to the source.  The Source can see the entire path that the data took 
+to get to each client.  With traditional switching applications, sources only see 
+that they delivered to the first hop in a chain. Beyond that first hop, routing is 
+opaque, and tracing the path of data required assistance from administrators of each 
+intervening system.  With Sarracenia's log forwarding, the switching network is 
+relatively transparent to the sources.  Diagnostics are vastly simplified.
 
 For large files / high performance, files are segmented on ingest if they are sufficiently
-large to make this worthwhile.  Each file can traverse the switch network independently,
+large to make this worthwhile.  Each file can traverse the data pumping network independently,
 and reassembly is only needed at end points.   A file of sufficient size will announce
 the availability of several segments for transfer, multiple threads or transfer nodes
 will pick up segments and transfer them.  The more segments available, the higher
 the parallelism of the transfer.   In many cases, Sarracenia manages parallelism
-and network usage without explicit user intervention.  As intervening switches
+and network usage without explicit user intervention.  As intervening pumps
 do not store and forward entire files, the maximum file size which can traverse
 the network is maximized.
 
-Where sundew supports a wide variety of file formats, protocols, and conventions specific to the real-time meteorology, 
-sarracenia takes a step further away from specific applications and is a ruthlessly generic tree replication engine, 
-which should allow it to be used in other domains.  The prototype client, dd_subscribe, in use since 2013, 
-implements the consumer end of the switch's functions, and is the only component present in current packages.  The 
-rest of MetPX-Sarracenia should be included in packages by the Fall of 2015.
+Where sundew supports a wide variety of file formats, protocols, and conventions 
+specific to the real-time meteorology, sarracenia takes a step further away from 
+specific applications and is a ruthlessly generic tree replication engine, which 
+should allow it to be used in other domains.  The prototype client, dd_subscribe, 
+in use since 2013, implements the consumer end of the switch's functions, and is 
+the only component present in current packages.  The rest of MetPX-Sarracenia should 
+be included in packages by the Fall of 2015.
 
-Sarracenia is expected to be a far simpler application than sundew from every point of view: Operator, Developer, Analyst,
-Data Sources, Data consumers.  Sarracenia imposes a single interface mechanism, but that single mechanism is completely portable
-and generic.  It should run without issue on any modern platform (Linux, Windows, Mac)
+Sarracenia is expected to be a far simpler application than sundew from every 
+point of view: Operator, Developer, Analyst, Data Sources, Data consumers.  
+Sarracenia imposes a single interface mechanism, but that mechanism is 
+completely portable and generic.  It should run without issue on any modern 
+platform (Linux, Windows, Mac)
 
 Sarracenia Documentation
 ========================
@@ -118,14 +127,16 @@ Linux to achieve the same liveness, and it might be more suitable but it is obvi
 through the file system is thought to be cumbersome and less general than explicit middleware message passing, 
 which also handles the logs in a straight-forward way.
 
-One of the design goals of sarracenia is to be end-to-end.  Rsync is point-to-point, meaning it does not support 
-the "transitivity" of transfers across multiple switching engines that is desired.  On the other hand, the first 
-use case for Sarracenia is the distribution of new files.  Updates to files are not common, and so file deltas 
-are not yet dealt with efficiently.  ZSync is much closer in spirit to this use case, and Sarracenia may 
-adopt zsync as a means of handling deltas, but it would likely place the signatures in the announcements.
-Using an announcement per checksummed block allows transfers to be parallelized easily.   The use
-of the AMQP message bus also allows for system-wide monitoring to be straight-forward, and to integrate 
-other features such as security scanning within the flow transparently. 
+One of the design goals of sarracenia is to be end-to-end.  Rsync is point-to-point, 
+meaning it does not support the "transitivity" of transfers across multiple data pumps that 
+is desired.  On the other hand, the first use case for Sarracenia is the distribution of 
+new files.  Updates to files are not common, and so file deltas are not yet dealt with 
+efficiently.  ZSync is much closer in spirit to this use case, and Sarracenia may 
+adopt zsync as a means of handling deltas, but it would likely place the signatures in 
+the announcements.  Using an announcement per checksummed block allows transfers to be 
+parallelized easily.   The use of the AMQP message bus also allows for system-wide 
+monitoring to be straight-forward, and to integrate other features such as security 
+scanning within the flow transparently. 
 
 MetPX-Sundew
 ============
