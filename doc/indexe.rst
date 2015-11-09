@@ -102,7 +102,7 @@ Traditional Unix style manual pages for commands:
   - `sr_log.1 <sr_log.1.html>`_ - (Does not exist yet!) the tool to read log messages.
 
 administrative daemons:
-  - `sr_sara.8 <sr_sara.8.html>`_ - Subscribe, Acquire And Re-Advertise...  the main pump.
+  - `sr_sarra.8 <sr_sarra.8.html>`_ - Subscribe, Acquire And Re-Advertise...  the main pump.
   - `sr_log2clusters(8) <sr_log2clusters.8.html>`_ - daemon to copy log messages to other clusters.
   - `sr_log2source(8) <sr_log2source.8.html>`_ - daemon to copy log messages to the originating source.
 
