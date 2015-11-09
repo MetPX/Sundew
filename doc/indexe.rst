@@ -100,9 +100,9 @@ Traditional Unix style manual pages for commands:
   - `sr_post.1 <sr_post.1.html>`_ - the tool to post individual files.
   - `sr_watch.1 <sr_watch.1.html>`_ - the tool to post all changes to a given directory.
   - `sr_log.1 <sr_log.1.html>`_ - (Does not exist yet!) the tool to read log messages.
-  - `sr_sara.1 <sr_sara.1.html>`_ - Subscribe And Re-Advertise...  kind of subscribe and post.
 
 administrative daemons:
+  - `sr_sara.8 <sr_sara.8.html>`_ - Subscribe, Acquire And Re-Advertise...  the main pump.
   - `sr_log2clusters(8) <sr_log2clusters.8.html>`_ - daemon to copy log messages to other clusters.
   - `sr_log2source(8) <sr_log2source.8.html>`_ - daemon to copy log messages to the originating source.
 
