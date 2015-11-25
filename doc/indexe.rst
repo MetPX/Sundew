@@ -50,7 +50,7 @@ Advanced Message Queueing Protocol (AMQP) messaging brings true push to notifica
 sending far more efficient.
 
 
-.. image:: e-ddsr-components.gif
+.. image:: e-ddsr-components.jpg
 
 
 Sources of data announce their products, pumping systems pull the data using HTTP 
@@ -96,20 +96,20 @@ Man Pages
 
 Traditional Unix style manual pages for commands:
 
-  - `sr_subscribe <sr_subscribe.1.html>`_ - the http/https subscription client.
-  - `sr_post.1 <sr_post.1.html>`_ - the tool to post individual files.
-  - `sr_watch.1 <sr_watch.1.html>`_ - the tool to post all changes to a given directory.
-  - `sr_log.1 <sr_log.1.html>`_ - (Does not exist yet!) the tool to read log messages.
+  - `sr_subscribe(1) <sr_subscribe.1.html>`_ - the http/https subscription client.
+  - `sr_post(1) <sr_post.1.html>`_ - the tool to post individual files.
+  - `sr_watch(1) <sr_watch.1.html>`_ - the tool to post all changes to a given directory.
+  - `sr_log(1) <sr_log.1.html>`_ - (Does not exist yet!) the tool to read log messages.
 
 administrative daemons:
-  - `sr_sarra.8 <sr_sarra.8.html>`_ - Subscribe, Acquire And Re-Advertise...  the main pump.
+  - `sr_sarra(8) <sr_sarra.8.html>`_ - Subscribe, Acquire And Re-Advertise...  the main pump.
   - `sr_log2clusters(8) <sr_log2clusters.8.html>`_ - daemon to copy log messages to other clusters.
   - `sr_log2source(8) <sr_log2source.8.html>`_ - daemon to copy log messages to the originating source.
 
 and formats/protocols:
 
-  -  `sr_post.7 <sr_post.7.html>`_ - the format of postings.   Posted by watch and post, consumed by subscribe.
-  -  `sr_log.7 <sr_log.7.html>`_ - the format of log messages.  Sent by consumers, for sources to measure reach.
+  -  `sr_post(7) <sr_post.7.html>`_ - the format of postings.   Posted by watch and post, consumed by subscribe.
+  -  `sr_log(7) <sr_log.7.html>`_ - the format of log messages.  Sent by consumers, for sources to measure reach.
 
 
 Why not just use Rsync?
