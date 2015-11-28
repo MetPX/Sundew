@@ -33,20 +33,24 @@ necessary to interface to legacy systems.
 MetPX Sarracenia
 ================
 
-MetPX-Sarracenia is a data duplication or distribution engine that leverages existing standard technologies (web servers 
-and the AMQP_ brokers) to achieve real-time message delivery and end to end transparency in file 
-transfers.  Whereas in Sundew, each switch is a standalone configuration which transforms data in complex ways, 
-in sarracenia, the data sources establish a structure which is carried through any number of intervening pumps 
-until they arrive at a client.  The client can provide explicit acknowledgement that propagates back through the 
-network to the source.  Whereas traditional file switching is a point-to-point affair where knowledge is only 
-between each segment, in Sarracenia, information flows from end to end in both directions.
+**MetPX-Sarracenia** is a data duplication or distribution engine that leverages existing 
+standard technologies (web servers and the AMQP_ brokers) to achieve real-time message 
+delivery and end to end transparency in file transfers.  Whereas in Sundew, each switch 
+is a standalone configuration which transforms data in complex ways, in sarracenia, the 
+data sources establish a structure which is carried through any number of intervening pumps 
+until they arrive at a client.  The client can provide explicit acknowledgement that 
+propagates back through the network to the source.  Whereas traditional file switching 
+is a point-to-point affair where knowledge is only between each segment, in Sarracenia, 
+information flows from end to end in both directions.
 
-At it's heart, sarracenia exposes a tree of web accessible folders (WAF), using any standard HTTP server (tested with 
-apache).  Weather applications are soft real-time, where data should be delivered as quickly as possible to the next 
-hop, and minutes, perhaps seconds, count.  The standard web push technologies, ATOM, RSS, etc... are actually polling 
-technologies that when used in low latency applications consume a great deal of bandwidth an overhead.  
-For exactly these reasons, those standards stipulate a minimum polling interval of five minutes.   
-Advanced Message Queueing Protocol (AMQP) messaging brings true push to notifications, and makes real-time 
+At it's heart, sarracenia exposes a tree of web accessible folders (WAF), using any 
+standard HTTP server (tested with apache).  Weather applications are soft real-time, 
+where data should be delivered as quickly as possible to the next hop, and minutes, 
+perhaps seconds, count.  The standard web push technologies, ATOM, RSS, etc... are 
+actually polling technologies that when used in low latency applications consume a 
+great deal of bandwidth an overhead.  For exactly these reasons, those standards 
+stipulate a minimum polling interval of five minutes.   Advanced Message Queueing 
+Protocol (AMQP) messaging brings true push to notifications, and makes real-time 
 sending far more efficient.
 
 
