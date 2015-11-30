@@ -12,12 +12,6 @@ default: $(TARGETS)
 .dia.png:
 	dia -t png $*.dia
 
-indexe.html: ../indexe.rst
-	rst2html ../indexe.rst >indexe.html
-
-indexf.html: ../indexf.rst
-	rst2html ../indexf.rst >indexf.html
-
 Guide.html:  ../user/Guide.txt
 	cd ../user; make Guide.html; cp *.png Guide.html ../html
 
