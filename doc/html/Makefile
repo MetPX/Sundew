@@ -5,7 +5,7 @@
 #	latex2rtf </dev/null Guide.latex >Guide.rtf
 
 MANPAGES= pxTransceiver.1.html pxSender.1.html pxReceiver.1.html pxFilter.1.html px.1.html pxRetransmit.1.html pxRouting.conf.5.html pxRouting.7.html
-TARGETS= indexe.html indexf.html Guide.html DevGuide.html $(MANPAGES)
+TARGETS= Guide.html DevGuide.html $(MANPAGES)
 
 default: $(TARGETS) 
 
