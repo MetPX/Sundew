@@ -300,8 +300,8 @@ class SenderFTP(object):
 
                 if self.client.ssh_keyfile != None :
                    #TODO, implement password to use to decrypt the key file, if it's encrypted
-                   key=DSSKey.from_private_key_file(self.client.ssh_keyfile,password=None)
-                   self.t.connect(username=self.client.user,pkey=key)
+                   #key=DSSKey.from_private_key_file(self.client.ssh_keyfile,password=None)
+                   self.t.connect(username=self.client.user,pkey=None,key_filename=self.client.ssh_keyfile)
                 else:
                    self.t.connect(username=self.client.user,password=self.client.passwd)
 
