@@ -9,13 +9,13 @@ build-stamp:
 	dh_testdir
 	touch build-stamp
 
-clean:
+override_dh_auto_clean:
 	dh_testdir
 	dh_testroot
 	rm -rf build-stamp build
 	dh_clean
 
-install: build
+override_dh_auto_install: build
 	dh_testdir
 	dh_testroot
 	dh_clean -k
@@ -24,14 +24,14 @@ install: build
 	# install the binary files in /usr/bin
 	for f in `find bin/ \( ! -regex '.*/\..*' \)` bin/.localRetrans; \
 	     do if [ -f $$f ]; then \
-	            install -m 755 $$f debian/metpx-sundew/usr/bin; \
+	            install -m 755 $$f debian/python-metpx-sundew/usr/bin; \
 	        fi; \
 	done
 
 	# install the tools in /usr/bin
 	for f in `find tools/ \( ! -regex '.*/\..*' \)`; \
 	     do if [ -f $$f ]; then \
-	            install -m 755 $$f debian/metpx-sundew/usr/bin; \
+	            install -m 755 $$f debian/python-metpx-sundew/usr/bin; \
 	        fi; \
 	done
 
@@ -39,7 +39,7 @@ install: build
 	# install the tools/tooLib in /usr/lib/px
 	for f in `find tools/toolLib \( ! -regex '.*/\..*' \)`; \
 	     do if [ -f $$f ]; then \
-		    install -m 644 $$f debian/metpx-sundew/usr/lib/px; \
+		    install -m 644 $$f debian/python-metpx-sundew/usr/lib/px; \
 		fi; \
 	 done
 
@@ -48,17 +48,17 @@ install: build
 	for f in `find etc/ \( ! -regex '.*/\..*' \)`; \
 	     do if [ -d $$f ]; then \
 	            directory_debian=$$(echo $$f | sed -e "s/etc/etc\/px/"); \
-		    install -d debian/metpx-sundew/$$directory_debian; \
+		    install -d debian/python-metpx-sundew/$$directory_debian; \
 		elif [ -f $$f ]; then \
 		      directory_debian=$$(echo $$f | sed -e "s/etc/etc\/px/"); \
-		      install -m 644 $$f debian/metpx-sundew/$$directory_debian; \
+		      install -m 644 $$f debian/python-metpx-sundew/$$directory_debian; \
 		fi; \
 	done
 
 	 # install the cronjob in /etc/cron.d
 	 for f in `find cronfiles/ \( ! -regex '.*/\..*' \)`; \
 	      do if [ -f $$f ]; then \
-	             install -m 644 $$f debian/metpx-sundew/etc/cron.d; \
+	             install -m 644 $$f debian/python-metpx-sundew/etc/cron.d; \
 	         fi; \
 	 done
 
@@ -67,78 +67,81 @@ install: build
 	for f in `find lib/ \( ! -regex '.*/\..*' \)`; \
 	     do if [ -d $$f ]; then \
 	            directory_debian=$$(echo $$f | sed -e "s/lib/usr\/lib\/px/"); \
-		    install -d debian/metpx-sundew/$$directory_debian; \
+		    install -d debian/python-metpx-sundew/$$directory_debian; \
 	        elif [ -f $$f ]; then \
 		    directory_debian=$$(echo $$f | sed -e "s/lib/usr\/lib\/px/"); \
-		    install -m 644 $$f debian/metpx-sundew/$$directory_debian; \
+		    install -m 644 $$f debian/python-metpx-sundew/$$directory_debian; \
 	        fi; \
 	done
 
 	# for etch, uncomment the next line
-	# rm -rf debian/metpx-sundew/usr/lib/px/importedLibs
+	# rm -rf debian/python-metpx-sundew/usr/lib/px/importedLibs
 	
 	# Create the directories pxRoute and pxFreq under lib/px ??? 
-	install -d debian/metpx-sundew/usr/lib/px/pxFreq
-	install -d debian/metpx-sundew/usr/lib/px/pxRoute
+	install -d debian/python-metpx-sundew/usr/lib/px/pxFreq
+	install -d debian/python-metpx-sundew/usr/lib/px/pxRoute
 
 	for f in `find pxRoute/ \( ! -regex '.*/\..*' \)`; \
              do if [ -d $$f ]; \
 		    directory_debian=$$(echo $$f | sed -e "s/pxRoute/usr\/lib\/px\/pxRoute/"); \
-                    then install -d debian/metpx-sundew/$$directory_debian; \
+                    then install -d debian/python-metpx-sundew/$$directory_debian; \
 	        elif [ -f $$f ]; then \
                     directory_debian=$$(echo $$f | sed -e "s/pxRoute/usr\/lib\/px\/pxRoute/"); \
-		    install -m 755 $$f debian/metpx-sundew/$$directory_debian; \
+		    install -m 755 $$f debian/python-metpx-sundew/$$directory_debian; \
 		fi; \
 	done
 
 	for f in `find pxFreq/ \( ! -regex '.*/\..*' \)`; \
 	     do if [ -d $$f ]; \
 	            directory_debian=$$(echo $$f | sed -e "s/pxFreq/usr\/lib\/px\/pxFreq/"); \
-		    then install -d debian/metpx-sundew/$$directory_debian; \
+		    then install -d debian/python-metpx-sundew/$$directory_debian; \
 		elif [ -f $$f ]; then \
 		      directory_debian=$$(echo $$f | sed -e "s/pxFreq/usr\/lib\/px\/pxFreq/"); \
-		      install -m 755 $$f debian/metpx-sundew/$$directory_debian; \
+		      install -m 755 $$f debian/python-metpx-sundew/$$directory_debian; \
 		fi; \
 	done
 	
 	
 	# Create the directory log
-	install -d debian/metpx-sundew/var/log/px
+	install -d debian/python-metpx-sundew/var/log/px
 
 	# Create the spool directory
-	install -d debian/metpx-sundew/var/spool/px
+	install -d debian/python-metpx-sundew/var/spool/px
 
 	# queues and db to be ready to start
-	install -d debian/metpx-sundew/var/spool/px/db
-	install -d debian/metpx-sundew/var/spool/px/fxq
-	install -d debian/metpx-sundew/var/spool/px/rxq
-	install -d debian/metpx-sundew/var/spool/px/trxq
-	install -d debian/metpx-sundew/var/spool/px/txq
+	install -d debian/python-metpx-sundew/var/spool/px/db
+	install -d debian/python-metpx-sundew/var/spool/px/fxq
+	install -d debian/python-metpx-sundew/var/spool/px/rxq
+	install -d debian/python-metpx-sundew/var/spool/px/trxq
+	install -d debian/python-metpx-sundew/var/spool/px/txq
 
 	# Install init script px	
 	dh_installinit --name=px --no-start 	
 
 # Build architecture-independent files here.
-binary-indep: build install
+#binary-indep: build install
 
 # Build architecture-dependent files here.
-binary-arch: build install
-	dh_testdir 
-	dh_testroot 
-	#dh_installinit --name=px -n 	
-	dh_installdocs  --exclude=".svn"
-	dh_installchangelogs 
-	#dh_installcron
-	dh_strip 
-	dh_fixperms
-	dh_python 
-	dh_installman
-	dh_installdeb 
-	dh_compress 
-	dh_shlibdeps 
-	dh_gencontrol 
-	dh_md5sums 
-	dh_builddeb 
+#binary-arch: build install
+#	dh_testdir 
+#	dh_testroot 
+#	#dh_installinit --name=px -n 	
+#	dh_installdocs  --exclude=".svn"
+#	dh_installchangelogs 
+#	#dh_installcron
+#	dh_strip 
+#	dh_fixperms
+#	dh_python 
+#	dh_installman
+#	dh_installdeb 
+#	dh_compress 
+#	dh_shlibdeps 
+#	dh_gencontrol 
+#	dh_md5sums 
+#	dh_builddeb 
 
-binary: binary-indep binary-arch
-.PHONY: build clean binary-indep binary-arch binary
+%:
+	dh $@ --with python2
+
+#binary: binary-indep binary-arch
+#.PHONY: build clean binary-indep binary-arch binary

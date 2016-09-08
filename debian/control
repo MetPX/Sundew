@@ -1,9 +1,13 @@
 Source: metpx-sundew
-Section: misc 
+Section: misc
 Priority: optional
-Maintainer: Michel Grenier <michel.grenier@ec.gc.ca>
+Maintainer: Khosrow Ebrahimpour <khosrow.ebrahimpour@canada.ca>
+Build-Depends: debhelper(>= 9), python, dh-python 
+Standards-Version: 3.9.6
+X-Python-Version: >= 2.7
+Homepage: http://metpx.sourceforge.net/
 
-Package: metpx-sundew
+Package: python-metpx-sundew
 Architecture: all 
 Depends: python, python-paramiko, ksh, adduser
 Description:MetPX is a WMO TCP/IP GTS message switching system 
