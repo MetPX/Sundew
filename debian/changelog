@@ -1,3 +1,17 @@
+metpx-sundew (0.16.09) unstable; urgency=low
+
+  * Change to SSH key processing so that it accept any type 
+  of KEY instead of only RSA ones
+  * Changed package versioning to match metpx-sarracenia policy
+
+ -- Khosrow Ebrahimpour <khosrow.ebrahimpour@canada.ca>  Thu, 8 Sep 2016 14:58:15 +0000 
+
+metpx-sundew (0.6.1) unstable; urgency=low
+
+  * porting to Ubuntu Trusty and Xenial
+
+ -- Khosrow Ebrahimpour <khosrow.ebrahimpour@canada.ca>  Tue, 26 Jul 2016 17:45:27 +0000
+
 metpx-sundew (0.6.1-lucid3) lucid; urgency=low
 
   [ Michel Grenier ]
