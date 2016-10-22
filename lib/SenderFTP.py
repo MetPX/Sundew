@@ -298,7 +298,7 @@ class SenderFTP(object):
                    t_args = (self.client.host,self.client.port)
                    self.t = paramiko.Transport(t_args)
 
-                if self.client.ssh_keyfile != None :
+                if hasattr(self.client, 'ssh_keyfile') :
                    #TODO, implement password to use to decrypt the key file, if it's encrypted
                    #key=DSSKey.from_private_key_file(self.client.ssh_keyfile,password=None)
                    self.t.connect(username=self.client.user,pkey=None,key_filename=self.client.ssh_keyfile)
