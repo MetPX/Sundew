@@ -14,7 +14,8 @@ case "$1" in
 	# creating px user if he isn't already there
 	if ! getent passwd px >/dev/null; then
         	# Adding system user: px.
-        	adduser --system --ingroup px --gecos "PX user" --shell /bin/sh px  >/dev/null
+                . /etc/adduser.conf
+        	adduser --system --ingroup px --gecos "PX user" --shell ${DSHELL} px  >/dev/null
 	fi
 	PXHOME=`getent passwd px | cut -d: -f6`
     ;;
