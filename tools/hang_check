@@ -1,4 +1,4 @@
-#!/bin/ksh
+#!/bin/bash
 
 # defining important variable
 
@@ -34,7 +34,7 @@ EOF
 
 #      check if the sender is running
 
-       if [[ ! -f ${TXQ}/$sender/.lock ]] then
+       if [[ ! -f ${TXQ}/$sender/.lock ]]; then
           continue
        fi
 

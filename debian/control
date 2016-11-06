@@ -9,7 +9,7 @@ Homepage: http://metpx.sourceforge.net/
 
 Package: python-metpx-sundew
 Architecture: all 
-Depends: python, python-paramiko, ksh, adduser
+Depends: python, python-paramiko, bash, adduser
 Description:MetPX is a WMO TCP/IP GTS message switching system 
  WMO - World Meteorological Organization, 
  GTS - Global Telecommunications System circuits based on TCP/IP. 
