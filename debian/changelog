@@ -1,3 +1,11 @@
+metpx-sundew (0.16.11) unstable; urgency=medium
+
+  * Stop forcing loginshell of px to /bin/sh
+  * Revert the totally borked ssh RSA key support. SFTP now works correctly
+  * Include man pages.  
+
+ -- Khosrow Ebrahimpour <khosrow.ebrahimpur@canada.ca>  Tue, 08 Nov 2016 18:16:50 +0000
+
 metpx-sundew (0.16.09) unstable; urgency=low
 
   * Change to SSH key processing so that it accept any type 
