@@ -290,22 +290,24 @@ class SenderFTP(object):
 
             # gives "timeout" seconds to open the connection
             try:
+
                 timex.alarm(self.timeout)
                 self.t = None
-                if self.client.port == None : 
-                   self.t = paramiko.Transport(self.client.host)
-                else:
-                   t_args = (self.client.host,self.client.port)
-                   self.t = paramiko.Transport(t_args)
+                self.ssh  = paramiko.SSHClient()
+                self.ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
 
+                if self.client.port == '' or self.client.port == None : 
+                   self.client.port = 22
+            
                 if hasattr(self.client, 'ssh_keyfile') :
-                   #TODO, implement password to use to decrypt the key file, if it's encrypted
-                   key=DSSKey.from_private_key_file(self.client.ssh_keyfile,password=None)
-                   self.t.connect(username=self.client.user,pkey=key)
+                   self.client.password = None
+                   self.ssh.connect( self.client.host, self.client.port, self.client.user, \
+                         self.client.password, pkey=None , key_filename=self.client.ssh_keyfile )
                 else:
-                   self.t.connect(username=self.client.user,password=self.client.passwd)
+                   self.ssh.connect( self.client.host, self.client.port, self.client.user, \
+                         self.client.password )
 
-                self.sftp = paramiko.SFTP.from_transport(self.t)
+                self.sftp = self.ssh.open_sftp()
                 # WORKAROUND without going to '.' originalDir was None
                 self.sftp.chdir('.')
                 self.originalDir = self.sftp.getcwd()
@@ -318,8 +320,6 @@ class SenderFTP(object):
                 timex.cancel()
                 try    : self.sftp.close()
                 except : pass
-                try    : self.t.close()
-                except : pass
                 self.logger.error("SFTP connection timed out after %d seconds... retrying" % self.timeout )
 
             except:
@@ -327,8 +327,6 @@ class SenderFTP(object):
                 (type, value, tb) = sys.exc_info()
                 self.logger.error("Unable to connect to %s (user:%s). Type: %s, Value: %s" % (self.client.host, self.client.user, type ,value))
                 try    : self.sftp.close()
-                except : pass
-                try    : self.t.close()
                 except : pass
                 count +=  1
                 time.sleep(5)   
@@ -540,7 +538,7 @@ class SenderFTP(object):
                          except :
                                 timex.cancel()
                                 (type, value, tb) = sys.exc_info()
-                                self.logger.error("Unable to cwd to: %s, Type: %s, Value:%s" % (destDir, type, value))
+                                self.logger.error("Unable to chdir to: %s, Type: %s, Value:%s" % (destDir, type, value))
                                 time.sleep(1)
                                 continue
 
@@ -669,7 +667,6 @@ class SenderFTP(object):
     # sftp quit = close connection... 
     def sftp_quit(self):
         self.sftp.close()
-        self.t.close()
 
     def trottle(self,buf) :
         self.tbytes = self.tbytes + len(buf)
