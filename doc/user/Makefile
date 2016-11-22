@@ -19,7 +19,7 @@ Guide.latex:  Guide.txt
 Guide.html: Guide.txt
 	rst2html --link-stylesheet --stylesheet=css/bootstrap.min.css,css/metpx-sidebar.css $(TEMPLATE) $< $@
 	sed -i 's/<a class="toc-backref" .*">\(.*\)<\/a>/\1/' $@
-	python ../../../site/template.py $@
+	python ../../../template.py $@
 	sed -i 's/<img \(.*\)\/>/<div class="panel"><div class="panel-body"><img \1 class="img-responsive"\/><\/div><\/div>/' $@
 
 Guide.pdf: Guide.latex
