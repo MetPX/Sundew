@@ -12,7 +12,7 @@
 
 __version__ = '2.0'
 
-import struct, socket, curses, curses.ascii, string
+import struct, socket, curses, curses.ascii, string, crcmod
 import socketManager
 import time
 
@@ -46,6 +46,10 @@ class socketManagerWmo(socketManager.socketManager):
         self.compteur = 0
 
         self.debugFile = False
+        
+        # CRC16 with 16 bits polynomial X16 + X15 + X2 + 1
+        poly = 0x18005
+        self.crc16_function = crcmod.mkCrcFun(poly)
 
     def unwrapBulletin(self):
         __doc__ = socketManager.socketManager.unwrapBulletin.__doc__ + \
@@ -81,13 +85,13 @@ class socketManagerWmo(socketManager.socketManager):
            Add WMO header to input bulletin.
 
         """
-        bulletinStr = chr(curses.ascii.SOH) + '\r\r\n' + self.getNextCounter(5) + '\r\r\n' + bulletin.getBulletin(useFinalLineSeparator=True) + '\r\r\n' + chr(curses.ascii.ETX)
+        bulletinStr = chr(curses.ascii.SOH) + '\r\r\n' + self.getNextCounter(5,bulletin) + '\r\r\n' + bulletin.getBulletin(useFinalLineSeparator=True) + '\r\r\n' + chr(curses.ascii.ETX)
 
         #repr(bulletinStr)
 
         return string.zfill(len(bulletinStr),8) + bulletin.getDataType() + bulletinStr
 
-    def getNextCounter(self,x):
+    def getNextCounter(self,x,bulletin):
         """getNextCounter() 
 
            compteur:    String
@@ -97,10 +101,9 @@ class socketManagerWmo(socketManager.socketManager):
                 Generate ´counter´ (sequence number?) for a bulletinWmo. Must be certain that
                 bulletin is in send queue. 
         """
-        if self.compteur >= self.maxCompteur:
-            self.compteur = 0
-
-        self.compteur = self.compteur + 1
+        
+        # Use crc16 instead of sequence number
+        self.compteur = self.crc16_function(bulletin.getBulletin())
 
         return string.zfill(self.compteur,len(str(self.maxCompteur)))
 
