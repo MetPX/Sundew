@@ -8,7 +8,7 @@
  Authors: Louis-Philippe Thériault, NSD, 
 
 """
-import math, re, string, os, bulletinPlain, traceback, sys, time
+import math, re, string, os, bulletinPlain, traceback, sys, time, crcmod
 import PXPaths
 
 from DirectRoutingParser import DirectRoutingParser
@@ -106,6 +106,10 @@ class bulletinManager:
         self.drp.parse()
         #self.drp.logInfos()
 
+        # CRC16 with 16 bits polynomial X16 + X15 + X2 + 1
+        poly = 0x18005 
+        self.crc16_function = crcmod.mkCrcFun(poly) 
+
     def effacerFichier(self,nomFichier):
         try:
             os.remove(nomFichier)
@@ -135,16 +139,20 @@ class bulletinManager:
 
         """
         
-        if self.compteur >= self.maxCompteur:
-            self.compteur = 0
+        # this part was not working when multiple servers were running this code. replaced by crc16 code, see code bellow
+        #if self.compteur >= self.maxCompteur:
+        #    self.compteur = 0
 
-        self.compteur += 1
+        #self.compteur += 1
         
         unBulletin = self.__generateBulletin(unRawBulletin)
         unBulletin.doSpecificProcessing()
 
         # check arrival time.
         self.verifyDelay(unBulletin)
+        
+        # Use CRC16 code as counter since the sequence numnber did not work
+        self.compteur = self.crc16_function(unBulletin.getBulletin()) 
 
         # generate a file name.
         nomFichier = self.getFileName(unBulletin,compteur=compteur)
@@ -202,16 +210,20 @@ class bulletinManager:
 
     def _writeBulletinToDisk(self,unRawBulletin,compteur=True,includeError=True):
         
-        if self.compteur >= self.maxCompteur:
-            self.compteur = 0
+        # this part was not working when multiple servers were running this code, replaced by crc16 code, see code bellow
+        #if self.compteur >= self.maxCompteur:
+        #    self.compteur = 0
 
-        self.compteur += 1
+        #self.compteur += 1
 
         unBulletin = self.__generateBulletin(unRawBulletin)
         unBulletin.doSpecificProcessing()
 
         # check arrival time.
         self.verifyDelay(unBulletin)
+        
+        # Use CRC16 code as counter since the sequence numnber did not work 
+        self.compteur = self.crc16_function(unBulletin.getBulletin())
 
         # generate a file name.
         nomFichier = self.getFileName(unBulletin,compteur=compteur)
