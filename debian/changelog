@@ -1,3 +1,8 @@
+metpx-sundew (0.18.03b2) unstable; urgency=medium
+
+  * change uniquifying in bulletin-file ingest to use CRC-16 instead of a sequence number. (from noureddine)
+
+
 metpx-sundew (0.16.11b1) unstable; urgency=medium
 
   * Basically working sftp that works with any key, not just DSA 
