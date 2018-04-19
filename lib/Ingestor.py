@@ -247,6 +247,7 @@ class Ingestor(object):
         except OSError:
             (type, value, tb) = sys.exc_info()
             self.logger.error("Unable to link %s %s, Type: %s, Value: %s" % (receptionName, dbName, type, value))
+            return 0
         #os.link(receptionName, dbName)
 
         nbBytes = os.stat(receptionName)[stat.ST_SIZE]
@@ -280,12 +281,12 @@ class Ingestor(object):
         for name in clientNames:
             clientQueueName = self.getClientQueueName(name, ingestName, priority)
             self.createDir(os.path.dirname(clientQueueName), self.clientDirsCache)
-            #try:
-            #    os.link(dbName, clientQueueName)
-            #except OSError:
-            #    (type, value, tb) = sys.exc_info()
-            #    self.logger.error("Unable to link %s %s, Type: %s, Value: %s" % (dbName, clientQueueName, type, value))
-            os.link(dbName, clientQueueName)
+            try:
+                os.link(dbName, clientQueueName)
+            except OSError:
+                (type, value, tb) = sys.exc_info()
+                self.logger.error("Unable to link %s %s, Type: %s, Value: %s" % (dbName, clientQueueName, type, value))
+            #os.link(dbName, clientQueueName)
 
         feedNames = []
         if len(self.feedNames) > 0 :
@@ -296,7 +297,12 @@ class Ingestor(object):
             if name in clientNames : continue
             sourceQueueName = PXPaths.RXQ + name + '/' + ingestName
             self.createDir(os.path.dirname(sourceQueueName), self.clientDirsCache)
-            os.link(dbName, sourceQueueName)
+            try:
+                os.link(dbName, clientQueueName)
+            except OSError:
+                (type, value, tb) = sys.exc_info()
+                self.logger.error("Unable to link to client queue %s %s, Type: %s, Value: %s" % (dbName, clientQueueName, type, value))
+            #os.link(dbName, sourceQueueName)
 
         self.logger.info("Queued for: %s" % string.join(clientNames) + ' ' + string.join(feedNames) )
         return 1
