@@ -1,3 +1,10 @@
+metpx-sundew (0.18.04) unstable; urgency=medium
+
+  * chmmod -R causes very long install time when upgrading system in use.
+  * rename should fail cleanly (was crashing with name clashes.)
+
+ -- Peter Silva <peter.silva@canada.ca>  Wed, 4 Apr 2018 19:45:47 +0000
+
 metpx-sundew (0.18.03b2) unstable; urgency=medium
 
   * change uniquifying in bulletin-file ingest to use CRC-16 instead of a sequence number. (from noureddine)
