@@ -14,13 +14,14 @@ PXHOME=`getent passwd px | cut -d: -f6`
 #	ln -s $PXETC $PXHOME/etc
 #fi
 
-for dir in $PXLOG $PXSPOOL $PXETC $PXHOME $PXLIB; do
-	if ! dpkg-statoverride --list $dir >/dev/null 2>&1; then
-		chmod -R 775 $dir
-    		chown -R px:px $dir
-		chmod 4775 $dir
-	fi
-done	
+# Peter/Jun/Noureddine & Justin all hate this...
+#for dir in $PXLOG $PXSPOOL $PXETC $PXHOME $PXLIB; do
+#	if ! dpkg-statoverride --list $dir >/dev/null 2>&1; then
+#		chmod -R 775 $dir
+#    		chown -R px:px $dir
+#		chmod 4775 $dir
+#	fi
+#done	
 
 case "$1" in
     configure)

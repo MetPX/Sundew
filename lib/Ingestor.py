@@ -120,7 +120,7 @@ class Ingestor(object):
 
         if len(receptionNameParts) > 6 :
            receptionNameParts = receptionNameParts[:6]
-           self.logger.warning("File %s truncated to %s" % (receptionName,':'.join(receptionNameParts) ) )
+           self.logger.warning("File name %s truncated to %s" % (receptionName,':'.join(receptionNameParts) ) )
 
         for i in range(1,6):
             if len(receptionNameParts) == i :
@@ -242,12 +242,12 @@ class Ingestor(object):
             return 0
         
         self.createDir(os.path.dirname(dbName), self.dbDirsCache)
-        #try:
-        #    os.link(receptionName, dbName)
-        #except OSError:
-        #    (type, value, tb) = sys.exc_info()
-        #    self.logger.error("Unable to link %s %s, Type: %s, Value: %s" % (receptionName, dbName, type, value))
-        os.link(receptionName, dbName)
+        try:
+            os.link(receptionName, dbName)
+        except OSError:
+            (type, value, tb) = sys.exc_info()
+            self.logger.error("Unable to link %s %s, Type: %s, Value: %s" % (receptionName, dbName, type, value))
+        #os.link(receptionName, dbName)
 
         nbBytes = os.stat(receptionName)[stat.ST_SIZE]
 
