@@ -50,10 +50,32 @@ of magnitude improvements in latency and performance.) It lived only a month or
 two as an independent module.
 
 The separate individual configuration of many, many individual components was cumbersome
-and fraught with chances for error by administrators.  In order to make the package easier
+and fraught with chances for error by administrators. In order to make the package easier
 to configure, a standardized file tree was designed, and FET and pds-nccs were thus merged
-with a common, simpler configuration.   The result of that was the original product exchanger
+with a common, simpler configuration. The result of that was the original product exchanger
 (PX.)
+
+
+Why Sundew is Faster than MetPX
+-------------------------------
+
+Why is it faster? One reason: PDS uses a central ingest process, and IPC for reception to 
+communicate with a dispatcher. The dispatcher is a single process that does all routing and access 
+to it is serialized using IPC.  As volume grows, the small individual synchronization delays accumulate,
+and all routing is limited to a single CPU, in spite of multiple cpu systems now being common.
+MetPX receivers do the routing themselves, with no hand-off to a dispatcher, so 10 receivers 
+can be performing receipt and routing in parallel with no waiting, and making use of upto 10 processors.
+So routing is fundamentally done by multiple independent processes, instead of one.
+
+The second major difference is the routing algorithim. PDS routing means taking an input file 
+and comparing to all configurations for all senders, applying all regular expressions for 
+each destination. MetPX adopted the routing table from the Tandem Apps, a lookup table 
+to do initial routing.  Regular expressions are only evaluated after that initial look up 
+is done, which usually means 10x fewer regular expressions to compare.
+
+So, on a configuration with 150 inputs and 150 outpus, Sundew has 150 processes doing 
+the routing instead of one, and each of those is about 10x faster than the single central 
+dispatcher in PDS.
 
 
 Where AM Sockets Come From
@@ -61,25 +83,23 @@ Where AM Sockets Come From
 
 Other systems in use in Environment Canada, are packages such as Alpha-Manager / Image Manager,
 also called IM/AM. This is the system which first implemented what is termed *AM sockets*.
-This package originated in the early 90's and was deployed in all regional offices.  The 
+This package originated in the early 90's and was deployed in all regional offices. The 
 application is largely retired from environment Canada, except for a few special 
 applications such as a raw bulletin filtering system, known as CODECON.
 
-MetManager, the son of IM/AM, has a greatly improved feature set.  It also uses AM sockets
-as the primary means of circulating bulletin information.  It's configuration is very
-similar from the bulletin point of view.  MM also has a unique protocol 
+MetManager, the son of IM/AM, has a greatly improved feature set. It also uses AM sockets
+as the primary means of circulating bulletin information. It's configuration is very
+similar from the bulletin point of view. MM also has a unique protocol 
 for passing images, which is not implemented in MetPX (we deliver by FTP.)
 
 
 Where Columbo Came From
 ------------------------
+
 An operator interface for the PDS, called Columbo, had been created in the early 2000's by
-Daniel.  This existing interface was extended to support both PDS and PX.  Eventually, the 
+Daniel. This existing interface was extended to support both PDS and PX.  Eventually, the 
 interface was subsumed as part of the overall MetPX project, so the switching component 
 was renamed from px to Sundew.
-
-
-
 
 Original Specification of FET, parent of metpx
 -----------------------------------------------

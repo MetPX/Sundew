@@ -13,10 +13,10 @@ default: $(TARGETS)
 Guide.rtf: Guide.latex
 	latex2rtf </dev/null Guide.latex >Guide.rtf
 
-Guide.latex:  Guide.txt
-	rst2latex <Guide.txt >Guide.latex
+Guide.latex:  Guide.rst
+	rst2latex <Guide.rst >Guide.latex
  
-Guide.html: Guide.txt
+Guide.html: Guide.rst
 	rst2html --link-stylesheet --stylesheet=css/bootstrap.min.css,css/metpx-sidebar.css $(TEMPLATE) $< $@
 	sed -i 's/<a class="toc-backref" .*">\(.*\)<\/a>/\1/' $@
 	python ../../../template.py $@
