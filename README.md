@@ -13,7 +13,7 @@ Sundew is too constrained by early requirements to be modernized, so started a f
 to work with modern needs: Sarracenia will eventually replace Sundew for (modernized versions of)
 the same use case.
 
-Suggest you look there if looking for something new to deploy: http://MetPX.github.com/sarracenia
+Suggest you look there if looking for something new to deploy: http://github.com/MetPX/sarracenia
 
 Features:
 
