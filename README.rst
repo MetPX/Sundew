@@ -33,7 +33,7 @@ Features
 Documentation
 -------------
 
-Docs are `here <docs>`_
+Docs are `here <doc>`_
 
 Installation
 ------------
