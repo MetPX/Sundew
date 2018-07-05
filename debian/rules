@@ -9,7 +9,13 @@ build-stamp:
 	dh_testdir
 	touch build-stamp
 
+override_dh_auto_build:
+	cd doc/man; make 
+	dh_auto_build
+
+
 override_dh_auto_clean:
+	cd doc/man; make clean
 	dh_testdir
 	dh_testroot
 	rm -rf build-stamp build
