@@ -26,6 +26,3 @@ hangs, hang_check stops and restarts it. It may happen that the process
 does not stop... hence duplicated process. This script shows any process
 in that situation.
 
-hoho :%s/\\fB\(.*\)\\fR/**\1**/g
-hoho :%s/\\fI\(.*\)\\fR/*\1*/g
-
