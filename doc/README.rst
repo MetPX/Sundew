@@ -8,7 +8,7 @@ For some example of how to configure sources and clients, go to
 
 - `The User Guide <user/Guide.rst>`_
 - `The Developer Guide <dev/DevGuide.rst>`_
-- `The Manual Pages (Reference Materials)`_
+- `The Manual Pages (Reference Materials) <man/>`_
 - `The Origins document <historical/Origins.rst>`_
   (only of interest if there is an inexplicable acronym in the Developer's Guide.
 - `version1 <version1>`_  Plans for the future 1.0 release which will be feature complete
