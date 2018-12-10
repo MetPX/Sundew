@@ -167,14 +167,14 @@ the first AHL in a file, routes the contents accordingly.
 Installation
 ------------
 
-Download the .deb package from Ubuntu PPA: https://launchpad.net/~ssc-hpc-chp-spc/+archive/ubuntu/metpx
+Download the .deb package from Ubuntu PPA: https://launchpad.net/~ssc-hpc-chp-spc/+archive/ubuntu/metpx ::
 
-| sudo add-apt-repository ppa:ssc-hpc-chp-spc/metpx
-| sudo apt-get update
+  sudo add-apt-repository ppa:ssc-hpc-chp-spc/metpx
+  sudo apt-get update
 
-Then install it using (Debian/Ubuntu) standard methods:
+Then install it using (Debian/Ubuntu) standard methods::
 
-| apt-get install metpx-sundew-xx-yy.dpkg
+ apt-get install metpx-sundew-xx-yy.dpkg
 
 installs the missing dependencies, if any.
 
@@ -182,34 +182,34 @@ Building a Debian Package
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 
 If you are not running on an Ubuntu version supported by the launchpag PPA, then you can build
-your own package from source:
+your own package from source.
 
-get source from github.
+Get source from github::
 
-| git clone http://github.com/MetPX/Sundew sundew
-| cd sundew
+  git clone http://github.com/MetPX/Sundew sundew
+  cd sundew
 
-install build dependencies prior to building a package
+install build dependencies prior to building a package::
 
-| sudo apt-get
-| build-dep .   
+  sudo apt-get
+  build-dep .   
 
-build the package in .. (no admin access required)
+build the package in .. (no admin access required)::
 
-| debuild -us -uc
+  debuild -us -uc
  
-The package built on my ubuntu... 0.18.04 is the Sundew version, not a reference to ubuntu!
+The package built on my ubuntu... 0.18.04 is the Sundew version, not a reference to ubuntu!::
 
-| ls ../*sundew*.deb
-| ../python-metpx-sundew_0.18.04_all.deb
+  ls ../*sundew*.deb
+  ../python-metpx-sundew_0.18.04_all.deb
 
-install the Debian package:
+install the Debian package::
 
-| sudo dpkg -i ../python-metpx-sundew_0.18.04_all.deb
+  sudo dpkg -i ../python-metpx-sundew_0.18.04_all.deb
 
-you might need to do:
+you might need to do::
 
-| sudo apt install -f
+  sudo apt install -f
 
 and you should be good to go.
 
@@ -224,74 +224,74 @@ and stop circuits, and check their status.
 
 First construct a small pool of sample bulletins
 (copy thes commands and pasting them into a shell will build the files 
-on your server.)
+on your server.)::
 
-| mkdir sample_bulletins
-| 
-| cat >sample_bulletins/s1 <<EOT
-| SACN31 CWAO 300651
-| METAR
-| BGBW 131550Z 21010KT 8000 -RADZ BKN006 OVC012 03/00 Q1009 RMK 5SC
-|      8SC=
-| EOT
-| cat >sample_bulletins/s2 <<EOT
-| SANT31 CWAO 300651
-| METAR
-| BGBX 131550Z 21010KT 8000 -RADZ BKN006 OVC012 03/00 Q1009 RMK 5SC
-|      8SC=
-| EOT
-| cat >sample_bulletins/s3 <<EOT
-| SICN25 CWAO 300651
-| AAXX 04154
-| 71255 36/// /0202 11078 21089 333 60001=
-| EOT
-| 
-| cat >sample_bulletins/s4 <<EOT
-| SICN25 CWAO 300651
-| AAXX 04154
-| 71255 36/// /0202 11078 21089 333 60001=
-| EOT
-| 
-| cat >sample_bulletins/s5 <<EOT
-| SMCN37 CWAO 300651
-| AAXX 20184
-| 71784 16/// /0000 10036 20031 39903 40107 53021 60001 333 10040
-| 20020 70305=
-| EOT
-| 
-| cat >sample_bulletins/s6 <<EOT
-| SMCN37 CWAO 300651
-| AAXX 20184
-| 71783 16/// /0000 10036 20031 39903 40107 53021 60001 333 10040
-| 20020 70305=
-| EOT
+  mkdir sample_bulletins
+  
+  cat >sample_bulletins/s1 <<EOT
+  SACN31 CWAO 300651
+  METAR
+  BGBW 131550Z 21010KT 8000 -RADZ BKN006 OVC012 03/00 Q1009 RMK 5SC
+       8SC=
+  EOT
+  cat >sample_bulletins/s2 <<EOT
+  SANT31 CWAO 300651
+  METAR
+  BGBX 131550Z 21010KT 8000 -RADZ BKN006 OVC012 03/00 Q1009 RMK 5SC
+       8SC=
+  EOT
+  cat >sample_bulletins/s3 <<EOT
+  SICN25 CWAO 300651
+  AAXX 04154
+  71255 36/// /0202 11078 21089 333 60001=
+  EOT
+  
+  cat >sample_bulletins/s4 <<EOT
+  SICN25 CWAO 300651
+  AAXX 04154
+  71255 36/// /0202 11078 21089 333 60001=
+  EOT
+  
+  cat >sample_bulletins/s5 <<EOT
+  SMCN37 CWAO 300651
+  AAXX 20184
+  71784 16/// /0000 10036 20031 39903 40107 53021 60001 333 10040
+  20020 70305=
+  EOT
+  
+  cat >sample_bulletins/s6 <<EOT
+  SMCN37 CWAO 300651
+  AAXX 20184
+  71783 16/// /0000 10036 20031 39903 40107 53021 60001 333 10040
+  20020 70305=
+  EOT
 
-Now build a sample configuration: 
+Now build a sample configuration:: 
 
-|
-| PXETC=/etc/px
+ 
+  PXETC=/etc/px
 
-| cat >${PXETC}/rx/file.conf <<EOT
-|   type bulletin-file
-|   extension file\:-CCCC:-TT:-PRIORITY:Direct
-| EOT
-|
-| cat >${PXETC}/rx/loop.conf <<EOT
-|   type wmo
-|   port 5002
-|   extension pxatx\:-CCCC:-TT:-PRIORITY:Direct
-| EOT
-|
-| cat >${PXETC}/tx/loop.conf <<EOT
-|   type wmo
-|   destination wmo://localhost:5002
-|   accept .*:.*:.*:.*:.*:.*:.*
-| EOT
-|
-| cat >${PXETC}/pxRouting.conf <<EOT
-|   key_accept .* loop 3
-| EOT
-|
+  cat >${PXETC}/rx/file.conf <<EOT
+    type bulletin-file
+    extension file\:-CCCC:-TT:-PRIORITY:Direct
+  EOT
+    
+  cat >${PXETC}/rx/loop.conf <<EOT
+    type wmo
+    port 5002
+    extension pxatx\:-CCCC:-TT:-PRIORITY:Direct
+  EOT
+    
+  cat >${PXETC}/tx/loop.conf <<EOT
+    type wmo
+    destination wmo://localhost:5002
+    accept .*:.*:.*:.*:.*:.*:.*
+  EOT
+          
+  cat >${PXETC}/pxRouting.conf <<EOT
+    key_accept .* loop 3
+  EOT
+ 
 
 As the above series of commands show, configuration files for metpx
 reside in the /etc/px directory.  Configuration which applies to multiple
@@ -300,57 +300,61 @@ placing an appropriate .conf file in an rx, fx, or tx sub-directory.
 The above configuration creates two receivers and one sender.
 The pxRouting.conf file specifies a central table consulted by all 
 receivers and filters. The routing table above routes any and all data 
-received to the loop sender.  Start it up to see what happens.
+received to the loop sender.  Start it up to see what happens::
 
-| px@laptop:~/$ px start
+  px@laptop:~/$ px start
 
 The above will start all the configured recievers and senders, it will
-also build the queuing directories for each defined channel.
+also build the queuing directories for each defined channel::
 
-laptop% ls -lr rxq txq
-txq:
-total 4
-drwxr-xr-t 2 px px 4096 2006-10-08 23:03 loop
+  laptop% ls -lr rxq txq
+  txq:
+  total 4
+  drwxr-xr-t 2 px px 4096 2006-10-08 23:03 loop
 
-rxq:
-total 8
-drwxr-xr-t 2 px px 4096 2006-10-08 23:03 loop
-drwxr-xr-t 2 px px 4096 2006-10-08 23:04 file
-laptop%   
+  rxq:
+  total 8
+  drwxr-xr-t 2 px px 4096 2006-10-08 23:03 loop
+  drwxr-xr-t 2 px px 4096 2006-10-08 23:04 file
+  laptop%   
 
-Now, Let's have a look at the processes:
+Now, Let's have a look at the processes::
 
-| px@laptop:~/$ ps ax | grep px
-| 15897 pts/2    S      0:00 su - px
-| 16848 pts/2    S      0:00 python /usr/sbin/pxReceiver loop start
-| 16849 pts/2    S      0:00 python /usr/sbin/pxReceiver file start
-| 16856 pts/2    R      0:04 python /usr/sbin/pxSender loop start
-| 16863 pts/2    R+     0:00 grep px
-| px@laptop:~/$  
+  px@laptop:~/$ ps ax | grep px
+  15897 pts/2    S      0:00 su - px
+  16848 pts/2    S      0:00 python /usr/sbin/pxReceiver loop start
+  16849 pts/2    S      0:00 python /usr/sbin/pxReceiver file start
+  16856 pts/2    R      0:04 python /usr/sbin/pxSender loop start
+  16863 pts/2    R+     0:00 grep px
+  px@laptop:~/$  
 
-So the Receivers have started.  Let us given them some data to route.
+So the Receivers have started.  Let us given them some data to route::
 
-| cp sample_bulletins/* /var/spool/px/rxq/file
+  cp sample_bulletins/* /var/spool/px/rxq/file
 
 That will copy a selection of bulletins into the file receiver's input queue.  What happens next?:
 
- 1. The bulletins are ingested and queued for transmission via the loop sender.   
- 2. The loop sender sends the bulletins to the loop receiver.
- 3. The loop receiver ingests and queues the data for transmission via loop sender.
- 4. The loop sender sends the bulletins to the loop receiver.
- 5. The loop receiver detects that these are duplicate messages and discards them.
+1. The bulletins are ingested and queued for transmission via the loop sender.   
+
+2. The loop sender sends the bulletins to the loop receiver.
+
+3. The loop receiver ingests and queues the data for transmission via loop sender.
+
+4. The loop sender sends the bulletins to the loop receiver.
+
+5. The loop receiver detects that these are duplicate messages and discards them.
 
 Lets have a look at the log files in the /var/log/px, directory and examine the results.
-There should be three log files, and they should indicate normal startup.  Look at rx_file.log first:
+There should be three log files, and they should indicate normal startup.  Look at rx_file.log first::
 
-| 2006-10-08 00:23:31,060 [INFO] Receiver file has been started
-| 2006-10-08 00:23:31,061 [INFO] Initialisation of source file
-| 2006-10-08 00:23:31,064 [INFO] Ingestor (source file) can link files to clients: ['loop']
-| 2006-10-08 00:23:31,290 [INFO] Initialisation of client loop
-| 2006-10-08 00:23:31,506 [INFO] Routing table used: /etc/px/pxRouting.conf
-| 2006-10-08 00:24:36,553 [INFO] 6 bulletins will be ingested
-| 2006-10-08 00:24:36,556 [INFO] (107 Bytes) Ingested in DB as /var/spool/px/db20061008/SM/file/CWAO/SMCN37_CWAO_300651___0001:file\:CWAO:SM:3:Direct:20061008042436
-| 2006-10-08 00:24:36,557 [INFO] Queued for: loop
+  2006-10-08 00:23:31,060 [INFO] Receiver file has been started
+  2006-10-08 00:23:31,061 [INFO] Initialisation of source file
+  2006-10-08 00:23:31,064 [INFO] Ingestor (source file) can link files to clients: ['loop']
+  2006-10-08 00:23:31,290 [INFO] Initialisation of client loop
+  2006-10-08 00:23:31,506 [INFO] Routing table used: /etc/px/pxRouting.conf
+  2006-10-08 00:24:36,553 [INFO] 6 bulletins will be ingested
+  2006-10-08 00:24:36,556 [INFO] (107 Bytes) Ingested in DB as /var/spool/px/db20061008/SM/file/CWAO/SMCN37_CWAO_300651___0001:file\:CWAO:SM:3:Direct:20061008042436
+  2006-10-08 00:24:36,557 [INFO] Queued for: loop
 
 
 Then the rest of the bulletins are ingested once, and each in turn is queued 
@@ -361,39 +365,39 @@ string given in the extension directive, and a reception timestamp.   The
 following line, 'Queued for' indicates whose transmission queues the file 
 will be linked to.
 
-Now have a look at the log of the sender:
+Now have a look at the log of the sender::
 
-| 2006-10-08 00:23:31,278 [INFO] Sender loop has been started
-| 2006-10-08 00:23:31,316 [INFO] Initialisation of client loop
-| 2006-10-08 00:23:31,543 [INFO] Trying to connect remote host localhost
-| 2006-10-08 00:23:31,547 [INFO] Connexion established with localhost
-| 2006-10-08 00:24:36,615 [INFO] 6 new bulletins will be sent
-| 2006-10-08 00:24:36,616 [INFO] (130 Bytes) Bulletin SACN31_CWAO_300651___0006:file\:CWAO:SA:3:Direct:20061008042436  delivered
-| 2006-10-08 00:24:36,617 [INFO] (130 Bytes) Bulletin SANT31_CWAO_300651___0005:file\:CWAO:SA:3:Direct:20061008042436  delivered
-| 2006-10-08 00:24:36,618 [INFO] (103 Bytes) Bulletin SICN25_CWAO_300651___0003:file\:CWAO:SI:3:Direct:20061008042436  delivered
-| 2006-10-08 00:24:36,618 [INFO] suppressed duplicate send SICN25_CWAO_300651___0004\:file\:CWAO:SI:3:Direct:20061008042436
-| 2006-10-08 00:24:36,619 [INFO] (141 Bytes) Bulletin SMCN37_CWAO_300651___0001:file\:CWAO:SM:3:Direct:20061008042436  delivered
-| 2006-10-08 00:24:36,620 [INFO] (141 Bytes) Bulletin SMCN37_CWAO_300651___0002:file\:CWAO:SM:3:Direct:20061008042436  delivered
-| 2006-10-08 00:24:36,722 [INFO] 5 new bulletins will be sent
-| 2006-10-08 00:24:36,722 [INFO] suppressed duplicate send SACN31_CWAO_300651___00001:localhost:CWAO:SA:3:Direct:20061008042436
-| 2006-10-08 00:24:36,723 [INFO] suppressed duplicate send SANT31_CWAO_300651___00002:localhost:CWAO:SA:3:Direct:20061008042436
-| 2006-10-08 00:24:36,723 [INFO] suppressed duplicate send SICN25_CWAO_300651___00003:localhost:CWAO:SI:3:Direct:20061008042436
-| 2006-10-08 00:24:36,723 [INFO] suppressed duplicate send SMCN37_CWAO_300651___00004:localhost:CWAO:SM:3:Direct:20061008042436
-| 2006-10-08 00:24:36,724 [INFO] suppressed duplicate send SMCN37_CWAO_300651___00005:localhost:CWAO:SM:3:Direct:20061008042436
+  2006-10-08 00:23:31,278 [INFO] Sender loop has been started
+  2006-10-08 00:23:31,316 [INFO] Initialisation of client loop
+  2006-10-08 00:23:31,543 [INFO] Trying to connect remote host localhost
+  2006-10-08 00:23:31,547 [INFO] Connexion established with localhost
+  2006-10-08 00:24:36,615 [INFO] 6 new bulletins will be sent
+  2006-10-08 00:24:36,616 [INFO] (130 Bytes) Bulletin SACN31_CWAO_300651___0006:file\:CWAO:SA:3:Direct:20061008042436  delivered
+  2006-10-08 00:24:36,617 [INFO] (130 Bytes) Bulletin SANT31_CWAO_300651___0005:file\:CWAO:SA:3:Direct:20061008042436  delivered
+  2006-10-08 00:24:36,618 [INFO] (103 Bytes) Bulletin SICN25_CWAO_300651___0003:file\:CWAO:SI:3:Direct:20061008042436  delivered
+  2006-10-08 00:24:36,618 [INFO] suppressed duplicate send SICN25_CWAO_300651___0004\:file\:CWAO:SI:3:Direct:20061008042436
+  2006-10-08 00:24:36,619 [INFO] (141 Bytes) Bulletin SMCN37_CWAO_300651___0001:file\:CWAO:SM:3:Direct:20061008042436  delivered
+  2006-10-08 00:24:36,620 [INFO] (141 Bytes) Bulletin SMCN37_CWAO_300651___0002:file\:CWAO:SM:3:Direct:20061008042436  delivered
+  2006-10-08 00:24:36,722 [INFO] 5 new bulletins will be sent
+  2006-10-08 00:24:36,722 [INFO] suppressed duplicate send SACN31_CWAO_300651___00001:localhost:CWAO:SA:3:Direct:20061008042436
+  2006-10-08 00:24:36,723 [INFO] suppressed duplicate send SANT31_CWAO_300651___00002:localhost:CWAO:SA:3:Direct:20061008042436
+  2006-10-08 00:24:36,723 [INFO] suppressed duplicate send SICN25_CWAO_300651___00003:localhost:CWAO:SI:3:Direct:20061008042436
+  2006-10-08 00:24:36,723 [INFO] suppressed duplicate send SMCN37_CWAO_300651___00004:localhost:CWAO:SM:3:Direct:20061008042436
+  2006-10-08 00:24:36,724 [INFO] suppressed duplicate send SMCN37_CWAO_300651___00005:localhost:CWAO:SM:3:Direct:20061008042436
 
 The loop receiver log will show the messages being ingested, and sent, as in 
 the file receiver.  So from this you can see a very simple installation 
-configuration self-test.  Complete the excercise:
+configuration self-test.  Complete the excercise::
 
-| px@laptop:~/log$ px stop
-| px@laptop:~/log$ px status
-| * receiver loop is not running
-| * receiver file is not running
-| * sender loop is not running
-| px@laptop:~/log$ ps ax | grep px
-| 15897 pts/2    S      0:00 su - px
-| 18704 pts/2    S+     0:00 grep px
-| px@laptop:~/log$    
+  px@laptop:~/log$ px stop
+  px@laptop:~/log$ px status
+  * receiver loop is not running
+  * receiver file is not running
+  * sender loop is not running
+  px@laptop:~/log$ ps ax | grep px
+  15897 pts/2    S      0:00 su - px
+  18704 pts/2    S+     0:00 grep px
+  px@laptop:~/log$    
 
 
 So now one can:
@@ -417,39 +421,39 @@ Being careful, one can likely use any FTP server.  However,
 use of VSFTPD makes configuration quite simple.  It is available from 
 standard Debian/Ubuntu repositories via *apt-get install vsftpd*.  
 
-Here is a complete /etc/vsftpd.conf: 
+Here is a complete /etc/vsftpd.conf::
 
-| cat >/etc/vsftpd.conf <<EOT
-| # These are Debian/Ubuntu Defaults ...
-| listen=YES
-| dirmessage_enable=YES
-| xferlog_enable=YES
-| connect_from_port_20=YES
-| secure_chroot_dir=/var/run/vsftpd
-| pam_service_name=vsftpd
-| rsa_cert_file=/etc/ssl/certs/ssl-cert-snakeoil.pem
-| rsa_private_key_file=/etc/ssl/private/ssl-cert-snakeoil.key
-| ascii_upload_enable=YES
-| ascii_download_enable=YES
-| 
-| # Do not want users logging in without pw.
-| anonymous_enable=NO
-| # will specify which users can log in in /etc/vsftpd.user_list
-| userlist_enable=YES
-| userlist_deny=NO
-| userlist_file=/etc/vsftpd.user_list
-| write_enable=YES
-| 
-| # all the authenticated users are 'guests' of the px account.
-| # when they log in, they will be placed in the right reception queueing directory.
-| local_enable=YES
-| guest_enable=YES
-| guest_username=px
-| virtual_use_local_privs=YES
-| user_sub_token=$USER
-| local_root=/var/spool/px/rxq/$USER
-| EOT
-|
+  cat >/etc/vsftpd.conf <<EOT
+  # These are Debian/Ubuntu Defaults ...
+  listen=YES
+  dirmessage_enable=YES
+  xferlog_enable=YES
+  connect_from_port_20=YES
+  secure_chroot_dir=/var/run/vsftpd
+  pam_service_name=vsftpd
+  rsa_cert_file=/etc/ssl/certs/ssl-cert-snakeoil.pem
+  rsa_private_key_file=/etc/ssl/private/ssl-cert-snakeoil.key
+  ascii_upload_enable=YES
+  ascii_download_enable=YES
+  
+  # Do not want users logging in without pw.
+  anonymous_enable=NO
+  # will specify which users can log in in /etc/vsftpd.user_list
+  userlist_enable=YES
+  userlist_deny=NO
+  userlist_file=/etc/vsftpd.user_list
+  write_enable=YES
+  
+  # all the authenticated users are 'guests' of the px account.
+  # when they log in, they will be placed in the right reception queueing directory.
+  local_enable=YES
+  guest_enable=YES
+  guest_username=px
+  virtual_use_local_privs=YES
+  user_sub_token=$USER
+  local_root=/var/spool/px/rxq/$USER
+  EOT
+ 
 
 NOTE:
    vsftpd has a very picky parser for it's configuration files:
@@ -468,19 +472,19 @@ This is because of an oddity in vsftpd's PAM setup on ubuntu (same on Deb?),
 where it refuses to approve a login unless the account has a valid shell.  
 /bin/false was already used as a login shell for many users, but it is not
 in /etc/shells.  Worrying that this was on purpose, and not wanting to 
-assign a useful shell to 'guests', added a bogus one to /etc/shells instead.
+assign a useful shell to 'guests', added a bogus one to /etc/shells instead::
 
-| echo "/bin/true" >>/etc/shells
+  echo "/bin/true" >>/etc/shells
 
 Of note, vsftpd has the virtual user / guest user concept.  This makes it easier
 to set up ftp receivers.  For example, to configure ftp reception for 
-the 'file' receiver defined in the first run above, just do the following:
+the 'file' receiver defined in the first run above, just do the following::
 
-|
-| useradd  -s /bin/true file   # create the 'file' user.
-| echo "file" >>/etc/vsftpd.user_list  # permit him to ftp into the server.
-| passwd file  # set his password.
-|    # assume it is ILuvData
+ 
+  useradd  -s /bin/true file   # create the 'file' user.
+  echo "file" >>/etc/vsftpd.user_list  # permit him to ftp into the server.
+  passwd file  # set his password.
+     # assume it is ILuvData
 
 Send username and password to the technical contact at your data source, 
 and your work is done!
@@ -489,13 +493,13 @@ and your work is done!
 Setup FTP Sender
 -----------------
 
-Change the sender loop configuration:
+Change the sender loop configuration::
 
-| cat >${PXETC}/tx/loop <<EOT
-| type single-file
-| destination ftp://file:ILuvData@localhost
-| accept .*
-| EOT
+  cat >${PXETC}/tx/loop <<EOT
+  type single-file
+  destination ftp://file:ILuvData@localhost
+  accept .*
+  EOT
 
 So there you have a basic FTP sender!
 
@@ -663,10 +667,10 @@ Use key directive (in preference over key_accept) and comments copiously in pxRo
   where the main constraint is client need for data, rather than provider
   constraints (such as permissions)  
 
-|   key SACN37_CWAO NWP,Archive 3  # Private stations from provincial Hydro 
-|   key SICN25_CWAO NWP,Archive,GTS_main 3 # our stations in Northern Province of Hoser
-|   key SANT31_CWAO NWP,Archive,GTS_main,GTS_backup 3
-|   key SMCN37_CWAO NWP,Archive,GTS_main,GTS_backup 3
+    key SACN37_CWAO NWP,Archive 3  # Private stations from provincial Hydro 
+    key SICN25_CWAO NWP,Archive,GTS_main 3 # our stations in Northern Province of Hoser
+    key SANT31_CWAO NWP,Archive,GTS_main,GTS_backup 3
+    key SMCN37_CWAO NWP,Archive,GTS_main,GTS_backup 3
 
   When sending data, one always must be cognizant of the channel over which the
   data is being sent.  Sending radar data over a phone line, for example, will 
@@ -719,9 +723,9 @@ An example of pqact.conf directives ::
   # NCEP Extended Range Model (MRF model)
   #
   HRS     ^H.E[L-Y][0-9][0-9] KWB. ([0-3][0-9])([0-2][0-9])
-	  FILE    data/GRIB/(\1:yyyy)(\1:mm)\1\2_mrf_nh.grb
+          FILE    data/GRIB/(\1:yyyy)(\1:mm)\1\2_mrf_nh.grb
   HRS     ^H.F[L-Y][0-9][0-9] KWB. ([0-3][0-9])([0-2][0-9])
-	  FILE    /apps/px/rxq/from_ldm/(\1:yyyy)(\1:mm)\1\2_mrf_sh.grb
+          FILE    /apps/px/rxq/from_ldm/(\1:yyyy)(\1:mm)\1\2_mrf_sh.grb
 
 where /home/ldm/data/GRIB is a link to /apps/px/rxq/from_ldm for example
 
@@ -770,15 +774,15 @@ Feeding AMQP
 ------------
 
 Following the simple loopback examples above.  the loop transmitter can be 
-re-cast as an amqp sender. 
+re-cast as an amqp sender::
 
-| pxSender loop stop
-| cat >${PXETC}/tx/loop.conf <<EOT
-|   type amqp
-|   destination amqp://guest:guest@localhost//data
-|   accept .*
-| EOT
-| pxSender loop start
+  pxSender loop stop
+  cat >${PXETC}/tx/loop.conf <<EOT
+    type amqp
+    destination amqp://guest:guest@localhost//data
+    accept .*
+  EOT
+  pxSender loop start
 
 you can then repeat the 
 
@@ -824,9 +828,9 @@ Typical configuration file for a transceiver::
     emask *:aftn:*:*:*:*          # Do not return on AFTN link what was received on AFTN  
     imask *:*:*:*:*:Direct:*      # Accept everything else with "Direct" well placed 
 
-|
-| Routing table is used at reception of a message and also for transmission of a message.
-| Same routing table directives (*key, clientAlias*) as for receivers are used for transceiver of type aftn.
+ 
+  Routing table is used at reception of a message and also for transmission of a message.
+  Same routing table directives (*key, clientAlias*) as for receivers are used for transceiver of type aftn.
 
 In addition, two other directives are used:
 
@@ -906,20 +910,20 @@ space.
 
 Example... assume /apps is a path where storage is moved between peers in an HA cluster. 
 Assuming sundew is already installed the instructions for moving application data onto 
-shared space would be something like below:
+shared space would be something like below::
 
-|
-| px stop
-| mkdir /apps/px
-| mv /var/log/px /apps/px/logs
-| ln -s /apps/px/logs /var/log/px
-| mv /var/spool/px/* /apps/px
-| ln -s /apps/px /var/spool
-| mv /etc/px /apps/px/etc
-| ln -s /apps/px/etc /etc/px
-| chown -R px.px /apps/px
-| px start
-|
+ 
+  px stop
+  mkdir /apps/px
+  mv /var/log/px /apps/px/logs
+  ln -s /apps/px/logs /var/log/px
+  mv /var/spool/px/* /apps/px
+  ln -s /apps/px /var/spool
+  mv /etc/px /apps/px/etc
+  ln -s /apps/px/etc /etc/px
+  chown -R px.px /apps/px
+  px start
+ 
 
 
 Product eXchange Array
@@ -1004,12 +1008,11 @@ through the database for the products and retransmitting to various combination
 of clients. pxRetransmit is a simple shell script with at least 2 arguments.
 The first argument is the client (sender) name, the second is the absolute path
 of the product you want to retransmit. You can put as many products as you want
-Here is an example which retransmit all SXVX45 bulletins to the navcan client:
-
-|
-|  cd $PXROOT/db/20080604/SX/pds6/KWNB
-|  pxRetransmit  navcan  ./SXVX45*
-|
+Here is an example which retransmit all SXVX45 bulletins to the navcan client::
+ 
+   cd $PXROOT/db/20080604/SX/pds6/KWNB
+   pxRetransmit  navcan  ./SXVX45*
+ 
 
 You can list more than one product for the last command line arguments.
 A detailed description of the pxRetrans program is found here (Daniel...!!!)
