@@ -7,6 +7,9 @@ A Guide to Using MetPX
 
 Front Matter
 -------------
+
+STATUS: PRE-DRAFT (Text incomplete.)
+
 :Authors: 
     Peter Silva, Michel Grenier, Daniel Lemay,
     and many more to come...:-)
@@ -15,17 +18,8 @@ Front Matter
      $Rev$
      $Date$
 
-PRE-DRAFT, not even ready for revision yet! Missing:
 
-* amb - explanation of file naming convention & extension.
-* mg - explanation of DESTFN stuff in general terms (details for man page.)
-* lp - WMO monitoring feed, little blather about METDATA thingum...
-* amb - several recipes: choosing among WMO feeds...
-* several incomplete sections marked FIXME.
-* description of required cron jobs.
-
-
-:Copyright: MetPX Copyright (C) 2004-2006  Environment Canada
+:Copyright: MetPX Copyright (C) 2004-2018  Environment Canada
 
 
 
@@ -64,7 +58,7 @@ portion of the International Civil Aviation Organization's (ICAO)
 Aviation Fixed Telecommunications Network (AFTN) operated within Canada
 by NavCanada.
 
-At the CMC, Metpx runs on a cluster of Debian Linux systems configured for high 
+At the CMC, Metpx runs on a cluster of Ubuntu Linux systems configured for high 
 availability.   As such, configuration requires a basic knowledge of linux 
 shell commands (such as ls, rm, cp, cat, and grep), and use of text editor, 
 (vi is used, but any text editor will do.)  Lastly python 
@@ -173,16 +167,53 @@ the first AHL in a file, routes the contents accordingly.
 Installation
 ------------
 
-Download the .deb package from the download area on metpx.sf.net.
-Then install it using Debian standard methods:
+Download the .deb package from Ubuntu PPA: https://launchpad.net/~ssc-hpc-chp-spc/+archive/ubuntu/metpx
 
-| dpkg -i metpx-sundew-xx-yy.dpkg
+| sudo add-apt-repository ppa:ssc-hpc-chp-spc/metpx
+| sudo apt-get update
 
-installs the package itself.
+Then install it using (Debian/Ubuntu) standard methods:
 
-|  apt-get install -f
+| apt-get install metpx-sundew-xx-yy.dpkg
 
 installs the missing dependencies, if any.
+
+Building a Debian Package
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If you are not running on an Ubuntu version supported by the launchpag PPA, then you can build
+your own package from source:
+
+get source from github.
+
+| git clone http://github.com/MetPX/Sundew sundew
+| cd sundew
+
+install build dependencies prior to building a package
+
+| sudo apt-get
+| build-dep .   
+
+build the package in .. (no admin access required)
+
+| debuild -us -uc
+ 
+The package built on my ubuntu... 0.18.04 is the Sundew version, not a reference to ubuntu!
+
+| ls ../*sundew*.deb
+| ../python-metpx-sundew_0.18.04_all.deb
+
+install the Debian package:
+
+| sudo dpkg -i ../python-metpx-sundew_0.18.04_all.deb
+
+you might need to do:
+
+| sudo apt install -f
+
+and you should be good to go.
+
+
 
 A First Run
 -----------
@@ -261,9 +292,6 @@ Now build a sample configuration:
 |   key_accept .* loop 3
 | EOT
 |
-
-FIXME: default 'extension' should be set in /etc/px/px.conf as a sitewide
-setting. 
 
 As the above series of commands show, configuration files for metpx
 reside in the /etc/px directory.  Configuration which applies to multiple
@@ -387,7 +415,7 @@ Configuring VSFTPD for File Reception
 
 Being careful, one can likely use any FTP server.  However,
 use of VSFTPD makes configuration quite simple.  It is available from 
-standard Debian repositories via *apt-get install vsftpd*.  
+standard Debian/Ubuntu repositories via *apt-get install vsftpd*.  
 
 Here is a complete /etc/vsftpd.conf: 
 
@@ -660,6 +688,7 @@ Use key directive (in preference over key_accept) and comments copiously in pxRo
 
 WMO Monitoring 
 --------------
+
 FIXME: input needed LP, write up a little configuration...
  * promote the DWD package, provide a link...
  * Give a sample circuit configuration.
@@ -735,7 +764,7 @@ Broker     MHS, Switch
 So if you read AMQP literature about an Exchange, it is basically referring to a Receiver in MetPx.
 Current work in MetPX is aimed at bridging to AMQP. a amqp Sender can feed metpx data to an AMQP broker. An AMQP receiver, similarly connects to an amqp broker, and accepts data from it.  There is currently no plan to implement full AMQP broker functionality.
 
-In order to demonstrate AMQP usage, please visit the rabbitmq.com web site, and install that broker.  Debian packages are readily available for installation via apt-get after adding rabbitmq´s repository.  The following examples assume that rabbitmq has been installed on localhost.  No further configuration is assumed.
+In order to demonstrate AMQP usage, please visit the rabbitmq.com web site, and install that broker. Packages are readily available for installation via apt-get after adding rabbitmq´s repository.  The following examples assume that rabbitmq has been installed on localhost.  No further configuration is assumed.
 
 Feeding AMQP
 ------------
