@@ -358,7 +358,7 @@ class Ingestor(object):
             # pull files in rxq directory if in pull mode
             if self.source.type == 'pull-file' or self.source.pull_script != None :
                files    = []
-               sleeping = os.path.isfile(PXPaths.RXQ + self.source.name + '/.sleep')
+               sleeping = os.path.isfile(PXPaths.RXQ + self.source.name + '/.sleep') or not self.has_vip()
 
                if self.source.type == 'pull-file' :
                   puller = PullFTP(self.source,self.logger,sleeping)
@@ -578,7 +578,7 @@ class Ingestor(object):
             # pull files in rxq directory if in pull mode
             if self.source.type == 'pull-bulletin' or self.source.pull_script != None :
                files    = []
-               sleeping = os.path.isfile(PXPaths.RXQ + self.source.name + '/.sleep')
+               sleeping = os.path.isfile(PXPaths.RXQ + self.source.name + '/.sleep') or not self.has_vip()
 
                if self.source.type == 'pull-bulletin' :
                   puller = PullFTP(self.source,self.logger,sleeping)
@@ -712,6 +712,26 @@ class Ingestor(object):
             collect.process()
 
             time.sleep(20)
+  
+    def has_vip(self):
+
+             import netifaces
+             # no vip given... standalone always has vip.
+             if self.source.vip == None:
+                 return True
+
+             for i in netifaces.interfaces():
+                 for a in netifaces.ifaddresses(i):
+                     j=0
+                     while( j < len(netifaces.ifaddresses(i)[a]) ) :
+                         if self.source.vip in netifaces.ifaddresses(i)[a][j].get('addr'):
+                            self.logger.info(" VIP %s is enabled on the current host, Pull should be active " % self.source.vip)
+                            return True
+                         j+=1
+             self.logger.info("VIP %s is disabled on the current host, Pull should be sleeping" % self.source.vip)
+             return False
+
+
 
     
 if __name__ == '__main__':

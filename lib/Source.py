@@ -131,6 +131,9 @@ class Source(object):
         self.pull_prefix = ''               # file may be prefixed bu some string filename will than be prefix_filename
                                             # or value 'HDATETIME' for the file data time on remote host
 
+        # VIP option, None for standalone process
+        self.vip = None
+
         #-----------------------------------------------------------------------------------------
         # Setting up default collection configuration values
         #-----------------------------------------------------------------------------------------
@@ -291,6 +294,7 @@ class Source(object):
                     elif words[0] == 'fx_script': self.fx_execfile = words[1]
                     elif words[0] == 'lx_script': self.lx_execfile = words[1]
                     elif words[0] == 'pull_script': self.pull_execfile = words[1]
+                    elif words[0] == 'vip': self.vip = words[1]
 
                     elif words[0] == 'arrival':
                          if self.mapEnteteDelai == None : self.mapEnteteDelai = {}
@@ -447,6 +451,7 @@ class Source(object):
         print("FX script: %s" % source.fx_execfile)
         print("LX script: %s" % source.lx_execfile)
         print("Pull script: %s" % source.pull_execfile)
+        print("VIP : %s" % source.vip)
 
         print("******************************************")
         print("*       AMQP stuff                       *")
