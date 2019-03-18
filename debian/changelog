@@ -1,3 +1,9 @@
+metpx-sundew (0.19.03) unstable; urgency=medium
+
+  * Added vip option to pull-bulletin and pull-file 
+
+ -- Noureddine Habili <noureddine.habili@canada.ca>  Mon, 18 Mar 2019 23:32:10 +0000
+
 metpx-sundew (0.18.04) unstable; urgency=medium
 
   * chmmod -R causes very long install time when upgrading system in use.
