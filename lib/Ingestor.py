@@ -298,10 +298,10 @@ class Ingestor(object):
             sourceQueueName = PXPaths.RXQ + name + '/' + ingestName
             self.createDir(os.path.dirname(sourceQueueName), self.clientDirsCache)
             try:
-                os.link(dbName, clientQueueName)
+                os.link(dbName, sourceQueueName)
             except OSError:
                 (type, value, tb) = sys.exc_info()
-                self.logger.error("Unable to link to client queue %s %s, Type: %s, Value: %s" % (dbName, clientQueueName, type, value))
+                self.logger.error("Unable to link to client queue %s %s, Type: %s, Value: %s" % (dbName, sourceQueueName, type, value))
             #os.link(dbName, sourceQueueName)
 
         self.logger.info("Queued for: %s" % string.join(clientNames) + ' ' + string.join(feedNames) )
