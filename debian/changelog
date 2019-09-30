@@ -1,3 +1,10 @@
+metpx-sundew (0.19.09) unstable; urgency=medium
+
+  * fix for #12 where linking feeder product crashed. (regression introduced in 0.18.04 )  
+  * 
+
+ -- Peter Silva <peter@idefix>  Thu, 26 Sep 2019 16:10:33 -0400
+
 metpx-sundew (0.19.03) unstable; urgency=medium
 
   * Added vip option to pull-bulletin and pull-file 
