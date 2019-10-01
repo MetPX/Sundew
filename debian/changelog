@@ -1,9 +1,15 @@
+metpx-sundew (0.19.10) unstable; urgency=medium
+
+  * change of naming scheme to match other MetPX projects.
+
+ -- Peter Silva <peter.silva@canada.ca>  Tue, 01 Oct 2019 12:12:57 -0400
+
 metpx-sundew (0.19.09) unstable; urgency=medium
 
   * fix for #12 where linking feeder product crashed. (regression introduced in 0.18.04 )  
   * 
 
- -- Peter Silva <peter@idefix>  Thu, 26 Sep 2019 16:10:33 -0400
+ -- Peter Silva <peter.silva@canada.ca>  Thu, 26 Sep 2019 16:10:33 -0400
 
 metpx-sundew (0.19.03) unstable; urgency=medium
 
