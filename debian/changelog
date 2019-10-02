@@ -1,3 +1,9 @@
+metpx-sundew (0.19.10p1) unstable; urgency=medium
+
+  * Still trying to get launchpad to build properly. 
+
+ -- Peter Silva <peter@blacklab>  Wed, 02 Oct 2019 07:26:38 -0400
+
 metpx-sundew (0.19.10) unstable; urgency=medium
 
   * change of naming scheme to match other MetPX projects.
