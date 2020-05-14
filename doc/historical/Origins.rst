@@ -56,8 +56,8 @@ with a common, simpler configuration. The result of that was the original produc
 (PX.)
 
 
-Why Sundew is Faster than MetPX
--------------------------------
+Why Sundew is Faster than PDS
+-----------------------------
 
 Why is it faster? One reason: PDS uses a central ingest process, and IPC for reception to 
 communicate with a dispatcher. The dispatcher is a single process that does all routing and access 
