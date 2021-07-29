@@ -25,7 +25,7 @@ STATUS: PRE-DRAFT (Text incomplete.)
 
 About This Guide
 ---------------- 
-´A Guide to Using MetPX´ describes the principles and features of the MetPX TCP/IP WMO switching
+Â´A Guide to Using MetPXÂ´ describes the principles and features of the MetPX TCP/IP WMO switching
 application.  The Guide introduces many the facets of the package, to get the user started.
 For fully detailed reference material, the manual pages are available on each of the commands used.
 
@@ -176,7 +176,11 @@ Then install it using (Debian/Ubuntu) standard methods::
 
  apt-get install metpx-sundew-xx-yy.dpkg
 
-installs the missing dependencies, if any.
+Installs the missing dependencies, if any.  
+For example, installing python crcmod module::
+
+  sudo apt-get update
+  sudo apt-get install python-crcmod
 
 Building a Debian Package
 ~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -544,7 +548,7 @@ FIXME: Add a second router, create per bulletin pxRouting file.
 
 * client.
 
-  * looks in it´s queue
+  * looks in itÂ´s queue
   * applies reject/accept, sends as directed.
 
 
@@ -768,7 +772,7 @@ Broker     MHS, Switch
 So if you read AMQP literature about an Exchange, it is basically referring to a Receiver in MetPx.
 Current work in MetPX is aimed at bridging to AMQP. a amqp Sender can feed metpx data to an AMQP broker. An AMQP receiver, similarly connects to an amqp broker, and accepts data from it.  There is currently no plan to implement full AMQP broker functionality.
 
-In order to demonstrate AMQP usage, please visit the rabbitmq.com web site, and install that broker. Packages are readily available for installation via apt-get after adding rabbitmq´s repository.  The following examples assume that rabbitmq has been installed on localhost.  No further configuration is assumed.
+In order to demonstrate AMQP usage, please visit the rabbitmq.com web site, and install that broker. Packages are readily available for installation via apt-get after adding rabbitmqÂ´s repository.  The following examples assume that rabbitmq has been installed on localhost.  No further configuration is assumed.
 
 Feeding AMQP
 ------------
@@ -892,7 +896,7 @@ In addition, two other directives are used:
 Basic High Availability
 -----------------------
 
-The first step in improving availability over running a single system on it´s own
+The first step in improving availability over running a single system on itÂ´s own
 is to pair servers up, and have some provision for failover between the paired machines.
 If servers A and B are configured in HA mode, then typically it is in an active/passive
 way, where Server A is active, while B is idle.  In the case of failure of the server A, 
