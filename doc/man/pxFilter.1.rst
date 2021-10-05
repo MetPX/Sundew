@@ -18,18 +18,18 @@ SYNOPSIS
 
 **pxFilter** *filter_name* [ *start|stop|restart|reload|status* ]...
 
-DESCRIPTION
+DES**IPTION
 ===========
 
 A filter, in the METPX suite, is a program that scans endlessly its queue directory namely
-$PXROOT/fxq/"filter_name" for the reception of products. Once a product arrives, the filter
+$P**OOT/fxq/"filter_name" for the reception of products. Once a product arrives, the filter
 processes it according to its configuration, puts the derived product into the product database
 (simple file/directory hiearchy) and distributes the product to any METPX filters,senders,tranceivers
 (if any) that are configured to process it.
 
 The configuration of a filter is a simple ascii file. It must be placed in 
-directory $PXROOT/etc/fx (PXROOT is usually /apps/px). The file's name must be
-the filter_name with the suffix .conf. For example, if file $PXROOT/etc/fx/from-gif-to-png.conf
+directory $P**OOT/etc/fx (PXROOT is usually /apps/px). The file's name must be
+the filter_name with the suffix .conf. For example, if file $P**OOT/etc/fx/from-gif-to-png.conf
 exists and is syntactically correct, then the following commands are valid::
    
    pxFilter from-gif-to-png start
@@ -47,16 +47,16 @@ reloads the filter configuration and possibly the routing table. After reloading
 restarts the filter. It is equivalent to a stop followed by a start.
     
 **start**
-starts the filter program. It includes : saving the process id in the lock file $PXROOT/fxq/"filter_name"/.lock,
+starts the filter program. It includes : saving the process id in the lock file $P**OOT/fxq/"filter_name"/.lock,
 loading its configuration and possibly the routing table, and starting the filtering process which depends of the filter's configuration.
     
 **status**
-returns the state of filter (running, locked or stopped). It gets the process id in the lock file $PXROOT/fxq/"filter_name"/.lock (if not found the filter is assumed to be stopped), than check to see if the pid is a running process... If the pid is found but the process is not, the filter is assumed to be locked
+returns the state of filter (running, locked or stopped). It gets the process id in the lock file $P**OOT/fxq/"filter_name"/.lock (if not found the filter is assumed to be stopped), than check to see if the pid is a running process... If the pid is found but the process is not, the filter is assumed to be locked
     
 **stop**
-stops the filter program. It includes a proper handling of file processing (if any) and it removes the lock file in the $PXROOT/fxq/"filter_name"/.lock.
+stops the filter program. It includes a proper handling of file processing (if any) and it removes the lock file in the $P**OOT/fxq/"filter_name"/.lock.
 
-RECEIVER TYPES
+RECEIV** TYPES
 ==============
 
 The possible type are :
@@ -67,10 +67,10 @@ the routing of the converted product is done without consideration to its conten
 **filter-bulletin**
 the routing of the converted product considers its content; it must be a meteorological bulletin.
 
-CONFIGURATION
+CONFIG**ATION
 =============
 
-As said earlier, the configuration file for a filter resides in $PXROOT/etc/fx/"**FilterName**".conf
+As said earlier, the configuration file for a filter resides in $P**OOT/etc/fx/"**FilterName**".conf
 The syntax of the file is simple. A comment is a line that begins with **#**. Empty lines are permitted.
 To declare or set an option you simply use one of these form (depending on the option) ::
 
@@ -78,11 +78,11 @@ To declare or set an option you simply use one of these form (depending on the o
   **option <value1,value2,...>**
   **option <value1 value2 ...>**
 
-GENERAL CONFIGURATION OPTIONS
+GEN**AL CONFIGURATION OPTIONS
 =============================
 
 **fx_script script (default:None)**
-Filter configuration must define a script.  The script must be in python and reside in $PXROOT/etc/scripts.
+Filter configuration must define a script.  The script must be in python and reside in $P**OOT/etc/scripts.
 The fx_script must end with the line ::
 
          self.fx_script = module
@@ -109,7 +109,7 @@ The module must return one of the 3 following::
 Filter configuration may define a script that will act on all the files 
 found in the filter's queue. For example, a filter that serves as a bulletin
 collector would use an lx_script. The script must be in python and reside in 
-$PXROOT/etc/scripts. The lx_script must end with the line ::
+$P**OOT/etc/scripts. The lx_script must end with the line ::
 
          self.lx_script = module
 
@@ -126,7 +126,7 @@ The priority field and the timestamp field are checked for validity.
 In practice, never used for sources. But turned off if you want to
 behave like the PDS.
    
-PRODUCT ROUTING OPTIONS
+**ODUCT ROUTING OPTIONS
 =======================
 
 ::
@@ -134,13 +134,13 @@ PRODUCT ROUTING OPTIONS
   **reject <regexp pattern>**
   **imask <filepattern>**
   **routemask boolean (default: False)**
-  **routingTable filename (default: pxRouting.conf)**
+  **routingTable filename (default: p**outing.conf)**
   **feed receivername**
 
-After determining the ingest_name, the ingest_name is matched against the **accept\fR and \fBreject**
+After determining the ingest_name, the ingest_name is matched against the **accept** and **reject**
 regexp patterns of the filter's configuration file. The default is for the file to be accepted.  
 **reject** (exclusion) can be used to suppress reception of files with a certain pattern. 
-Files suppressed are not ingested into the DB.
+Files suppressed are not ingested into the **.
 
 The filter can use a routing table (more efficient).
 In that case you must do the following:
@@ -153,9 +153,9 @@ In that case you must do the following:
    that contains parenthesis.  The enclosed derived filename parts are 
    concatenated with "_" forming a routing key
 
-4- use **routingTable** to set the routing table file. The default is pxRouting.conf and it must be
-   located in $PXROOT/etc. The resulting possible keys from (3) must be defined in the routing table file 
-   with the filters/clients/transceivers and priority. Ex.: key CHART_GIF client1,client2 3
+4- use **routingTable** to set the routing table file. The default is p**outing.conf and it must be
+   located in $P**OOT/etc. The resulting possible keys from (3) must be defined in the routing table file 
+   with the filters/clients/transceivers and priority. Ex.: key CH**T_GIF client1,client2 3
 
 Some filters may want to feed a receiver. The option **feed** must than be used.
 Ex.: feed receiver_name_2
@@ -177,7 +177,7 @@ if set to true, the filter computes the md5checksum of the incoming product.
 It compares this number with its cached md5checksum numbers of received products. 
 If a match is found, the product is not ingested.
 
-DEVELOPER SPECIFIC OPTIONS
+DEVELOP** SPECIFIC OPTIONS
 ==========================
 
 **sorter keyword (Default: MultiKeysStringSorter)**
@@ -186,12 +186,12 @@ other keyword could be None, StandardSorter.  Determine which type of sorter wil
 **patternMatching boolean  (Default: True)**
 
 If the option **patternMatching** is True by default. But if it is set to False, the products' file name
-will not be matched against the **accept\fR and \fBreject** regexp patterns of the sender's configuration file.
+will not be matched against the **accept** and **reject** regexp patterns of the sender's configuration file.
 For sender of type single-file, no product is processed. For senders of type am or wmo, all products are processed.
 
 **emask/imask <filepattern>**
 
-**emask/imask\fR are an older version of \fBaccept/reject** and use filepattern instead of regexp pattern.
+**emask/imask** are an older version of **accept/reject** and use filepattern instead of regexp pattern.
 They are still working for now  but consider them obsolete.
 
 **clientsPatternMatching boolean  (Default: True)**

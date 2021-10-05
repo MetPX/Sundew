@@ -236,12 +236,12 @@ PRODUCT SELECTION OPTIONS
   **accept <regexp pattern> [<keyword>]**
   **reject <regexp pattern>**
 
-The products' file name is matched against the **accept\fR and \fBreject** regexp patterns of
+The products' file name is matched against the **accept** and **reject** regexp patterns of
 the sender's configuration file.  **reject** (exclusion) can be used to suppress the delivery
 of files with a certain pattern. **accept** options validate filenames that are sent to the client.
 If the sender is 'single-file' than a product accepted will be placed in the nearest directory
-declared before the matching **accept\fR declaration. The \fBaccept** declaration has an
-optional **keyword\fR. It overwrites the \fBfilename** option value for the accepted products only.
+declared before the matching **accept** declaration. The **accept** declaration has an
+optional **keyword**. It overwrites the **filename** option value for the accepted products only.
 As an example the two following sequence are equivalent.::
 
          filename WHATFN
@@ -358,7 +358,7 @@ The following keywords are valid::
 **destination url [filename-keyword] (Default: None )**
 **url** stands for Uniform Resource Locator and can be used to designate where
 a sender should connect to.  All the previous single-file options, if used only once,
-can be set in one **destination\fR declaration.  Here \fBfilename-keyword** refer to
+can be set in one **destination** declaration.  Here **filename-keyword** refer to
 the keywords of the **filename** option defined above.::
 
   The url syntax is   protocol://user:password@remotehost//absolute_path
@@ -375,7 +375,7 @@ the keywords of the **filename** option defined above.::
 **The remaining of the file options is irrelevant to the amqp protocol**
 
 **ftp_mode mode (Default: passive )**
-the ftp mode is either **active\fR or \fBpassive**.
+the ftp mode is either **active** or **passive**.
 
 **chmod integer (default: 666)**
 
@@ -391,7 +391,7 @@ ways to use this option.
 Usualy the **lock** option defines a suffix given to the file during transfer.
 When the file is completely transfered, the suffix is removed by renaming the file.
 
-The second usage is to use the string **umask\fR to set it. Ex.: \fBlock umask**
+The second usage is to use the string **umask** to set it. Ex.: **lock umask**
 In this case the file has permission 000 during transfer. When the transfer is done,
 the permission changes to the value given to the option **chmod**.
 
@@ -448,9 +448,9 @@ If set to 0, this is equivalent to not checking the modification time.
 **patternMatching boolean  (Default: True)**
 
 If the option **patternMatching** is True by default. But if it is set to False, the products' file name
-will not be matched against the **accept\fR and \fBreject** regexp patterns of the sender's configuration file.
+will not be matched against the **accept** and **reject** regexp patterns of the sender's configuration file.
 For sender of type single-file, no product is processed. For senders of type am or wmo, all products are processed.
 
 **emask/imask <filepattern>**
-**emask/imask\fR are an older version of \fBaccept/reject** and use filepattern instead of regexp pattern.
+**emask/imask** are an older version of **accept/reject** and use filepattern instead of regexp pattern.
 They are still working for now  but are deprecated.
