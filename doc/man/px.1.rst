@@ -14,7 +14,7 @@ Metpx program to manage all processes
 SYNOPSIS
 ========
 
-**px** [ *start|stop|restart|reload|status* ]
+**px** [ *graceful|start|stop|restart|reload|status* ]
 
 DESCRIPTION
 ===========
@@ -38,6 +38,7 @@ metpx processes by searching through::
 Going through all this information the px program determines which processes to act on.
 The possible actions are ::
 
+   px graceful
    px start
    px restart
    px reload
@@ -45,6 +46,10 @@ The possible actions are ::
    px stop
 
 The action arguments do simply what they mean. 
+.TP
+**graceful**
+all metpx processes are asked to restart gracefully. It is equivalent to a stop followed by a start, but with a 10 second gap between each component.
+.TP
 .TP
 **reload**
 all metpx processes are asked to reload. This includes the routing table, the station dictionnary, the configuration file, and the determination of potential clients (for receivers,filters,transceivers). After reloading, the programs resume to their normal state.

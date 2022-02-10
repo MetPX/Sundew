@@ -64,7 +64,12 @@ def startThem(dir,name,cmd):
         if os.fork() == 0:
              if counter == 2:
                  time.sleep(0.6)  # sleep A
+             if cmd == 'graceful': 
+                 cmd = 'restart'
              os.execl( sys.path[0] + '/' + name , name, id, cmd )
+        else:
+             if cmd == 'graceful':
+                 time.sleep(10)
 
 def start(cmd):
     startThem(PXPaths.ETC + 'rx/', 'pxReceiver', cmd)
@@ -93,16 +98,16 @@ if os.getuid() == 0:
 
 # Two arguments must be supplied (source and command)
 if len(sys.argv) == 2:
-    if sys.argv[1] not in ['start', 'stop', 'status', 'restart', 'reload']:
-        print "USAGE: px (start|stop|restart|reload|status) "
+    if sys.argv[1] not in ['graceful', 'start', 'stop', 'status', 'restart', 'reload']:
+        print "USAGE: px (graceful|start|stop|restart|reload|status) "
         print "Wrong command name"
         sys.exit(1)
 elif len(sys.argv) == 1:
-    print "USAGE: px (start|stop|restart|reload|status) "
+    print "USAGE: px (graceful|start|stop|restart|reload|status) "
     print "Command missing"
     sys.exit(1)
 elif len(sys.argv) > 2:
-    print "USAGE: px (start|stop|restart|reload|status) "
+    print "USAGE: px (graceful|start|stop|restart|reload|status) "
     print "Too many arguments"
     sys.exit(1)
 
