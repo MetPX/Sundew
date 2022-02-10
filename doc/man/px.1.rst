@@ -48,7 +48,7 @@ The possible actions are ::
 The action arguments do simply what they mean. 
 .TP
 **graceful**
-all metpx processes are asked to restart gracefully. It is equivalent to a stop followed by a start, but with a 10 second gap between each component.
+all metpx processes are asked to restart gracefully. It is equivalent to a stop followed by a start, but with a 1 second gap between each configuration.
 .TP
 .TP
 **reload**
