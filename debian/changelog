@@ -1,5 +1,6 @@
 metpx-sundew (0.22.01) unstable; urgency=medium
 
+  * adding slower restart px graceful #14
   * adding systemd unit file.
 
 metpx-sundew (0.19.10p1) unstable; urgency=medium
