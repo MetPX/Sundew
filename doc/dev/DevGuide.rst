@@ -178,6 +178,39 @@ git clone git://git.code.sf.net/p/metpx/git metpx-git
 Assuming it works, You will see a trunk directory. and you can set up
 a loop back environment by:
 
+Building a Package
+------------------
+
+Debian standard packaging used::
+
+   dch
+
+fill in debian/changelog with information about changes in latest release::
+
+   debuild -us uc
+
+build a package locally. Make sure it builds properly.
+Only after that::
+
+   git tag -a "0.YY.x" -m "something helpful"
+
+YY is the last two digits of the year. x is the ordinaly number of releases in the year
+or it could be the month...  After it is tagged::
+
+   git push
+
+Then proceed to Launchpad.net.  Need credentials for this account:
+
+https://launchpad.net/~ssc-hpc-chp-spc
+
+and the recipe is: metpx-sundew.  the next step is to "Request build(s)"
+As no version of paramiko for python2 is not currently available on ubuntu 20.04
+the last stable OS release for which a release can be built is therefore 18.04.
+
+
+
+
+
 Running A Loopback Test as a Developer
 ----------------------------------------
 

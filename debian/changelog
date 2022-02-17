@@ -1,7 +1,15 @@
+metpx-sundew (0.22.02) unstable; urgency=medium
+
+  * adding python-crcmod dep. 
+
+ -- Peter Silva <peter@fractal>  Thu, 17 Feb 2022 11:38:17 -0500
+
 metpx-sundew (0.22.01) unstable; urgency=medium
 
   * adding slower restart px graceful #14
   * adding systemd unit file.
+
+ -- Peter Silva <peter@blacklab>  Thu, 7 Feb 2022 11:38:17 -0500
 
 metpx-sundew (0.19.10p1) unstable; urgency=medium
 
@@ -97,7 +105,7 @@ metpx-sundew (0.6.0-lucid2) lucid; urgency=low
 
 metpx-sundew (0.6.0-lucid1) lucid; urgency=low
 
-  [ Jun Hu ]
+  * [ Jun Hu ]
   * Add init script 
   * Update doc	 
   * lib/LatMessage.py lib/Latencies.py lib/PDSLatencies.py lib/PXLatencies.py
