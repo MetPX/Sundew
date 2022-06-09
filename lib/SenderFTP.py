@@ -299,13 +299,13 @@ class SenderFTP(object):
                 if self.client.port == '' or self.client.port == None : 
                    self.client.port = 22
             
-                if hasattr(self.client, 'ssh_keyfile') :
-                   self.client.password = None
+                if self.client.ssh_keyfile is not None :
+                   self.client.passwd = None
                    self.ssh.connect( self.client.host, self.client.port, self.client.user, \
-                         self.client.password, pkey=None , key_filename=self.client.ssh_keyfile )
+                         self.client.passwd, pkey=None , key_filename=self.client.ssh_keyfile )
                 else:
                    self.ssh.connect( self.client.host, self.client.port, self.client.user, \
-                         self.client.password )
+                         self.client.passwd )
 
                 self.sftp = self.ssh.open_sftp()
                 # WORKAROUND without going to '.' originalDir was None
