@@ -1,3 +1,9 @@
+metpx-sundew (0.22.06) unstable; urgency=medium
+
+  * #17 merge of fixes for username/pw auth in sftp. 
+
+ -- Peter Silva <peter@fractal>  Tue, 14 Jun 2022 10:48:58 -0400
+
 metpx-sundew (0.22.02) unstable; urgency=medium
 
   * adding python-crcmod dep. 
