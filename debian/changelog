@@ -1,3 +1,9 @@
+metpx-sundew (0.22.11) unstable; urgency=medium
+
+  * fix for #18...
+
+ -- Peter Silva <aspypas@srdev1.cmc.ec.gc.ca>  Tue, 08 Nov 2022 17:01:25 +0000
+
 metpx-sundew (0.22.06) unstable; urgency=medium
 
   * #17 merge of fixes for username/pw auth in sftp. 
