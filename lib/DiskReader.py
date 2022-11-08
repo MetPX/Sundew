@@ -300,7 +300,15 @@ class DiskReader:
             self.sortedFiles = sorter.sort()
         elif isinstance(self.flow, Source.Source):
             self.logger.debug("Instance of source")
-            templist = [ (os.stat(file)[ST_MTIME],file) for file in self.files]
+            templist=[]
+            # reformulated to tolerate files disappearing during sort.
+            #templist = [ (os.stat(file)[ST_MTIME],file) for file in self.files]
+            for file in self.files:
+                try:
+                   templist.append( (os.stat(file)[ST_MTIME],file) )
+                except Exception as ex:
+                   self.logger.warning("failed to stat: %s" % file )
+
             templist.sort()
             self.sortedFiles = [ file for mtime,file in templist ]
         else:
