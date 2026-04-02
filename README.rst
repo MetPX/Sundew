@@ -2,7 +2,12 @@
 Sundew
 ======
 
-WMO-GTS switch on TCP/IP protocols (largely obsolete, legacy code.)
+WMO-GTS switch on TCP/IP protocols (very obsolete, legacy code.)
+built on linux systems between 2004 and 2013, largely replaced by 
+Sarracenia. being de-commissions. It is Implemented in python's
+obsolete version 2.x, which cannot be easily used on most modern
+linux distributions. New installations strongly discouraged.
+
 
 History
 -------
@@ -12,13 +17,13 @@ different developers contributed over it's life.  This application is 25 klocs
 of python, that replaced Tandem/Apps 450 klocs + PDS (45 klocs) (20:1) reduction
 in application code.  Provided most Meteorological switching for Canada from 
 about 2006 until about 2017. Still in service but being gradually supplanted
-by Sarracenia.  Same code base support both message and file transfer (was 
+by Sarracenia. Same code base support both message and file transfer (was 
 innovative at the time.)
 
 Sundew is too constrained by early requirements to be modernized, so started
 a fresh code base to work with modern needs: Sarracenia will eventually replace 
 Sundew for (modernized versions of) the same use cases.  Suggest you look 
-`there <http://github.com/MetPX/sarracenia>`_ if looking for something new to
+`there <https://metpx.github.io/sarracenia>`_ if looking for something new to
 deploy.
 
 Features
